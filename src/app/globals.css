@@ -1,26 +1,114 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css");
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg-body);
+  --color-foreground: var(--text-primary);
+  --font-sans: "Pretendard Variable", Pretendard, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg-body: #f2f4f6;
+    --bg-surface: #ffffff;
+    --text-primary: #191f28;
+    --text-secondary: #4e5968;
+    --text-tertiary: #8b95a1;
+    --toss-blue: #3182f6;
+    --toss-blue-light: #e8f3ff;
+    --toss-red: #f04452;
+    --toss-green: #03c75a;
+    --toss-gray: #d1d6db;
+    --border-radius-xl: 24px;
+    --border-radius-lg: 16px;
+    --border-radius-md: 12px;
+    --border-radius-sm: 8px;
+    --transition-speed: 0.2s;
+    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.04);
+    --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--bg-body);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .toss-card {
+    background: var(--bg-surface);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 24px;
+    transition: box-shadow var(--transition-speed);
+  }
+
+  .btn-primary {
+    background: var(--toss-blue);
+    color: white;
+    padding: 12px 20px;
+    border-radius: var(--border-radius-sm);
+    font-size: 15px;
+    font-weight: 600;
+    transition: background var(--transition-speed);
+  }
+  .btn-primary:active {
+    background: #1b64da;
+  }
+
+  .btn-outline {
+    background: var(--toss-blue-light);
+    color: var(--toss-blue);
+    padding: 8px 16px;
+    border-radius: var(--border-radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    transition: background var(--transition-speed);
+  }
+  .btn-outline:active {
+    background: #d4e6ff;
+  }
+
+  .icon-btn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    font-size: 22px;
+    transition: background var(--transition-speed);
+    position: relative;
+  }
+  .icon-btn:hover {
+    background: #f9fafb;
+  }
+
+  .badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: var(--toss-red);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .tag-traffic { background: #e8f3ff; color: var(--toss-blue); }
+  .tag-realestate { background: #fce4e4; color: var(--toss-red); }
+  .tag-edu { background: #e8f5e9; color: var(--toss-green); }
+  .tag-culture { background: #fff3e0; color: #ff9800; }
 }
