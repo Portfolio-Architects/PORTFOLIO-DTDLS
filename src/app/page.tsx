@@ -1,14 +1,212 @@
 'use client';
 
-import { BookOpen, Radar, RefreshCw, X, Heart, UserCircle, LogOut, MapPin, Text, MessageSquare, Star, Camera, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import { BookOpen, Radar, RefreshCw, X, Heart, UserCircle, LogOut, MapPin, Text, MessageSquare, Star, Camera, CheckCircle2, AlertCircle, Clock, Info, ShieldAlert, Building, Map as MapIcon } from 'lucide-react';
 import MainChart from '@/components/MainChart';
 import EduBubbleChart from '@/components/EduBubbleChart';
 import LifestyleRadarChart from '@/components/LifestyleRadarChart';
-import { useDashboardData, dashboardFacade, CommentData } from '@/lib/DashboardFacade';
+import { useDashboardData, dashboardFacade, CommentData, FieldReportData } from '@/lib/DashboardFacade';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
+
+function FieldReportModal({ report, onClose }: { report: FieldReportData, onClose: () => void }) {
+  const s = report.sections;
+  const coverImage = report.imageUrl || s?.infra?.gateImg || s?.infra?.landscapeImg || s?.ecosystem?.communityImg;
+  const rating = report.rating || 5;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/80 flex justify-center items-start overflow-y-auto p-4 md:p-8 custom-scrollbar backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-[#f2f4f6] w-full max-w-3xl min-h-screen md:min-h-0 rounded-3xl relative overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-300 pb-20" onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg">
+          <X size={20} />
+        </button>
+
+        {/* Hero Cover */}
+        {coverImage ? (
+          <div className="w-full h-[50vh] relative">
+            <img src={coverImage} alt={report.apartmentName} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
+               <div className="flex items-center gap-2 mb-3">
+                 <span className="bg-[#3182f6] text-white text-[13px] font-bold px-3 py-1 rounded-full shadow-md flex items-center gap-1.5"><MapPin size={14}/> {report.apartmentName}</span>
+                 <span className="bg-black/40 backdrop-blur-md text-[#ffc107] text-[13px] tracking-widest px-3 py-1 py-1 rounded-full shadow-md">{'⭐'.repeat(rating)}</span>
+               </div>
+               <h1 className="text-[32px] md:text-[42px] font-extrabold text-white leading-tight tracking-tight drop-shadow-lg">{report.apartmentName}</h1>
+               <div className="flex items-center gap-3 mt-4">
+                 <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30"><UserCircle size={16} className="text-white"/></div>
+                 <span className="text-[14px] font-bold text-white/90">{report.author}</span>
+                 <span className="text-[13px] text-white/60 flex items-center gap-1"><Clock size={12}/> {report.createdAt}</span>
+               </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-[#191f28] p-8 md:pt-16 pb-12 rounded-b-3xl">
+             <div className="flex items-center gap-2 mb-4">
+                 <span className="bg-[#3182f6] text-white text-[13px] font-bold px-3 py-1 rounded-full"><MapPin size={14}/> {report.apartmentName}</span>
+             </div>
+             <h1 className="text-[32px] md:text-[42px] font-extrabold text-white leading-tight tracking-tight">{report.apartmentName}</h1>
+             <div className="flex items-center gap-3 mt-6">
+                 <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center"><UserCircle size={16} className="text-white/60"/></div>
+                 <span className="text-[14px] font-bold text-white/90">{report.author}</span>
+                 <span className="text-[13px] text-white/60 flex items-center gap-1"><Clock size={12}/> {report.createdAt}</span>
+             </div>
+          </div>
+        )}
+
+        {/* Magazine Content Wrapper */}
+        <div className="px-6 py-8 md:p-10 flex flex-col gap-10">
+
+          {!s ? (
+            // Legacy Template Render
+            <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+               <h2 className="text-[20px] font-bold text-[#191f28] mb-6 border-b border-[#e5e8eb] pb-3">단지 기본 요약서</h2>
+               <div className="flex flex-col gap-4">
+                 <div className="bg-[#f0fdf4] p-5 rounded-2xl border border-[#bbf7d0]">
+                   <h3 className="text-[15px] font-extrabold text-[#03c75a] mb-2 flex items-center gap-1.5"><CheckCircle2 size={18}/> 최고의 장점</h3>
+                   <p className="text-[15px] text-[#191f28] leading-relaxed whitespace-pre-wrap">{report.pros}</p>
+                 </div>
+                 <div className="bg-[#fff5f5] p-5 rounded-2xl border border-[#ffebec]">
+                   <h3 className="text-[15px] font-extrabold text-[#f04452] mb-2 flex items-center gap-1.5"><AlertCircle size={18}/> 아쉬운 점</h3>
+                   <p className="text-[15px] text-[#191f28] leading-relaxed whitespace-pre-wrap">{report.cons}</p>
+                 </div>
+               </div>
+            </div>
+          ) : (
+            // Advanced Template Render
+            <>
+              {/* 1. 요약 브리프 (Assessment: Alpha / Risk) */}
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+                 <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Text size={20} className="text-[#3182f6]"/> 요약 브리프</h2>
+                 <div className="flex flex-col gap-4">
+                   <div className="bg-[#f0fdf4] p-5 rounded-2xl border border-[#bbf7d0]">
+                     <h3 className="text-[15px] font-extrabold text-[#03c75a] mb-2 flex items-center gap-1.5"><CheckCircle2 size={18}/> 이 단지만의 강력한 장점 (Alpha Driver)</h3>
+                     <p className="text-[15px] text-[#191f28] leading-relaxed whitespace-pre-wrap">{s.assessment.alphaDriver || '내용 없음'}</p>
+                   </div>
+                   <div className="bg-[#fff5f5] p-5 rounded-2xl border border-[#ffebec]">
+                     <h3 className="text-[15px] font-extrabold text-[#f04452] mb-2 flex items-center gap-1.5"><AlertCircle size={18}/> 아쉬운 단점과 위험 (Vulnerability)</h3>
+                     <p className="text-[15px] text-[#191f28] leading-relaxed whitespace-pre-wrap">{s.assessment.systemicRisk || '내용 없음'}</p>
+                   </div>
+                 </div>
+              </div>
+
+              {/* 2. 단지 기본 명세 (Specs) */}
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+                 <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Building size={20} className="text-[#3182f6]"/> 단지 기본 명세</h2>
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
+                      <p className="text-[12px] text-[#8b95a1] font-bold mb-1">준공 연월 / 연차</p>
+                      <p className="text-[15px] text-[#191f28] font-medium">{s.specs.builtYear || '-'}</p>
+                    </div>
+                    <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
+                      <p className="text-[12px] text-[#8b95a1] font-bold mb-1">규모 (세대/동)</p>
+                      <p className="text-[15px] text-[#191f28] font-medium">{s.specs.scale || '-'}</p>
+                    </div>
+                    <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
+                      <p className="text-[12px] text-[#8b95a1] font-bold mb-1">용적률 / 건폐율</p>
+                      <p className="text-[15px] text-[#191f28] font-medium">{s.specs.farBuild || '-'}</p>
+                    </div>
+                    <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
+                      <p className="text-[12px] text-[#8b95a1] font-bold mb-1">세대당 주차 (지하%)</p>
+                      <p className="text-[15px] text-[#191f28] font-medium">{s.specs.parkingRatio || '-'}</p>
+                    </div>
+                 </div>
+              </div>
+
+              {/* 3. 물리적 인프라 & 조경 */}
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+                 <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Camera size={20} className="text-[#3182f6]"/> 현장 인프라 둘러보기</h2>
+                 <div className="flex flex-col gap-8">
+                    {/* Gate */}
+                    {(s.infra.gateText || s.infra.gateImg) && (
+                      <div className="flex flex-col md:flex-row gap-6">
+                        {s.infra.gateImg && <img src={s.infra.gateImg} alt="진입로/문주" className="w-full md:w-[280px] h-[200px] rounded-2xl object-cover shadow-sm bg-[#f2f4f6]" />}
+                        <div>
+                          <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f2f4f6] inline-block px-3 py-1 rounded-lg">진입로 및 정문</h4>
+                          <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.infra.gateText || '사진만 제공됨'}</p>
+                        </div>
+                      </div>
+                    )}
+                    {/* Landscaping */}
+                    {(s.infra.landscapeText || s.infra.landscapeImg) && (
+                      <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-[#f2f4f6]">
+                        {s.infra.landscapeImg && <img src={s.infra.landscapeImg} alt="조경/지형" className="w-full md:w-[280px] h-[200px] rounded-2xl object-cover shadow-sm bg-[#f2f4f6]" />}
+                        <div>
+                          <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f2f4f6] inline-block px-3 py-1 rounded-lg">단지 조경 및 지형</h4>
+                          <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.infra.landscapeText || '사진만 제공됨'}</p>
+                        </div>
+                      </div>
+                    )}
+                    {/* Parking & Maintenance ... (Skip strict layout for brevity, just render them similarly) */}
+                     {(s.infra.parkingText || s.infra.parkingImg) && (
+                      <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-[#f2f4f6]">
+                        {s.infra.parkingImg && <img src={s.infra.parkingImg} alt="지하주차장" className="w-full md:w-[280px] h-[200px] rounded-2xl object-cover shadow-sm bg-[#f2f4f6]" />}
+                        <div>
+                          <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f2f4f6] inline-block px-3 py-1 rounded-lg">지하주차장 인프라</h4>
+                          <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.infra.parkingText || '사진만 제공됨'}</p>
+                        </div>
+                      </div>
+                    )}
+                 </div>
+              </div>
+
+               {/* 4. Ecosystem */}
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+                 <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Info size={20} className="text-[#3182f6]"/> 생활 편의시설 및 거시 입지</h2>
+                 <div className="flex flex-col gap-8">
+                    {(s.ecosystem.schoolText || s.ecosystem.schoolImg) && (
+                      <div className="flex flex-col md:flex-row gap-6">
+                        {s.ecosystem.schoolImg && <img src={s.ecosystem.schoolImg} alt="학군" className="w-full md:w-[280px] h-[200px] rounded-2xl object-cover shadow-sm bg-[#f2f4f6]" />}
+                        <div>
+                          <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f8f9fa] border border-[#e5e8eb] inline-block px-3 py-1 rounded-lg">학군 및 통학로</h4>
+                          <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.ecosystem.schoolText}</p>
+                        </div>
+                      </div>
+                    )}
+                    {(s.ecosystem.commerceText || s.ecosystem.commerceImg) && (
+                      <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-[#f2f4f6]">
+                        {s.ecosystem.commerceImg && <img src={s.ecosystem.commerceImg} alt="상권" className="w-full md:w-[280px] h-[200px] rounded-2xl object-cover shadow-sm bg-[#f2f4f6]" />}
+                        <div>
+                          <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f8f9fa] border border-[#e5e8eb] inline-block px-3 py-1 rounded-lg">동네 상권</h4>
+                          <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.ecosystem.commerceText}</p>
+                        </div>
+                      </div>
+                    )}
+                 </div>
+              </div>
+
+               {/* 5. Synthesis */}
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+                 <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><ShieldAlert size={20} className="text-[#3182f6]"/> 최종 매수 타당성 평가</h2>
+                 <div className="flex flex-col gap-4">
+                    <div className="bg-[#191f28] p-6 rounded-2xl text-white">
+                      <h4 className="text-[13px] font-bold text-[#8b95a1] mb-2">교통 및 개발 호재</h4>
+                      <p className="text-[15px] leading-relaxed whitespace-pre-wrap mb-4 pb-4 border-b border-white/10">{s.location.trafficText || '-'}</p>
+                      <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{s.location.developmentText || '-'}</p>
+                    </div>
+                    <div className="p-6 rounded-2xl border-2 border-[#191f28] bg-[#fdfdfd]">
+                      <h4 className="text-[16px] font-extrabold text-[#191f28] mb-2">💡 최종 결론 (Synthesis)</h4>
+                      <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.assessment.synthesis || '-'}</p>
+                      
+                      {s.assessment.probability && (
+                        <div className="mt-6 p-4 bg-[#e8f3ff] rounded-xl flex items-start gap-3">
+                           <Radar size={20} className="text-[#3182f6] shrink-0 mt-0.5" />
+                           <div>
+                             <h5 className="text-[13px] font-bold text-[#3182f6] mb-1">상승 확률 모델링</h5>
+                             <p className="text-[14px] text-[#191f28] leading-snug">{s.assessment.probability}</p>
+                           </div>
+                        </div>
+                      )}
+                    </div>
+                 </div>
+              </div>
+            </>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const router = useRouter();
@@ -17,6 +215,7 @@ export default function Dashboard() {
   const [postTitle, setPostTitle] = useState('');
   const [postCategory, setPostCategory] = useState('교통');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
   
   // Comments State
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
@@ -188,41 +387,47 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-           {fieldReports?.map((report) => (
-             <div key={report.id} className="bg-white border shadow-md border-[#e5e8eb] rounded-3xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
-                <div>
-                  {report.imageUrl && (
+           {fieldReports?.map((report) => {
+             const coverImage = report.imageUrl || report.sections?.infra?.gateImg || report.sections?.infra?.landscapeImg || report.sections?.ecosystem?.communityImg;
+             const rating = report.rating || 5;
+             const primaryAdvantage = report.sections?.assessment?.alphaDriver || report.pros || '데이터 없음';
+             const primaryDisadvantage = report.sections?.assessment?.systemicRisk || report.cons || '데이터 없음';
+
+             return (
+              <div key={report.id} className="bg-white border shadow-md border-[#e5e8eb] rounded-3xl overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+                <div onClick={() => setSelectedReport(report)} className="cursor-pointer">
+                  {coverImage && (
                     <div className="w-full aspect-[4/3] bg-[#f2f4f6] relative overflow-hidden">
-                      <img src={report.imageUrl} alt="Field Report" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img src={coverImage} alt="Field Report" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
                          <div className="bg-black/60 backdrop-blur-md text-white text-[12px] font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
                            <MapPin size={14} className="text-[#3182f6]"/> {report.apartmentName}
                          </div>
                          <div className="flex items-center text-[#ffc107] text-[15px] tracking-widest bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm">
-                           {'⭐'.repeat(report.rating)}
+                           {'⭐'.repeat(rating)}
                          </div>
                       </div>
                     </div>
                   )}
 
                   <div className="p-6">
-                    {!report.imageUrl && (
+                    {!coverImage && (
                       <div className="flex justify-between items-start mb-4 pb-4 border-b border-[#f2f4f6]">
                         <h3 className="text-[22px] font-bold text-[#191f28] tracking-tight">{report.apartmentName}</h3>
                         <div className="flex items-center text-[#ffc107] text-[16px] tracking-widest">
-                          {'⭐'.repeat(report.rating)}
+                          {'⭐'.repeat(rating)}
                         </div>
                       </div>
                     )}
                     
                     <div className="flex flex-col gap-3 mb-6 space-y-1">
                       <div className="bg-[#f0fdf4] p-4 rounded-2xl border border-[#bbf7d0]/50">
-                        <p className="text-[13px] font-extrabold text-[#03c75a] mb-1 flex items-center gap-1"><CheckCircle2 size={16}/> 최고의 장점</p>
-                        <p className="text-[15px] leading-relaxed text-[#191f28]">{report.pros}</p>
+                        <p className="text-[13px] font-extrabold text-[#03c75a] mb-1 flex items-center gap-1"><CheckCircle2 size={16}/> 최고의 장점 (Alpha Driver)</p>
+                        <p className="text-[15px] leading-relaxed text-[#191f28] line-clamp-3">{primaryAdvantage}</p>
                       </div>
                       <div className="bg-[#fff5f5] p-4 rounded-2xl border border-[#ffebec]/50">
-                        <p className="text-[13px] font-extrabold text-[#f04452] mb-1 flex items-center gap-1"><AlertCircle size={16}/> 아쉬운 점</p>
-                        <p className="text-[15px] leading-relaxed text-[#191f28]">{report.cons}</p>
+                        <p className="text-[13px] font-extrabold text-[#f04452] mb-1 flex items-center gap-1"><AlertCircle size={16}/> 아쉬운 점 (Vulnerability)</p>
+                        <p className="text-[15px] leading-relaxed text-[#191f28] line-clamp-3">{primaryDisadvantage}</p>
                       </div>
                     </div>
                   </div>
@@ -295,7 +500,8 @@ export default function Dashboard() {
 
                 </div>
              </div>
-           ))}
+            );
+           })}
         </div>
       </div>
 
@@ -434,6 +640,11 @@ export default function Dashboard() {
         </div>
         <button className="btn-primary w-full md:w-auto shrink-0 px-6 rounded-xl">{adBanner.buttonText}</button>
       </div>
+
+      {/* Field Report Full View Modal */}
+      {selectedReport && (
+        <FieldReportModal report={selectedReport} onClose={() => setSelectedReport(null)} />
+      )}
     </div>
   );
 }

@@ -43,17 +43,26 @@ export interface CommentData {
   createdAt: any;
 }
 
+export interface ReportSections {
+  specs: { builtYear: string; scale: string; farBuild: string; parkingRatio: string; };
+  infra: { gateText: string; gateImg?: string; landscapeText: string; landscapeImg?: string; parkingText: string; parkingImg?: string; maintenanceText: string; maintenanceImg?: string; };
+  ecosystem: { communityText: string; communityImg?: string; schoolText: string; schoolImg?: string; commerceText: string; commerceImg?: string; };
+  location: { trafficText: string; developmentText: string; };
+  assessment: { alphaDriver: string; systemicRisk: string; synthesis: string; probability: string; };
+}
+
 export interface FieldReportData {
   id: string;
   apartmentName: string;
-  pros: string;
-  cons: string;
-  rating: number;
+  sections?: ReportSections; 
+  pros?: string; // Legacy fallback
+  cons?: string; // Legacy fallback
+  rating?: number; // Legacy fallback
   author: string;
   likes: number;
   commentCount: number;
   comments?: CommentData[];
-  imageUrl?: string;
+  imageUrl?: string; // Legacy fallback
   createdAt: any;
 }
 
@@ -72,7 +81,7 @@ export interface DashboardDataStrategy {
   getAdBanner(): AdBannerData;
   subscribe?(callback: () => void): () => void;
   addPost?(title: string, category: string, authorUid: string, imageFile?: File): Promise<void>;
-  addFieldReport?(apartmentName: string, pros: string, cons: string, rating: number, authorUid: string, imageFile?: File): Promise<void>;
+  addFieldReport?(apartmentName: string, sections: ReportSections, authorUid: string, imageFiles: Record<string, File>): Promise<void>;
   addFieldReportComment?(reportId: string, text: string, authorUid: string): Promise<void>;
   incrementLike?(postId: string): Promise<void>;
   incrementFieldReportLike?(reportId: string): Promise<void>;
@@ -235,6 +244,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
         fetchedReports.push({
           id: doc.id,
           apartmentName: data.apartmentName,
+          sections: data.sections,
           pros: data.pros,
           cons: data.cons,
           rating: data.rating,
@@ -373,31 +383,42 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     }
   }
 
-  public async addFieldReport(apartmentName: string, pros: string, cons: string, rating: number, authorUid: string, imageFile?: File) {
+  public async addFieldReport(apartmentName: string, sections: ReportSections, authorUid: string, imageFiles: Record<string, File>) {
     try {
       const profile = await this.getUserProfile(authorUid);
 
-      let imageUrl = null;
-      if (imageFile) {
+      // Upload all provided images in parallel
+      const uploadPromises = Object.entries(imageFiles).map(async ([key, file]) => {
         try {
-           const storageRef = ref(storage, `field_reports/${Date.now()}_${imageFile.name}`);
-           const snapshot = await uploadBytes(storageRef, imageFile);
-           imageUrl = await getDownloadURL(snapshot.ref);
-           console.log("Field report image uploaded to:", imageUrl);
+          const storageRef = ref(storage, `field_reports/${Date.now()}_${key}_${file.name}`);
+          const snapshot = await uploadBytes(storageRef, file);
+          const downloadUrl = await getDownloadURL(snapshot.ref);
+          return { key, url: downloadUrl };
         } catch (storageError) {
-           console.error("Storage upload failed (possibly firewall). Proceeding without image.", storageError);
-           // We'll proceed without image URL if storage fails, so the user isn't completely blocked
+          console.error(`Storage upload failed for ${key}`, storageError);
+          return null;
         }
-      }
+      });
+
+      const uploadedImages = (await Promise.all(uploadPromises)).filter(Boolean) as {key: string, url: string}[];
+      
+      // Inject URLs into the sections object map
+      const mergedSections = JSON.parse(JSON.stringify(sections)) as ReportSections;
+      uploadedImages.forEach(({key, url}) => {
+         if (key === 'gateImg') mergedSections.infra.gateImg = url;
+         if (key === 'landscapeImg') mergedSections.infra.landscapeImg = url;
+         if (key === 'parkingImg') mergedSections.infra.parkingImg = url;
+         if (key === 'maintenanceImg') mergedSections.infra.maintenanceImg = url;
+         if (key === 'communityImg') mergedSections.ecosystem.communityImg = url;
+         if (key === 'schoolImg') mergedSections.ecosystem.schoolImg = url;
+         if (key === 'commerceImg') mergedSections.ecosystem.commerceImg = url;
+      });
 
       await addDoc(collection(db, 'field_reports'), {
         apartmentName,
-        pros,
-        cons,
-        rating,
-        authorName: profile.nickname,
+        sections: mergedSections,
+        authorName: profile?.nickname || '익명',
         authorUid,
-        imageUrl: imageUrl,
         likes: 0,
         commentCount: 0,
         createdAt: serverTimestamp()
@@ -579,9 +600,9 @@ export class DashboardFacade {
     }
   }
 
-  public async addFieldReport(apartmentName: string, pros: string, cons: string, rating: number, authorUid: string, imageFile?: File) {
+  public async addFieldReport(apartmentName: string, sections: ReportSections, authorUid: string, imageFiles: Record<string, File>) {
     if (this.strategy.addFieldReport) {
-      await this.strategy.addFieldReport(apartmentName, pros, cons, rating, authorUid, imageFile);
+      await this.strategy.addFieldReport(apartmentName, sections, authorUid, imageFiles);
     }
   }
 
