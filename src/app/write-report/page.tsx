@@ -155,6 +155,25 @@ export default function WriteFieldReport() {
     );
   }
 
+  const SelectInput = ({ section, field, label, options }: { section: keyof ReportSections, field: string, label: string, options: {value: string, label: string}[] }) => {
+    const value = (sections[section] as any)[field] || '';
+    return (
+      <div className="mb-5">
+        <label className="block text-[14px] font-bold text-[#191f28] mb-2">{label}</label>
+        <select 
+          value={value} 
+          onChange={(e) => updateSectionState(section, field, e.target.value)}
+          className={`w-full bg-[#f9fafb] border border-[#d1d6db] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors cursor-pointer appearance-none ${value ? 'text-[#191f28] font-medium' : 'text-[#8b95a1]'}`}
+        >
+          <option value="" disabled>선택해주세요</option>
+          {options.map(opt => (
+            <option key={opt.value} value={opt.value} className="text-[#191f28]">{opt.label}</option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
   if (!user) return null;
 
   return (
@@ -219,10 +238,32 @@ export default function WriteFieldReport() {
               <p className="text-[14px] text-[#4e5968]">{reportAptName}</p>
             </div>
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#e5e8eb]">
-               <TextInput section="specs" field="builtYear" label="준공 연월 (연차)" placeholder="예: 2018년 9월 (6년차)" />
-               <TextInput section="specs" field="scale" label="규모 (세대수/동수)" placeholder="예: 1,500세대 / 12개동" />
-               <TextInput section="specs" field="farBuild" label="용적률 / 건폐율" placeholder="예: 250% / 18%" />
-               <TextInput section="specs" field="parkingRatio" label="세대당 주차 대수 (지하 비율)" placeholder="예: 1.5대 (지하 100%)" />
+               <SelectInput section="specs" field="builtYear" label="준공 연월 (연차)" options={[
+                 { value: "신축 (5년 이내)", label: "신축 (5년 이내)" },
+                 { value: "준신축 (5~10년)", label: "준신축 (5~10년)" },
+                 { value: "구축 (10~20년)", label: "구축 (10~20년)" },
+                 { value: "노후 (20년 이상)", label: "노후 (20년 이상)" },
+                 { value: "재건축/리모델링 대상", label: "재건축/리모델링 대상" }
+               ]} />
+               <SelectInput section="specs" field="scale" label="규모 (세대수/동수)" options={[
+                 { value: "소단지 (500세대 미만)", label: "소단지 (500세대 미만)" },
+                 { value: "중형단지 (500~1,000세대)", label: "중형단지 (500~1,000세대)" },
+                 { value: "대단지 (1,000~2,000세대)", label: "대단지 (1,000~2,000세대)" },
+                 { value: "매머드급 (2,000세대 이상)", label: "매머드급 (2,000세대 이상)" }
+               ]} />
+               <SelectInput section="specs" field="farBuild" label="용적률 / 건폐율 (쾌적성)" options={[
+                 { value: "매우 쾌적 (동간 거리 넓음)", label: "매우 쾌적 (동간 거리 넓음)" },
+                 { value: "쾌적 (표준적인 동간 거리)", label: "쾌적 (표준적인 동간 거리)" },
+                 { value: "보통 (일반적인 수준)", label: "보통 (일반적인 수준)" },
+                 { value: "다소 답답 (동간 거리 좁음)", label: "다소 답답 (동간 거리 좁음)" }
+               ]} />
+               <SelectInput section="specs" field="parkingRatio" label="세대당 주차 대수 (지하 비율)" options={[
+                 { value: "주차 지옥 (1.0대 미만)", label: "주차 지옥 (1.0대 미만)" },
+                 { value: "다소 혼잡 (1.0~1.2대)", label: "다소 혼잡 (1.0~1.2대)" },
+                 { value: "보통 (1.2~1.4대)", label: "보통 (1.2~1.4대)" },
+                 { value: "여유 (1.5대 이상)", label: "여유 (1.5대 이상)" },
+                 { value: "매우 여유 (2.0대 이상)", label: "매우 여유 (2.0대 이상)" }
+               ]} />
             </div>
           </div>
         )}
