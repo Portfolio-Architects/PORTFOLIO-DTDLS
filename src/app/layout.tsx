@@ -15,7 +15,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="antialiased">
-        <div className="flex min-h-screen mx-auto max-w-[1600px] flex-col md:flex-row">
+        <div className="flex min-h-screen flex-col md:flex-row">
           {/* Sidebar */}
           <aside className="w-full md:w-[250px] md:h-screen md:sticky top-0 flex flex-row md:flex-col p-4 md:p-8 z-[100] bg-white/90 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border-b md:border-b-0 border-[#f2f4f6] md:pb-8 justify-between md:justify-start items-center md:items-stretch fixed md:relative">
             <div className="flex items-center gap-3 md:mb-10 px-0 md:px-3">
@@ -57,7 +57,7 @@ export default function RootLayout({
           </aside>
 
           {/* Main Content Area */}
-          <main className="flex-1 p-5 pt-[80px] md:p-8 flex flex-col gap-6 max-w-[1200px] pb-[100px] md:pb-8">
+          <main className="flex-1 p-5 pt-[80px] md:p-8 flex flex-col gap-6 w-full pb-[100px] md:pb-8">
             <header className="flex justify-between items-center pb-6">
               <div className="flex flex-col gap-1">
                 <h1 className="text-xl md:text-2xl font-bold tracking-tight text-[#191f28]">안녕하세요! 동탄의 최신 데이터를 확인하세요.</h1>
