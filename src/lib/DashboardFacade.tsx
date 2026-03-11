@@ -258,10 +258,16 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
       const DEAL_YMD = '202401'; // 2024년 1월 기준 (Recent snapshot)
       const url = `https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev?serviceKey=${API_KEY}&pageNo=1&numOfRows=1000&LAWD_CD=${LAWD_CD}&DEAL_YMD=${DEAL_YMD}`;
       
-      const response = await fetch(url);
-      const text = await response.text();
-      
-      // Since it's XML, parse it manually or via DOMParser in browser
+      // Enforce a strict 3-second timeout so the UI never hangs indefinitely
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+      try {
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        const text = await response.text();
+        
+        // Since it's XML, parse it manually or via DOMParser in browser
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(text, "text/xml");
       const items = xmlDoc.getElementsByTagName("item");
@@ -290,6 +296,10 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
       this.dongtanApartments = Array.from(aptSet).sort();
       this.notifyListeners();
       console.log(`Fetched ${this.dongtanApartments.length} apartments from Open API.`);
+      } catch (innerError) {
+        clearTimeout(timeoutId);
+        throw innerError; // Rethrow to hit the main catch block and trigger fallback
+      }
       
     } catch (error) {
       console.warn("Failed to fetch Dongtan apartments from API, using fallback:", error);
