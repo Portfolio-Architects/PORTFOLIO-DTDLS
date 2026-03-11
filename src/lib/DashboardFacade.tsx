@@ -53,8 +53,11 @@ export interface ReportSections {
 
 export interface FieldReportData {
   id: string;
+  dong?: string;
   apartmentName: string;
   sections?: ReportSections; 
+  premiumScores?: import('./utils/scoring').PremiumScores; // Injected Backend Calculated Score
+  premiumContent?: string; // New Schema Text
   pros?: string; // Legacy fallback
   cons?: string; // Legacy fallback
   rating?: number; // Legacy fallback
@@ -63,6 +66,7 @@ export interface FieldReportData {
   commentCount: number;
   comments?: CommentData[];
   imageUrl?: string; // Legacy fallback
+  images?: { url: string; caption: string; locationTag: string; isPremium: boolean }[]; // New DB schema array
   createdAt: any;
 }
 
@@ -81,7 +85,7 @@ export interface DashboardDataStrategy {
   getAdBanner(): AdBannerData;
   subscribe?(callback: () => void): () => void;
   addPost?(title: string, category: string, authorUid: string, imageFile?: File): Promise<void>;
-  addFieldReport?(apartmentName: string, sections: ReportSections, authorUid: string, imageFiles: Record<string, File>): Promise<void>;
+  addFieldReport?(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageFiles: Record<string, File>): Promise<void>;
   addFieldReportComment?(reportId: string, text: string, authorUid: string): Promise<void>;
   incrementLike?(postId: string): Promise<void>;
   incrementFieldReportLike?(reportId: string): Promise<void>;
@@ -235,7 +239,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   }
 
   private startFieldReportListener() {
-    const q = query(collection(db, 'field_reports'), orderBy('createdAt', 'desc'), limit(10));
+    const q = query(collection(db, 'scoutingReports'), orderBy('createdAt', 'desc'), limit(10));
     
     this.unsubscribeFieldReports = onSnapshot(q, (snapshot) => {
       const fetchedReports: FieldReportData[] = [];
@@ -243,15 +247,19 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
         const data = doc.data();
         fetchedReports.push({
           id: doc.id,
+          dong: data.dong || '오산동 (동탄역)',
           apartmentName: data.apartmentName,
-          sections: data.sections,
-          pros: data.pros,
-          cons: data.cons,
-          rating: data.rating,
-          author: data.authorName,
+          sections: data.sections || undefined,
+          premiumScores: data.premiumScores,
+          premiumContent: data.premiumContent,
+          pros: data.premiumContent || '프리미엄 지표 분석 리포트',
+          cons: '',
+          rating: 5,
+          author: '데이터 랩스',
           likes: data.likes || 0,
           commentCount: data.commentCount || 0,
-          imageUrl: data.imageUrl,
+          imageUrl: data.thumbnailUrl || data.imageUrl,
+          images: data.images || [],
           createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleTimeString() : '방금 전'
         });
       });
@@ -383,7 +391,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     }
   }
 
-  public async addFieldReport(apartmentName: string, sections: ReportSections, authorUid: string, imageFiles: Record<string, File>) {
+  public async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageFiles: Record<string, File>) {
     try {
       const profile = await this.getUserProfile(authorUid);
 
@@ -417,6 +425,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
       await addDoc(collection(db, 'field_reports'), {
         apartmentName,
         sections: mergedSections,
+        premiumScores: premiumScores || null,
         authorName: profile?.nickname || '익명',
         authorUid,
         likes: 0,
@@ -523,6 +532,13 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
         {
           id: 'mock-fr-1',
           apartmentName: '동탄역 아이파크',
+          premiumScores: {
+            eduTimePremium: 85,
+            stressFreeParking: 62,
+            commuteFrictional: 90,
+            megaScaleLiquidity: 45,
+            totalPremiumScore: 78
+          },
           pros: '도보 10분 쾌적한 출퇴근 거리, 조경이 공원같음 🌲',
           cons: '초등학교가 횡단보도를 건너야 함, 약간의 층간소음',
           rating: 4,
@@ -600,9 +616,9 @@ export class DashboardFacade {
     }
   }
 
-  public async addFieldReport(apartmentName: string, sections: ReportSections, authorUid: string, imageFiles: Record<string, File>) {
+  public async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageFiles: Record<string, File>) {
     if (this.strategy.addFieldReport) {
-      await this.strategy.addFieldReport(apartmentName, sections, authorUid, imageFiles);
+      await this.strategy.addFieldReport(apartmentName, sections, premiumScores, authorUid, imageFiles);
     }
   }
 
