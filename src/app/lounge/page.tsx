@@ -210,7 +210,7 @@ export default function LoungePage() {
         ) : (
           <ul className="flex flex-col gap-3">
             {newsFeed.map((news) => (
-              <li key={news.id} className="bg-white rounded-2xl border border-[#e5e8eb] px-5 py-4 hover:shadow-md transition-shadow">
+              <li key={news.id} onClick={() => router.push(`/lounge/${news.id}`)} className="bg-white rounded-2xl border border-[#e5e8eb] px-5 py-4 hover:shadow-md transition-shadow cursor-pointer">
                 <h3 className="text-[16px] font-bold text-[#191f28] leading-snug mb-2">{news.title}</h3>
                 <div className="flex items-center justify-between flex-wrap gap-1">
                   <div className="flex items-center gap-2 flex-wrap">
