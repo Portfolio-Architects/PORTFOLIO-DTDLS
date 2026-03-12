@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Heart, MessageSquare, PenLine, X, Send, Shield, ShieldCheck, Building2 } from 'lucide-react';
+import { ChevronLeft, Heart, MessageSquare, PenLine, X, Send, Shield, ShieldCheck, Building2, Pencil, Check } from 'lucide-react';
 import { useDashboardData, dashboardFacade } from '@/lib/DashboardFacade';
 import { auth } from '@/lib/firebaseConfig';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import type { UserProfile } from '@/lib/types/user.types';
+import { isValidNickname } from '@/lib/services/nickname.service';
 
 const CATEGORIES = ['부동산', '교통', '교육', '문화', '자유'];
 
@@ -31,6 +32,10 @@ export default function LoungePage() {
   const [showVerify, setShowVerify] = useState(false);
   const [selectedDong, setSelectedDong] = useState('');
   const [selectedApt, setSelectedApt] = useState('');
+
+  // Nickname edit state
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [nicknameInput, setNicknameInput] = useState('');
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -104,9 +109,62 @@ export default function LoungePage() {
         <span className="text-[12px] text-[#8b95a1] font-bold bg-[#f2f4f6] px-2 py-0.5 rounded-full">{newsFeed.length}개 글</span>
       </header>
 
-      {/* My Verification Status Bar */}
-      {user && (
-        <div className="bg-white border-b border-[#e5e8eb] px-4 py-3 flex items-center justify-between">
+      {/* My Profile & Verification Status Bar */}
+      {user && userProfile && (
+        <div className="bg-white border-b border-[#e5e8eb] px-4 py-3 flex flex-col gap-2">
+          {/* Nickname row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {isEditingNickname ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    value={nicknameInput}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if ([...val].length <= 3) setNicknameInput(val);
+                    }}
+                    maxLength={6}
+                    placeholder="3글자"
+                    className="w-20 bg-[#f9fafb] border border-[#3182f6] rounded-lg px-2 py-1 text-[14px] font-bold text-[#191f28] outline-none focus:ring-2 focus:ring-[#3182f6]/20 text-center"
+                    autoFocus
+                  />
+                  <span className={`text-[11px] font-bold ${[...nicknameInput].length === 3 ? 'text-[#03c75a]' : 'text-[#f04452]'}`}>
+                    {[...nicknameInput].length}/3
+                  </span>
+                  <button
+                    onClick={async () => {
+                      if (!isValidNickname(nicknameInput)) { alert('닉네임은 정확히 3글자여야 합니다.'); return; }
+                      await UserRepo.updateNickname(user.uid, nicknameInput);
+                      setUserProfile(prev => prev ? { ...prev, nickname: nicknameInput } : null);
+                      setIsEditingNickname(false);
+                    }}
+                    disabled={[...nicknameInput].length !== 3}
+                    className="w-7 h-7 rounded-full bg-[#3182f6] disabled:bg-[#d1d6db] flex items-center justify-center text-white transition-colors"
+                  >
+                    <Check size={14} />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <span className="text-[15px] font-extrabold text-[#191f28]">{userProfile.nickname}</span>
+                  <button
+                    onClick={() => { setNicknameInput(userProfile.nickname || ''); setIsEditingNickname(true); }}
+                    className="w-6 h-6 rounded-full bg-[#f2f4f6] hover:bg-[#e5e8eb] flex items-center justify-center transition-colors"
+                  >
+                    <Pencil size={11} className="text-[#8b95a1]" />
+                  </button>
+                </>
+              )}
+            </div>
+            <button
+              onClick={() => setShowVerify(true)}
+              className="text-[12px] font-bold text-[#3182f6] bg-[#e8f3ff] px-3 py-1.5 rounded-lg hover:bg-[#d4e9ff] transition-colors flex items-center gap-1"
+            >
+              <Building2 size={13} />
+              {userProfile?.verifiedApartment ? '변경' : '아파트 인증'}
+            </button>
+          </div>
+          {/* Verification row */}
           {userProfile?.verifiedApartment ? (
             <div className="flex items-center gap-2">
               <VerificationBadge apartment={userProfile.verifiedApartment} level={userProfile.verificationLevel} />
@@ -115,15 +173,8 @@ export default function LoungePage() {
               )}
             </div>
           ) : (
-            <span className="text-[13px] text-[#8b95a1]">아직 아파트 인증을 하지 않았어요</span>
+            <span className="text-[12px] text-[#8b95a1]">아파트 인증을 하면 글에 뱃지가 표시됩니다</span>
           )}
-          <button
-            onClick={() => setShowVerify(true)}
-            className="text-[13px] font-bold text-[#3182f6] bg-[#e8f3ff] px-3 py-1.5 rounded-lg hover:bg-[#d4e9ff] transition-colors flex items-center gap-1"
-          >
-            <Building2 size={14} />
-            {userProfile?.verifiedApartment ? '변경' : '내 아파트 인증'}
-          </button>
         </div>
       )}
 

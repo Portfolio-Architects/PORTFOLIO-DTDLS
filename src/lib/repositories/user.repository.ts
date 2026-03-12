@@ -50,3 +50,14 @@ export async function setApartmentVerification(
   });
   logger.info('UserRepository.setApartmentVerification', 'Apartment verified', { uid, apartment, level });
 }
+
+/**
+ * Updates the user's nickname.
+ * @param uid - Firebase Auth UID
+ * @param nickname - New nickname (must be exactly 3 characters)
+ */
+export async function updateNickname(uid: string, nickname: string): Promise<void> {
+  const userRef = doc(db, 'users', uid);
+  await updateDoc(userRef, { nickname });
+  logger.info('UserRepository.updateNickname', 'Nickname updated', { uid, nickname });
+}
