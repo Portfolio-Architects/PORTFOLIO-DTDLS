@@ -427,29 +427,7 @@ export default function Dashboard() {
       {/* Main Container */}
       <main className="w-full max-w-[2000px] mx-auto px-6 md:px-12 lg:px-24 xl:px-32 py-8 md:py-12 animate-in fade-in duration-500">
         
-        {/* Quick KPI Overview */}
-        <section className="mb-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {kpis.map((kpi) => (
-              <div key={kpi.id} className="bg-white p-5 rounded-3xl border border-[#e5e8eb] shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-                 <h3 className="text-[13px] text-[#4e5968] font-bold mb-3">
-                    {kpi.title}
-                 </h3>
-                 <div className="text-[24px] font-extrabold text-[#191f28]">{kpi.mainValue}</div>
-                 <p className="text-[12px] text-[#8b95a1] font-medium mt-1">{kpi.subValue}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Ad Banner Placeholder */}
-        <div className="mb-12 w-full bg-[#f2f4f6] border border-[#e5e8eb] rounded-3xl p-8 flex flex-col items-center justify-center text-center">
-           <span className="bg-[#191f28] text-white text-[11px] font-bold px-2 py-0.5 rounded mb-2">AD</span>
-           <h3 className="text-[18px] font-bold text-[#191f28] mb-1">여기에 광고 배너가 표시됩니다</h3>
-           <p className="text-[#8b95a1] text-[14px]">광고 구좌 (e.g., 부동산 플랫폼 배너, 인테리어 광고 등)</p>
-        </div>
-
-        {/* 🔥 Hi-Fi Local Data: Field Reports (Grid Layout) */}
+        {/* 1. 🔥 Hi-Fi Local Data: Field Reports (Grid Layout - Hero Position) */}
         <section className="mb-16">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
             <div>
@@ -470,8 +448,6 @@ export default function Dashboard() {
           {/* Grid Layout for Reports */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 xl:gap-8">
              {fieldReports?.map((report) => {
-               // Extract cover image from the new dynamic images array if available, 
-               // otherwise fallback to the first sections image, or thumbnailUrl
                const coverImage = (report.images && report.images.length > 0) ? report.images[0].url : 
                                    report.imageUrl || 
                                    report.sections?.infra?.gateImg || 
@@ -523,7 +499,7 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* Bottom Split Layout: News Feed & Other Info */}
+        {/* 2. Bottom Split Layout: News Feed & Other Info */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
           {/* General News Feed List */}
           <div className="bg-white p-6 md:p-8 rounded-3xl border border-[#e5e8eb] shadow-sm">
@@ -566,6 +542,28 @@ export default function Dashboard() {
              </div>
           </div>
         </section>
+        
+        {/* 3. Data Overviews */}
+        <section className="mb-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {kpis.map((kpi) => (
+              <div key={kpi.id} className="bg-white p-5 rounded-3xl border border-[#e5e8eb] shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                 <h3 className="text-[13px] text-[#4e5968] font-bold mb-3">
+                    {kpi.title}
+                 </h3>
+                 <div className="text-[24px] font-extrabold text-[#191f28]">{kpi.mainValue}</div>
+                 <p className="text-[12px] text-[#8b95a1] font-medium mt-1">{kpi.subValue}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 4. Ad Banner Placeholder */}
+        <div className="w-full bg-[#f2f4f6] border border-[#e5e8eb] rounded-3xl p-8 flex flex-col items-center justify-center text-center">
+           <span className="bg-[#191f28] text-white text-[11px] font-bold px-2 py-0.5 rounded mb-2">AD</span>
+           <h3 className="text-[18px] font-bold text-[#191f28] mb-1">여기에 광고 배너가 표시됩니다</h3>
+           <p className="text-[#8b95a1] text-[14px]">광고 구좌 (e.g., 부동산 플랫폼 배너, 인테리어 광고 등)</p>
+        </div>
         
       </main>
 
