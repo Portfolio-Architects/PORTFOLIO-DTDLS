@@ -552,49 +552,121 @@ export default function Dashboard() {
 
         {/* ═══ TAB 1: 임장기 ═══ */}
         {activeTab === 'imjang' && (
-        <section className="mb-16">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
-            <div>
-              <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] mb-1">
-                발로 뛴 리얼 임장기
+        <section>
+          {/* 1. Hero Banner */}
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#191f28] via-[#1e3a5f] to-[#3182f6] p-8 md:p-12 mb-8 shadow-lg">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl -translate-y-1/3 translate-x-1/4" />
+            <div className="absolute bottom-0 left-0 w-60 h-60 bg-[#3182f6]/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
+            <div className="relative z-10">
+              <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-[12px] font-bold px-3 py-1 rounded-full mb-5">
+                <Compass size={12} />
+                동탄2신도시 7대 투자 권역
+              </span>
+              <h2 className="text-[28px] md:text-[36px] lg:text-[42px] font-extrabold text-white leading-tight tracking-tight mb-3">
+                아파트, 발로 뛰며<br />분석했습니다
               </h2>
-              <p className="text-[15px] text-[#8b95a1] font-medium">동탄2신도시 7대 투자 권역별 아파트 현장 리뷰</p>
+              <p className="text-white/60 text-[14px] md:text-[15px] font-medium mb-6 max-w-lg">
+                장점부터 숨기고 싶은 단점까지 — 직접 현장을 다니며 기록한 솔직한 임장 리포트
+              </p>
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/10">
+                <FileText size={14} className="text-white/70" />
+                <span className="text-white font-extrabold text-[15px]">총 {fieldReports.length}개 단지 리뷰</span>
+              </div>
             </div>
           </div>
 
-          {/* Zone Selection View (Horizontal Slider) */}
-          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 md:-mx-12 md:px-12 lg:mx-0 lg:px-0 lg:overflow-visible lg:flex-wrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            {ZONES.map(zone => {
-              const count = zoneReportCounts[zone.id] || 0;
-              return (
-                <div 
-                  key={zone.id}
-                  onClick={() => router.push(`/zone/${zone.id}`)}
-                  className="bg-white border border-[#e5e8eb] rounded-3xl overflow-hidden hover:border-[#3182f6]/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 group snap-start shrink-0 w-[260px] md:w-[280px] lg:w-auto lg:shrink lg:flex-1 lg:min-w-0"
-                >
-                  <div className="w-full h-[160px] bg-[#f2f4f6] relative overflow-hidden">
-                    <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${zone.color}15, ${zone.color}30)` }}>
-                      <MapPin size={32} className="text-[#d1d6db]" />
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: zone.color, color: 'white' }}>{zone.dongLabel}</span>
-                      </div>
-                      <h3 className="text-white text-[17px] font-extrabold tracking-tight drop-shadow-md leading-snug">{zone.name}</h3>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <p className="text-[12px] text-[#4e5968] leading-relaxed line-clamp-2 mb-3">{zone.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[13px] text-[#8b95a1] font-bold">{count}개 단지 리뷰</span>
-                      <span className="text-[13px] font-bold" style={{ color: zone.color }}>보기 →</span>
-                    </div>
-                  </div>
+          {/* 2. Quick Stats */}
+          <div className="grid grid-cols-3 gap-3 md:gap-4 mb-8">
+            {[
+              { icon: MapIcon, label: '투자 권역', value: `${ZONES.length}개`, color: '#3182f6' },
+              { icon: Building, label: '분석 단지', value: `${fieldReports.length}개`, color: '#03c75a' },
+              { icon: Star, label: '평균 평점', value: fieldReports.length > 0 ? `${(fieldReports.reduce((s, r) => s + (r.rating || 5), 0) / fieldReports.length).toFixed(1)}점` : '-', color: '#f59e0b' },
+            ].map(stat => (
+              <div key={stat.label} className="bg-white rounded-2xl border border-[#e5e8eb] p-4 md:p-5 text-center hover:shadow-md transition-shadow">
+                <div className="w-9 h-9 rounded-xl mx-auto mb-2.5 flex items-center justify-center" style={{ backgroundColor: stat.color + '12' }}>
+                  <stat.icon size={18} style={{ color: stat.color }} />
                 </div>
-              );
-            })}
+                <div className="text-[22px] md:text-[24px] font-extrabold text-[#191f28] tracking-tight">{stat.value}</div>
+                <div className="text-[12px] text-[#8b95a1] font-bold mt-0.5">{stat.label}</div>
+              </div>
+            ))}
           </div>
+
+          {/* 3. Zone Grid (2-col) */}
+          <div className="mb-10">
+            <h3 className="text-[18px] font-extrabold text-[#191f28] mb-4 flex items-center gap-2">
+              <MapPin size={18} className="text-[#3182f6]" />
+              권역별 탐색
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {ZONES.map(zone => {
+                const count = zoneReportCounts[zone.id] || 0;
+                return (
+                  <div
+                    key={zone.id}
+                    onClick={() => router.push(`/zone/${zone.id}`)}
+                    className="bg-white rounded-2xl border border-[#e5e8eb] p-4 md:p-5 flex gap-4 items-start cursor-pointer hover:shadow-lg hover:border-transparent hover:-translate-y-0.5 transition-all duration-200 group"
+                  >
+                    {/* Color accent */}
+                    <div className="w-1.5 self-stretch rounded-full shrink-0" style={{ backgroundColor: zone.color }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <h4 className="text-[15px] font-extrabold text-[#191f28] truncate">{zone.name}</h4>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0" style={{ backgroundColor: zone.color + '18', color: zone.color }}>{zone.dongLabel}</span>
+                      </div>
+                      <p className="text-[12px] text-[#8b95a1] leading-relaxed line-clamp-2 mb-2.5">{zone.description}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12px] font-bold text-[#4e5968]">{count}개 단지 리뷰</span>
+                        <span className="text-[12px] font-bold opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: zone.color }}>보기 →</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 4. Latest Reports */}
+          {fieldReports.length > 0 && (
+            <div>
+              <h3 className="text-[18px] font-extrabold text-[#191f28] mb-4 flex items-center gap-2">
+                <Clock size={18} className="text-[#f59e0b]" />
+                최신 임장 리포트
+              </h3>
+              <div className="flex flex-col gap-3">
+                {fieldReports.slice(0, 3).map(report => (
+                  <div
+                    key={report.id}
+                    onClick={() => setSelectedReport(report)}
+                    className="bg-white rounded-2xl border border-[#e5e8eb] px-5 py-4 flex items-center gap-4 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                  >
+                    {/* Thumbnail */}
+                    <div className="w-16 h-16 rounded-xl bg-[#f2f4f6] shrink-0 overflow-hidden flex items-center justify-center">
+                      {report.imageUrl ? (
+                        <img src={report.imageUrl} alt={report.apartmentName} className="w-full h-full object-cover" />
+                      ) : (
+                        <Camera size={20} className="text-[#d1d6db]" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-[15px] font-extrabold text-[#191f28] truncate">{report.apartmentName}</h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-0.5">
+                          {Array.from({ length: 5 }, (_, i) => (
+                            <Star key={i} size={11} className={i < (report.rating || 5) ? 'text-[#f59e0b] fill-[#f59e0b]' : 'text-[#e5e8eb]'} />
+                          ))}
+                        </div>
+                        <span className="text-[11px] text-[#8b95a1] font-bold">{report.author}</span>
+                        <span className="text-[11px] text-[#d1d6db]">·</span>
+                        <span className="text-[11px] text-[#8b95a1]">{report.createdAt}</span>
+                      </div>
+                    </div>
+                    <span className="text-[#3182f6] text-[13px] font-bold shrink-0 hidden sm:inline">읽기 →</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
         )}
 
