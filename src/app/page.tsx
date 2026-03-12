@@ -606,28 +606,18 @@ export default function Dashboard() {
                </div>
              </div>
              
-             {/* Empty State placeholder equivalent to second pane */}
-             <div className="w-full flex-1 bg-[#f9fafb] border border-[#d1d6db] border-dashed rounded-3xl p-8 flex flex-col items-center justify-center text-[#8b95a1]">
-                <Radar size={32} className="mb-3 text-[#d1d6db]" />
-                <p className="font-bold text-[15px]">추가 위젯 로딩중...</p>
-             </div>
+             {/* 신혼부부 첫 집 추천 */}
+             {kpis.filter(k => k.title === '신혼부부 첫 집 추천').map(kpi => (
+               <div key={kpi.id} className="w-full flex-1 bg-white p-6 rounded-3xl border border-[#e5e8eb] shadow-sm flex flex-col justify-center hover:shadow-md transition-shadow">
+                  <h3 className="text-[13px] text-[#4e5968] font-bold mb-3">{kpi.title}</h3>
+                  <div className="text-[24px] font-extrabold text-[#191f28]">{kpi.mainValue}</div>
+                  {kpi.subValue && <p className="text-[12px] text-[#8b95a1] font-medium mt-1">{kpi.subValue}</p>}
+               </div>
+             ))}
           </div>
         </section>
         
-        {/* 3. Data Overviews */}
-        <section className="mb-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {kpis.map((kpi) => (
-              <div key={kpi.id} className="bg-white p-5 rounded-3xl border border-[#e5e8eb] shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-                 <h3 className="text-[13px] text-[#4e5968] font-bold mb-3">
-                    {kpi.title}
-                 </h3>
-                 <div className="text-[24px] font-extrabold text-[#191f28]">{kpi.mainValue}</div>
-                 <p className="text-[12px] text-[#8b95a1] font-medium mt-1">{kpi.subValue}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+
 
         {/* 4. Ad Banner Placeholder */}
         <div className="w-full bg-[#f2f4f6] border border-[#e5e8eb] rounded-3xl p-8 flex flex-col items-center justify-center text-center">
