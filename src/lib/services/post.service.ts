@@ -38,13 +38,15 @@ export async function createPost(
       logger.info('PostService.createPost', 'Image uploaded', { imageUrl });
     }
 
-    // 3. Persist to Firestore
+    // 3. Persist to Firestore (include apartment verification if present)
     await PostRepo.createPost({
       title,
       category,
       authorName: profile.nickname,
       authorUid,
       imageUrl,
+      verifiedApartment: profile.verifiedApartment,
+      verificationLevel: profile.verificationLevel,
     });
 
     logger.info('PostService.createPost', 'Post created successfully', { title, category });

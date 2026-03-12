@@ -51,6 +51,10 @@ export interface NewsItemData {
   icon: ElementType;
   /** 좋아요 수 */
   likes?: number;
+  /** 인증된 아파트명 */
+  verifiedApartment?: string;
+  /** 인증 등급 ('self_declared' | 'registry_verified') */
+  verificationLevel?: string;
 }
 
 /** 광고 배너 데이터 */

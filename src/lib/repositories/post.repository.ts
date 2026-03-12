@@ -18,7 +18,7 @@ import { Train, Building, BookOpen, Calendar, MessageSquare } from 'lucide-react
  * @returns Unsubscribe function
  */
 export function listenToPosts(callback: (posts: NewsItemData[]) => void): () => void {
-  const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(10));
+  const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(30));
 
   return onSnapshot(q, (snapshot) => {
     const posts: NewsItemData[] = [];
@@ -44,6 +44,8 @@ export function listenToPosts(callback: (posts: NewsItemData[]) => void): () => 
         tagClass,
         icon,
         likes: data.likes || 0,
+        verifiedApartment: data.verifiedApartment || undefined,
+        verificationLevel: data.verificationLevel || undefined,
       });
     });
 
@@ -63,6 +65,8 @@ export async function createPost(data: {
   authorName: string;
   authorUid: string;
   imageUrl: string | null;
+  verifiedApartment?: string;
+  verificationLevel?: string;
 }): Promise<string> {
   const docRef = await addDoc(collection(db, 'posts'), {
     ...data,
