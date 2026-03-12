@@ -94,7 +94,7 @@ export default function WriteFieldReport() {
     if (!user) return;
     setIsSubmitting(true);
     try {
-      await dashboardFacade.addFieldReport(reportAptName, sections, user.uid, imageFiles);
+      await dashboardFacade.addFieldReport(reportAptName, sections, null, user.uid, imageFiles);
       alert("🔥 프로 임장기가 성공적으로 등록되었습니다!");
       router.push('/');
     } catch (error) {
