@@ -1,82 +1,39 @@
-import { TrendingUp, Users, RefreshCw, Train, Building, BookOpen, Calendar, MessageSquare } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { db } from './firebaseConfig';
-import { collection, onSnapshot, query, orderBy, limit, addDoc, serverTimestamp, doc, updateDoc, increment, getDoc, setDoc } from 'firebase/firestore';
+/**
+ * @module DashboardFacade
+ * @description Thin orchestration layer implementing the Facade pattern.
+ * Architecture Layer: Facade (delegates to repositories and services)
+ * 
+ * Rationale: The original 702-line monolith has been decomposed into:
+ * - Types: @/lib/types/*
+ * - Config: @/lib/config/*
+ * - Repositories: @/lib/repositories/*
+ * - Services: @/lib/services/*
+ * 
+ * This facade preserves the same public API for backward compatibility
+ * while delegating all operations to the appropriate layer.
+ */
+import { Train, Building, BookOpen, Calendar } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from './firebaseConfig';
+import { storage } from '@/lib/firebaseConfig';
 
-// --- Configuration ---
-export const ADMIN_EMAILS = ['ocs5672@gmail.com']; // Admin Google Email
+// Types (re-export for backward compatibility)
+export type { KPIData, NewsItemData, AdBannerData } from '@/lib/types/dashboard.types';
+export type { FieldReportData, ReportSections, CommentData } from '@/lib/types/report.types';
 
-// --- Types & Interfaces ---
+// Internal imports
+import type { KPIData, NewsItemData, AdBannerData } from '@/lib/types/dashboard.types';
+import type { FieldReportData, ReportSections, CommentData } from '@/lib/types/report.types';
+import { isAdmin as checkAdmin } from '@/lib/config/admin.config';
+import * as PostRepo from '@/lib/repositories/post.repository';
+import * as ReportRepo from '@/lib/repositories/report.repository';
+import * as CommentRepo from '@/lib/repositories/comment.repository';
+import * as UserRepo from '@/lib/repositories/user.repository';
+import * as ApartmentRepo from '@/lib/repositories/apartment.repository';
+import * as PostService from '@/lib/services/post.service';
+import { createInitialKPIs, startKPISimulation } from '@/lib/services/kpi.service';
+import { logger } from '@/lib/services/logger';
 
-export interface KPIData {
-  id: string;
-  title: string;
-  subtitle: string;
-  badgeText?: string;
-  badgeStyle?: string;
-  mainValue: string | React.ReactNode;
-  subValue: string | React.ReactNode;
-  description: string | React.ReactNode;
-  icon: React.ElementType;
-  gradientBackground: string;
-  borderColor: string;
-  titleColor: string;
-}
-
-export interface NewsItemData {
-  id: string;
-  title: string;
-  meta: string; // e.g., "방금 전 · 부동산"
-  author: string; // The anonymous nickname
-  imageUrl?: string;
-  tagClass: string;
-  icon: React.ElementType;
-  likes?: number;
-}
-
-export interface CommentData {
-  id: string;
-  text: string;
-  author: string;
-  createdAt: any;
-}
-
-export interface ReportSections {
-  specs: { builtYear: string; scale: string; farBuild: string; parkingRatio: string; };
-  infra: { gateText: string; gateImg?: string; landscapeText: string; landscapeImg?: string; parkingText: string; parkingImg?: string; maintenanceText: string; maintenanceImg?: string; };
-  ecosystem: { communityText: string; communityImg?: string; schoolText: string; schoolImg?: string; commerceText: string; commerceImg?: string; };
-  location: { trafficText: string; developmentText: string; };
-  assessment: { alphaDriver: string; systemicRisk: string; synthesis: string; probability: string; };
-}
-
-export interface FieldReportData {
-  id: string;
-  dong?: string;
-  apartmentName: string;
-  sections?: ReportSections; 
-  premiumScores?: import('./utils/scoring').PremiumScores; // Injected Backend Calculated Score
-  premiumContent?: string; // New Schema Text
-  pros?: string; // Legacy fallback
-  cons?: string; // Legacy fallback
-  rating?: number; // Legacy fallback
-  author: string;
-  likes: number;
-  commentCount: number;
-  comments?: CommentData[];
-  imageUrl?: string; // Legacy fallback
-  images?: { url: string; caption: string; locationTag: string; isPremium: boolean }[]; // New DB schema array
-  createdAt: any;
-}
-
-export interface AdBannerData {
-  title: string;
-  description: string;
-  buttonText: string;
-}
-
-// --- Strategies ---
+// --- Strategy Interface (preserved for extensibility) ---
 
 export interface DashboardDataStrategy {
   getKPIs(): KPIData[];
@@ -95,414 +52,50 @@ export interface DashboardDataStrategy {
   isAdmin(email: string | null | undefined): boolean;
 }
 
+// --- Firebase Strategy (delegates to repositories/services) ---
+
 class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   private kpis: KPIData[];
   private newsFeed: NewsItemData[] = [];
   private fieldReports: FieldReportData[] = [];
-  private dongtanApartments: string[] = []; // Cached list of apt names
+  private dongtanApartments: string[] = [];
   private listeners: (() => void)[] = [];
-  private unsubscribeFirestore: (() => void) | null = null;
-  private unsubscribeFieldReports: (() => void) | null = null;
-  private intervalId: NodeJS.Timeout | null = null;
+  private cleanupFns: (() => void)[] = [];
 
   constructor() {
-    // Keep the simulated KPI logic running
-    this.kpis = [
-      {
-        id: 'kpi-1',
-        title: '우와! 이번주 최고가',
-        subtitle: '동탄역 롯데캐슬 84㎡',
-        badgeText: 'HOT',
-        badgeStyle: 'bg-[#f04452] text-white',
-        mainValue: (
-          <>
-            16.5<span className="text-[18px] font-semibold text-[#191f28]">억</span>
-          </>
-        ),
-        subValue: <span className="text-[13px] text-[#f04452] font-semibold tracking-normal ml-1">↑ 2.1억</span>,
-        description: '이전 최고가: 14.4억 (24년 10월)',
-        icon: TrendingUp,
-        gradientBackground: 'from-[#ffffff] to-[#fff5f5]',
-        borderColor: 'border-[#ffebec]',
-        titleColor: 'text-[#f04452]',
-      },
-      {
-        id: 'kpi-2',
-        title: '신혼부부 첫 집 추천',
-        subtitle: '가성비 20평대 · 전세 3억대',
-        mainValue: (
-          <>
-            1. 반도유보라 아이비파크 2.0<br />
-            2. 금강펜테리움 센트럴파크
-          </>
-        ),
-        subValue: '',
-        description: <span className="text-[12px] text-[#3182f6] mt-2 font-medium cursor-pointer hover:underline">자세히 보기 →</span>,
-        icon: Users,
-        gradientBackground: 'from-[#ffffff] to-[#f4f8ff]',
-        borderColor: 'border-[#e8f3ff]',
-        titleColor: 'text-[#3182f6]',
-      },
-      {
-        id: 'kpi-3',
-        title: '요즘 동탄 매수 열기',
-        subtitle: '주간 아파트 거래량',
-        badgeText: '매수자 우위',
-        badgeStyle: 'bg-[#e8f5e9] text-[#03c75a]',
-        mainValue: (
-          <>
-            142<span className="text-[18px] font-semibold text-[#191f28]">건</span>
-          </>
-        ),
-        subValue: <span className="text-[13px] text-[#03c75a] font-semibold tracking-normal ml-1">↑ 12%</span>,
-        description: (
-          <div className="w-full bg-[#f2f4f6] h-1.5 rounded-full mt-2.5 overflow-hidden">
-            <div className="bg-[#03c75a] h-full rounded-full" style={{ width: '65%' }}></div>
-          </div>
-        ),
-        icon: RefreshCw,
-        gradientBackground: '',
-        borderColor: '',
-        titleColor: 'text-[#03c75a]',
-      },
-    ];
-
-    this.startKPISimulation();
-    this.startFirestoreListener();
-    this.startFieldReportListener();
-    this.fetchDongtanApartments(); // Fetch real estate API
+    this.kpis = createInitialKPIs();
+    this.init();
   }
 
-  private startKPISimulation() {
-    const fakeData = [
-      { subtitle: '동탄역 예미지시그널 84㎡', price: '13.2', up: '1.5억', prev: '11.7억 (새해 첫 거래)' },
-      { subtitle: '동탄호수공원 아이파크 84㎡', price: '11.8', up: '0.8억', prev: '11.0억 (작년 최고가)' },
-      { subtitle: '동탄역 롯데캐슬 84㎡', price: '16.5', up: '2.1억', prev: '14.4억 (24년 10월)' }
-    ];
+  private init() {
+    // KPI simulation
+    const stopKPI = startKPISimulation(this.kpis, () => this.notifyListeners());
+    this.cleanupFns.push(stopKPI);
 
-    let index = 0;
-    this.intervalId = setInterval(() => {
-      index = (index + 1) % fakeData.length;
-      const data = fakeData[index];
-      
-      this.kpis[0] = {
-        ...this.kpis[0],
-        subtitle: data.subtitle,
-        mainValue: (
-          <>
-            {data.price}<span className="text-[18px] font-semibold text-[#191f28]">억</span>
-          </>
-        ),
-        subValue: <span className="text-[13px] text-[#f04452] font-semibold tracking-normal ml-1">↑ {data.up}</span>,
-        description: `이전 최고가: ${data.prev}`,
-        badgeStyle: 'bg-[#f04452] text-white animate-pulse',
-      };
-      
+    // Firestore listeners (delegated to repositories)
+    const stopPosts = PostRepo.listenToPosts((posts) => {
+      this.newsFeed = posts;
       this.notifyListeners();
-    }, 5000);
-  }
+    });
+    this.cleanupFns.push(stopPosts);
 
-  private startFirestoreListener() {
-    const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(10));
-    
-    this.unsubscribeFirestore = onSnapshot(q, (snapshot) => {
-      const fetchedNews: NewsItemData[] = [];
-      
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        
-        let icon = MessageSquare;
-        let tagClass = 'tag-culture';
-        
-        if (data.category === '교통') { icon = Train; tagClass = 'tag-traffic'; }
-        else if (data.category === '부동산') { icon = Building; tagClass = 'tag-realestate'; }
-        else if (data.category === '교육') { icon = BookOpen; tagClass = 'tag-edu'; }
+    const stopReports = ReportRepo.listenToReports((reports) => {
+      this.fieldReports = reports;
+      this.notifyListeners();
+    });
+    this.cleanupFns.push(stopReports);
 
-        // Format relative time (very simple mock for now)
-        const dateStr = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleTimeString() : '방금 전';
-
-        fetchedNews.push({
-          id: doc.id,
-          title: data.title,
-          meta: `${dateStr} · ${data.category}`,
-          author: data.authorName || '익명',
-          imageUrl: data.imageUrl,
-          tagClass,
-          icon,
-          likes: data.likes || 0
-        });
-      });
-      
-      this.newsFeed = fetchedNews;
+    // External API
+    ApartmentRepo.fetchApartmentNames().then((apts) => {
+      this.dongtanApartments = apts;
       this.notifyListeners();
     });
   }
 
-  private startFieldReportListener() {
-    const q = query(collection(db, 'scoutingReports'), orderBy('createdAt', 'desc'), limit(10));
-    
-    this.unsubscribeFieldReports = onSnapshot(q, (snapshot) => {
-      const fetchedReports: FieldReportData[] = [];
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        fetchedReports.push({
-          id: doc.id,
-          dong: data.dong || '오산동 (동탄역)',
-          apartmentName: data.apartmentName,
-          sections: data.sections || undefined,
-          premiumScores: data.premiumScores,
-          premiumContent: data.premiumContent,
-          pros: data.premiumContent || '포장 싹 뺀 진짜 동네 아파트 리뷰',
-          cons: '',
-          rating: 5,
-          author: '데이터 랩스',
-          likes: data.likes || 0,
-          commentCount: data.commentCount || 0,
-          imageUrl: data.thumbnailUrl || data.imageUrl,
-          images: data.images || [],
-          createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleTimeString() : '방금 전'
-        });
-      });
-      this.fieldReports = fetchedReports;
-      this.notifyListeners();
-    });
-  }
-
-  // --- Real Estate Open API (MOLIT) ---
-  private async fetchDongtanApartments() {
-    try {
-      const API_KEY = '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
-      const LAWD_CD = '41590'; // 화성시
-      const DEAL_YMD = '202401'; // 2024년 1월 기준 (Recent snapshot)
-      const url = `https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev?serviceKey=${API_KEY}&pageNo=1&numOfRows=1000&LAWD_CD=${LAWD_CD}&DEAL_YMD=${DEAL_YMD}`;
-      
-      // Enforce a strict 3-second timeout so the UI never hangs indefinitely
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-      try {
-        const response = await fetch(url, { signal: controller.signal });
-        clearTimeout(timeoutId);
-        const text = await response.text();
-        
-        // Since it's XML, parse it manually or via DOMParser in browser
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(text, "text/xml");
-      const items = xmlDoc.getElementsByTagName("item");
-      
-      if (items.length === 0) {
-        throw new Error("API returned no items (Auth Error or Ratelimit).");
-      }
-      
-      const aptSet = new Set<string>();
-      for (let i = 0; i < items.length; i++) {
-        const aptNmNode = items[i].getElementsByTagName("aptNm")[0];
-        const dongNode = items[i].getElementsByTagName("umdNm")[0]; // 법정동 (e.g., 오산동, 영천동 - Dongtan)
-
-        if (aptNmNode && dongNode) {
-          const aptNm = aptNmNode.textContent?.trim();
-          const dongNm = dongNode.textContent?.trim() || '';
-          
-          // Filter rudimentary Hwaseong to just Dongtan specific Dongs if possible, or include them all.
-          // For MVP, we'll keep it broad Hwaseong but suffix with Dong.
-          if (aptNm) {
-            aptSet.add(`[${dongNm}] ${aptNm}`);
-          }
-        }
-      }
-
-      this.dongtanApartments = Array.from(aptSet).sort();
-      this.notifyListeners();
-      console.log(`Fetched ${this.dongtanApartments.length} apartments from Open API.`);
-      } catch (innerError) {
-        clearTimeout(timeoutId);
-        throw innerError; // Rethrow to hit the main catch block and trigger fallback
-      }
-      
-    } catch (error) {
-      console.warn("Failed to fetch Dongtan apartments from API, using fallback:", error);
-      // Fallback curated list in case of network/key failure
-      this.dongtanApartments = [
-        "[오산동] 동탄역 롯데캐슬", "[청계동] 동탄역 시범더샵센트럴시티", "[청계동] 동탄역 시범한화꿈에그린프레스티지",
-        "[오산동] 동탄역 반도유보라 아이비파크 5.0", "[오산동] 동탄역 반도유보라 아이비파크 6.0",
-        "[오산동] 동탄역 반도유보라 아이비파크 7.0", "[오산동] 동탄역 반도유보라 아이비파크 8.0",
-        "[영천동] 동탄역 센트럴푸르지오", "[송동] 동탄린스트라우스더레이크", "[산척동] 동탄호수공원 아이파크"
-      ];
-      this.notifyListeners();
-    }
-  }
-
-  // --- Anonymous Profile Generator ---
-  private generateRandomNickname(): string {
-    const adjs = ["동탄사는", "행복한", "투자하는", "지혜로운", "빠른", "냉철한", "따뜻한", "친절한", "열정적인", "똑똑한"];
-    const nouns = ["사자", "코끼리", "호랑이", "부린이", "분석가", "요정", "자본가", "강아지", "고양이", "독수리"];
-    const adj = adjs[Math.floor(Math.random() * adjs.length)];
-    const noun = nouns[Math.floor(Math.random() * nouns.length)];
-    return `${adj} ${noun}`;
-  }
-
-  public async getUserProfile(uid: string) {
-    const userRef = doc(db, 'users', uid);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      return userSnap.data() as { nickname: string };
-    } else {
-      // First login! Generate a profile.
-      const newProfile = {
-        nickname: this.generateRandomNickname(),
-        createdAt: serverTimestamp()
-      };
-      await setDoc(userRef, newProfile);
-      return { nickname: newProfile.nickname };
-    }
-  }
-
-  public async addPost(title: string, category: string, authorUid: string, imageFile?: File) {
-    try {
-      console.log('Attempting to add post to Firestore...', title, category);
-      
-      // 1. Fetch user profile for nickname
-      const profile = await this.getUserProfile(authorUid);
-      
-      // 2. Upload image if exists
-      let imageUrl = null;
-      if (imageFile) {
-        const storageRef = ref(storage, `posts/${Date.now()}_${imageFile.name}`);
-        const snapshot = await uploadBytes(storageRef, imageFile);
-        imageUrl = await getDownloadURL(snapshot.ref);
-        console.log("Image uploaded to:", imageUrl);
-      }
-
-      // 3. Save post object
-      await addDoc(collection(db, 'posts'), {
-        title,
-        category,
-        authorName: profile.nickname,
-        authorUid: authorUid,
-        imageUrl: imageUrl,
-        likes: 0,
-        createdAt: serverTimestamp()
-      });
-      
-      console.log('Post added successfully!');
-    } catch (e: any) {
-      console.error("Error adding document: ", e);
-      alert("글 저장 실패! 이유: " + e.message);
-    }
-  }
-
-  public async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageFiles: Record<string, File>) {
-    try {
-      const profile = await this.getUserProfile(authorUid);
-
-      // Upload all provided images in parallel
-      const uploadPromises = Object.entries(imageFiles).map(async ([key, file]) => {
-        try {
-          const storageRef = ref(storage, `field_reports/${Date.now()}_${key}_${file.name}`);
-          const snapshot = await uploadBytes(storageRef, file);
-          const downloadUrl = await getDownloadURL(snapshot.ref);
-          return { key, url: downloadUrl };
-        } catch (storageError) {
-          console.error(`Storage upload failed for ${key}`, storageError);
-          return null;
-        }
-      });
-
-      const uploadedImages = (await Promise.all(uploadPromises)).filter(Boolean) as {key: string, url: string}[];
-      
-      // Inject URLs into the sections object map
-      const mergedSections = JSON.parse(JSON.stringify(sections)) as ReportSections;
-      uploadedImages.forEach(({key, url}) => {
-         if (key === 'gateImg') mergedSections.infra.gateImg = url;
-         if (key === 'landscapeImg') mergedSections.infra.landscapeImg = url;
-         if (key === 'parkingImg') mergedSections.infra.parkingImg = url;
-         if (key === 'maintenanceImg') mergedSections.infra.maintenanceImg = url;
-         if (key === 'communityImg') mergedSections.ecosystem.communityImg = url;
-         if (key === 'schoolImg') mergedSections.ecosystem.schoolImg = url;
-         if (key === 'commerceImg') mergedSections.ecosystem.commerceImg = url;
-      });
-
-      await addDoc(collection(db, 'field_reports'), {
-        apartmentName,
-        sections: mergedSections,
-        premiumScores: premiumScores || null,
-        authorName: profile?.nickname || '익명',
-        authorUid,
-        likes: 0,
-        commentCount: 0,
-        createdAt: serverTimestamp()
-      });
-    } catch (e: any) {
-      console.error("Error adding field report: ", e);
-      alert("임장기 저장 실패! 이유: " + e.message);
-    }
-  }
-
-  public async addFieldReportComment(reportId: string, text: string, authorUid: string) {
-    try {
-      const profile = await this.getUserProfile(authorUid);
-      const commentsRef = collection(db, `field_reports/${reportId}/comments`);
-      await addDoc(commentsRef, {
-        text,
-        authorName: profile.nickname,
-        authorUid,
-        createdAt: serverTimestamp()
-      });
-      
-      // Increment comment count
-      await updateDoc(doc(db, 'field_reports', reportId), {
-        commentCount: increment(1)
-      });
-    } catch (e: any) {
-      console.error("Error adding comment: ", e);
-      alert("댓글 저장 실패! 이유: " + e.message);
-    }
-  }
-
-  public listenToComments(reportId: string, callback: (comments: CommentData[]) => void) {
-    const q = query(collection(db, `field_reports/${reportId}/comments`), orderBy('createdAt', 'asc'));
-    return onSnapshot(q, (snapshot) => {
-      const comments: CommentData[] = [];
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        comments.push({
-          id: doc.id,
-          text: data.text,
-          author: data.authorName,
-          createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleTimeString() : '방금 전'
-        });
-      });
-      callback(comments);
-    });
-  }
-
-  public async incrementLike(postId: string) {
-    try {
-      const postRef = doc(db, 'posts', postId);
-      await updateDoc(postRef, {
-        likes: increment(1)
-      });
-    } catch (e) {
-      console.error("Error incrementing like: ", e);
-    }
-  }
-
-  public async incrementFieldReportLike(reportId: string) {
-    try {
-      const reportRef = doc(db, 'field_reports', reportId);
-      await updateDoc(reportRef, {
-        likes: increment(1)
-      });
-    } catch (e) {
-      console.error("Error incrementing field report like: ", e);
-    }
-  }
-
-  public subscribe(callback: () => void) {
+  subscribe(callback: () => void) {
     this.listeners.push(callback);
     return () => {
       this.listeners = this.listeners.filter(cb => cb !== callback);
-      // In a real robust app, we'd also unmount intervallic calls if there are 0 listeners
     };
   }
 
@@ -510,13 +103,11 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     this.listeners.forEach(cb => cb());
   }
 
-  getKPIs(): KPIData[] {
-    return this.kpis;
-  }
+  getKPIs(): KPIData[] { return this.kpis; }
 
   getNewsFeed(): NewsItemData[] {
     if (this.newsFeed.length === 0) {
-       return [
+      return [
         { id: 'news-1', title: '동탄트램 1,2호선 기본설계 완료, 년말 착공 목표', meta: '2시간 전 · 교통', author: '똑똑한 요정', tagClass: 'tag-traffic', icon: Train },
         { id: 'news-2', title: '동탄호수공원 주변 상권 활성화, 신규 브랜드 입점 줄이어', meta: '5시간 전 · 부동산', author: '행복한 고양이', tagClass: 'tag-realestate', icon: Building },
         { id: 'news-3', title: '동탄2신도시 과밀학급 해소 위해 임시 모듈러 교실 추가 도입', meta: '1일 전 · 교육', author: '동탄사는 사자', tagClass: 'tag-edu', icon: BookOpen },
@@ -528,34 +119,21 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
 
   getFieldReports(): FieldReportData[] {
     if (this.fieldReports.length === 0) {
-      return [
-        {
-          id: 'mock-fr-1',
-          apartmentName: '동탄역 아이파크',
-          premiumScores: {
-            eduTimePremium: 85,
-            stressFreeParking: 62,
-            commuteFrictional: 90,
-            megaScaleLiquidity: 45,
-            totalPremiumScore: 78
-          },
-          pros: '도보 10분 쾌적한 출퇴근 거리, 조경이 공원같음',
-          cons: '초등학교가 횡단보도를 건너야 함, 약간의 층간소음',
-          rating: 4,
-          author: '지혜로운 사자',
-          imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500&h=300&fit=crop',
-          likes: 12,
-          commentCount: 3,
-          createdAt: '3시간 전'
-        }
-      ];
+      return [{
+        id: 'mock-fr-1',
+        apartmentName: '동탄역 아이파크',
+        premiumScores: { eduTimePremium: 85, stressFreeParking: 62, commuteFrictional: 90, megaScaleLiquidity: 45, totalPremiumScore: 78 },
+        pros: '도보 10분 쾌적한 출퇴근 거리, 조경이 공원같음',
+        cons: '초등학교가 횡단보도를 건너야 함, 약간의 층간소음',
+        rating: 4, author: '지혜로운 사자',
+        imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500&h=300&fit=crop',
+        likes: 12, commentCount: 3, createdAt: '3시간 전',
+      }];
     }
     return this.fieldReports;
   }
 
-  getDongtanApartments(): string[] {
-    return this.dongtanApartments;
-  }
+  getDongtanApartments(): string[] { return this.dongtanApartments; }
 
   getAdBanner(): AdBannerData {
     return {
@@ -565,9 +143,96 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     };
   }
 
+  async addPost(title: string, category: string, authorUid: string, imageFile?: File) {
+    try {
+      await PostService.createPost(title, category, authorUid, imageFile);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error('DashboardFacade.addPost', 'Post creation failed', { title }, e);
+      alert("글 저장 실패! 이유: " + msg);
+    }
+  }
+
+  async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageFiles: Record<string, File>) {
+    try {
+      const profile = await UserRepo.getOrCreateProfile(authorUid);
+
+      // Upload images in parallel
+      const uploadPromises = Object.entries(imageFiles).map(async ([key, file]) => {
+        try {
+          const storageRef = ref(storage, `field_reports/${Date.now()}_${key}_${file.name}`);
+          const snapshot = await uploadBytes(storageRef, file);
+          const downloadUrl = await getDownloadURL(snapshot.ref);
+          return { key, url: downloadUrl };
+        } catch (storageError) {
+          logger.error('DashboardFacade.addFieldReport', `Upload failed for ${key}`, undefined, storageError);
+          return null;
+        }
+      });
+
+      const uploadedImages = (await Promise.all(uploadPromises)).filter(Boolean) as {key: string, url: string}[];
+      const mergedSections = JSON.parse(JSON.stringify(sections)) as ReportSections;
+      uploadedImages.forEach(({key, url}) => {
+        if (key === 'gateImg') mergedSections.infra.gateImg = url;
+        if (key === 'landscapeImg') mergedSections.infra.landscapeImg = url;
+        if (key === 'parkingImg') mergedSections.infra.parkingImg = url;
+        if (key === 'maintenanceImg') mergedSections.infra.maintenanceImg = url;
+        if (key === 'communityImg') mergedSections.ecosystem.communityImg = url;
+        if (key === 'schoolImg') mergedSections.ecosystem.schoolImg = url;
+        if (key === 'commerceImg') mergedSections.ecosystem.commerceImg = url;
+      });
+
+      const { addDoc, collection, serverTimestamp } = await import('firebase/firestore');
+      const { db } = await import('@/lib/firebaseConfig');
+      await addDoc(collection(db, 'field_reports'), {
+        apartmentName,
+        sections: mergedSections,
+        premiumScores: premiumScores || null,
+        authorName: profile?.nickname || '익명',
+        authorUid,
+        likes: 0,
+        commentCount: 0,
+        createdAt: serverTimestamp(),
+      });
+      logger.info('DashboardFacade.addFieldReport', 'Field report created', { apartmentName });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error('DashboardFacade.addFieldReport', 'Failed', { apartmentName }, e);
+      alert('임장기 저장 실패! 이유: ' + msg);
+    }
+  }
+
+  async addFieldReportComment(reportId: string, text: string, authorUid: string) {
+    try {
+      const profile = await UserRepo.getOrCreateProfile(authorUid);
+      await CommentRepo.addComment(reportId, text, profile.nickname, authorUid);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error('DashboardFacade.addFieldReportComment', 'Comment failed', { reportId }, e);
+      alert("댓글 저장 실패! 이유: " + msg);
+    }
+  }
+
+  listenToComments(reportId: string, callback: (comments: CommentData[]) => void) {
+    return CommentRepo.listenToComments(reportId, callback);
+  }
+
+  async getUserProfile(uid: string) {
+    return UserRepo.getOrCreateProfile(uid);
+  }
+
+  async incrementLike(postId: string) {
+    try { await PostRepo.incrementPostLike(postId); }
+    catch (e) { logger.error('DashboardFacade.incrementLike', 'Like failed', { postId }, e); }
+  }
+
+  async incrementFieldReportLike(reportId: string) {
+    try { await ReportRepo.incrementReportLike(reportId); }
+    catch (e) { logger.error('DashboardFacade.incrementFieldReportLike', 'Like failed', { reportId }, e); }
+  }
+
   isAdmin(email: string | null | undefined): boolean {
-    if (!email) return false;
-    return ADMIN_EMAILS.includes(email);
+    return checkAdmin(email);
   }
 }
 
@@ -580,99 +245,33 @@ export class DashboardFacade {
     this.strategy = strategy || new FirebaseDashboardDataStrategy();
   }
 
-  public setStrategy(strategy: DashboardDataStrategy) {
-    this.strategy = strategy;
-  }
-
-  public subscribe(callback: () => void) {
-    if (this.strategy.subscribe) {
-      return this.strategy.subscribe(callback);
-    }
-    return () => {};
-  }
-
-  public getKPIs(): KPIData[] {
-    return this.strategy.getKPIs();
-  }
-
-  public getNewsFeed(): NewsItemData[] {
-    return this.strategy.getNewsFeed();
-  }
-
-  public getFieldReports(): FieldReportData[] {
-    if (this.strategy.getFieldReports) {
-      return this.strategy.getFieldReports();
-    }
-    return [];
-  }
-
-  public getAdBanner(): AdBannerData {
-    return this.strategy.getAdBanner();
-  }
-
-  public async addPost(title: string, category: string, authorUid: string, imageFile?: File) {
-    if (this.strategy.addPost) {
-      await this.strategy.addPost(title, category, authorUid, imageFile);
-    }
-  }
-
-  public async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageFiles: Record<string, File>) {
-    if (this.strategy.addFieldReport) {
-      await this.strategy.addFieldReport(apartmentName, sections, premiumScores, authorUid, imageFiles);
-    }
-  }
-
-  public async addFieldReportComment(reportId: string, text: string, authorUid: string) {
-    if (this.strategy.addFieldReportComment) {
-      await this.strategy.addFieldReportComment(reportId, text, authorUid);
-    }
-  }
-
-  public listenToComments(reportId: string, callback: (comments: CommentData[]) => void) {
-    if (this.strategy.listenToComments) {
-      return this.strategy.listenToComments(reportId, callback);
-    }
-    return () => {};
-  }
-
-  public async getUserProfile(uid: string) {
-    if (this.strategy.getUserProfile) {
-      return await this.strategy.getUserProfile(uid);
-    }
-    return null;
-  }
-
-  public async incrementLike(postId: string) {
-    if (this.strategy.incrementLike) {
-      await this.strategy.incrementLike(postId);
-    }
-  }
-
-  public async incrementFieldReportLike(reportId: string) {
-    if (this.strategy.incrementFieldReportLike) {
-      await this.strategy.incrementFieldReportLike(reportId);
-    }
-  }
-
-  public getDongtanApartments(): string[] {
-    if (this.strategy.getDongtanApartments) {
-      return this.strategy.getDongtanApartments();
-    }
-    return [];
-  }
-
-  public isAdmin(email: string | null | undefined): boolean {
-    if (this.strategy.isAdmin) {
-      return this.strategy.isAdmin(email);
-    }
-    return false;
-  }
+  public setStrategy(strategy: DashboardDataStrategy) { this.strategy = strategy; }
+  public subscribe(callback: () => void) { return this.strategy.subscribe ? this.strategy.subscribe(callback) : () => {}; }
+  public getKPIs(): KPIData[] { return this.strategy.getKPIs(); }
+  public getNewsFeed(): NewsItemData[] { return this.strategy.getNewsFeed(); }
+  public getFieldReports(): FieldReportData[] { return this.strategy.getFieldReports ? this.strategy.getFieldReports() : []; }
+  public getAdBanner(): AdBannerData { return this.strategy.getAdBanner(); }
+  public async addPost(title: string, category: string, authorUid: string, imageFile?: File) { if (this.strategy.addPost) await this.strategy.addPost(title, category, authorUid, imageFile); }
+  public async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageFiles: Record<string, File>) { if (this.strategy.addFieldReport) await this.strategy.addFieldReport(apartmentName, sections, premiumScores, authorUid, imageFiles); }
+  public async addFieldReportComment(reportId: string, text: string, authorUid: string) { if (this.strategy.addFieldReportComment) await this.strategy.addFieldReportComment(reportId, text, authorUid); }
+  public listenToComments(reportId: string, callback: (comments: CommentData[]) => void) { return this.strategy.listenToComments ? this.strategy.listenToComments(reportId, callback) : () => {}; }
+  public async getUserProfile(uid: string) { return this.strategy.getUserProfile ? await this.strategy.getUserProfile(uid) : null; }
+  public async incrementLike(postId: string) { if (this.strategy.incrementLike) await this.strategy.incrementLike(postId); }
+  public async incrementFieldReportLike(reportId: string) { if (this.strategy.incrementFieldReportLike) await this.strategy.incrementFieldReportLike(reportId); }
+  public getDongtanApartments(): string[] { return this.strategy.getDongtanApartments ? this.strategy.getDongtanApartments() : []; }
+  public isAdmin(email: string | null | undefined): boolean { return this.strategy.isAdmin ? this.strategy.isAdmin(email) : false; }
 }
 
-// Default instance for easy import
+// Default singleton instance
 export const dashboardFacade = new DashboardFacade();
 
-// --- Hooks ---
+// --- React Hook (re-exported for backward compatibility) ---
+import { useState, useEffect } from 'react';
+
+/**
+ * React hook providing reactive dashboard data.
+ * Subscribes to the facade's listener pattern and re-renders on data changes.
+ */
 export function useDashboardData() {
   const [data, setData] = useState({
     kpis: dashboardFacade.getKPIs(),
@@ -683,7 +282,6 @@ export function useDashboardData() {
   });
 
   useEffect(() => {
-    // Since Firebase might take a second to load the initial list, trigger a first update manually if needed
     const unsubscribe = dashboardFacade.subscribe(() => {
       setData({
         kpis: [...dashboardFacade.getKPIs()],
@@ -693,7 +291,6 @@ export function useDashboardData() {
         adBanner: dashboardFacade.getAdBanner(),
       });
     });
-
     return () => unsubscribe();
   }, []);
 
