@@ -44,36 +44,36 @@ export function FieldReportModal({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-12 animate-in fade-in duration-200">
         <div className="absolute inset-0 bg-[#191f28]/60 backdrop-blur-sm" onClick={onClose} />
         
-        <div className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] max-h-[90vh] rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden shadow-2xl transition-all duration-300 ring-1 ring-white/10`}>
-          <button onClick={onClose} className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg">
+        <div className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] max-h-[90vh] rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden shadow-2xl transition-all duration-300 ring-1 ring-black/5`}>
+          <button onClick={onClose} className="sticky top-4 z-20 ml-auto mr-4 mt-4 -mb-14 bg-[#191f28]/80 hover:bg-[#191f28] text-white w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0">
             <X size={20} />
           </button>
 
           {/* Hero Cover (Editorial Banner Layout) */}
-          <div className="bg-[#191f28] w-full flex flex-col md:flex-row p-8 md:p-12 pb-16 gap-8 md:gap-12 items-center rounded-t-3xl md:rounded-b-3xl shrink-0 pt-16 md:pt-12">
+          <div className="bg-white w-full flex flex-col md:flex-row p-8 md:p-12 pb-16 gap-8 md:gap-12 items-center rounded-t-3xl shrink-0 pt-4 md:pt-8 border-b border-[#e5e8eb]">
             
             {/* Left: Image (Constrained to prevent stretching) */}
             <div className="w-full md:w-[45%] lg:w-[40%] flex justify-center shrink-0">
               {coverImage ? (
-                <div className="w-full max-w-[420px] aspect-video md:aspect-square bg-white/5 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 ring-offset-4 ring-offset-[#191f28]">
+                <div className="w-full max-w-[420px] aspect-video md:aspect-square bg-[#f2f4f6] rounded-2xl overflow-hidden shadow-lg ring-1 ring-black/5">
                   <img src={coverImage} alt={report.apartmentName} className="w-full h-full object-cover" />
                 </div>
               ) : (
-                <div className="w-full max-w-[420px] aspect-video md:aspect-square bg-white/5 rounded-2xl flex items-center justify-center shadow-2xl ring-1 ring-white/10 ring-offset-4 ring-offset-[#191f28]">
-                   <span className="text-white/20 text-[14px] font-bold">등록된 대표 사진이 없습니다</span>
+                <div className="w-full max-w-[420px] aspect-video md:aspect-square bg-[#f2f4f6] rounded-2xl flex items-center justify-center shadow-lg ring-1 ring-black/5">
+                   <span className="text-[#8b95a1] text-[14px] font-bold">등록된 대표 사진이 없습니다</span>
                 </div>
               )}
             </div>
 
             {/* Right: Text Information */}
-            <div className="w-full md:w-[55%] lg:w-[60%] flex flex-col text-white">
+            <div className="w-full md:w-[55%] lg:w-[60%] flex flex-col">
                <div className="flex items-center gap-2 mb-4">
                  <span className="bg-[#3182f6] text-white text-[13px] font-bold px-3 py-1 rounded-full">{report.apartmentName}</span>
-                 <span className="bg-white/10 text-[#ffc107] text-[13px] tracking-widest px-3 py-1 rounded-full font-bold shadow-sm">평점 {rating}점</span>
+                 <span className="bg-[#fff8e1] text-[#f59e0b] text-[13px] tracking-widest px-3 py-1 rounded-full font-bold shadow-sm border border-[#fde68a]">평점 {rating}점</span>
                </div>
-               <h1 className="text-[32px] md:text-[42px] lg:text-[48px] font-extrabold leading-tight tracking-tight mb-6 md:mb-8 text-white">{report.apartmentName}</h1>
+               <h1 className="text-[32px] md:text-[42px] lg:text-[48px] font-extrabold leading-tight tracking-tight mb-6 md:mb-8 text-[#191f28]">{report.apartmentName}</h1>
                
-               <div className="flex items-center gap-3 pt-6 border-t border-white/10 text-white/80">
+               <div className="flex items-center gap-3 pt-6 border-t border-[#e5e8eb] text-[#4e5968]">
                  <span className="text-[14px] font-bold">{report.author}</span>
                  <span className="text-[13px] opacity-60">·</span>
                  <span className="text-[13px]">{report.createdAt}</span>
