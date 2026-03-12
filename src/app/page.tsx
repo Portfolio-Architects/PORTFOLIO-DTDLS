@@ -15,7 +15,23 @@ import { useRouter } from 'next/navigation';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
 
-export function FieldReportModal({ report, onClose }: { report: FieldReportData, onClose: () => void }) {
+export function FieldReportModal({ 
+  report, 
+  onClose,
+  comments,
+  commentInput,
+  onCommentChange,
+  onSubmitComment,
+  user
+}: { 
+  report: FieldReportData;
+  onClose: () => void;
+  comments: CommentData[];
+  commentInput: string;
+  onCommentChange: (text: string) => void;
+  onSubmitComment: () => void;
+  user: User | null;
+}) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
 
@@ -259,10 +275,65 @@ export function FieldReportModal({ report, onClose }: { report: FieldReportData,
               </>
             )}
 
+            {/* Comments Section */}
+            <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+              <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3">
+                <MessageSquare size={20} className="text-[#3182f6]"/> 
+                이웃들의 이야기 <span className="text-[#3182f6] text-[16px] ml-1">{comments.length}</span>
+              </h2>
+              
+              <div className="flex flex-col gap-6">
+                {/* Input Area */}
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    placeholder={user ? "임장기에 대한 생각이나 궁금한 점을 남겨주세요." : "로그인 후 댓글을 남길 수 있습니다."}
+                    disabled={!user}
+                    className="flex-1 border border-[#e5e8eb] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#3182f6]/20 focus:border-[#3182f6] disabled:bg-[#f2f4f6]"
+                    value={commentInput}
+                    onChange={(e) => onCommentChange(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') onSubmitComment();
+                    }}
+                  />
+                  <button 
+                    onClick={onSubmitComment}
+                    disabled={!user || !commentInput.trim()}
+                    className="bg-[#3182f6] text-white px-5 rounded-xl font-bold text-[14px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    등록
+                  </button>
+                </div>
+
+                {/* Comment List */}
+                <div className="flex flex-col gap-4 mt-2">
+                  {comments.length > 0 ? (
+                    comments.map(comment => (
+                      <div key={comment.id} className="flex gap-3 bg-[#f9fafb] p-4 rounded-2xl border border-[#e5e8eb]">
+                        <div className="w-8 h-8 rounded-full bg-white border border-[#e5e8eb] shadow-sm flex items-center justify-center shrink-0">
+                           <UserCircle size={16} className="text-[#8b95a1]" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-baseline gap-2 mb-1">
+                            <span className="font-bold text-[14px] text-[#191f28]">{comment.authorLabel}</span>
+                            <span className="text-[12px] text-[#8b95a1]">{comment.createdAt}</span>
+                          </div>
+                          <p className="text-[14px] text-[#4e5968] leading-relaxed break-all whitespace-pre-wrap">{comment.text}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-10 text-[#8b95a1] text-[14px]">
+                      아직 작성된 댓글이 없습니다. 첫 댓글을 남겨보세요!
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
-
       {/* Fullscreen Image Overlay */}
       {fullscreenImage && (
         <div 
@@ -389,6 +460,16 @@ export default function Dashboard() {
     setIsWriting(false);
     setIsSubmitting(false);
   };
+
+  // Fetch comments automatically when a report modal is opened
+  useEffect(() => {
+    if (selectedReport && !commentsData[selectedReport.id]) {
+      const unsubscribe = dashboardFacade.listenToComments(selectedReport.id, (comments) => {
+        setCommentsData(prev => ({ ...prev, [selectedReport.id]: comments }));
+      });
+      return () => unsubscribe();
+    }
+  }, [selectedReport]);
 
   return (
     <div className="min-h-screen bg-[#f9fafb] font-sans selection:bg-[#3182f6]/20">
@@ -571,7 +652,15 @@ export default function Dashboard() {
 
       {/* Field Report Full View Modal */}
       {selectedReport && (
-        <FieldReportModal report={selectedReport} onClose={() => setSelectedReport(null)} />
+        <FieldReportModal 
+          report={selectedReport} 
+          onClose={() => setSelectedReport(null)} 
+          comments={commentsData[selectedReport.id] || []}
+          commentInput={commentInput[selectedReport.id] || ''}
+          onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}
+          onSubmitComment={() => handleSubmitComment(selectedReport.id)}
+          user={user}
+        />
       )}
     </div>
   );
