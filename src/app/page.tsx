@@ -33,36 +33,38 @@ export function FieldReportModal({ report, onClose }: { report: FieldReportData,
             <X size={20} />
           </button>
 
-          {/* Hero Cover */}
-          {coverImage ? (
-            <div className="w-full h-[50vh] relative">
-              <img src={coverImage} alt={report.apartmentName} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
-                 <div className="flex items-center gap-2 mb-3">
-                   <span className="bg-[#3182f6] text-white text-[13px] font-bold px-3 py-1 rounded-full shadow-md flex items-center gap-1.5"><MapPin size={14}/> {report.apartmentName}</span>
-                   <span className="bg-black/40 backdrop-blur-md text-[#ffc107] text-[13px] tracking-widest px-3 py-1 py-1 rounded-full shadow-md">{'⭐'.repeat(rating)}</span>
-                 </div>
-                 <h1 className="text-[32px] md:text-[42px] font-extrabold text-white leading-tight tracking-tight drop-shadow-lg">{report.apartmentName}</h1>
-                 <div className="flex items-center gap-3 mt-4">
-                   <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30"><UserCircle size={16} className="text-white"/></div>
-                   <span className="text-[14px] font-bold text-white/90">{report.author}</span>
-                   <span className="text-[13px] text-white/60 flex items-center gap-1"><Clock size={12}/> {report.createdAt}</span>
-                 </div>
-              </div>
+          {/* Hero Cover (Editorial Banner Layout) */}
+          <div className="bg-[#191f28] w-full flex flex-col md:flex-row p-8 md:p-12 pb-16 gap-8 md:gap-12 items-center rounded-t-3xl md:rounded-b-3xl shrink-0 pt-16 md:pt-12">
+            
+            {/* Left: Image (Constrained to prevent stretching) */}
+            <div className="w-full md:w-[45%] lg:w-[40%] flex justify-center shrink-0">
+              {coverImage ? (
+                <div className="w-full max-w-[420px] aspect-video md:aspect-square bg-white/5 rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 ring-offset-4 ring-offset-[#191f28]">
+                  <img src={coverImage} alt={report.apartmentName} className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="w-full max-w-[420px] aspect-video md:aspect-square bg-white/5 rounded-2xl flex items-center justify-center shadow-2xl ring-1 ring-white/10 ring-offset-4 ring-offset-[#191f28]">
+                   <span className="text-white/20 text-[14px] font-bold">등록된 대표 사진이 없습니다</span>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="bg-[#191f28] p-8 md:pt-16 pb-12 rounded-b-3xl">
+
+            {/* Right: Text Information */}
+            <div className="w-full md:w-[55%] lg:w-[60%] flex flex-col text-white">
                <div className="flex items-center gap-2 mb-4">
-                   <span className="bg-[#3182f6] text-white text-[13px] font-bold px-3 py-1 rounded-full"><MapPin size={14}/> {report.apartmentName}</span>
+                 <span className="bg-[#3182f6] text-white text-[13px] font-bold px-3 py-1 rounded-full">{report.apartmentName}</span>
+                 <span className="bg-white/10 text-[#ffc107] text-[13px] tracking-widest px-3 py-1 rounded-full font-bold shadow-sm">평점 {rating}점</span>
                </div>
-               <h1 className="text-[32px] md:text-[42px] font-extrabold text-white leading-tight tracking-tight">{report.apartmentName}</h1>
-               <div className="flex items-center gap-3 mt-6">
-                   <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center"><UserCircle size={16} className="text-white/60"/></div>
-                   <span className="text-[14px] font-bold text-white/90">{report.author}</span>
-                   <span className="text-[13px] text-white/60 flex items-center gap-1"><Clock size={12}/> {report.createdAt}</span>
+               <h1 className="text-[32px] md:text-[42px] lg:text-[48px] font-extrabold leading-tight tracking-tight mb-6 md:mb-8 text-white">{report.apartmentName}</h1>
+               
+               <div className="flex items-center gap-3 pt-6 border-t border-white/10 text-white/80">
+                 <span className="text-[14px] font-bold">{report.author}</span>
+                 <span className="text-[13px] opacity-60">·</span>
+                 <span className="text-[13px]">{report.createdAt}</span>
                </div>
             </div>
-          )}
+
+          </div>
 
           {/* Magazine Content Wrapper */}
           <div className="px-6 py-8 md:p-12 flex flex-col gap-10 max-w-[1000px] mx-auto w-full">
