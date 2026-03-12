@@ -576,10 +576,10 @@ export default function Dashboard() {
           <div className="bg-white p-6 md:p-8 rounded-3xl border border-[#e5e8eb] shadow-sm">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-[20px] font-bold tracking-tight text-[#191f28]">실시간 동탄라운지</h2>
-              <button className="text-[#3182f6] text-[14px] font-bold hover:underline">몽땅 보기 &gt;</button>
+              <button onClick={() => router.push('/lounge')} className="text-[#3182f6] text-[14px] font-bold hover:underline">몽땅 보기 &gt;</button>
             </div>
             <ul className="flex flex-col gap-1">
-              {newsFeed.map((news) => (
+              {newsFeed.slice(0, 5).map((news) => (
                 <li key={news.id} className="flex gap-4 items-center py-4 border-b border-[#f2f4f6] last:border-0 hover:bg-[#f9fafb] px-3 -mx-3 rounded-2xl cursor-pointer transition-colors">
                   <div className="flex-1 w-full">
                     <h4 className="text-[15px] leading-snug mb-1 font-bold text-[#191f28] line-clamp-1">{news.title}</h4>
