@@ -110,7 +110,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     this.kpis = [
       {
         id: 'kpi-1',
-        title: '금주의 신고가',
+        title: '우와! 이번주 최고가',
         subtitle: '동탄역 롯데캐슬 84㎡',
         badgeText: 'HOT',
         badgeStyle: 'bg-[#f04452] text-white',
@@ -128,7 +128,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
       },
       {
         id: 'kpi-2',
-        title: '신혼 추천 아파트',
+        title: '신혼부부 첫 집 추천',
         subtitle: '가성비 20평대 · 전세 3억대',
         mainValue: (
           <>
@@ -145,7 +145,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
       },
       {
         id: 'kpi-3',
-        title: '동탄 시장 온도',
+        title: '요즘 동탄 매수 열기',
         subtitle: '주간 아파트 거래량',
         badgeText: '매수자 우위',
         badgeStyle: 'bg-[#e8f5e9] text-[#03c75a]',
@@ -252,7 +252,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
           sections: data.sections || undefined,
           premiumScores: data.premiumScores,
           premiumContent: data.premiumContent,
-          pros: data.premiumContent || '프리미엄 지표 분석 리포트',
+          pros: data.premiumContent || '포장 싹 뺀 진짜 동네 아파트 리뷰',
           cons: '',
           rating: 5,
           author: '데이터 랩스',
@@ -539,7 +539,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
             megaScaleLiquidity: 45,
             totalPremiumScore: 78
           },
-          pros: '도보 10분 쾌적한 출퇴근 거리, 조경이 공원같음 🌲',
+          pros: '도보 10분 쾌적한 출퇴근 거리, 조경이 공원같음',
           cons: '초등학교가 횡단보도를 건너야 함, 약간의 층간소음',
           rating: 4,
           author: '지혜로운 사자',

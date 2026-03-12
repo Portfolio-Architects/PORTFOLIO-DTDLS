@@ -394,8 +394,8 @@ export default function Dashboard() {
       {/* Top Navigation Bar */}
       <header className="bg-white/90 backdrop-blur-xl border-b border-[#e5e8eb] sticky top-0 z-40 transition-all duration-300">
         <div className="w-full max-w-[2000px] mx-auto px-6 md:px-12 lg:px-24 xl:px-32 h-16 flex justify-between items-center">
-          <h1 className="text-[18px] md:text-xl font-bold tracking-tight text-[#191f28] flex items-center gap-2">
-            <MapIcon className="text-[#3182f6]" size={24} /> 동탄 테이터 랩스
+          <h1 className="text-[18px] md:text-xl font-extrabold tracking-tight text-[#191f28]">
+            동탄 찐아파트
           </h1>
           <div className="flex items-center gap-2">
             {user ? (
@@ -407,12 +407,12 @@ export default function Dashboard() {
                 {dashboardFacade.isAdmin(user.email) && (
                   <button 
                     onClick={() => router.push('/admin')}
-                    className="ml-2 flex items-center gap-1 bg-[#191f28] text-white px-3 py-1 rounded-lg text-[12px] font-bold transition-colors">
+                    className="ml-2 bg-[#191f28] text-white px-3 py-1 rounded-lg text-[12px] font-bold transition-colors">
                     관리자
                   </button>
                 )}
-                <button onClick={handleLogout} className="ml-1 sm:ml-2 flex items-center gap-1 bg-[#ffebec] text-[#f04452] hover:bg-[#f04452] hover:text-white px-3 py-1 rounded-lg text-[12px] font-bold transition-colors">
-                  <LogOut size={12} className="hidden sm:block" /> 로그아웃
+                <button onClick={handleLogout} className="ml-1 sm:ml-2 bg-[#ffebec] text-[#f04452] hover:bg-[#f04452] hover:text-white px-3 py-1 rounded-lg text-[12px] font-bold transition-colors">
+                  로그아웃
                 </button>
               </div>
             ) : (
@@ -432,8 +432,8 @@ export default function Dashboard() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {kpis.map((kpi) => (
               <div key={kpi.id} className="bg-white p-5 rounded-3xl border border-[#e5e8eb] shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-                 <h3 className="text-[13px] text-[#4e5968] font-bold flex items-center gap-1.5 mb-3">
-                    <kpi.icon size={16} className="text-[#3182f6]" /> {kpi.title}
+                 <h3 className="text-[13px] text-[#4e5968] font-bold mb-3">
+                    {kpi.title}
                  </h3>
                  <div className="text-[24px] font-extrabold text-[#191f28]">{kpi.mainValue}</div>
                  <p className="text-[12px] text-[#8b95a1] font-medium mt-1">{kpi.subValue}</p>
@@ -453,16 +453,16 @@ export default function Dashboard() {
         <section className="mb-16">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
             <div>
-              <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] flex items-center gap-2 mb-1">
-                🔥 프리미엄 임장 브리핑
+              <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] mb-1">
+                발로 뛴 리얼 임장기
               </h2>
-              <p className="text-[15px] text-[#8b95a1] font-medium">관리자가 직접 수집하고 분석한 하이퍼 로컬 부동산 데이터</p>
+              <p className="text-[15px] text-[#8b95a1] font-medium">포장 싹 뺀, 진짜 살기 좋은 우리 동네 아파트 리뷰</p>
             </div>
             {user && dashboardFacade.isAdmin(user.email) && (
               <button 
                 onClick={() => router.push('/admin')}
-                className="bg-[#3182f6] text-white text-[14px] font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm hover:shadow-md flex items-center gap-1.5 shrink-0">
-                <LayoutDashboard size={16} /> 작성 및 관리
+                className="bg-[#3182f6] text-white text-[14px] font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm hover:shadow-md shrink-0">
+                작성 및 관리
               </button>
             )}
           </div>
@@ -500,8 +500,8 @@ export default function Dashboard() {
                       <div>
                         <div className="flex justify-between items-start mb-2">
                           <h3 className="text-[18px] font-bold text-[#191f28] tracking-tight leading-snug line-clamp-1" title={report.apartmentName}>{report.apartmentName}</h3>
-                          <div className="flex items-center text-[#ffc107] text-[10px] tracking-widest bg-black/5 px-2 py-0.5 rounded-full shrink-0 ml-2">
-                            {'⭐'.repeat(rating)}
+                          <div className="flex items-center text-[#ffc107] text-[12px] font-bold tracking-widest bg-black/5 px-2 py-0.5 rounded-full shrink-0 ml-2">
+                            평점 {rating}점
                           </div>
                         </div>
                         <p className="text-[14px] text-[#4e5968] line-clamp-2 leading-relaxed h-[42px] mb-4">
@@ -510,10 +510,10 @@ export default function Dashboard() {
                       </div>
                       
                       <div className="flex justify-between items-center pt-4 border-t border-[#f2f4f6]">
-                         <span className="text-[12px] font-bold text-[#8b95a1] flex items-center gap-1.5"><UserCircle size={14}/> {report.author}</span>
+                         <span className="text-[12px] font-bold text-[#8b95a1]">{report.author}</span>
                          <div className="flex items-center gap-3 text-[#8b95a1]">
-                            <span className="flex items-center gap-1 text-[12px] font-bold"><Heart size={14} className={report.likes ? "fill-[#f04452] text-[#f04452]" : ""}/> {report.likes || 0}</span>
-                            <span className="flex items-center gap-1 text-[12px] font-bold"><MessageSquare size={14}/> {report.commentCount || 0}</span>
+                            <span className="text-[12px] font-bold">좋아요 {report.likes || 0}</span>
+                            <span className="text-[12px] font-bold">댓글 {report.commentCount || 0}</span>
                          </div>
                       </div>
                    </div>
@@ -528,22 +528,18 @@ export default function Dashboard() {
           {/* General News Feed List */}
           <div className="bg-white p-6 md:p-8 rounded-3xl border border-[#e5e8eb] shadow-sm">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-[20px] font-bold tracking-tight text-[#191f28]">실시간 지역 소식</h2>
-              <button className="text-[#3182f6] text-[14px] font-bold hover:underline">더보기 &gt;</button>
+              <h2 className="text-[20px] font-bold tracking-tight text-[#191f28]">실시간 동탄라운지</h2>
+              <button className="text-[#3182f6] text-[14px] font-bold hover:underline">몽땅 보기 &gt;</button>
             </div>
             <ul className="flex flex-col gap-1">
               {newsFeed.map((news) => (
                 <li key={news.id} className="flex gap-4 items-center py-4 border-b border-[#f2f4f6] last:border-0 hover:bg-[#f9fafb] px-3 -mx-3 rounded-2xl cursor-pointer transition-colors">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-[20px] shrink-0 ${news.tagClass}`}>
-                    <news.icon size={20} />
-                  </div>
                   <div className="flex-1 w-full">
                     <h4 className="text-[15px] leading-snug mb-1 font-bold text-[#191f28] line-clamp-1">{news.title}</h4>
                     <div className="flex items-center justify-between">
                       <span className="text-[13px] text-[#8b95a1]">{news.author} · {news.meta}</span>
                        <div className="flex items-center gap-1.5 text-[#4e5968]">
-                          <Heart size={14} className={news.likes ? "fill-[#f04452]" : ""} /> 
-                          <span className="text-[12px] font-bold">{news.likes || 0}</span>
+                          <span className="text-[12px] font-bold">좋아요 {news.likes || 0}</span>
                        </div>
                     </div>
                   </div>
@@ -556,8 +552,8 @@ export default function Dashboard() {
           <div className="flex flex-col gap-6">
              <div className="w-full h-[200px] bg-gradient-to-br from-[#3182f6] to-[#2b72d6] rounded-3xl p-8 flex flex-col justify-end text-white relative overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 group-hover:bg-white/20 transition-colors"></div>
-               <h3 className="text-[24px] font-extrabold mb-1 relative z-10">우리 단지 리포트를<br/>신청하세요!</h3>
-               <p className="text-white/80 text-[14px] relative z-10">전문가가 직접 발로 뛰어 분석해 드립니다.</p>
+               <h3 className="text-[24px] font-extrabold mb-1 relative z-10">우리 아파트 탈탈 털어드림!</h3>
+               <p className="text-white/80 text-[14px] relative z-10">장점부터 숨기고 싶은 단점까지 속 시원하게 분석 신청하기</p>
                <div className="absolute top-8 right-8 bg-white text-[#3182f6] w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg shadow-black/10">
                  &rarr;
                </div>
