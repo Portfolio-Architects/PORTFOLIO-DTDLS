@@ -515,7 +515,7 @@ export default function Dashboard() {
                 </button>
               ))}
             </div>
-            <span className="text-[12px] text-[#8b95a1] font-medium hidden sm:inline">by <span className="font-bold text-[#191f28]">동탄 인사이드</span></span>
+            <span className="text-[14px] text-[#8b95a1] font-medium hidden sm:inline">by <span className="font-extrabold text-[#191f28]">동탄 인사이드</span></span>
           </div>
           {/* Right: User / Auth */}
           <div className="flex items-center gap-2">
