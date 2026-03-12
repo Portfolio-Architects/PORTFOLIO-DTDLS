@@ -523,10 +523,33 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+        {/* Pill Tab Bar */}
+        <div className="w-full max-w-[2000px] mx-auto px-6 md:px-12 lg:px-24 xl:px-32 pb-3 flex justify-center">
+          <div className="inline-flex bg-[#f2f4f6] rounded-full p-1 gap-1">
+            {[
+              { id: 'imjang' as const, label: '임장기', icon: Compass },
+              { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
+              { id: 'recommend' as const, label: '추천', icon: Home },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-1.5 px-5 py-2 rounded-full text-[13px] font-bold transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? 'bg-white text-[#191f28] shadow-sm'
+                    : 'text-[#8b95a1] hover:text-[#4e5968]'
+                }`}
+              >
+                <tab.icon size={15} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </header>
 
       {/* Main Container */}
-      <main className="w-full max-w-[2000px] mx-auto px-6 md:px-12 lg:px-24 xl:px-32 py-8 md:py-12 pb-28 animate-in fade-in duration-500">
+      <main className="w-full max-w-[2000px] mx-auto px-6 md:px-12 lg:px-24 xl:px-32 py-8 md:py-12 animate-in fade-in duration-500">
 
         {/* ═══ TAB 1: 임장기 ═══ */}
         {activeTab === 'imjang' && (
@@ -609,7 +632,7 @@ export default function Dashboard() {
           {user && (
             <button
               onClick={() => router.push('/lounge')}
-              className="fixed bottom-24 right-6 w-14 h-14 bg-[#3182f6] hover:bg-[#1b6de8] text-white rounded-full shadow-lg shadow-[#3182f6]/30 flex items-center justify-center transition-all active:scale-95 z-20"
+              className="fixed bottom-6 right-6 w-14 h-14 bg-[#3182f6] hover:bg-[#1b6de8] text-white rounded-full shadow-lg shadow-[#3182f6]/30 flex items-center justify-center transition-all active:scale-95 z-20"
             >
               <PenLine size={22} />
             </button>
@@ -667,27 +690,7 @@ export default function Dashboard() {
         />
       )}
 
-      {/* ══ Bottom Tab Bar ══ */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-[#e5e8eb] z-40 safe-area-bottom">
-        <div className="max-w-[2000px] mx-auto flex">
-          {[
-            { id: 'imjang' as const, label: '임장기', icon: Compass },
-            { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
-            { id: 'recommend' as const, label: '추천', icon: Home },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex flex-col items-center gap-1 py-3 transition-colors ${
-                activeTab === tab.id ? 'text-[#3182f6]' : 'text-[#8b95a1] hover:text-[#4e5968]'
-              }`}
-            >
-              <tab.icon size={20} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} />
-              <span className={`text-[11px] ${activeTab === tab.id ? 'font-extrabold' : 'font-medium'}`}>{tab.label}</span>
-            </button>
-          ))}
-        </div>
-      </nav>
+
     </div>
   );
 }
