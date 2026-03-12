@@ -555,7 +555,7 @@ export default function Dashboard() {
 
           {!selectedZone ? (
             /* === Zone Selection View (Horizontal Slider) === */
-            <div className="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 md:-mx-12 md:px-12 lg:-mx-24 lg:px-24 xl:-mx-32 xl:px-32 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 md:-mx-12 md:px-12 lg:mx-0 lg:px-0 lg:overflow-visible lg:flex-wrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {ZONES.map(zone => {
                 const reports = zoneGroups[zone.id] || [];
                 const coverImage = reports[0] && (
@@ -567,7 +567,7 @@ export default function Dashboard() {
                   <div 
                     key={zone.id}
                     onClick={() => setSelectedZone(zone.id)}
-                    className="bg-white border border-[#e5e8eb] rounded-3xl overflow-hidden hover:border-[#3182f6]/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 group snap-start shrink-0 w-[280px] md:w-[300px] lg:w-[320px]"
+                    className="bg-white border border-[#e5e8eb] rounded-3xl overflow-hidden hover:border-[#3182f6]/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 group snap-start shrink-0 w-[260px] md:w-[280px] lg:w-auto lg:shrink lg:flex-1 lg:min-w-0"
                   >
                     <div className="w-full h-[160px] bg-[#f2f4f6] relative overflow-hidden">
                       {coverImage ? (
