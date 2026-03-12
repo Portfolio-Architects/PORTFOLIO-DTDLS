@@ -367,7 +367,6 @@ export default function Dashboard() {
   const [postCategory, setPostCategory] = useState('교통');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
-  const [selectedZone, setSelectedZone] = useState<string | null>(null);
   
   // Comments State
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
@@ -473,17 +472,15 @@ export default function Dashboard() {
     }
   }, [selectedReport]);
 
-  // Group field reports by zone
-  const zoneGroups = useMemo(() => {
-    const groups: Record<string, FieldReportData[]> = {};
-    // Initialize all zones
-    ZONES.forEach(z => { groups[z.id] = []; });
+  // Count field reports by zone (for display counts)
+  const zoneReportCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    ZONES.forEach(z => { counts[z.id] = 0; });
     fieldReports?.forEach(report => {
       const zoneId = dongToZoneId(report.dong);
-      if (!groups[zoneId]) groups[zoneId] = [];
-      groups[zoneId].push(report);
+      counts[zoneId] = (counts[zoneId] || 0) + 1;
     });
-    return groups;
+    return counts;
   }, [fieldReports]);
 
   return (
@@ -534,137 +531,49 @@ export default function Dashboard() {
               </h2>
               <p className="text-[15px] text-[#8b95a1] font-medium">동탄2신도시 7대 투자 권역별 아파트 현장 리뷰</p>
             </div>
-            <div className="flex items-center gap-3">
-              {selectedZone && (
-                <button 
-                  onClick={() => setSelectedZone(null)}
-                  className="flex items-center gap-1.5 bg-[#f2f4f6] hover:bg-[#e5e8eb] text-[#191f28] text-[14px] font-bold py-2.5 px-5 rounded-xl transition-all"
-                >
-                  ← 전체 권역
-                </button>
-              )}
-              {user && dashboardFacade.isAdmin(user.email) && (
-                <button 
-                  onClick={() => router.push('/admin')}
-                  className="bg-[#3182f6] text-white text-[14px] font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm hover:shadow-md shrink-0">
-                  작성 및 관리
-                </button>
-              )}
-            </div>
+            {user && dashboardFacade.isAdmin(user.email) && (
+              <button 
+                onClick={() => router.push('/admin')}
+                className="bg-[#3182f6] text-white text-[14px] font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm hover:shadow-md shrink-0">
+                작성 및 관리
+              </button>
+            )}
           </div>
 
-          {!selectedZone ? (
-            /* === Zone Selection View (Horizontal Slider) === */
-            <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 md:-mx-12 md:px-12 lg:mx-0 lg:px-0 lg:overflow-visible lg:flex-wrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              {ZONES.map(zone => {
-                const reports = zoneGroups[zone.id] || [];
-                const coverImage = reports[0] && (
-                  (reports[0].images && reports[0].images.length > 0) ? reports[0].images[0].url :
-                  reports[0].imageUrl || reports[0].sections?.infra?.gateImg || reports[0].sections?.infra?.landscapeImg
-                );
+          {/* Zone Selection View (Horizontal Slider) */}
+          <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 md:-mx-12 md:px-12 lg:mx-0 lg:px-0 lg:overflow-visible lg:flex-wrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {ZONES.map(zone => {
+              const count = zoneReportCounts[zone.id] || 0;
 
-                return (
-                  <div 
-                    key={zone.id}
-                    onClick={() => setSelectedZone(zone.id)}
-                    className="bg-white border border-[#e5e8eb] rounded-3xl overflow-hidden hover:border-[#3182f6]/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 group snap-start shrink-0 w-[260px] md:w-[280px] lg:w-auto lg:shrink lg:flex-1 lg:min-w-0"
-                  >
-                    <div className="w-full h-[160px] bg-[#f2f4f6] relative overflow-hidden">
-                      {coverImage ? (
-                        <img src={coverImage} alt={zone.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${zone.color}15, ${zone.color}30)` }}>
-                          <MapPin size={32} className="text-[#d1d6db]" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: zone.color, color: 'white' }}>{zone.dongLabel}</span>
-                        </div>
-                        <h3 className="text-white text-[17px] font-extrabold tracking-tight drop-shadow-md leading-snug">{zone.name}</h3>
-                      </div>
+              return (
+                <div 
+                  key={zone.id}
+                  onClick={() => router.push(`/zone/${zone.id}`)}
+                  className="bg-white border border-[#e5e8eb] rounded-3xl overflow-hidden hover:border-[#3182f6]/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 group snap-start shrink-0 w-[260px] md:w-[280px] lg:w-auto lg:shrink lg:flex-1 lg:min-w-0"
+                >
+                  <div className="w-full h-[160px] bg-[#f2f4f6] relative overflow-hidden">
+                    <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${zone.color}15, ${zone.color}30)` }}>
+                      <MapPin size={32} className="text-[#d1d6db]" />
                     </div>
-                    <div className="p-4">
-                      <p className="text-[12px] text-[#4e5968] leading-relaxed line-clamp-2 mb-3">{zone.description}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[13px] text-[#8b95a1] font-bold">{reports.length}개 단지 리뷰</span>
-                        <span className="text-[13px] font-bold" style={{ color: zone.color }}>보기 →</span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: zone.color, color: 'white' }}>{zone.dongLabel}</span>
                       </div>
+                      <h3 className="text-white text-[17px] font-extrabold tracking-tight drop-shadow-md leading-snug">{zone.name}</h3>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            /* === Apartment List of Selected Zone === */
-            <>
-              {(() => {
-                const zone = getZoneById(selectedZone);
-                const reports = zoneGroups[selectedZone] || [];
-                return (
-                  <>
-                    <div className="mb-8 p-6 bg-white rounded-2xl border border-[#e5e8eb] flex flex-col md:flex-row md:items-center gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-md text-white" style={{ backgroundColor: zone?.color }}>{zone?.dongLabel}</span>
-                          <span className="bg-[#f2f4f6] text-[#4e5968] text-[12px] font-bold px-2 py-0.5 rounded-md">{reports.length}개 단지</span>
-                        </div>
-                        <h3 className="text-[22px] font-extrabold text-[#191f28] mb-1">{zone?.name}</h3>
-                        <p className="text-[14px] text-[#4e5968]">{zone?.description}</p>
-                      </div>
+                  <div className="p-4">
+                    <p className="text-[12px] text-[#4e5968] leading-relaxed line-clamp-2 mb-3">{zone.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[13px] text-[#8b95a1] font-bold">{count}개 단지 리뷰</span>
+                      <span className="text-[13px] font-bold" style={{ color: zone.color }}>보기 →</span>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 xl:gap-8">
-                      {reports.map((report) => {
-                        const coverImage = (report.images && report.images.length > 0) ? report.images[0].url : 
-                                            report.imageUrl || 
-                                            report.sections?.infra?.gateImg || 
-                                            report.sections?.infra?.landscapeImg || 
-                                            report.sections?.ecosystem?.communityImg;
-                        const rating = report.rating || 5;
-
-                        return (
-                          <div key={report.id} onClick={() => setSelectedReport(report)} className="bg-white border shadow-sm border-[#e5e8eb] rounded-3xl overflow-hidden hover:border-[#3182f6]/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 flex flex-col group">
-                            {coverImage ? (
-                              <div className="w-full h-[200px] shrink-0 bg-[#f2f4f6] relative overflow-hidden">
-                                <img src={coverImage} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                              </div>
-                            ) : (
-                              <div className="w-full h-[200px] shrink-0 bg-[#f2f4f6] flex items-center justify-center relative overflow-hidden">
-                                 <Camera size={32} className="text-[#d1d6db]" />
-                              </div>
-                            )}
-                            
-                            <div className="p-5 flex flex-col justify-between flex-1">
-                               <div>
-                                 <div className="flex justify-between items-start mb-2">
-                                   <h3 className="text-[18px] font-bold text-[#191f28] tracking-tight leading-snug line-clamp-1" title={report.apartmentName}>{report.apartmentName}</h3>
-                                   <div className="flex items-center text-[#ffc107] text-[12px] font-bold tracking-widest bg-black/5 px-2 py-0.5 rounded-full shrink-0 ml-2">
-                                     평점 {rating}점
-                                   </div>
-                                 </div>
-                                 <p className="text-[14px] text-[#4e5968] line-clamp-2 leading-relaxed h-[42px] mb-4">
-                                   {report.premiumContent || report.sections?.assessment?.alphaDriver || report.pros || '상세 리뷰가 접수되었습니다.'}
-                                 </p>
-                               </div>
-                               
-                               <div className="flex justify-between items-center pt-4 border-t border-[#f2f4f6]">
-                                  <span className="text-[12px] font-bold text-[#8b95a1]">{report.author}</span>
-                                  <div className="flex items-center gap-3 text-[#8b95a1]">
-                                     <span className="text-[12px] font-bold">좋아요 {report.likes || 0}</span>
-                                     <span className="text-[12px] font-bold">댓글 {report.commentCount || 0}</span>
-                                  </div>
-                               </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </>
-                );
-              })()}
-            </>
-          )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </section>
 
         {/* 2. Bottom Split Layout: News Feed & Other Info */}
