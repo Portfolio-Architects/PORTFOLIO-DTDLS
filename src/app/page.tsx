@@ -493,9 +493,31 @@ export default function Dashboard() {
       {/* Top Navigation Bar */}
       <header className="bg-white/90 backdrop-blur-xl border-b border-[#e5e8eb] sticky top-0 z-40 transition-all duration-300">
         <div className="w-full max-w-[2000px] mx-auto px-6 md:px-12 lg:px-24 xl:px-32 h-16 flex justify-between items-center">
-          <h1 className="text-[18px] md:text-xl font-extrabold tracking-tight text-[#191f28]">
-            동탄 인사이드
-          </h1>
+          {/* Left: Pill Tabs + Branding */}
+          <div className="flex items-center gap-3">
+            <div className="inline-flex bg-[#f2f4f6] rounded-full p-1 gap-0.5">
+              {[
+                { id: 'imjang' as const, label: '임장기', icon: Compass },
+                { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
+                { id: 'recommend' as const, label: '추천', icon: Home },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-200 ${
+                    activeTab === tab.id
+                      ? 'bg-white text-[#191f28] shadow-sm'
+                      : 'text-[#8b95a1] hover:text-[#4e5968]'
+                  }`}
+                >
+                  <tab.icon size={14} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <span className="text-[12px] text-[#8b95a1] font-medium hidden sm:inline">by <span className="font-bold text-[#191f28]">동탄 인사이드</span></span>
+          </div>
+          {/* Right: User / Auth */}
           <div className="flex items-center gap-2">
             {user ? (
               <div className="flex items-center gap-2 bg-[#f2f4f6] rounded-full pl-3 pr-4 py-1.5 shadow-sm">
@@ -521,29 +543,6 @@ export default function Dashboard() {
                  로그인
               </button>
             )}
-          </div>
-        </div>
-        {/* Pill Tab Bar */}
-        <div className="w-full max-w-[2000px] mx-auto px-6 md:px-12 lg:px-24 xl:px-32 pb-3 flex justify-center">
-          <div className="inline-flex bg-[#f2f4f6] rounded-full p-1 gap-1">
-            {[
-              { id: 'imjang' as const, label: '임장기', icon: Compass },
-              { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
-              { id: 'recommend' as const, label: '추천', icon: Home },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-5 py-2 rounded-full text-[13px] font-bold transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? 'bg-white text-[#191f28] shadow-sm'
-                    : 'text-[#8b95a1] hover:text-[#4e5968]'
-                }`}
-              >
-                <tab.icon size={15} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} />
-                {tab.label}
-              </button>
-            ))}
           </div>
         </div>
       </header>
