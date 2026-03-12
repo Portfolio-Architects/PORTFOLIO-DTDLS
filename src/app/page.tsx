@@ -495,14 +495,16 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             {user ? (
               <div className="flex items-center gap-2 bg-[#f2f4f6] rounded-full pl-3 pr-4 py-1.5 shadow-sm">
-                <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-[#3182f6]">
-                  <UserCircle size={14} />
-                </div>
-                <span className="text-[12px] font-bold text-[#191f28] hidden sm:inline">{anonProfile?.nickname || user.displayName || user.email?.split('@')[0] || '사용자'}</span>
+                <button onClick={() => router.push('/lounge')} className="flex items-center gap-1.5 hover:opacity-70 transition-opacity">
+                  <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-[#3182f6]">
+                    <UserCircle size={14} />
+                  </div>
+                  <span className="text-[12px] font-bold text-[#191f28] hidden sm:inline">{anonProfile?.nickname || user.displayName || user.email?.split('@')[0] || '사용자'}</span>
+                </button>
                 {dashboardFacade.isAdmin(user.email) && (
                   <button 
                     onClick={() => router.push('/admin')}
-                    className="ml-2 bg-[#191f28] text-white px-3 py-1 rounded-lg text-[12px] font-bold transition-colors">
+                    className="ml-1 bg-[#191f28] text-white px-3 py-1 rounded-lg text-[12px] font-bold transition-colors">
                     관리자
                   </button>
                 )}
