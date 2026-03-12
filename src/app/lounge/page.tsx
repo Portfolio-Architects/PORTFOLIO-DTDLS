@@ -8,7 +8,8 @@ import { auth } from '@/lib/firebaseConfig';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import type { UserProfile } from '@/lib/types/user.types';
-import { isValidNickname } from '@/lib/services/nickname.service';
+import { getDisplayName } from '@/lib/types/user.types';
+import { isValidNickname, isValidFrontName } from '@/lib/services/nickname.service';
 
 const CATEGORIES = ['부동산', '교통', '교육', '문화', '자유'];
 
@@ -34,8 +35,9 @@ export default function LoungePage() {
   const [selectedApt, setSelectedApt] = useState('');
 
   // Nickname edit state
-  const [isEditingNickname, setIsEditingNickname] = useState(false);
-  const [nicknameInput, setNicknameInput] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [frontNameInput, setFrontNameInput] = useState('');
+  const [lastNameInput, setLastNameInput] = useState('');
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -63,6 +65,16 @@ export default function LoungePage() {
       setShowCompose(false);
     } catch { alert('글 작성에 실패했습니다.'); }
     finally { setIsSubmitting(false); }
+  };
+
+  const handleSaveName = async () => {
+    if (!user) return;
+    if (!isValidFrontName(frontNameInput)) { alert('프론트 네임은 정확히 4글자여야 합니다.'); return; }
+    if (!isValidNickname(lastNameInput)) { alert('라스트 네임은 정확히 3글자여야 합니다.'); return; }
+    await UserRepo.updateFrontName(user.uid, frontNameInput);
+    await UserRepo.updateNickname(user.uid, lastNameInput);
+    setUserProfile(prev => prev ? { ...prev, frontName: frontNameInput, nickname: lastNameInput } : null);
+    setIsEditingName(false);
   };
 
   const handleVerify = async () => {
@@ -98,6 +110,9 @@ export default function LoungePage() {
     );
   };
 
+  const frontLen = [...frontNameInput].length;
+  const lastLen = [...lastNameInput].length;
+
   return (
     <div className="min-h-screen bg-[#f2f4f6]">
       {/* Sticky Header */}
@@ -112,43 +127,49 @@ export default function LoungePage() {
       {/* My Profile & Verification Status Bar */}
       {user && userProfile && (
         <div className="bg-white border-b border-[#e5e8eb] px-4 py-3 flex flex-col gap-2">
-          {/* Nickname row */}
+          {/* Name row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {isEditingNickname ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    value={nicknameInput}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if ([...val].length <= 3) setNicknameInput(val);
-                    }}
-                    maxLength={6}
-                    placeholder="3글자"
-                    className="w-20 bg-[#f9fafb] border border-[#3182f6] rounded-lg px-2 py-1 text-[14px] font-bold text-[#191f28] outline-none focus:ring-2 focus:ring-[#3182f6]/20 text-center"
-                    autoFocus
-                  />
-                  <span className={`text-[11px] font-bold ${[...nicknameInput].length === 3 ? 'text-[#03c75a]' : 'text-[#f04452]'}`}>
-                    {[...nicknameInput].length}/3
-                  </span>
+              {isEditingName ? (
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <div className="flex items-center gap-1">
+                    <input
+                      value={frontNameInput}
+                      onChange={(e) => { if ([...e.target.value].length <= 4) setFrontNameInput(e.target.value); }}
+                      placeholder="4글자"
+                      className="w-[72px] bg-[#f9fafb] border border-[#3182f6] rounded-lg px-2 py-1 text-[13px] font-bold text-[#191f28] outline-none focus:ring-2 focus:ring-[#3182f6]/20 text-center"
+                      autoFocus
+                    />
+                    <span className={`text-[10px] font-bold ${frontLen === 4 ? 'text-[#03c75a]' : 'text-[#f04452]'}`}>{frontLen}/4</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <input
+                      value={lastNameInput}
+                      onChange={(e) => { if ([...e.target.value].length <= 3) setLastNameInput(e.target.value); }}
+                      placeholder="3글자"
+                      className="w-[60px] bg-[#f9fafb] border border-[#3182f6] rounded-lg px-2 py-1 text-[13px] font-bold text-[#191f28] outline-none focus:ring-2 focus:ring-[#3182f6]/20 text-center"
+                    />
+                    <span className={`text-[10px] font-bold ${lastLen === 3 ? 'text-[#03c75a]' : 'text-[#f04452]'}`}>{lastLen}/3</span>
+                  </div>
                   <button
-                    onClick={async () => {
-                      if (!isValidNickname(nicknameInput)) { alert('닉네임은 정확히 3글자여야 합니다.'); return; }
-                      await UserRepo.updateNickname(user.uid, nicknameInput);
-                      setUserProfile(prev => prev ? { ...prev, nickname: nicknameInput } : null);
-                      setIsEditingNickname(false);
-                    }}
-                    disabled={[...nicknameInput].length !== 3}
+                    onClick={handleSaveName}
+                    disabled={frontLen !== 4 || lastLen !== 3}
                     className="w-7 h-7 rounded-full bg-[#3182f6] disabled:bg-[#d1d6db] flex items-center justify-center text-white transition-colors"
                   >
                     <Check size={14} />
                   </button>
+                  <button
+                    onClick={() => setIsEditingName(false)}
+                    className="w-7 h-7 rounded-full bg-[#f2f4f6] flex items-center justify-center text-[#8b95a1] hover:bg-[#e5e8eb] transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
                 </div>
               ) : (
                 <>
-                  <span className="text-[15px] font-extrabold text-[#191f28]">{userProfile.nickname}</span>
+                  <span className="text-[15px] font-extrabold text-[#191f28]">{getDisplayName(userProfile)}</span>
                   <button
-                    onClick={() => { setNicknameInput(userProfile.nickname || ''); setIsEditingNickname(true); }}
+                    onClick={() => { setFrontNameInput(userProfile.frontName || '동탄사는'); setLastNameInput(userProfile.nickname || ''); setIsEditingName(true); }}
                     className="w-6 h-6 rounded-full bg-[#f2f4f6] hover:bg-[#e5e8eb] flex items-center justify-center transition-colors"
                   >
                     <Pencil size={11} className="text-[#8b95a1]" />
@@ -241,7 +262,7 @@ export default function LoungePage() {
             <textarea value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="동탄 이야기를 자유롭게 나눠보세요..." rows={3} className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors resize-none focus:ring-4 focus:ring-[#3182f6]/10 mb-4" autoFocus />
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-[12px] text-[#8b95a1]">🎭 익명</span>
+                <span className="text-[12px] text-[#8b95a1]">🎭 {userProfile ? getDisplayName(userProfile) : '익명'}</span>
                 {userProfile?.verifiedApartment && (
                   <VerificationBadge apartment={userProfile.verifiedApartment} level={userProfile.verificationLevel} />
                 )}

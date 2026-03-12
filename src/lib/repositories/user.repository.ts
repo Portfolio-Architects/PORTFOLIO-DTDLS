@@ -7,7 +7,7 @@ import { db } from '@/lib/firebaseConfig';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import type { UserProfile, VerificationLevel } from '@/lib/types/user.types';
-import { generateRandomNickname } from '@/lib/services/nickname.service';
+import { generateRandomNickname, DEFAULT_FRONT_NAME } from '@/lib/services/nickname.service';
 
 /**
  * Gets or creates a user profile. On first login, a random nickname is generated.
@@ -19,24 +19,29 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
   const userSnap = await getDoc(userRef);
 
   if (userSnap.exists()) {
-    return userSnap.data() as UserProfile;
+    const data = userSnap.data();
+    return {
+      frontName: data.frontName || DEFAULT_FRONT_NAME,
+      nickname: data.nickname,
+      verifiedApartment: data.verifiedApartment,
+      verificationLevel: data.verificationLevel,
+      createdAt: data.createdAt,
+    };
   }
 
   // First login — generate a profile
   const newProfile: UserProfile = {
+    frontName: DEFAULT_FRONT_NAME,
     nickname: generateRandomNickname(),
     createdAt: serverTimestamp(),
   };
   await setDoc(userRef, newProfile);
   logger.info('UserRepository.getOrCreateProfile', 'New user profile created', { uid, nickname: newProfile.nickname });
-  return { nickname: newProfile.nickname };
+  return { frontName: newProfile.frontName, nickname: newProfile.nickname };
 }
 
 /**
  * Sets the user's apartment verification.
- * @param uid - Firebase Auth UID
- * @param apartment - Apartment name (e.g., '[오산동] 동탄역 롯데캐슬')
- * @param level - Verification level ('self_declared' or 'registry_verified')
  */
 export async function setApartmentVerification(
   uid: string,
@@ -44,20 +49,24 @@ export async function setApartmentVerification(
   level: VerificationLevel
 ): Promise<void> {
   const userRef = doc(db, 'users', uid);
-  await updateDoc(userRef, {
-    verifiedApartment: apartment,
-    verificationLevel: level,
-  });
+  await updateDoc(userRef, { verifiedApartment: apartment, verificationLevel: level });
   logger.info('UserRepository.setApartmentVerification', 'Apartment verified', { uid, apartment, level });
 }
 
 /**
- * Updates the user's nickname.
- * @param uid - Firebase Auth UID
- * @param nickname - New nickname (must be exactly 3 characters)
+ * Updates the user's last name (nickname, 3 chars).
  */
 export async function updateNickname(uid: string, nickname: string): Promise<void> {
   const userRef = doc(db, 'users', uid);
   await updateDoc(userRef, { nickname });
   logger.info('UserRepository.updateNickname', 'Nickname updated', { uid, nickname });
+}
+
+/**
+ * Updates the user's front name (4 chars).
+ */
+export async function updateFrontName(uid: string, frontName: string): Promise<void> {
+  const userRef = doc(db, 'users', uid);
+  await updateDoc(userRef, { frontName });
+  logger.info('UserRepository.updateFrontName', 'Front name updated', { uid, frontName });
 }

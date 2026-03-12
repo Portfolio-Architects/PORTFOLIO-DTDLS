@@ -39,10 +39,11 @@ export async function createPost(
     }
 
     // 3. Persist to Firestore (include apartment verification if present)
+    const displayName = `${profile.frontName || '동탄사는'} ${profile.nickname}`;
     await PostRepo.createPost({
       title,
       category,
-      authorName: profile.nickname,
+      authorName: displayName,
       authorUid,
       imageUrl,
       verifiedApartment: profile.verifiedApartment,
