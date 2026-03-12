@@ -31,8 +31,8 @@ type FormValues = {
   premiumContent: string;
 };
 
-// Mock Database for Dongtan Apartments (Can be replaced with real API later)
-const DONG_DATA: Record<string, string[]> = {
+// Fallback Database for when API is unavailable
+const FALLBACK_DONG_DATA: Record<string, string[]> = {
   '오산동 (동탄역)': ['동탄역 롯데캐슬', '동탄역 반도유보라 아이비파크 6.0', '동탄역 반도유보라 아이비파크 7.0', '동탄역 반도유보라 아이비파크 8.0', '동탄역 파라곤', '동탄역 예미지 시그너스'],
   '청계동 (시범단지)': ['동탄역 시범더샵 센트럴시티', '동탄역 시범한화 꿈에그린 프레스티지', '동탄역 시범우남 퍼스트빌', '동탄 시범대원 칸타빌', '동탄 시범 예미지', '동탄 시범 호반베르디움'],
   '목동 (중동탄)': ['힐스테이트 동탄', '동탄2 호반베르디움 센트럴포레', 'e편한세상 동탄', '동탄 금강펜테리움 4차', '동탄 한신더휴'],
@@ -61,15 +61,37 @@ interface ReportEditorFormProps {
 
 export default function ReportEditorForm({ initialData = null, reportId }: ReportEditorFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dongData, setDongData] = useState<Record<string, string[]>>(FALLBACK_DONG_DATA);
+  const [isLoadingApts, setIsLoadingApts] = useState(true);
   const router = useRouter();
+
+  // Fetch apartment list from MOLIT API on mount
+  useEffect(() => {
+    const fetchApartments = async () => {
+      try {
+        const res = await fetch('/api/apartments');
+        if (res.ok) {
+          const data = await res.json();
+          if (Object.keys(data).length > 1) { // More than just '기타'
+            setDongData(data);
+          }
+        }
+      } catch (err) {
+        console.warn('아파트 목록 API 호출 실패, 기본 데이터 사용:', err);
+      } finally {
+        setIsLoadingApts(false);
+      }
+    };
+    fetchApartments();
+  }, []);
 
   // Initialize React Hook Form
   const { register, control, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
     defaultValues: initialData || {
-      dong: '오산동 (동탄역)',
-      apartmentName: '동탄역 롯데캐슬',
+      dong: Object.keys(FALLBACK_DONG_DATA)[0],
+      apartmentName: FALLBACK_DONG_DATA[Object.keys(FALLBACK_DONG_DATA)[0]][0],
       metrics: {
-        brand: '롯데캐슬', // Default value
+        brand: '롯데캐슬',
         householdCount: '',
         far: '',
         bcr: '',
@@ -82,7 +104,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         academyDensity: ''
       },
       images: [
-        { url: '', caption: '', locationTag: '메인 (단지 전경)', isPremium: false } // Start with one empty image block
+        { url: '', caption: '', locationTag: '메인 (단지 전경)', isPremium: false }
       ],
       isPremium: true
     }
@@ -101,8 +123,8 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
   });
 
   // Watch the 'dong' field to dynamically update the apartment list
-  const selectedDong = useWatch({ control, name: 'dong' }) || '오산동 (동탄역)';
-  const availableApartments = DONG_DATA[selectedDong] || [];
+  const selectedDong = useWatch({ control, name: 'dong' }) || Object.keys(dongData)[0];
+  const availableApartments = dongData[selectedDong] || [];
 
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -235,7 +257,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
             <SelectInput 
               name="dong" 
               label="" 
-              options={Object.keys(DONG_DATA)} 
+              options={isLoadingApts ? ['불러오는 중...'] : Object.keys(dongData)} 
             />
           </div>
           <div>
