@@ -531,14 +531,8 @@ export default function Dashboard() {
               </h2>
               <p className="text-[15px] text-[#8b95a1] font-medium">동탄2신도시 7대 투자 권역별 아파트 현장 리뷰</p>
             </div>
-            {user && dashboardFacade.isAdmin(user.email) && (
-              <button 
-                onClick={() => router.push('/admin')}
-                className="bg-[#3182f6] text-white text-[14px] font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm hover:shadow-md shrink-0">
-                작성 및 관리
-              </button>
-            )}
           </div>
+
 
           {/* Zone Selection View (Horizontal Slider) */}
           <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 md:-mx-12 md:px-12 lg:mx-0 lg:px-0 lg:overflow-visible lg:flex-wrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
