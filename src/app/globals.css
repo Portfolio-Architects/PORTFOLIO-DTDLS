@@ -113,27 +113,14 @@
   .tag-culture { background: #fff3e0; color: #ff9800; }
 
   /* Custom Scrollbar specifically for Modals to hide it or style it beautifully */
+  /* We will hide the scrollbar completely to preserve the clean UI on Windows */
   .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 0px;
+    height: 0px;
+    display: none;
   }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-    margin: 16px 0; /* Ensures it doesn't overlap with rounded corners at the top/bottom */
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.2);
-  }
-  
-  /* Fallback for firefox */
   .custom-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
   }
 }
