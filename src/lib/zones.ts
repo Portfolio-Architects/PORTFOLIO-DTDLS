@@ -12,7 +12,7 @@ export interface ZoneInfo {
 export const ZONES: ZoneInfo[] = [
   {
     id: 'metropolis',
-    name: '메타폴리스 및 중심상업지구',
+    name: '메타폴리스 & 중상지구',
     dongLabel: '동탄 1동',
     description: 'Zero-Duration의 성숙 권역. 가장 강력한 방어적 팩터를 지니며 고수익 채권 대용(Bond Proxy) 자산군.',
     color: '#191f28',
