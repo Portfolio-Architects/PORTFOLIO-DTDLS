@@ -3,7 +3,8 @@
 import { 
   Building, MapPin, Map as MapIcon, Info, Users, AlertCircle, ShieldAlert,
   Car, BookOpen, Clock, Tag, X, FileText, CheckCircle2, TrendingUp, Radar,
-  MessageSquare, Heart, Compass, LayoutDashboard, Camera, UserCircle, Star, Maximize2, Link2, Trash2, Text, LogOut
+  MessageSquare, Heart, Compass, LayoutDashboard, Camera, UserCircle, Star, Maximize2, Link2, Trash2, Text, LogOut,
+  Home, PenLine, Send
 } from 'lucide-react';
 import MainChart from '@/components/MainChart';
 import EduBubbleChart from '@/components/EduBubbleChart';
@@ -373,6 +374,9 @@ export default function Dashboard() {
   const [commentsData, setCommentsData] = useState<Record<string, CommentData[]>>({});
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
 
+  // Tab state
+  const [activeTab, setActiveTab] = useState<'imjang' | 'lounge' | 'recommend'>('imjang');
+
   // Auth & Profile State
   const [user, setUser] = useState<User | null>(null);
   const [anonProfile, setAnonProfile] = useState<{nickname: string} | null>(null);
@@ -522,9 +526,10 @@ export default function Dashboard() {
       </header>
 
       {/* Main Container */}
-      <main className="w-full max-w-[2000px] mx-auto px-6 md:px-12 lg:px-24 xl:px-32 py-8 md:py-12 animate-in fade-in duration-500">
-        
-        {/* 1. 🔥 Hi-Fi Local Data: Field Reports (Zone-based Navigation) */}
+      <main className="w-full max-w-[2000px] mx-auto px-6 md:px-12 lg:px-24 xl:px-32 py-8 md:py-12 pb-28 animate-in fade-in duration-500">
+
+        {/* ═══ TAB 1: 임장기 ═══ */}
+        {activeTab === 'imjang' && (
         <section className="mb-16">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
             <div>
@@ -535,12 +540,10 @@ export default function Dashboard() {
             </div>
           </div>
 
-
           {/* Zone Selection View (Horizontal Slider) */}
           <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 md:-mx-12 md:px-12 lg:mx-0 lg:px-0 lg:overflow-visible lg:flex-wrap [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {ZONES.map(zone => {
               const count = zoneReportCounts[zone.id] || 0;
-
               return (
                 <div 
                   key={zone.id}
@@ -571,62 +574,83 @@ export default function Dashboard() {
             })}
           </div>
         </section>
+        )}
 
-        {/* 2. Bottom Split Layout: News Feed & Other Info */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
-          {/* General News Feed List */}
-          <div className="bg-white p-6 md:p-8 rounded-3xl border border-[#e5e8eb] shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-[20px] font-bold tracking-tight text-[#191f28]">실시간 동탄라운지</h2>
-              <button onClick={() => router.push('/lounge')} className="text-[#3182f6] text-[14px] font-bold hover:underline">몽땅 보기 &gt;</button>
+        {/* ═══ TAB 2: 라운지 ═══ */}
+        {activeTab === 'lounge' && (
+        <section>
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] mb-1">실시간 동탄라운지</h2>
+              <p className="text-[15px] text-[#8b95a1] font-medium">동탄 주민들의 솔직한 이야기</p>
             </div>
-            <ul className="flex flex-col gap-1">
-              {newsFeed.slice(0, 5).map((news) => (
-                <li key={news.id} className="flex gap-4 items-center py-4 border-b border-[#f2f4f6] last:border-0 hover:bg-[#f9fafb] px-3 -mx-3 rounded-2xl cursor-pointer transition-colors">
-                  <div className="flex-1 w-full">
-                    <h4 className="text-[15px] leading-snug mb-1 font-bold text-[#191f28] line-clamp-1">{news.title}</h4>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[13px] text-[#8b95a1]">{news.author} · {news.meta}</span>
-                       <div className="flex items-center gap-1.5 text-[#4e5968]">
-                          <span className="text-[12px] font-bold">좋아요 {news.likes || 0}</span>
-                       </div>
+          </div>
+          <div className="flex flex-col gap-3">
+            {newsFeed.length === 0 ? (
+              <div className="bg-white rounded-2xl p-12 text-center border border-[#e5e8eb]">
+                <MessageSquare size={40} className="mx-auto mb-4 text-[#d1d6db]" />
+                <p className="text-[15px] font-bold text-[#4e5968]">아직 글이 없습니다</p>
+              </div>
+            ) : (
+              newsFeed.map((news) => (
+                <div key={news.id} onClick={() => router.push(`/lounge/${news.id}`)} className="bg-white rounded-2xl border border-[#e5e8eb] px-5 py-4 hover:shadow-md transition-shadow cursor-pointer">
+                  <h3 className="text-[16px] font-bold text-[#191f28] leading-snug mb-2">{news.title}</h3>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[13px] text-[#8b95a1]">{news.author} · {news.meta}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center gap-1 text-[12px] text-[#8b95a1]"><Heart size={12} /> {news.likes || 0}</span>
                     </div>
                   </div>
-                </li>
-              ))}
-            </ul>
+                </div>
+              ))
+            )}
           </div>
-          
-          {/* Secondary Ad / Promo Space */}
+          {/* Floating write button */}
+          {user && (
+            <button
+              onClick={() => router.push('/lounge')}
+              className="fixed bottom-24 right-6 w-14 h-14 bg-[#3182f6] hover:bg-[#1b6de8] text-white rounded-full shadow-lg shadow-[#3182f6]/30 flex items-center justify-center transition-all active:scale-95 z-20"
+            >
+              <PenLine size={22} />
+            </button>
+          )}
+        </section>
+        )}
+
+        {/* ═══ TAB 3: 아파트 추천 ═══ */}
+        {activeTab === 'recommend' && (
+        <section>
+          <div className="mb-8">
+            <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] mb-1">아파트 추천</h2>
+            <p className="text-[15px] text-[#8b95a1] font-medium">동탄 맞춤 아파트 추천 & 분석</p>
+          </div>
           <div className="flex flex-col gap-6">
-             <div className="w-full h-[200px] bg-gradient-to-br from-[#3182f6] to-[#2b72d6] rounded-3xl p-8 flex flex-col justify-end text-white relative overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
-               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 group-hover:bg-white/20 transition-colors"></div>
-               <h3 className="text-[24px] font-extrabold mb-1 relative z-10">우리 아파트 탈탈 털어드림!</h3>
-               <p className="text-white/80 text-[14px] relative z-10">장점부터 숨기고 싶은 단점까지 속 시원하게 분석 신청하기</p>
-               <div className="absolute top-8 right-8 bg-white text-[#3182f6] w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg shadow-black/10">
-                 &rarr;
-               </div>
-             </div>
-             
-             {/* 신혼부부 첫 집 추천 */}
-             {kpis.filter(k => k.title === '신혼부부 첫 집 추천').map(kpi => (
-               <div key={kpi.id} className="w-full flex-1 bg-white p-6 rounded-3xl border border-[#e5e8eb] shadow-sm flex flex-col justify-center hover:shadow-md transition-shadow">
-                  <h3 className="text-[13px] text-[#4e5968] font-bold mb-3">{kpi.title}</h3>
-                  <div className="text-[24px] font-extrabold text-[#191f28]">{kpi.mainValue}</div>
-                  {kpi.subValue && <p className="text-[12px] text-[#8b95a1] font-medium mt-1">{kpi.subValue}</p>}
-               </div>
-             ))}
+            {/* Promo Banner */}
+            <div className="w-full h-[200px] bg-gradient-to-br from-[#3182f6] to-[#2b72d6] rounded-3xl p-8 flex flex-col justify-end text-white relative overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 group-hover:bg-white/20 transition-colors"></div>
+              <h3 className="text-[24px] font-extrabold mb-1 relative z-10">우리 아파트 탈탈 털어드림!</h3>
+              <p className="text-white/80 text-[14px] relative z-10">장점부터 숨기고 싶은 단점까지 속 시원하게 분석 신청하기</p>
+              <div className="absolute top-8 right-8 bg-white text-[#3182f6] w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg shadow-black/10">&rarr;</div>
+            </div>
+
+            {/* KPI Cards */}
+            {kpis.map(kpi => (
+              <div key={kpi.id} className="bg-white p-6 rounded-3xl border border-[#e5e8eb] shadow-sm hover:shadow-md transition-shadow">
+                <h3 className="text-[13px] text-[#4e5968] font-bold mb-3">{kpi.title}</h3>
+                <div className="text-[24px] font-extrabold text-[#191f28]">{kpi.mainValue}</div>
+                {kpi.subValue && <p className="text-[12px] text-[#8b95a1] font-medium mt-1">{kpi.subValue}</p>}
+              </div>
+            ))}
+
+            {/* Ad Banner */}
+            <div className="w-full bg-[#f2f4f6] border border-[#e5e8eb] rounded-3xl p-8 flex flex-col items-center justify-center text-center">
+              <span className="bg-[#191f28] text-white text-[11px] font-bold px-2 py-0.5 rounded mb-2">AD</span>
+              <h3 className="text-[18px] font-bold text-[#191f28] mb-1">여기에 광고 배너가 표시됩니다</h3>
+              <p className="text-[#8b95a1] text-[14px]">광고 구좌 (e.g., 부동산 플랫폼 배너, 인테리어 광고 등)</p>
+            </div>
           </div>
         </section>
-        
-
-
-        {/* 4. Ad Banner Placeholder */}
-        <div className="w-full bg-[#f2f4f6] border border-[#e5e8eb] rounded-3xl p-8 flex flex-col items-center justify-center text-center">
-           <span className="bg-[#191f28] text-white text-[11px] font-bold px-2 py-0.5 rounded mb-2">AD</span>
-           <h3 className="text-[18px] font-bold text-[#191f28] mb-1">여기에 광고 배너가 표시됩니다</h3>
-           <p className="text-[#8b95a1] text-[14px]">광고 구좌 (e.g., 부동산 플랫폼 배너, 인테리어 광고 등)</p>
-        </div>
+        )}
         
       </main>
 
@@ -642,6 +666,28 @@ export default function Dashboard() {
           user={user}
         />
       )}
+
+      {/* ══ Bottom Tab Bar ══ */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-[#e5e8eb] z-40 safe-area-bottom">
+        <div className="max-w-[2000px] mx-auto flex">
+          {[
+            { id: 'imjang' as const, label: '임장기', icon: Compass },
+            { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
+            { id: 'recommend' as const, label: '추천', icon: Home },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 flex flex-col items-center gap-1 py-3 transition-colors ${
+                activeTab === tab.id ? 'text-[#3182f6]' : 'text-[#8b95a1] hover:text-[#4e5968]'
+              }`}
+            >
+              <tab.icon size={20} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} />
+              <span className={`text-[11px] ${activeTab === tab.id ? 'font-extrabold' : 'font-medium'}`}>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }
