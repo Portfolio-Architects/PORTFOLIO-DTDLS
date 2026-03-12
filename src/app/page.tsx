@@ -10,7 +10,7 @@ import EduBubbleChart from '@/components/EduBubbleChart';
 import LifestyleRadarChart from '@/components/LifestyleRadarChart';
 import PropertyScoreChart from '@/components/consumer/PropertyScoreChart';
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData } from '@/lib/DashboardFacade';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
@@ -366,6 +366,7 @@ export default function Dashboard() {
   const [postCategory, setPostCategory] = useState('교통');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
+  const [selectedDong, setSelectedDong] = useState<string | null>(null);
   
   // Comments State
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
@@ -471,6 +472,19 @@ export default function Dashboard() {
     }
   }, [selectedReport]);
 
+  // Group field reports by dong
+  const dongGroups = useMemo(() => {
+    const groups: Record<string, FieldReportData[]> = {};
+    fieldReports?.forEach(report => {
+      const dong = report.dong || '기타';
+      if (!groups[dong]) groups[dong] = [];
+      groups[dong].push(report);
+    });
+    return groups;
+  }, [fieldReports]);
+
+  const dongNames = useMemo(() => Object.keys(dongGroups).sort(), [dongGroups]);
+
   return (
     <div className="min-h-screen bg-[#f9fafb] font-sans selection:bg-[#3182f6]/20">
       
@@ -510,7 +524,7 @@ export default function Dashboard() {
       {/* Main Container */}
       <main className="w-full max-w-[2000px] mx-auto px-6 md:px-12 lg:px-24 xl:px-32 py-8 md:py-12 animate-in fade-in duration-500">
         
-        {/* 1. 🔥 Hi-Fi Local Data: Field Reports (Grid Layout - Hero Position) */}
+        {/* 1. 🔥 Hi-Fi Local Data: Field Reports (Dong-based Navigation) */}
         <section className="mb-16">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
             <div>
@@ -519,67 +533,122 @@ export default function Dashboard() {
               </h2>
               <p className="text-[15px] text-[#8b95a1] font-medium">포장 싹 뺀, 진짜 살기 좋은 우리 동네 아파트 리뷰</p>
             </div>
-            {user && dashboardFacade.isAdmin(user.email) && (
-              <button 
-                onClick={() => router.push('/admin')}
-                className="bg-[#3182f6] text-white text-[14px] font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm hover:shadow-md shrink-0">
-                작성 및 관리
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {selectedDong && (
+                <button 
+                  onClick={() => setSelectedDong(null)}
+                  className="flex items-center gap-1.5 bg-[#f2f4f6] hover:bg-[#e5e8eb] text-[#191f28] text-[14px] font-bold py-2.5 px-5 rounded-xl transition-all"
+                >
+                  ← 전체 동 보기
+                </button>
+              )}
+              {user && dashboardFacade.isAdmin(user.email) && (
+                <button 
+                  onClick={() => router.push('/admin')}
+                  className="bg-[#3182f6] text-white text-[14px] font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm hover:shadow-md shrink-0">
+                  작성 및 관리
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Grid Layout for Reports */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 xl:gap-8">
-             {fieldReports?.map((report) => {
-               const coverImage = (report.images && report.images.length > 0) ? report.images[0].url : 
-                                   report.imageUrl || 
-                                   report.sections?.infra?.gateImg || 
-                                   report.sections?.infra?.landscapeImg || 
-                                   report.sections?.ecosystem?.communityImg;
-               const rating = report.rating || 5;
+          {!selectedDong ? (
+            /* === Dong Selection View === */
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 xl:gap-6">
+              {dongNames.map(dong => {
+                const reports = dongGroups[dong];
+                const coverImage = reports[0] && (
+                  (reports[0].images && reports[0].images.length > 0) ? reports[0].images[0].url :
+                  reports[0].imageUrl || reports[0].sections?.infra?.gateImg || reports[0].sections?.infra?.landscapeImg
+                );
+                const dongLabel = (dong && dong !== '오산동 (동탄역)' && dong !== '기타') ? dong : '동탄역권';
 
-               return (
-                <div key={report.id} onClick={() => setSelectedReport(report)} className="bg-white border shadow-sm border-[#e5e8eb] rounded-3xl overflow-hidden hover:border-[#3182f6]/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 flex flex-col group">
-                   {coverImage ? (
-                     <div className="w-full h-[200px] shrink-0 bg-[#f2f4f6] relative overflow-hidden">
-                       <img src={coverImage} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                       <div className="absolute top-4 left-4 flex gap-2">
-                         <span className="bg-black/60 backdrop-blur-md text-white text-[11px] font-bold px-2 py-1 rounded-md">
-                           {(report.dong && report.dong !== '오산동 (동탄역)' && report.dong !== '기타') ? report.dong.split(' ')[0] : '동탄역'}
-                         </span>
-                       </div>
-                     </div>
-                   ) : (
-                     <div className="w-full h-[200px] shrink-0 bg-[#f2f4f6] flex items-center justify-center relative overflow-hidden">
-                        <Camera size={32} className="text-[#d1d6db]" />
-                     </div>
-                   )}
-                   
-                   <div className="p-5 flex flex-col justify-between flex-1">
-                      <div>
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-[18px] font-bold text-[#191f28] tracking-tight leading-snug line-clamp-1" title={report.apartmentName}>{report.apartmentName}</h3>
-                          <div className="flex items-center text-[#ffc107] text-[12px] font-bold tracking-widest bg-black/5 px-2 py-0.5 rounded-full shrink-0 ml-2">
-                            평점 {rating}점
-                          </div>
+                return (
+                  <div 
+                    key={dong}
+                    onClick={() => setSelectedDong(dong)}
+                    className="bg-white border border-[#e5e8eb] rounded-3xl overflow-hidden hover:border-[#3182f6]/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 group"
+                  >
+                    <div className="w-full h-[140px] bg-[#f2f4f6] relative overflow-hidden">
+                      {coverImage ? (
+                        <img src={coverImage} alt={dongLabel} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <MapPin size={32} className="text-[#d1d6db]" />
                         </div>
-                        <p className="text-[14px] text-[#4e5968] line-clamp-2 leading-relaxed h-[42px] mb-4">
-                          {report.premiumContent || report.sections?.assessment?.alphaDriver || report.pros || '상세 리뷰가 접수되었습니다.'}
-                        </p>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <h3 className="text-white text-[18px] font-extrabold tracking-tight drop-shadow-md">{dongLabel}</h3>
                       </div>
+                    </div>
+                    <div className="p-4 flex items-center justify-between">
+                      <span className="text-[13px] text-[#8b95a1] font-bold">{reports.length}개 단지 리뷰</span>
+                      <span className="text-[#3182f6] text-[13px] font-bold">보기 →</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* === Apartment List of Selected Dong === */
+            <>
+              <div className="mb-6 flex items-center gap-3">
+                <h3 className="text-[22px] font-extrabold text-[#191f28]">
+                  {(selectedDong && selectedDong !== '오산동 (동탄역)' && selectedDong !== '기타') ? selectedDong : '동탄역권'}
+                </h3>
+                <span className="bg-[#3182f6]/10 text-[#3182f6] text-[13px] font-bold px-3 py-1 rounded-full">
+                  {dongGroups[selectedDong]?.length || 0}개 단지
+                </span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 xl:gap-8">
+                {dongGroups[selectedDong]?.map((report) => {
+                  const coverImage = (report.images && report.images.length > 0) ? report.images[0].url : 
+                                      report.imageUrl || 
+                                      report.sections?.infra?.gateImg || 
+                                      report.sections?.infra?.landscapeImg || 
+                                      report.sections?.ecosystem?.communityImg;
+                  const rating = report.rating || 5;
+
+                  return (
+                    <div key={report.id} onClick={() => setSelectedReport(report)} className="bg-white border shadow-sm border-[#e5e8eb] rounded-3xl overflow-hidden hover:border-[#3182f6]/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 flex flex-col group">
+                      {coverImage ? (
+                        <div className="w-full h-[200px] shrink-0 bg-[#f2f4f6] relative overflow-hidden">
+                          <img src={coverImage} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        </div>
+                      ) : (
+                        <div className="w-full h-[200px] shrink-0 bg-[#f2f4f6] flex items-center justify-center relative overflow-hidden">
+                           <Camera size={32} className="text-[#d1d6db]" />
+                        </div>
+                      )}
                       
-                      <div className="flex justify-between items-center pt-4 border-t border-[#f2f4f6]">
-                         <span className="text-[12px] font-bold text-[#8b95a1]">{report.author}</span>
-                         <div className="flex items-center gap-3 text-[#8b95a1]">
-                            <span className="text-[12px] font-bold">좋아요 {report.likes || 0}</span>
-                            <span className="text-[12px] font-bold">댓글 {report.commentCount || 0}</span>
+                      <div className="p-5 flex flex-col justify-between flex-1">
+                         <div>
+                           <div className="flex justify-between items-start mb-2">
+                             <h3 className="text-[18px] font-bold text-[#191f28] tracking-tight leading-snug line-clamp-1" title={report.apartmentName}>{report.apartmentName}</h3>
+                             <div className="flex items-center text-[#ffc107] text-[12px] font-bold tracking-widest bg-black/5 px-2 py-0.5 rounded-full shrink-0 ml-2">
+                               평점 {rating}점
+                             </div>
+                           </div>
+                           <p className="text-[14px] text-[#4e5968] line-clamp-2 leading-relaxed h-[42px] mb-4">
+                             {report.premiumContent || report.sections?.assessment?.alphaDriver || report.pros || '상세 리뷰가 접수되었습니다.'}
+                           </p>
+                         </div>
+                         
+                         <div className="flex justify-between items-center pt-4 border-t border-[#f2f4f6]">
+                            <span className="text-[12px] font-bold text-[#8b95a1]">{report.author}</span>
+                            <div className="flex items-center gap-3 text-[#8b95a1]">
+                               <span className="text-[12px] font-bold">좋아요 {report.likes || 0}</span>
+                               <span className="text-[12px] font-bold">댓글 {report.commentCount || 0}</span>
+                            </div>
                          </div>
                       </div>
-                   </div>
-                </div>
-               );
-             })}
-          </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </section>
 
         {/* 2. Bottom Split Layout: News Feed & Other Info */}
