@@ -554,8 +554,8 @@ export default function Dashboard() {
           </div>
 
           {!selectedZone ? (
-            /* === Zone Selection View === */
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 xl:gap-6">
+            /* === Zone Selection View (Horizontal Slider) === */
+            <div className="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 md:-mx-12 md:px-12 lg:-mx-24 lg:px-24 xl:-mx-32 xl:px-32 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {ZONES.map(zone => {
                 const reports = zoneGroups[zone.id] || [];
                 const coverImage = reports[0] && (
@@ -567,7 +567,7 @@ export default function Dashboard() {
                   <div 
                     key={zone.id}
                     onClick={() => setSelectedZone(zone.id)}
-                    className="bg-white border border-[#e5e8eb] rounded-3xl overflow-hidden hover:border-[#3182f6]/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 group"
+                    className="bg-white border border-[#e5e8eb] rounded-3xl overflow-hidden hover:border-[#3182f6]/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 group snap-start shrink-0 w-[280px] md:w-[300px] lg:w-[320px]"
                   >
                     <div className="w-full h-[160px] bg-[#f2f4f6] relative overflow-hidden">
                       {coverImage ? (
