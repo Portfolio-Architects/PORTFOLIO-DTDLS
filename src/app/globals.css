@@ -37,6 +37,10 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
+
+  button, a, [role="button"], summary, select {
+    cursor: pointer;
+  }
 }
 
 @layer utilities {
