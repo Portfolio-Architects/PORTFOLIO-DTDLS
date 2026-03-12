@@ -395,7 +395,7 @@ export default function Dashboard() {
       <header className="bg-white/90 backdrop-blur-xl border-b border-[#e5e8eb] sticky top-0 z-40 transition-all duration-300">
         <div className="w-full max-w-[2000px] mx-auto px-6 md:px-12 lg:px-24 xl:px-32 h-16 flex justify-between items-center">
           <h1 className="text-[18px] md:text-xl font-extrabold tracking-tight text-[#191f28]">
-            동탄 찐아파트
+            동탄 인사이드
           </h1>
           <div className="flex items-center gap-2">
             {user ? (

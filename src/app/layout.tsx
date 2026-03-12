@@ -4,8 +4,8 @@ import './globals.css';
 import MapProvider from '@/components/map/MapProvider';
 
 export const metadata: Metadata = {
-  title: 'Dongtan Data Labs | 동탄 데이터 허브',
-  description: '동탄 지역의 최신 실거래가, 학군, 상권 혼잡도 데이터를 한눈에 확인하세요.',
+  title: '동탄 인사이드 | Dongtan Inside',
+  description: '포장 싹 뺀 진짜 동네 아파트 리뷰. 임장기와 실시간 동탄 소식을 한눈에 확인하세요.',
 };
 
 export default function RootLayout({
