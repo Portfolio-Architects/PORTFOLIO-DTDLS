@@ -106,30 +106,10 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   getKPIs(): KPIData[] { return this.kpis; }
 
   getNewsFeed(): NewsItemData[] {
-    if (this.newsFeed.length === 0) {
-      return [
-        { id: 'news-1', title: '동탄트램 1,2호선 기본설계 완료, 년말 착공 목표', meta: '2시간 전 · 교통', author: '똑똑한 요정', tagClass: 'tag-traffic', icon: Train },
-        { id: 'news-2', title: '동탄호수공원 주변 상권 활성화, 신규 브랜드 입점 줄이어', meta: '5시간 전 · 부동산', author: '행복한 고양이', tagClass: 'tag-realestate', icon: Building },
-        { id: 'news-3', title: '동탄2신도시 과밀학급 해소 위해 임시 모듈러 교실 추가 도입', meta: '1일 전 · 교육', author: '동탄사는 사자', tagClass: 'tag-edu', icon: BookOpen },
-        { id: 'news-4', title: '주말 동탄 여울공원 달빛산책 축제 개최 안내', meta: '1일 전 · 문화', author: '열정적인 부린이', tagClass: 'tag-culture', icon: Calendar },
-      ];
-    }
     return this.newsFeed;
   }
 
   getFieldReports(): FieldReportData[] {
-    if (this.fieldReports.length === 0) {
-      return [{
-        id: 'mock-fr-1',
-        apartmentName: '동탄역 아이파크',
-        premiumScores: { eduTimePremium: 85, stressFreeParking: 62, commuteFrictional: 90, megaScaleLiquidity: 45, totalPremiumScore: 78 },
-        pros: '도보 10분 쾌적한 출퇴근 거리, 조경이 공원같음',
-        cons: '초등학교가 횡단보도를 건너야 함, 약간의 층간소음',
-        rating: 4, author: '지혜로운 사자',
-        imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500&h=300&fit=crop',
-        likes: 12, commentCount: 3, createdAt: '3시간 전',
-      }];
-    }
     return this.fieldReports;
   }
 
