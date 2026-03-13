@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 const SHEET_ID = '1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1AGnY7XXE7pCEE';
 const SHEET_TAB = 'DTDLS';
 
+export const dynamic = 'force-dynamic';
+
 export interface TransactionRecord {
   no: number;
   sigungu: string;
@@ -66,7 +68,7 @@ export async function GET(request: Request) {
     const dong = searchParams.get('dong'); // 동 필터 (optional)
 
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TAB)}`;
-    const res = await fetch(csvUrl, { next: { revalidate: 300 } }); // 5분 캐시
+    const res = await fetch(csvUrl, { cache: 'no-store' }); // 항상 최신 데이터
 
     if (!res.ok) {
       return NextResponse.json({ error: 'Failed to fetch sheet' }, { status: 502 });
@@ -81,7 +83,10 @@ export async function GET(request: Request) {
 
     for (let i = 2; i < lines.length; i++) {
       const cols = parseCsvLine(lines[i]);
-      if (cols.length < 15) continue;
+      if (cols.length < 15) {
+        console.warn(`[TX] Row ${i} skipped: only ${cols.length} cols`, cols.slice(0, 6).join(', '));
+        continue;
+      }
 
       const sigungu = cols[1] || '';
       const dongName = extractDong(sigungu);
@@ -130,7 +135,7 @@ export async function GET(request: Request) {
       total: records.length,
       records,
     }, {
-      headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
+      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' },
     });
   } catch (error: any) {
     console.error('Transaction API error:', error);
