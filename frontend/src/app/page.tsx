@@ -71,99 +71,99 @@ export function FieldReportModal({
           </button>
 
           {/* Hero Section */}
-          <div className="bg-white w-full flex flex-col md:flex-row p-8 md:p-12 pb-16 gap-8 md:gap-12 items-center rounded-t-3xl shrink-0 pt-4 md:pt-8 border-b border-[#e5e8eb]">
-            {/* Left: 매매가 추이 차트 */}
-            <div className="w-full md:w-[45%] lg:w-[40%] shrink-0">
-              {transactions.length > 0 ? (() => {
-                const chartData = [...transactions]
-                  .reverse()
-                  .map(tx => ({
-                    date: `${tx.contractYm.slice(2,4)}.${tx.contractYm.slice(4)}`,
-                    price: Math.round(tx.price / 100) / 100, // 만원 → 억
-                    area: tx.areaPyeong,
-                  }));
-                return (
-                  <div className="bg-[#f9fafb] rounded-2xl p-4 ring-1 ring-black/5">
-                    <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">
-                      <TrendingUp size={13} className="text-[#3182f6]" />
-                      매매가 추이
-                    </h4>
-                    <div className="h-[200px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
-                          <defs>
-                            <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#3182f6" stopOpacity={0.3}/>
-                              <stop offset="95%" stopColor="#3182f6" stopOpacity={0}/>
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e8eb" vertical={false} />
-                          <XAxis dataKey="date" tick={{ fill: '#8b95a1', fontSize: 10 }} axisLine={false} tickLine={false} />
-                          <YAxis tick={{ fill: '#8b95a1', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}억`} />
-                          <RechartsTooltip
-                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontSize: '12px', fontWeight: 'bold' }}
-                            formatter={(value: any) => [`${value}억`, '매매가']}
-                          />
-                          <Area type="monotone" dataKey="price" stroke="#3182f6" strokeWidth={2} fill="url(#priceGrad)" dot={{ r: 3, fill: '#3182f6' }} />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
+          <div className="bg-white w-full flex flex-col md:flex-row p-6 md:p-10 gap-6 md:gap-8 rounded-t-3xl shrink-0 pt-4 md:pt-8 border-b border-[#e5e8eb]">
+            
+            {/* Left: 실거래가 전체 리스트 */}
+            <div className="w-full md:w-[50%] shrink-0">
+              {transactions.length > 0 ? (
+                <div className="bg-[#f9fafb] rounded-2xl p-4 ring-1 ring-black/5">
+                  <h4 className="text-[13px] font-bold text-[#8b95a1] mb-3 flex items-center gap-1.5">
+                    <TrendingUp size={13} className="text-[#03c75a]" />
+                    실거래가 내역 <span className="text-[11px] ml-1">{transactions.length}건</span>
+                  </h4>
+                  <div className="overflow-y-auto max-h-[360px] custom-scrollbar">
+                    <table className="w-full text-[12px]">
+                      <thead className="sticky top-0 bg-[#f9fafb]">
+                        <tr className="border-b border-[#e5e8eb] text-[#8b95a1]">
+                          <th className="py-2 text-left font-bold">거래일</th>
+                          <th className="py-2 text-right font-bold">금액</th>
+                          <th className="py-2 text-right font-bold">면적</th>
+                          <th className="py-2 text-right font-bold">층</th>
+                          <th className="py-2 text-right font-bold">유형</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {transactions.map((tx, idx) => (
+                          <tr key={idx} className="border-b border-[#f2f4f6] hover:bg-white/60 transition-colors">
+                            <td className="py-2 text-[#4e5968]">{tx.contractYm.slice(0,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}</td>
+                            <td className="py-2 text-right font-extrabold text-[#191f28]">{tx.priceEok}</td>
+                            <td className="py-2 text-right text-[#4e5968]">{tx.areaPyeong}평 ({tx.area}㎡)</td>
+                            <td className="py-2 text-right text-[#4e5968]">{tx.floor}층</td>
+                            <td className="py-2 text-right text-[#8b95a1]">{tx.dealType}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                );
-              })() : (
-                <div className="bg-[#f9fafb] rounded-2xl p-8 flex items-center justify-center ring-1 ring-black/5 h-[260px]">
+                </div>
+              ) : (
+                <div className="bg-[#f9fafb] rounded-2xl p-8 flex items-center justify-center ring-1 ring-black/5 h-[200px]">
                   <span className="text-[#8b95a1] text-[13px] font-bold">매매 기록이 없습니다</span>
                 </div>
               )}
             </div>
 
-            {/* Right: Text Information */}
-            <div className="w-full md:w-[55%] lg:w-[60%] flex flex-col">
-               <div className="flex items-center gap-2 mb-4">
-                 <span className="bg-[#3182f6] text-white text-[13px] font-bold px-3 py-1 rounded-full">{report.apartmentName}</span>
+            {/* Right: Title + Chart */}
+            <div className="w-full md:w-[50%] flex flex-col">
+               <div className="flex items-center gap-2 mb-3">
+                 <span className="bg-[#3182f6] text-white text-[13px] font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
                  <span className="bg-[#fff8e1] text-[#f59e0b] text-[13px] tracking-widest px-3 py-1 rounded-full font-bold shadow-sm border border-[#fde68a]">종합점수 {report.premiumScores?.totalPremiumScore ?? '-'}점</span>
                </div>
-               <h1 className="text-[32px] md:text-[42px] lg:text-[48px] font-extrabold leading-tight tracking-tight mb-6 md:mb-8 text-[#191f28]">{report.apartmentName}</h1>
+               <h1 className="text-[28px] md:text-[36px] font-extrabold leading-tight tracking-tight mb-4 text-[#191f28]">{report.apartmentName}</h1>
                
-               <div className="flex items-center gap-3 pt-6 border-t border-[#e5e8eb] text-[#4e5968]">
+               <div className="flex items-center gap-3 pb-4 border-b border-[#e5e8eb] text-[#4e5968]">
                  <span className="text-[14px] font-bold">{report.author}</span>
                  <span className="text-[13px] opacity-60">·</span>
                  <span className="text-[13px]">{report.createdAt}</span>
                </div>
 
-               {/* 최근 실거래가 */}
-               {transactions.length > 0 && (
-                 <div className="mt-4 pt-4 border-t border-[#e5e8eb]">
-                   <h3 className="text-[13px] font-bold text-[#8b95a1] mb-3 flex items-center gap-1.5">
-                     <TrendingUp size={13} className="text-[#03c75a]" />
-                     최근 실거래가
-                   </h3>
-                   <div className="overflow-x-auto">
-                     <table className="w-full text-[12px]">
-                       <thead>
-                         <tr className="border-b border-[#e5e8eb] text-[#8b95a1]">
-                           <th className="py-2 text-left font-bold">거래일</th>
-                           <th className="py-2 text-right font-bold">금액</th>
-                           <th className="py-2 text-right font-bold">면적</th>
-                           <th className="py-2 text-right font-bold">층</th>
-                           <th className="py-2 text-right font-bold">유형</th>
-                         </tr>
-                       </thead>
-                       <tbody>
-                         {transactions.slice(0, 5).map((tx, idx) => (
-                           <tr key={idx} className="border-b border-[#f2f4f6] hover:bg-[#f9fafb] transition-colors">
-                             <td className="py-2 text-[#4e5968]">{tx.contractYm.slice(0,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}</td>
-                             <td className="py-2 text-right font-extrabold text-[#191f28]">{tx.priceEok}</td>
-                             <td className="py-2 text-right text-[#4e5968]">{tx.areaPyeong}평 ({tx.area}㎡)</td>
-                             <td className="py-2 text-right text-[#4e5968]">{tx.floor}층</td>
-                             <td className="py-2 text-right text-[#8b95a1]">{tx.dealType}</td>
-                           </tr>
-                         ))}
-                       </tbody>
-                     </table>
+               {/* 매매가 추이 차트 */}
+               {transactions.length > 0 && (() => {
+                 const chartData = [...transactions]
+                   .reverse()
+                   .map(tx => ({
+                     date: `${tx.contractYm.slice(2,4)}.${tx.contractYm.slice(4)}`,
+                     price: Math.round(tx.price / 100) / 100,
+                   }));
+                 return (
+                   <div className="mt-4 bg-[#f9fafb] rounded-2xl p-4 ring-1 ring-black/5 flex-1">
+                     <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">
+                       <TrendingUp size={13} className="text-[#3182f6]" />
+                       매매가 추이
+                     </h4>
+                     <div className="h-[200px]">
+                       <ResponsiveContainer width="100%" height="100%">
+                         <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
+                           <defs>
+                             <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
+                               <stop offset="5%" stopColor="#3182f6" stopOpacity={0.3}/>
+                               <stop offset="95%" stopColor="#3182f6" stopOpacity={0}/>
+                             </linearGradient>
+                           </defs>
+                           <CartesianGrid strokeDasharray="3 3" stroke="#e5e8eb" vertical={false} />
+                           <XAxis dataKey="date" tick={{ fill: '#8b95a1', fontSize: 10 }} axisLine={false} tickLine={false} />
+                           <YAxis tick={{ fill: '#8b95a1', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}억`} />
+                           <RechartsTooltip
+                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontSize: '12px', fontWeight: 'bold' }}
+                             formatter={(value: any) => [`${value}억`, '매매가']}
+                           />
+                           <Area type="monotone" dataKey="price" stroke="#3182f6" strokeWidth={2} fill="url(#priceGrad)" dot={{ r: 3, fill: '#3182f6' }} />
+                         </AreaChart>
+                       </ResponsiveContainer>
+                     </div>
                    </div>
-                 </div>
-               )}
+                 );
+               })()}
             </div>
 
           </div>
