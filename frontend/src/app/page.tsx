@@ -56,7 +56,7 @@ export function FieldReportModal({
 
   const s = report.sections;
   const coverImage = report.imageUrl || s?.infra?.gateImg || s?.infra?.landscapeImg || s?.ecosystem?.communityImg;
-  const rating = report.rating || 5;
+  const rating = report.premiumScores?.totalPremiumScore ? Math.max(1, Math.round(report.premiumScores.totalPremiumScore / 20)) : (report.rating || 5);
 
   return (
     <>
@@ -88,7 +88,7 @@ export function FieldReportModal({
             <div className="w-full md:w-[55%] lg:w-[60%] flex flex-col">
                <div className="flex items-center gap-2 mb-4">
                  <span className="bg-[#3182f6] text-white text-[13px] font-bold px-3 py-1 rounded-full">{report.apartmentName}</span>
-                 <span className="bg-[#fff8e1] text-[#f59e0b] text-[13px] tracking-widest px-3 py-1 rounded-full font-bold shadow-sm border border-[#fde68a]">평점 {rating}점</span>
+                 <span className="bg-[#fff8e1] text-[#f59e0b] text-[13px] tracking-widest px-3 py-1 rounded-full font-bold shadow-sm border border-[#fde68a]">종합점수 {report.premiumScores?.totalPremiumScore ?? '-'}점</span>
                </div>
                <h1 className="text-[32px] md:text-[42px] lg:text-[48px] font-extrabold leading-tight tracking-tight mb-6 md:mb-8 text-[#191f28]">{report.apartmentName}</h1>
                
@@ -707,7 +707,7 @@ export default function Dashboard() {
                       <div className="flex items-center gap-2 mt-1">
                         <div className="flex items-center gap-0.5">
                           {Array.from({ length: 5 }, (_, i) => (
-                            <Star key={i} size={11} className={i < (report.rating || 5) ? 'text-[#f59e0b] fill-[#f59e0b]' : 'text-[#e5e8eb]'} />
+                            <Star key={i} size={11} className={i < (report.premiumScores?.totalPremiumScore ? Math.max(1, Math.round(report.premiumScores.totalPremiumScore / 20)) : (report.rating || 5)) ? 'text-[#f59e0b] fill-[#f59e0b]' : 'text-[#e5e8eb]'} />
                           ))}
                         </div>
                         <span className="text-[11px] text-[#8b95a1] font-bold">{report.author}</span>

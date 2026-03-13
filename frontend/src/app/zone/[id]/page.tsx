@@ -107,7 +107,7 @@ export default function ZoneDetailPage() {
                                   report.sections?.infra?.gateImg || 
                                   report.sections?.infra?.landscapeImg || 
                                   report.sections?.ecosystem?.communityImg;
-              const rating = report.rating || 5;
+              const rating = report.premiumScores?.totalPremiumScore ? Math.max(1, Math.round(report.premiumScores.totalPremiumScore / 20)) : (report.rating || 5);
 
               return (
                 <div key={report.id} onClick={() => setSelectedReport(report)} className="bg-white border shadow-sm border-[#e5e8eb] rounded-3xl overflow-hidden hover:border-[#3182f6]/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 flex flex-col group">
