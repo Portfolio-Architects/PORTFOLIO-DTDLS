@@ -4,7 +4,7 @@
  * Architecture Layer: Repository (CRUD only)
  */
 import { db } from '@/lib/firebaseConfig';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, increment } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import type { UserProfile, VerificationLevel } from '@/lib/types/user.types';
 import { generateRandomNickname, DEFAULT_FRONT_NAME } from '@/lib/services/nickname.service';
@@ -26,6 +26,7 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
       photoURL: data.photoURL,
       verifiedApartment: data.verifiedApartment,
       verificationLevel: data.verificationLevel,
+      reviewCount: data.reviewCount || 0,
       createdAt: data.createdAt,
     };
   }
@@ -34,11 +35,21 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
   const newProfile: UserProfile = {
     frontName: DEFAULT_FRONT_NAME,
     nickname: generateRandomNickname(),
+    reviewCount: 0,
     createdAt: serverTimestamp(),
   };
   await setDoc(userRef, newProfile);
   logger.info('UserRepository.getOrCreateProfile', 'New user profile created', { uid, nickname: newProfile.nickname });
-  return { frontName: newProfile.frontName, nickname: newProfile.nickname };
+  return { frontName: newProfile.frontName, nickname: newProfile.nickname, reviewCount: 0 };
+}
+
+/**
+ * Increments the user's review count atomically.
+ */
+export async function incrementReviewCount(uid: string): Promise<void> {
+  const userRef = doc(db, 'users', uid);
+  await updateDoc(userRef, { reviewCount: increment(1) });
+  logger.info('UserRepository.incrementReviewCount', 'Review count incremented', { uid });
 }
 
 /**
@@ -80,3 +91,4 @@ export async function updatePhotoURL(uid: string, photoURL: string): Promise<voi
   await updateDoc(userRef, { photoURL });
   logger.info('UserRepository.updatePhotoURL', 'Photo URL updated', { uid });
 }
+

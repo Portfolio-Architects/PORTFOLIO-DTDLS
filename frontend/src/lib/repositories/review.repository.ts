@@ -1,0 +1,94 @@
+/**
+ * @module review.repository
+ * @description Data Access Layer for user reviews (동네 리뷰) in Firestore.
+ * Architecture Layer: Repository (CRUD only)
+ */
+import { db, storage } from '@/lib/firebaseConfig';
+import {
+  collection, addDoc, serverTimestamp, onSnapshot, query, orderBy,
+  doc, updateDoc, increment,
+} from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { logger } from '@/lib/services/logger';
+import type { UserReview } from '@/lib/types/review.types';
+
+const COLLECTION = 'user_reviews';
+
+/**
+ * Listens to user reviews in real-time, ordered by newest first.
+ */
+export function listenToReviews(callback: (reviews: UserReview[]) => void): () => void {
+  const q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'));
+  return onSnapshot(q, (snapshot) => {
+    const reviews: UserReview[] = snapshot.docs.map(d => {
+      const data = d.data();
+      // Extract dong from apartmentName pattern "[동이름] 아파트명"
+      const dongMatch = data.apartmentName?.match(/\[(.*?)\]/);
+      return {
+        id: d.id,
+        apartmentName: data.apartmentName || '',
+        dong: dongMatch?.[1] || data.dong || '',
+        rating: data.rating || 5,
+        content: data.content || '',
+        photoURL: data.photoURL,
+        author: data.author || data.authorName || '익명',
+        authorUid: data.authorUid || '',
+        authorLevel: data.authorLevel,
+        authorBadge: data.authorBadge,
+        likes: data.likes || 0,
+        createdAt: data.createdAt?.toDate?.()?.toLocaleDateString?.('ko-KR') || '',
+      };
+    });
+    callback(reviews);
+  });
+}
+
+/**
+ * Adds a new user review.
+ */
+export async function addReview(
+  apartmentName: string,
+  rating: number,
+  content: string,
+  authorNickname: string,
+  authorUid: string,
+  authorLevel?: string,
+  authorBadge?: string,
+  imageFile?: File,
+): Promise<void> {
+  let photoURL: string | undefined;
+
+  // Upload image if provided
+  if (imageFile) {
+    try {
+      const storageRef = ref(storage, `user_reviews/${Date.now()}_${imageFile.name}`);
+      const snapshot = await uploadBytes(storageRef, imageFile);
+      photoURL = await getDownloadURL(snapshot.ref);
+    } catch (e) {
+      logger.error('ReviewRepository.addReview', 'Image upload failed', undefined, e);
+    }
+  }
+
+  await addDoc(collection(db, COLLECTION), {
+    apartmentName,
+    rating,
+    content,
+    photoURL: photoURL || null,
+    author: authorNickname,
+    authorUid,
+    authorLevel: authorLevel || '새내기',
+    authorBadge: authorBadge || '🌱',
+    likes: 0,
+    createdAt: serverTimestamp(),
+  });
+
+  logger.info('ReviewRepository.addReview', 'User review created', { apartmentName, rating });
+}
+
+/**
+ * Increments the like count of a review.
+ */
+export async function incrementReviewLike(reviewId: string): Promise<void> {
+  const reviewRef = doc(db, COLLECTION, reviewId);
+  await updateDoc(reviewRef, { likes: increment(1) });
+}

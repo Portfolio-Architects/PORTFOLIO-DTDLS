@@ -19,14 +19,18 @@ import { storage } from '@/lib/firebaseConfig';
 // Types (re-export for backward compatibility)
 export type { KPIData, NewsItemData, AdBannerData } from '@/lib/types/dashboard.types';
 export type { FieldReportData, ReportSections, CommentData } from '@/lib/types/report.types';
+export type { UserReview } from '@/lib/types/review.types';
 
 // Internal imports
 import type { KPIData, NewsItemData, AdBannerData } from '@/lib/types/dashboard.types';
 import type { FieldReportData, ReportSections, CommentData } from '@/lib/types/report.types';
+import type { UserReview } from '@/lib/types/review.types';
+import { computeUserLevel } from '@/lib/types/user.types';
 import { isAdmin as checkAdmin } from '@/lib/config/admin.config';
 import * as PostRepo from '@/lib/repositories/post.repository';
 import * as ReportRepo from '@/lib/repositories/report.repository';
 import * as CommentRepo from '@/lib/repositories/comment.repository';
+import * as ReviewRepo from '@/lib/repositories/review.repository';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import * as ApartmentRepo from '@/lib/repositories/apartment.repository';
 import * as PostService from '@/lib/services/post.service';
@@ -46,8 +50,11 @@ export interface DashboardDataStrategy {
   addFieldReportComment?(reportId: string, text: string, authorUid: string): Promise<void>;
   incrementLike?(postId: string): Promise<void>;
   incrementFieldReportLike?(reportId: string): Promise<void>;
+  incrementReviewLike?(reviewId: string): Promise<void>;
   listenToComments?(reportId: string, callback: (comments: CommentData[]) => void): () => void;
-  getUserProfile?(uid: string): Promise<{ nickname: string }>;
+  getUserProfile?(uid: string): Promise<{ nickname: string; reviewCount?: number }>;
+  getUserReviews?(): UserReview[];
+  addUserReview?(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File): Promise<void>;
   getDongtanApartments?(): string[];
   isAdmin(email: string | null | undefined): boolean;
 }
@@ -58,6 +65,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   private kpis: KPIData[];
   private newsFeed: NewsItemData[] = [];
   private fieldReports: FieldReportData[] = [];
+  private userReviews: UserReview[] = [];
   private dongtanApartments: string[] = [];
   private listeners: (() => void)[] = [];
   private cleanupFns: (() => void)[] = [];
@@ -84,6 +92,12 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
       this.notifyListeners();
     });
     this.cleanupFns.push(stopReports);
+
+    const stopReviews = ReviewRepo.listenToReviews((reviews) => {
+      this.userReviews = reviews;
+      this.notifyListeners();
+    });
+    this.cleanupFns.push(stopReviews);
 
     // External API
     ApartmentRepo.fetchApartmentNames().then((apts) => {
@@ -112,6 +126,8 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   getFieldReports(): FieldReportData[] {
     return this.fieldReports;
   }
+
+  getUserReviews(): UserReview[] { return this.userReviews; }
 
   getDongtanApartments(): string[] { return this.dongtanApartments; }
 
@@ -211,6 +227,24 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     catch (e) { logger.error('DashboardFacade.incrementFieldReportLike', 'Like failed', { reportId }, e); }
   }
 
+  async addUserReview(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File) {
+    try {
+      const profile = await UserRepo.getOrCreateProfile(authorUid);
+      const levelInfo = computeUserLevel(profile.reviewCount || 0);
+      await ReviewRepo.addReview(apartmentName, rating, content, profile.nickname, authorUid, levelInfo.title, levelInfo.badge, imageFile);
+      await UserRepo.incrementReviewCount(authorUid);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      logger.error('DashboardFacade.addUserReview', 'Review failed', { apartmentName }, e);
+      alert('리뷰 저장 실패! 이유: ' + msg);
+    }
+  }
+
+  async incrementReviewLike(reviewId: string) {
+    try { await ReviewRepo.incrementReviewLike(reviewId); }
+    catch (e) { logger.error('DashboardFacade.incrementReviewLike', 'Like failed', { reviewId }, e); }
+  }
+
   isAdmin(email: string | null | undefined): boolean {
     return checkAdmin(email);
   }
@@ -230,10 +264,12 @@ export class DashboardFacade {
   public getKPIs(): KPIData[] { return this.strategy.getKPIs(); }
   public getNewsFeed(): NewsItemData[] { return this.strategy.getNewsFeed(); }
   public getFieldReports(): FieldReportData[] { return this.strategy.getFieldReports ? this.strategy.getFieldReports() : []; }
+  public getUserReviews(): UserReview[] { return this.strategy.getUserReviews ? this.strategy.getUserReviews() : []; }
   public getAdBanner(): AdBannerData { return this.strategy.getAdBanner(); }
   public async addPost(title: string, category: string, authorUid: string, imageFile?: File) { if (this.strategy.addPost) await this.strategy.addPost(title, category, authorUid, imageFile); }
   public async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageFiles: Record<string, File>) { if (this.strategy.addFieldReport) await this.strategy.addFieldReport(apartmentName, sections, premiumScores, authorUid, imageFiles); }
   public async addFieldReportComment(reportId: string, text: string, authorUid: string) { if (this.strategy.addFieldReportComment) await this.strategy.addFieldReportComment(reportId, text, authorUid); }
+  public async addUserReview(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File) { if (this.strategy.addUserReview) await this.strategy.addUserReview(apartmentName, rating, content, authorUid, imageFile); }
   public listenToComments(reportId: string, callback: (comments: CommentData[]) => void) { return this.strategy.listenToComments ? this.strategy.listenToComments(reportId, callback) : () => {}; }
   public async getUserProfile(uid: string) { return this.strategy.getUserProfile ? await this.strategy.getUserProfile(uid) : null; }
   public async updateNickname(uid: string, nickname: string) { await UserRepo.updateNickname(uid, nickname); }
@@ -241,6 +277,7 @@ export class DashboardFacade {
   public async updatePhotoURL(uid: string, photoURL: string) { await UserRepo.updatePhotoURL(uid, photoURL); }
   public async incrementLike(postId: string) { if (this.strategy.incrementLike) await this.strategy.incrementLike(postId); }
   public async incrementFieldReportLike(reportId: string) { if (this.strategy.incrementFieldReportLike) await this.strategy.incrementFieldReportLike(reportId); }
+  public async incrementReviewLike(reviewId: string) { if (this.strategy.incrementReviewLike) await this.strategy.incrementReviewLike(reviewId); }
   public getDongtanApartments(): string[] { return this.strategy.getDongtanApartments ? this.strategy.getDongtanApartments() : []; }
   public isAdmin(email: string | null | undefined): boolean { return this.strategy.isAdmin ? this.strategy.isAdmin(email) : false; }
 }
@@ -260,6 +297,7 @@ export function useDashboardData() {
     kpis: dashboardFacade.getKPIs(),
     newsFeed: dashboardFacade.getNewsFeed(),
     fieldReports: dashboardFacade.getFieldReports(),
+    userReviews: dashboardFacade.getUserReviews(),
     dongtanApartments: dashboardFacade.getDongtanApartments(),
     adBanner: dashboardFacade.getAdBanner(),
   });
@@ -270,6 +308,7 @@ export function useDashboardData() {
         kpis: [...dashboardFacade.getKPIs()],
         newsFeed: [...dashboardFacade.getNewsFeed()],
         fieldReports: [...dashboardFacade.getFieldReports()],
+        userReviews: [...dashboardFacade.getUserReviews()],
         dongtanApartments: [...dashboardFacade.getDongtanApartments()],
         adBanner: dashboardFacade.getAdBanner(),
       });
