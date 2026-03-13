@@ -62,32 +62,31 @@ export const ZONES: ZoneInfo[] = [
 ];
 
 // 관리자 폼의 dong 값 → zone id 매핑
-// FALLBACK_DONG_DATA의 키 기준
+// apartments/route.ts의 FULL_DONG_DATA 키 기준
 const DONG_TO_ZONE_MAP: Record<string, string> = {
-  // 메타폴리스 및 중심상업지구 (동탄 1동)
-  '목동 (중동탄)': 'metropolis',
+  // 메타폴리스 및 중심상업지구
+  '목동': 'metropolis',
+  '능동': 'metropolis',
+  '반송동': 'metropolis',
 
-  // 커뮤니티시범단지 (동탄 4동)
-  '청계동 (시범단지)': 'community',
+  // 커뮤니티시범단지
+  '청계동': 'community',
 
-  // 광역비즈니스콤플렉스 (동탄 6동, 오산동)
-  '여울동 (동탄역)': 'gbcx',
-  '오산동 (동탄역)': 'gbcx',
+  // 광역비즈니스콤플렉스 (동탄역세권)
+  '여울동': 'gbcx',
 
-  // 동탄테크노밸리 (영천동)
-  '영천동 (북동탄)': 'techno',
+  // 동탄테크노밸리
+  '영천동': 'techno',
 
-  // 문화디자인밸리 (1·2신도시 경계)
+  // 문화디자인밸리
   '석우동': 'culture',
   '장지동': 'culture',
 
-  // 워터프론트콤플렉스 (동탄 7동, 송동)
-  '송동 (남동탄/호수공원)': 'waterfront',
-  '산척동 (호수공원)': 'waterfront',
+  // 워터프론트콤플렉스 (호수공원)
+  '송동': 'waterfront',
+  '산척동': 'waterfront',
 
-  // 신주거문화타운 (동탄 8, 9동)
-  '능동': 'newtown',
-  '반송동': 'newtown',
+  // 신주거문화타운
   '신동': 'newtown',
 };
 
@@ -110,4 +109,17 @@ export function getDongZoneLabel(dong: string): string {
   if (!zoneId) return '';
   const zone = getZoneById(zoneId);
   return zone ? zone.name : '';
+}
+
+// 특정 권역에 속하는 동 목록 반환
+export function getDongsForZone(zoneId: string): string[] {
+  return Object.entries(DONG_TO_ZONE_MAP)
+    .filter(([, z]) => z === zoneId)
+    .map(([dong]) => dong)
+    .sort((a, b) => a.localeCompare(b, 'ko'));
+}
+
+// 전체 동 목록 (가나다순)
+export function getAllDongs(): string[] {
+  return Object.keys(DONG_TO_ZONE_MAP).sort((a, b) => a.localeCompare(b, 'ko'));
 }

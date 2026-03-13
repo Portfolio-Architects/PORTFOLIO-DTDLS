@@ -11,7 +11,7 @@ import EduBubbleChart from '@/components/EduBubbleChart';
 import LifestyleRadarChart from '@/components/LifestyleRadarChart';
 import PropertyScoreChart from '@/components/consumer/PropertyScoreChart';
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData } from '@/lib/DashboardFacade';
-import { ZONES, dongToZoneId, getZoneById, ZoneInfo } from '@/lib/zones';
+import { ZONES, dongToZoneId, getZoneById, getDongsForZone, ZoneInfo } from '@/lib/zones';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
@@ -377,6 +377,10 @@ export default function Dashboard() {
   // Tab state
   const [activeTab, setActiveTab] = useState<'imjang' | 'lounge' | 'recommend'>('imjang');
 
+  // Zone / Dong filter state
+  const [selectedZone, setSelectedZone] = useState<string | null>(null);
+  const [selectedDong, setSelectedDong] = useState<string | null>(null);
+
   // Auth & Profile State
   const [user, setUser] = useState<User | null>(null);
   const [anonProfile, setAnonProfile] = useState<{nickname: string; frontName?: string; photoURL?: string} | null>(null);
@@ -487,6 +491,19 @@ export default function Dashboard() {
     return counts;
   }, [fieldReports]);
 
+  // Filtered reports based on zone/dong selection
+  const filteredReports = useMemo(() => {
+    if (!fieldReports) return [];
+    let filtered = [...fieldReports];
+    if (selectedZone) {
+      filtered = filtered.filter(r => dongToZoneId(r.dong) === selectedZone);
+    }
+    if (selectedDong) {
+      filtered = filtered.filter(r => r.dong === selectedDong);
+    }
+    return filtered;
+  }, [fieldReports, selectedZone, selectedDong]);
+
   return (
     <div className="min-h-screen bg-[#f9fafb] font-sans selection:bg-[#3182f6]/20">
       
@@ -543,6 +560,77 @@ export default function Dashboard() {
             </p>
           </div>
 
+          {/* ── Cascade Filter: Zone → Dong ── */}
+          <div className="mb-6">
+            {/* Zone Chips */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              <button
+                onClick={() => { setSelectedZone(null); setSelectedDong(null); }}
+                className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 ${
+                  !selectedZone
+                    ? 'bg-[#191f28] text-white shadow-md'
+                    : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb]'
+                }`}
+              >
+                전체 ({fieldReports.length})
+              </button>
+              {ZONES.map(zone => {
+                const count = zoneReportCounts[zone.id] || 0;
+                const isActive = selectedZone === zone.id;
+                return (
+                  <button
+                    key={zone.id}
+                    onClick={() => {
+                      setSelectedZone(isActive ? null : zone.id);
+                      setSelectedDong(null);
+                    }}
+                    className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 flex items-center gap-1.5 ${
+                      isActive
+                        ? 'text-white shadow-md'
+                        : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb]'
+                    }`}
+                    style={isActive ? { backgroundColor: zone.color } : {}}
+                  >
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: isActive ? '#fff' : zone.color }} />
+                    {zone.name.length > 6 ? zone.name.slice(0, 6) + '…' : zone.name} ({count})
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Dong Sub-Chips (appears when zone selected) */}
+            {selectedZone && (
+              <div className="flex flex-wrap gap-1.5 animate-in slide-in-from-top-1 duration-200">
+                <button
+                  onClick={() => setSelectedDong(null)}
+                  className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all ${
+                    !selectedDong
+                      ? 'bg-[#e8f3ff] text-[#3182f6]'
+                      : 'bg-[#f9fafb] text-[#8b95a1] hover:bg-[#f2f4f6]'
+                  }`}
+                >
+                  전체
+                </button>
+                {getDongsForZone(selectedZone).map(dong => {
+                  const dongCount = fieldReports?.filter(r => r.dong === dong).length || 0;
+                  return (
+                    <button
+                      key={dong}
+                      onClick={() => setSelectedDong(selectedDong === dong ? null : dong)}
+                      className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all ${
+                        selectedDong === dong
+                          ? 'bg-[#e8f3ff] text-[#3182f6]'
+                          : 'bg-[#f9fafb] text-[#8b95a1] hover:bg-[#f2f4f6]'
+                      }`}
+                    >
+                      {dong} ({dongCount})
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
           {/* 2. Quick Stats */}
           <div className="grid grid-cols-3 gap-3 md:gap-4 mb-8">
             {[
@@ -594,15 +682,16 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* 4. Latest Reports */}
-          {fieldReports.length > 0 && (
+          {/* 4. Latest Reports (filtered) */}
+          {filteredReports.length > 0 ? (
             <div>
               <h3 className="text-[18px] font-extrabold text-[#191f28] mb-4 flex items-center gap-2">
                 <Clock size={18} className="text-[#f59e0b]" />
-                최신 임장 리포트
+                {selectedZone || selectedDong ? '필터 결과' : '최신 임장 리포트'}
+                <span className="text-[13px] font-bold text-[#8b95a1] ml-1">{filteredReports.length}개</span>
               </h3>
               <div className="flex flex-col gap-3">
-                {fieldReports.slice(0, 3).map(report => (
+                {filteredReports.map(report => (
                   <div
                     key={report.id}
                     onClick={() => setSelectedReport(report)}
@@ -633,6 +722,12 @@ export default function Dashboard() {
                   </div>
                 ))}
               </div>
+            </div>
+          ) : selectedZone && (
+            <div className="bg-white rounded-2xl border border-[#e5e8eb] p-12 text-center">
+              <MapPin size={40} className="mx-auto mb-4 text-[#d1d6db]" />
+              <p className="text-[15px] font-bold text-[#4e5968]">해당 {selectedDong ? '동' : '권역'}에 임장 리포트가 없습니다</p>
+              <p className="text-[13px] text-[#8b95a1] mt-1">첫 번째 리포트를 작성해보세요!</p>
             </div>
           )}
         </section>
