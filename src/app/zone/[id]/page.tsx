@@ -165,6 +165,7 @@ export default function ZoneDetailPage() {
           onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}
           onSubmitComment={() => handleSubmitComment(selectedReport.id)}
           user={user}
+          transactions={[]}
         />
       )}
     </div>

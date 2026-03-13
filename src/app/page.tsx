@@ -17,6 +17,20 @@ import { useRouter } from 'next/navigation';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
 
+interface TransactionRecord {
+  dong: string;
+  aptName: string;
+  area: number;
+  areaPyeong: number;
+  contractYm: string;
+  contractDay: string;
+  price: number;
+  priceEok: string;
+  floor: number;
+  buildYear: number;
+  dealType: string;
+}
+
 export function FieldReportModal({ 
   report, 
   onClose,
@@ -24,7 +38,8 @@ export function FieldReportModal({
   commentInput,
   onCommentChange,
   onSubmitComment,
-  user
+  user,
+  transactions
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -33,6 +48,7 @@ export function FieldReportModal({
   onCommentChange: (text: string) => void;
   onSubmitComment: () => void;
   user: User | null;
+  transactions: TransactionRecord[];
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
@@ -80,6 +96,40 @@ export function FieldReportModal({
                  <span className="text-[13px] opacity-60">·</span>
                  <span className="text-[13px]">{report.createdAt}</span>
                </div>
+
+               {/* 최근 실거래가 */}
+               {transactions.length > 0 && (
+                 <div className="mt-4 pt-4 border-t border-[#e5e8eb]">
+                   <h3 className="text-[13px] font-bold text-[#8b95a1] mb-3 flex items-center gap-1.5">
+                     <TrendingUp size={13} className="text-[#03c75a]" />
+                     최근 실거래가
+                   </h3>
+                   <div className="overflow-x-auto">
+                     <table className="w-full text-[12px]">
+                       <thead>
+                         <tr className="border-b border-[#e5e8eb] text-[#8b95a1]">
+                           <th className="py-2 text-left font-bold">거래일</th>
+                           <th className="py-2 text-right font-bold">금액</th>
+                           <th className="py-2 text-right font-bold">면적</th>
+                           <th className="py-2 text-right font-bold">층</th>
+                           <th className="py-2 text-right font-bold">유형</th>
+                         </tr>
+                       </thead>
+                       <tbody>
+                         {transactions.slice(0, 5).map((tx, idx) => (
+                           <tr key={idx} className="border-b border-[#f2f4f6] hover:bg-[#f9fafb] transition-colors">
+                             <td className="py-2 text-[#4e5968]">{tx.contractYm.slice(0,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}</td>
+                             <td className="py-2 text-right font-extrabold text-[#191f28]">{tx.priceEok}</td>
+                             <td className="py-2 text-right text-[#4e5968]">{tx.areaPyeong}평 ({tx.area}㎡)</td>
+                             <td className="py-2 text-right text-[#4e5968]">{tx.floor}층</td>
+                             <td className="py-2 text-right text-[#8b95a1]">{tx.dealType}</td>
+                           </tr>
+                         ))}
+                       </tbody>
+                     </table>
+                   </div>
+                 </div>
+               )}
             </div>
 
           </div>
@@ -381,6 +431,9 @@ export default function Dashboard() {
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
 
+  // Transaction data
+  const [allTransactions, setAllTransactions] = useState<TransactionRecord[]>([]);
+
   // Auth & Profile State
   const [user, setUser] = useState<User | null>(null);
   const [anonProfile, setAnonProfile] = useState<{nickname: string; frontName?: string; photoURL?: string} | null>(null);
@@ -400,6 +453,16 @@ export default function Dashboard() {
       }
     });
     return () => unsubscribe();
+  }, []);
+
+  // Fetch transaction data from Google Sheet
+  useEffect(() => {
+    fetch('/api/transactions')
+      .then(r => r.json())
+      .then(data => {
+        if (data.records) setAllTransactions(data.records);
+      })
+      .catch(err => console.warn('실거래가 로딩 실패:', err));
   }, []);
 
   const handleLogin = async () => {
@@ -706,7 +769,17 @@ export default function Dashboard() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-[15px] font-extrabold text-[#191f28] truncate">{report.apartmentName}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-[15px] font-extrabold text-[#191f28] truncate">{report.apartmentName}</h4>
+                        {(() => {
+                          const latestTx = allTransactions.find(tx => report.apartmentName.includes(tx.aptName) || tx.aptName.includes(report.apartmentName.split(' ').pop() || ''));
+                          return latestTx ? (
+                            <span className="shrink-0 bg-[#e8f7ee] text-[#03c75a] text-[11px] font-bold px-2 py-0.5 rounded-md">
+                              {latestTx.priceEok} · {latestTx.areaPyeong}평
+                            </span>
+                          ) : null;
+                        })()}
+                      </div>
                       <div className="flex items-center gap-2 mt-1">
                         <div className="flex items-center gap-0.5">
                           {Array.from({ length: 5 }, (_, i) => (
@@ -821,6 +894,10 @@ export default function Dashboard() {
           onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}
           onSubmitComment={() => handleSubmitComment(selectedReport.id)}
           user={user}
+          transactions={allTransactions.filter(tx => 
+            selectedReport.apartmentName.includes(tx.aptName) || 
+            tx.aptName.includes(selectedReport.apartmentName.split(' ').pop() || '__NOMATCH__')
+          )}
         />
       )}
 
