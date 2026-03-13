@@ -7,6 +7,7 @@ import {
   Home, PenLine, Send, Edit3
 } from 'lucide-react';
 import MainChart from '@/components/MainChart';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import EduBubbleChart from '@/components/EduBubbleChart';
 import LifestyleRadarChart from '@/components/LifestyleRadarChart';
 import PropertyScoreChart from '@/components/consumer/PropertyScoreChart';
@@ -69,18 +70,49 @@ export function FieldReportModal({
             <X size={20} />
           </button>
 
-          {/* Hero Cover (Editorial Banner Layout) */}
+          {/* Hero Section */}
           <div className="bg-white w-full flex flex-col md:flex-row p-8 md:p-12 pb-16 gap-8 md:gap-12 items-center rounded-t-3xl shrink-0 pt-4 md:pt-8 border-b border-[#e5e8eb]">
-            
-            {/* Left: Image (Constrained to prevent stretching) */}
-            <div className="w-full md:w-[45%] lg:w-[40%] flex justify-center shrink-0">
-              {coverImage ? (
-                <div className="w-full max-w-[420px] aspect-video md:aspect-square bg-[#f2f4f6] rounded-2xl overflow-hidden shadow-lg ring-1 ring-black/5">
-                  <img src={coverImage} alt={report.apartmentName} className="w-full h-full object-cover" />
-                </div>
-              ) : (
-                <div className="w-full max-w-[420px] aspect-video md:aspect-square bg-[#f2f4f6] rounded-2xl flex items-center justify-center shadow-lg ring-1 ring-black/5">
-                   <span className="text-[#8b95a1] text-[14px] font-bold">등록된 대표 사진이 없습니다</span>
+            {/* Left: 매매가 추이 차트 */}
+            <div className="w-full md:w-[45%] lg:w-[40%] shrink-0">
+              {transactions.length > 0 ? (() => {
+                const chartData = [...transactions]
+                  .reverse()
+                  .map(tx => ({
+                    date: `${tx.contractYm.slice(2,4)}.${tx.contractYm.slice(4)}`,
+                    price: Math.round(tx.price / 100) / 100, // 만원 → 억
+                    area: tx.areaPyeong,
+                  }));
+                return (
+                  <div className="bg-[#f9fafb] rounded-2xl p-4 ring-1 ring-black/5">
+                    <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">
+                      <TrendingUp size={13} className="text-[#3182f6]" />
+                      매매가 추이
+                    </h4>
+                    <div className="h-[200px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#3182f6" stopOpacity={0.3}/>
+                              <stop offset="95%" stopColor="#3182f6" stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e8eb" vertical={false} />
+                          <XAxis dataKey="date" tick={{ fill: '#8b95a1', fontSize: 10 }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fill: '#8b95a1', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}억`} />
+                          <RechartsTooltip
+                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontSize: '12px', fontWeight: 'bold' }}
+                            formatter={(value: any) => [`${value}억`, '매매가']}
+                          />
+                          <Area type="monotone" dataKey="price" stroke="#3182f6" strokeWidth={2} fill="url(#priceGrad)" dot={{ r: 3, fill: '#3182f6' }} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                );
+              })() : (
+                <div className="bg-[#f9fafb] rounded-2xl p-8 flex items-center justify-center ring-1 ring-black/5 h-[260px]">
+                  <span className="text-[#8b95a1] text-[13px] font-bold">매매 기록이 없습니다</span>
                 </div>
               )}
             </div>
