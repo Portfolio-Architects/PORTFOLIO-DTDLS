@@ -121,42 +121,53 @@ export function FieldReportModal({
                <h1 className="text-[28px] md:text-[36px] font-extrabold leading-tight tracking-tight mb-4 text-[#191f28]">{report.apartmentName}</h1>
                
                <div className="flex items-center gap-3 pb-4 border-b border-[#e5e8eb] text-[#4e5968]">
-                 <span className="text-[14px] font-bold">{report.author}</span>
+                 <span className="text-[14px] font-bold">by 임장크루</span>
                  <span className="text-[13px] opacity-60">·</span>
                  <span className="text-[13px]">{report.createdAt}</span>
                </div>
 
-               {/* 매매가 추이 차트 */}
+               {/* 매매가 추이 차트 (주식 스타일) */}
                {transactions.length > 0 && (() => {
                  const chartData = [...transactions]
                    .reverse()
-                   .map(tx => ({
-                     date: `${tx.contractYm.slice(2,4)}.${tx.contractYm.slice(4)}`,
+                   .map((tx, idx) => ({
+                     date: `${tx.contractYm.slice(0,4)}.${tx.contractYm.slice(4)}.${tx.contractDay}`,
                      price: Math.round(tx.price / 100) / 100,
+                     area: tx.areaPyeong,
+                     floor: tx.floor,
+                     priceEok: tx.priceEok,
+                     idx,
                    }));
+                 const prices = chartData.map(d => d.price);
+                 const minPrice = Math.floor(Math.min(...prices) * 10) / 10;
+                 const maxPrice = Math.ceil(Math.max(...prices) * 10) / 10;
+                 const margin = (maxPrice - minPrice) * 0.15 || 0.5;
                  return (
-                   <div className="mt-4 bg-[#f9fafb] rounded-2xl p-4 ring-1 ring-black/5 flex-1">
+                   <div className="mt-4 bg-[#1a1a2e] rounded-2xl p-4 ring-1 ring-white/10 flex-1">
                      <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">
-                       <TrendingUp size={13} className="text-[#3182f6]" />
+                       <TrendingUp size={13} className="text-[#03c75a]" />
                        매매가 추이
+                       <span className="ml-auto text-[10px] text-[#555]">{chartData.length}건</span>
                      </h4>
-                     <div className="h-[200px]">
+                     <div className="h-[220px]">
                        <ResponsiveContainer width="100%" height="100%">
-                         <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -10, bottom: 0 }}>
+                         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -5, bottom: 0 }}>
                            <defs>
                              <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
-                               <stop offset="5%" stopColor="#3182f6" stopOpacity={0.3}/>
-                               <stop offset="95%" stopColor="#3182f6" stopOpacity={0}/>
+                               <stop offset="5%" stopColor="#03c75a" stopOpacity={0.35}/>
+                               <stop offset="95%" stopColor="#03c75a" stopOpacity={0.02}/>
                              </linearGradient>
                            </defs>
-                           <CartesianGrid strokeDasharray="3 3" stroke="#e5e8eb" vertical={false} />
-                           <XAxis dataKey="date" tick={{ fill: '#8b95a1', fontSize: 10 }} axisLine={false} tickLine={false} />
-                           <YAxis tick={{ fill: '#8b95a1', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}억`} />
+                           <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3e" vertical={false} />
+                           <XAxis dataKey="date" tick={{ fill: '#555', fontSize: 9 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                           <YAxis domain={[minPrice - margin, maxPrice + margin]} tick={{ fill: '#777', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}억`} />
                            <RechartsTooltip
-                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontSize: '12px', fontWeight: 'bold' }}
+                             contentStyle={{ backgroundColor: '#191f28', borderRadius: '10px', border: '1px solid #333', fontSize: '12px', fontWeight: 'bold', color: '#fff' }}
+                             labelStyle={{ color: '#8b95a1', fontSize: '10px' }}
                              formatter={(value: any) => [`${value}억`, '매매가']}
+                             cursor={{ stroke: '#03c75a', strokeWidth: 1, strokeDasharray: '4 4' }}
                            />
-                           <Area type="monotone" dataKey="price" stroke="#3182f6" strokeWidth={2} fill="url(#priceGrad)" dot={{ r: 3, fill: '#3182f6' }} />
+                           <Area type="monotone" dataKey="price" stroke="#03c75a" strokeWidth={2.5} fill="url(#priceGrad)" dot={false} activeDot={{ r: 5, fill: '#03c75a', stroke: '#fff', strokeWidth: 2 }} />
                          </AreaChart>
                        </ResponsiveContainer>
                      </div>
