@@ -11,7 +11,7 @@ import EduBubbleChart from '@/components/EduBubbleChart';
 import LifestyleRadarChart from '@/components/LifestyleRadarChart';
 import PropertyScoreChart from '@/components/consumer/PropertyScoreChart';
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData } from '@/lib/DashboardFacade';
-import { ZONES, dongToZoneId, getZoneById, getDongsForZone, ZoneInfo } from '@/lib/zones';
+import { ZONES, dongToZoneId, getZoneById, getDongsForZone, getAllDongs, getZoneColorForDong, ZoneInfo } from '@/lib/zones';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
@@ -199,16 +199,16 @@ export function FieldReportModal({
             ) : (
               // Advanced Template Render
               <>
-                {/* 1. 요약 브리프 (Assessment: Alpha / Risk) */}
+                {/* 1. 요약 브리프 */}
                 <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
                    <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Text size={20} className="text-[#3182f6]"/> 요약 브리프</h2>
                    <div className="flex flex-col gap-4">
                      <div className="bg-[#f0fdf4] p-5 rounded-2xl border border-[#bbf7d0]">
-                       <h3 className="text-[15px] font-extrabold text-[#03c75a] mb-2 flex items-center gap-1.5"><CheckCircle2 size={18}/> 이 단지만의 강력한 장점 (Alpha Driver)</h3>
+                       <h3 className="text-[15px] font-extrabold text-[#03c75a] mb-2 flex items-center gap-1.5"><CheckCircle2 size={18}/> 이 단지의 핵심 장점</h3>
                        <p className="text-[15px] text-[#191f28] leading-relaxed whitespace-pre-wrap">{s.assessment.alphaDriver || '내용 없음'}</p>
                      </div>
                      <div className="bg-[#fff5f5] p-5 rounded-2xl border border-[#ffebec]">
-                       <h3 className="text-[15px] font-extrabold text-[#f04452] mb-2 flex items-center gap-1.5"><AlertCircle size={18}/> 아쉬운 단점과 위험 (Vulnerability)</h3>
+                       <h3 className="text-[15px] font-extrabold text-[#f04452] mb-2 flex items-center gap-1.5"><AlertCircle size={18}/> 주의할 단점</h3>
                        <p className="text-[15px] text-[#191f28] leading-relaxed whitespace-pre-wrap">{s.assessment.systemicRisk || '내용 없음'}</p>
                      </div>
                    </div>
@@ -299,7 +299,7 @@ export function FieldReportModal({
                    </div>
                 </div>
 
-                 {/* 5. Synthesis */}
+                 {/* 5. 최종 결론 */}
                 <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
                    <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><ShieldAlert size={20} className="text-[#3182f6]"/> 최종 매수 타당성 평가</h2>
                    <div className="flex flex-col gap-4">
@@ -309,14 +309,14 @@ export function FieldReportModal({
                         <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{s.location.developmentText || '-'}</p>
                       </div>
                       <div className="p-6 rounded-2xl border-2 border-[#191f28] bg-[#fdfdfd]">
-                        <h4 className="text-[16px] font-extrabold text-[#191f28] mb-2">💡 최종 결론 (Synthesis)</h4>
+                        <h4 className="text-[16px] font-extrabold text-[#191f28] mb-2">💡 최종 결론</h4>
                         <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.assessment.synthesis || '-'}</p>
                         
                         {s.assessment.probability && (
                           <div className="mt-6 p-4 bg-[#e8f3ff] rounded-xl flex items-start gap-3">
                              <Radar size={20} className="text-[#3182f6] shrink-0 mt-0.5" />
                              <div>
-                               <h5 className="text-[13px] font-bold text-[#3182f6] mb-1">상승 확률 모델링</h5>
+                               <h5 className="text-[13px] font-bold text-[#3182f6] mb-1">향후 가격 전망</h5>
                                <p className="text-[14px] text-[#191f28] leading-snug">{s.assessment.probability}</p>
                              </div>
                           </div>
@@ -427,8 +427,7 @@ export default function Dashboard() {
   // Tab state
   const [activeTab, setActiveTab] = useState<'imjang' | 'lounge' | 'recommend'>('imjang');
 
-  // Zone / Dong filter state
-  const [selectedZone, setSelectedZone] = useState<string | null>(null);
+  // Dong filter state
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
 
   // Transaction data
@@ -543,7 +542,7 @@ export default function Dashboard() {
     }
   }, [selectedReport]);
 
-  // Count field reports by zone (for display counts)
+  // Count field reports by zone (for display counts on zone cards)
   const zoneReportCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     ZONES.forEach(z => { counts[z.id] = 0; });
@@ -554,18 +553,24 @@ export default function Dashboard() {
     return counts;
   }, [fieldReports]);
 
-  // Filtered reports based on zone/dong selection
+  // Count field reports by dong (for dong filter chip counts)
+  const dongReportCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    getAllDongs().forEach(d => { counts[d] = 0; });
+    fieldReports?.forEach(report => {
+      if (report.dong) counts[report.dong] = (counts[report.dong] || 0) + 1;
+    });
+    return counts;
+  }, [fieldReports]);
+
+  // Filtered reports based on dong selection
   const filteredReports = useMemo(() => {
     if (!fieldReports) return [];
-    let filtered = [...fieldReports];
-    if (selectedZone) {
-      filtered = filtered.filter(r => dongToZoneId(r.dong) === selectedZone);
-    }
     if (selectedDong) {
-      filtered = filtered.filter(r => r.dong === selectedDong);
+      return fieldReports.filter(r => r.dong === selectedDong);
     }
-    return filtered;
-  }, [fieldReports, selectedZone, selectedDong]);
+    return [...fieldReports];
+  }, [fieldReports, selectedDong]);
 
   return (
     <div className="min-h-screen bg-[#f9fafb] font-sans selection:bg-[#3182f6]/20">
@@ -623,75 +628,40 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* ── Cascade Filter: Zone → Dong ── */}
+          {/* ── Dong Filter Chips (Single Row) ── */}
           <div className="mb-6">
-            {/* Zone Chips */}
-            <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
-                onClick={() => { setSelectedZone(null); setSelectedDong(null); }}
-                className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 ${
-                  !selectedZone
+                onClick={() => setSelectedDong(null)}
+                className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 whitespace-nowrap shrink-0 ${
+                  !selectedDong
                     ? 'bg-[#191f28] text-white shadow-md'
                     : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb]'
                 }`}
               >
                 전체 ({fieldReports.length})
               </button>
-              {ZONES.map(zone => {
-                const count = zoneReportCounts[zone.id] || 0;
-                const isActive = selectedZone === zone.id;
+              {getAllDongs().map(dong => {
+                const count = dongReportCounts[dong] || 0;
+                const zoneColor = getZoneColorForDong(dong);
+                const isActive = selectedDong === dong;
                 return (
                   <button
-                    key={zone.id}
-                    onClick={() => {
-                      setSelectedZone(isActive ? null : zone.id);
-                      setSelectedDong(null);
-                    }}
-                    className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 flex items-center gap-1.5 ${
+                    key={dong}
+                    onClick={() => setSelectedDong(isActive ? null : dong)}
+                    className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                       isActive
                         ? 'text-white shadow-md'
-                        : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb]'
+                        : 'bg-[#f2f4f6] text-[#4e5968] hover:bg-[#e5e8eb]'
                     }`}
-                    style={isActive ? { backgroundColor: zone.color } : {}}
+                    style={isActive ? { backgroundColor: zoneColor } : {}}
                   >
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: isActive ? '#fff' : zone.color }} />
-                    {zone.name.length > 6 ? zone.name.slice(0, 6) + '…' : zone.name} ({count})
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: isActive ? '#fff' : zoneColor }} />
+                    {dong} ({count})
                   </button>
                 );
               })}
             </div>
-
-            {/* Dong Sub-Chips (appears when zone selected) */}
-            {selectedZone && (
-              <div className="flex flex-wrap gap-1.5 animate-in slide-in-from-top-1 duration-200">
-                <button
-                  onClick={() => setSelectedDong(null)}
-                  className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all ${
-                    !selectedDong
-                      ? 'bg-[#e8f3ff] text-[#3182f6]'
-                      : 'bg-[#f9fafb] text-[#8b95a1] hover:bg-[#f2f4f6]'
-                  }`}
-                >
-                  전체
-                </button>
-                {getDongsForZone(selectedZone).map(dong => {
-                  const dongCount = fieldReports?.filter(r => r.dong === dong).length || 0;
-                  return (
-                    <button
-                      key={dong}
-                      onClick={() => setSelectedDong(selectedDong === dong ? null : dong)}
-                      className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all ${
-                        selectedDong === dong
-                          ? 'bg-[#e8f3ff] text-[#3182f6]'
-                          : 'bg-[#f9fafb] text-[#8b95a1] hover:bg-[#f2f4f6]'
-                      }`}
-                    >
-                      {dong} ({dongCount})
-                    </button>
-                  );
-                })}
-              </div>
-            )}
           </div>
 
           {/* 2. Quick Stats */}
@@ -750,7 +720,7 @@ export default function Dashboard() {
             <div>
               <h3 className="text-[18px] font-extrabold text-[#191f28] mb-4 flex items-center gap-2">
                 <Clock size={18} className="text-[#f59e0b]" />
-                {selectedZone || selectedDong ? '필터 결과' : '최신 임장 리포트'}
+                {selectedDong ? '필터 결과' : '최신 임장 리포트'}
                 <span className="text-[13px] font-bold text-[#8b95a1] ml-1">{filteredReports.length}개</span>
               </h3>
               <div className="flex flex-col gap-3">
@@ -796,10 +766,10 @@ export default function Dashboard() {
                 ))}
               </div>
             </div>
-          ) : selectedZone && (
+          ) : selectedDong && (
             <div className="bg-white rounded-2xl border border-[#e5e8eb] p-12 text-center">
               <MapPin size={40} className="mx-auto mb-4 text-[#d1d6db]" />
-              <p className="text-[15px] font-bold text-[#4e5968]">해당 {selectedDong ? '동' : '권역'}에 임장 리포트가 없습니다</p>
+              <p className="text-[15px] font-bold text-[#4e5968]">해당 동에 임장 리포트가 없습니다</p>
               <p className="text-[13px] text-[#8b95a1] mt-1">첫 번째 리포트를 작성해보세요!</p>
             </div>
           )}

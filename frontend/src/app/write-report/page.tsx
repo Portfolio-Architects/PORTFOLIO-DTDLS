@@ -610,8 +610,8 @@ export default function WriteFieldReport() {
         {step === 6 && (
           <div className="animate-in fade-in slide-in-from-right-8 duration-500">
             <div className="mb-6 px-1">
-               <h2 className="text-[22px] font-extrabold text-[#191f28] leading-tight mb-2 flex gap-2 items-center"><ShieldAlert className="text-[#f04452]"/> 최종 분석 및 평가</h2>
-               <p className="text-[13px] text-[#4e5968]">현장 데이터를 바탕으로 매수 타당성을 평가합니다.</p>
+               <h2 className="text-[22px] font-extrabold text-[#191f28] leading-tight mb-2 flex gap-2 items-center"><ShieldAlert className="text-[#f04452]"/> 최종 평가</h2>
+               <p className="text-[13px] text-[#4e5968]">현장에서 느낀 장단점을 정리해주세요.</p>
             </div>
 
             {/* Auto-Generated Grade Card */}
@@ -634,10 +634,10 @@ export default function WriteFieldReport() {
             </div>
 
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#e5e8eb]">
-               <TextInput section="assessment" field="alphaDriver" label="💎 이 단지만의 강력한 장점 (Alpha Driver)" placeholder="압도적 조경, 핵심 학군 등 가격이 오를 수밖에 없는 구조적 우위" isTextarea />
-               <TextInput section="assessment" field="systemicRisk" label="⚠️ 아쉬운 단점 (Vulnerability)" placeholder="과도한 언덕 지형, 구축의 평면 한계, 향후 대규모 분양 물량 등" isTextarea />
-               <TextInput section="assessment" field="synthesis" label="📊 종합 매수 타당성 결론" placeholder="장단점을 종합해봤을 때, 현재 가격에 매수 메리트가 있나요?" isTextarea />
-               <TextInput section="assessment" field="probability" label="📈 확률론적 가격 전망" placeholder="예: 향후 12개월 내 호가 대비 10% 상승 확률 80%" isTextarea />
+               <TextInput section="assessment" field="alphaDriver" label="💎 이 단지의 핵심 장점" placeholder="예: 남향 위주, 초품아, 조경이 아파트 중 최고 등" isTextarea />
+               <TextInput section="assessment" field="systemicRisk" label="⚠️ 주의할 단점" placeholder="예: 언덕 지형, 주차 부족, 향후 대규모 분양 예정 등" isTextarea />
+               <TextInput section="assessment" field="synthesis" label="📊 종합 결론" placeholder="장단점을 종합해봤을 때, 이 단지 살 만한가요?" isTextarea />
+               <TextInput section="assessment" field="probability" label="📈 향후 가격 전망" placeholder="예: 1년 내 가격이 오를 것 같다 / 보합세 / 하락 위험 등" isTextarea />
             </div>
           </div>
         )}
