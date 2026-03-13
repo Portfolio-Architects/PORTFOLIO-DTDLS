@@ -710,34 +710,36 @@ export default function Dashboard() {
                 {selectedDong ? '필터 결과' : '임장 리포트'}
                 <span className="text-[13px] font-bold text-[#8b95a1] ml-1">{filteredReports.length}개</span>
               </h3>
-              <div className="flex flex-col gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {filteredReports.map(report => (
                   <div
                     key={report.id}
                     onClick={() => setSelectedReport(report)}
-                    className="bg-white rounded-2xl border border-[#e5e8eb] px-5 py-4 flex items-center gap-4 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                    className="bg-white rounded-2xl border border-[#e5e8eb] overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
                   >
                     {/* Thumbnail */}
-                    <div className="w-16 h-16 rounded-xl bg-[#f2f4f6] shrink-0 overflow-hidden flex items-center justify-center">
+                    <div className="w-full h-[160px] bg-[#f2f4f6] overflow-hidden relative">
                       {report.imageUrl ? (
-                        <img src={report.imageUrl} alt={report.apartmentName} className="w-full h-full object-cover" />
+                        <img src={report.imageUrl} alt={report.apartmentName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       ) : (
-                        <Camera size={20} className="text-[#d1d6db]" />
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Camera size={28} className="text-[#d1d6db]" />
+                        </div>
                       )}
+                      {/* Price badge overlay */}
+                      {(() => {
+                        const latestTx = allTransactions.find(tx => isSameApartment(report.apartmentName, tx.aptName));
+                        return latestTx ? (
+                          <span className="absolute top-3 right-3 bg-[#191f28]/80 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-lg">
+                            {latestTx.priceEok}
+                          </span>
+                        ) : null;
+                      })()}
                     </div>
-                    <div className="flex-1 min-w-0">
+                    {/* Content */}
+                    <div className="p-4">
+                      <h4 className="text-[15px] font-extrabold text-[#191f28] truncate mb-2">{report.apartmentName}</h4>
                       <div className="flex items-center gap-2">
-                        <h4 className="text-[15px] font-extrabold text-[#191f28] truncate">{report.apartmentName}</h4>
-                        {(() => {
-                          const latestTx = allTransactions.find(tx => isSameApartment(report.apartmentName, tx.aptName));
-                          return latestTx ? (
-                            <span className="shrink-0 bg-[#e8f7ee] text-[#03c75a] text-[11px] font-bold px-2 py-0.5 rounded-md">
-                              {latestTx.priceEok} · {latestTx.areaPyeong}평
-                            </span>
-                          ) : null;
-                        })()}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
                         <div className="flex items-center gap-0.5">
                           {Array.from({ length: 5 }, (_, i) => (
                             <Star key={i} size={11} className={i < (report.premiumScores?.totalPremiumScore ? Math.max(1, Math.round(report.premiumScores.totalPremiumScore / 20)) : (report.rating || 5)) ? 'text-[#f59e0b] fill-[#f59e0b]' : 'text-[#e5e8eb]'} />
@@ -748,7 +750,6 @@ export default function Dashboard() {
                         <span className="text-[11px] text-[#8b95a1]">{report.createdAt}</span>
                       </div>
                     </div>
-                    <span className="text-[#3182f6] text-[13px] font-bold shrink-0 hidden sm:inline">읽기 →</span>
                   </div>
                 ))}
               </div>
