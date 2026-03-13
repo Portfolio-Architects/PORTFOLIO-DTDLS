@@ -654,7 +654,7 @@ export default function Dashboard() {
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
               <h2 className="text-[28px] md:text-[36px] font-extrabold text-[#191f28] tracking-tight">
-                동탄2신도시 임장 리포트
+                프리미엄 임장기
               </h2>
               <span className="inline-flex items-center gap-1.5 bg-[#e8f3ff] text-[#3182f6] text-[13px] font-bold px-3 py-1 rounded-full shrink-0">
                 <FileText size={13} />
