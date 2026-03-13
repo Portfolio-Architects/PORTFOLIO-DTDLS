@@ -726,25 +726,23 @@ export default function Dashboard() {
                           <Camera size={28} className="text-[#d1d6db]" />
                         </div>
                       )}
-                      {/* Price badge overlay */}
-                      {(() => {
-                        const latestTx = allTransactions.find(tx => isSameApartment(report.apartmentName, tx.aptName));
-                        return latestTx ? (
-                          <span className="absolute top-3 right-3 bg-[#191f28]/80 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-lg">
-                            {latestTx.priceEok}
-                          </span>
-                        ) : null;
-                      })()}
                     </div>
                     {/* Content */}
                     <div className="p-4">
-                      <h4 className="text-[15px] font-extrabold text-[#191f28] truncate mb-2">{report.apartmentName}</h4>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        {report.dong && <span className="text-[11px] font-bold text-[#3182f6] bg-[#e8f3ff] px-2 py-0.5 rounded-md">{report.dong}</span>}
+                        {report.premiumScores?.totalPremiumScore != null && (
+                          <span className="text-[11px] font-bold text-[#f59e0b] bg-[#fff8e1] px-2 py-0.5 rounded-md">종합 {report.premiumScores.totalPremiumScore}점</span>
+                        )}
+                      </div>
+                      <h4 className="text-[15px] font-extrabold text-[#191f28] truncate mb-1.5">{report.apartmentName}</h4>
                       <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-0.5">
-                          {Array.from({ length: 5 }, (_, i) => (
-                            <Star key={i} size={11} className={i < (report.premiumScores?.totalPremiumScore ? Math.max(1, Math.round(report.premiumScores.totalPremiumScore / 20)) : (report.rating || 5)) ? 'text-[#f59e0b] fill-[#f59e0b]' : 'text-[#e5e8eb]'} />
-                          ))}
-                        </div>
+                        {(() => {
+                          const latestTx = allTransactions.find(tx => isSameApartment(report.apartmentName, tx.aptName));
+                          return latestTx ? (
+                            <span className="text-[11px] font-bold text-[#03c75a]">{latestTx.priceEok} · {latestTx.areaPyeong}평</span>
+                          ) : null;
+                        })()}
                         <span className="text-[11px] text-[#8b95a1] font-bold">{report.author}</span>
                         <span className="text-[11px] text-[#d1d6db]">·</span>
                         <span className="text-[11px] text-[#8b95a1]">{report.createdAt}</span>
