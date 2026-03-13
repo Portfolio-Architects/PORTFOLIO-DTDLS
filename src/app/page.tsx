@@ -567,26 +567,20 @@ export default function Dashboard() {
         {/* ═══ TAB 1: 임장기 ═══ */}
         {activeTab === 'imjang' && (
         <section>
-          {/* 1. Hero Banner */}
-          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#191f28] via-[#1e3a5f] to-[#3182f6] p-8 md:p-12 mb-8 shadow-lg">
-            <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl -translate-y-1/3 translate-x-1/4" />
-            <div className="absolute bottom-0 left-0 w-60 h-60 bg-[#3182f6]/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
-            <div className="relative z-10">
-              <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-[12px] font-bold px-3 py-1 rounded-full mb-5">
-                <Compass size={12} />
-                동탄2신도시 7대 투자 권역
-              </span>
-              <h2 className="text-[28px] md:text-[36px] lg:text-[42px] font-extrabold text-white leading-tight tracking-tight mb-3">
-                아파트, 발로 뛰며<br />분석했습니다
+          {/* 1. Section Header */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <h2 className="text-[28px] md:text-[36px] font-extrabold text-[#191f28] tracking-tight">
+                동탄2신도시 임장 리포트
               </h2>
-              <p className="text-white/60 text-[14px] md:text-[15px] font-medium mb-6 max-w-lg">
-                장점부터 숨기고 싶은 단점까지 — 직접 현장을 다니며 기록한 솔직한 임장 리포트
-              </p>
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/10">
-                <FileText size={14} className="text-white/70" />
-                <span className="text-white font-extrabold text-[15px]">총 {fieldReports.length}개 단지 리뷰</span>
-              </div>
+              <span className="inline-flex items-center gap-1.5 bg-[#e8f3ff] text-[#3182f6] text-[13px] font-bold px-3 py-1 rounded-full shrink-0">
+                <FileText size={13} />
+                {fieldReports.length}개 단지
+              </span>
             </div>
+            <p className="text-[15px] text-[#8b95a1] font-medium">
+              장점부터 숨기고 싶은 단점까지 — 직접 현장을 다니며 기록한 솔직한 임장 리포트
+            </p>
           </div>
 
           {/* 2. Quick Stats */}
