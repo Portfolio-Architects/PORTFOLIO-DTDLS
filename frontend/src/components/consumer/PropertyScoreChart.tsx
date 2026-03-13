@@ -17,8 +17,8 @@ export default function PropertyScoreChart({ scores }: Props) {
   ];
 
   return (
-    <div className="bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-[#e5e8eb] animate-in fade-in duration-500">
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#e5e8eb]">
+    <div className="bg-white rounded-2xl shadow-sm border border-[#e5e8eb] animate-in fade-in duration-500">
+      <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-[#e5e8eb]">
         <div>
           <h2 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2">
             <ShieldCheck size={20} className="text-[#3182f6]"/> 
@@ -34,10 +34,10 @@ export default function PropertyScoreChart({ scores }: Props) {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3 pt-3">
         
-        {/* Radar Chart — full width */}
-        <div className="w-full h-[280px] bg-[#f9fafb] rounded-2xl flex items-center justify-center">
+        {/* Radar Chart — full width, edge-to-edge */}
+        <div className="w-full h-[280px] flex items-center justify-center">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
               <PolarGrid stroke="#e5e8eb" />
@@ -53,7 +53,7 @@ export default function PropertyScoreChart({ scores }: Props) {
         </div>
 
         {/* Score Cards — single row */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-4 gap-2.5 px-4 pb-4">
            {[
              { title: '교육 환경', score: scores.eduTimePremium, desc: '학교·학원가까지 거리' },
              { title: '주차 쾌적성', score: scores.stressFreeParking, desc: '주차 대수와 동 간격' },
