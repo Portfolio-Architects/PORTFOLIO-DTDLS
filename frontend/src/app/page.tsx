@@ -117,7 +117,6 @@ export function FieldReportModal({
             <div className="w-full md:w-[50%] flex flex-col">
                <div className="flex items-center gap-2 mb-3">
                  <span className="bg-[#3182f6] text-white text-[13px] font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
-                 <span className="bg-[#fff8e1] text-[#f59e0b] text-[13px] tracking-widest px-3 py-1 rounded-full font-bold shadow-sm border border-[#fde68a]">종합점수 {report.premiumScores?.totalPremiumScore ?? '-'}점</span>
                </div>
                <h1 className="text-[28px] md:text-[36px] font-extrabold leading-tight tracking-tight mb-4 text-[#191f28]">{report.apartmentName}</h1>
                
