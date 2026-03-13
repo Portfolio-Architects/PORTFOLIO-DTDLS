@@ -5,7 +5,7 @@ import MapProvider from '@/components/map/MapProvider';
 import FloatingUserBar from '@/components/FloatingUserBar';
 
 export const metadata: Metadata = {
-  title: '동탄 인사이드 | Dongtan Inside',
+  title: '임장크루 | 동탄 아파트 임장 커뮤니티',
   description: '포장 싹 뺀 진짜 동네 아파트 리뷰. 임장기와 실시간 동탄 소식을 한눈에 확인하세요.',
 };
 

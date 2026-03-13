@@ -606,7 +606,7 @@ export default function Dashboard() {
                 </button>
               ))}
             </div>
-            <span className="text-[17px] text-[#8b95a1] font-medium hidden sm:inline">by <span className="font-extrabold text-[#191f28]">동탄 인사이드</span></span>
+            <span className="text-[17px] text-[#8b95a1] font-medium hidden sm:inline">by <span className="font-extrabold text-[#191f28]">임장크루</span></span>
           </div>
           {/* User bar is now handled by FloatingUserBar in layout.tsx */}
           </div>
