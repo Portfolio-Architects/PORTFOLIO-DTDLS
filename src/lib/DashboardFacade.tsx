@@ -237,6 +237,8 @@ export class DashboardFacade {
   public listenToComments(reportId: string, callback: (comments: CommentData[]) => void) { return this.strategy.listenToComments ? this.strategy.listenToComments(reportId, callback) : () => {}; }
   public async getUserProfile(uid: string) { return this.strategy.getUserProfile ? await this.strategy.getUserProfile(uid) : null; }
   public async updateNickname(uid: string, nickname: string) { await UserRepo.updateNickname(uid, nickname); }
+  public async updateFrontName(uid: string, frontName: string) { await UserRepo.updateFrontName(uid, frontName); }
+  public async updatePhotoURL(uid: string, photoURL: string) { await UserRepo.updatePhotoURL(uid, photoURL); }
   public async incrementLike(postId: string) { if (this.strategy.incrementLike) await this.strategy.incrementLike(postId); }
   public async incrementFieldReportLike(reportId: string) { if (this.strategy.incrementFieldReportLike) await this.strategy.incrementFieldReportLike(reportId); }
   public getDongtanApartments(): string[] { return this.strategy.getDongtanApartments ? this.strategy.getDongtanApartments() : []; }

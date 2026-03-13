@@ -11,6 +11,7 @@ import EduBubbleChart from '@/components/EduBubbleChart';
 import LifestyleRadarChart from '@/components/LifestyleRadarChart';
 import PropertyScoreChart from '@/components/consumer/PropertyScoreChart';
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData } from '@/lib/DashboardFacade';
+import { uploadImage } from '@/lib/services/reportService';
 import { ZONES, dongToZoneId, getZoneById, ZoneInfo } from '@/lib/zones';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -379,9 +380,12 @@ export default function Dashboard() {
 
   // Auth & Profile State
   const [user, setUser] = useState<User | null>(null);
-  const [anonProfile, setAnonProfile] = useState<{nickname: string} | null>(null);
+  const [anonProfile, setAnonProfile] = useState<{nickname: string; frontName?: string; photoURL?: string} | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [editFrontName, setEditFrontName] = useState('');
   const [editNickname, setEditNickname] = useState('');
+  const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   // (Optional) Image State - For when storage is unpaused
@@ -524,7 +528,13 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             {user ? (
               <div className="flex items-center gap-2 bg-[#f2f4f6] rounded-full pl-3 pr-4 py-1.5 shadow-sm">
-                <button onClick={() => { setEditNickname(anonProfile?.nickname || ''); setShowProfileModal(true); }} className="flex items-center gap-1.5 hover:opacity-70 transition-opacity">
+                <button onClick={() => {
+                  setEditFrontName(anonProfile?.frontName || '동탄사는');
+                  setEditNickname(anonProfile?.nickname || '');
+                  setProfilePhotoPreview(anonProfile?.photoURL || null);
+                  setProfilePhotoFile(null);
+                  setShowProfileModal(true);
+                }} className="flex items-center gap-1.5 hover:opacity-70 transition-opacity">
                   <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-[#3182f6]">
                     <UserCircle size={14} />
                   </div>
@@ -769,40 +779,101 @@ export default function Dashboard() {
       {showProfileModal && user && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="absolute inset-0 bg-[#191f28]/50 backdrop-blur-sm" onClick={() => setShowProfileModal(false)} />
-          <div className="relative bg-white rounded-3xl p-8 w-full max-w-[400px] shadow-2xl">
+          <div className="relative bg-white rounded-3xl p-8 w-full max-w-[420px] shadow-2xl">
             <button onClick={() => setShowProfileModal(false)} className="absolute top-4 right-4 text-[#8b95a1] hover:text-[#191f28] p-1 rounded-full transition-colors">
               <X size={18} />
             </button>
 
+            {/* Profile Photo */}
             <div className="flex flex-col items-center mb-6">
-              <div className="w-16 h-16 rounded-full bg-[#e8f3ff] flex items-center justify-center mb-3">
-                <UserCircle size={32} className="text-[#3182f6]" />
+              <div className="relative group cursor-pointer mb-3" onClick={() => document.getElementById('profile-photo-input')?.click()}>
+                <div className="w-20 h-20 rounded-full bg-[#e8f3ff] flex items-center justify-center overflow-hidden ring-4 ring-[#e8f3ff]">
+                  {profilePhotoPreview ? (
+                    <img src={profilePhotoPreview} alt="프로필" className="w-full h-full object-cover" />
+                  ) : (
+                    <UserCircle size={40} className="text-[#3182f6]" />
+                  )}
+                </div>
+                <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Camera size={20} className="text-white" />
+                </div>
+                <input
+                  id="profile-photo-input"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setProfilePhotoFile(file);
+                      setProfilePhotoPreview(URL.createObjectURL(file));
+                    }
+                  }}
+                />
               </div>
               <h3 className="text-[18px] font-extrabold text-[#191f28]">프로필 수정</h3>
               <p className="text-[13px] text-[#8b95a1] mt-1">{user.email}</p>
             </div>
 
+            {/* Nickname Preview */}
+            <div className="bg-[#f9fafb] border border-[#e5e8eb] rounded-2xl p-4 mb-5 text-center">
+              <p className="text-[11px] text-[#8b95a1] font-bold mb-1.5">다른 사용자에게 보이는 이름</p>
+              <p className="text-[22px] font-extrabold text-[#191f28] tracking-wide">
+                <span className="text-[#3182f6]">{editFrontName}</span> {editNickname}
+              </p>
+              <p className="text-[11px] text-[#8b95a1] mt-1">총 {editFrontName.length + editNickname.length}/7글자</p>
+            </div>
+
             <div className="space-y-4">
+              {/* FrontName (4자) */}
               <div>
-                <label className="text-[12px] font-bold text-[#4e5968] mb-1.5 block">닉네임</label>
+                <label className="text-[12px] font-bold text-[#4e5968] mb-1.5 flex items-center justify-between">
+                  <span>프론트 네임 (4글자)</span>
+                  <span className={`text-[11px] ${editFrontName.length === 4 ? 'text-[#03c75a]' : 'text-[#f04452]'}`}>{editFrontName.length}/4</span>
+                </label>
+                <input
+                  type="text"
+                  value={editFrontName}
+                  onChange={(e) => { if (e.target.value.length <= 4) setEditFrontName(e.target.value); }}
+                  className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] font-bold text-[#191f28] focus:ring-2 focus:ring-[#3182f6]/20 focus:border-[#3182f6] outline-none text-center tracking-widest"
+                  placeholder="동탄사는"
+                  maxLength={4}
+                />
+              </div>
+
+              {/* Nickname (3자) */}
+              <div>
+                <label className="text-[12px] font-bold text-[#4e5968] mb-1.5 flex items-center justify-between">
+                  <span>닉네임 (3글자)</span>
+                  <span className={`text-[11px] ${editNickname.length === 3 ? 'text-[#03c75a]' : 'text-[#f04452]'}`}>{editNickname.length}/3</span>
+                </label>
                 <input
                   type="text"
                   value={editNickname}
-                  onChange={(e) => setEditNickname(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[14px] font-bold text-[#191f28] focus:ring-2 focus:ring-[#3182f6]/20 focus:border-[#3182f6] outline-none"
-                  placeholder="새 닉네임을 입력하세요"
-                  maxLength={20}
+                  onChange={(e) => { if (e.target.value.length <= 3) setEditNickname(e.target.value); }}
+                  className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] font-bold text-[#191f28] focus:ring-2 focus:ring-[#3182f6]/20 focus:border-[#3182f6] outline-none text-center tracking-widest"
+                  placeholder="랑독이"
+                  maxLength={3}
                 />
-                <p className="text-[11px] text-[#8b95a1] mt-1.5">다른 사용자에게 보이는 이름입니다.</p>
               </div>
 
               <button
                 onClick={async () => {
-                  if (!editNickname.trim()) return;
+                  if (editFrontName.length !== 4 || editNickname.length !== 3) {
+                    alert('프론트 네임 4글자, 닉네임 3글자를 정확히 입력해주세요.');
+                    return;
+                  }
                   setIsSavingProfile(true);
                   try {
-                    await dashboardFacade.updateNickname(user.uid, editNickname.trim());
-                    setAnonProfile(prev => prev ? { ...prev, nickname: editNickname.trim() } : { nickname: editNickname.trim() });
+                    // Upload photo if changed
+                    let photoURL = anonProfile?.photoURL;
+                    if (profilePhotoFile) {
+                      photoURL = await uploadImage(profilePhotoFile, `profiles/${user.uid}`);
+                      await dashboardFacade.updatePhotoURL(user.uid, photoURL);
+                    }
+                    await dashboardFacade.updateFrontName(user.uid, editFrontName);
+                    await dashboardFacade.updateNickname(user.uid, editNickname);
+                    setAnonProfile({ frontName: editFrontName, nickname: editNickname, photoURL });
                     setShowProfileModal(false);
                   } catch (err) {
                     console.error('Profile update failed:', err);
@@ -811,7 +882,7 @@ export default function Dashboard() {
                     setIsSavingProfile(false);
                   }
                 }}
-                disabled={isSavingProfile || !editNickname.trim()}
+                disabled={isSavingProfile || editFrontName.length !== 4 || editNickname.length !== 3}
                 className="w-full py-3 bg-[#3182f6] hover:bg-[#2b72d6] text-white font-bold text-[14px] rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isSavingProfile ? (

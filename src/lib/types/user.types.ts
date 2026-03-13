@@ -13,6 +13,8 @@ export interface UserProfile {
   frontName: string;
   /** 라스트 네임 (3글자, 자동 생성) */
   nickname: string;
+  /** 프로필 사진 URL */
+  photoURL?: string;
   /** 인증된 아파트명 (e.g., '[오산동] 동탄역 롯데캐슬') */
   verifiedApartment?: string;
   /** 인증 등급 */

@@ -23,6 +23,7 @@ export async function getOrCreateProfile(uid: string): Promise<UserProfile> {
     return {
       frontName: data.frontName || DEFAULT_FRONT_NAME,
       nickname: data.nickname,
+      photoURL: data.photoURL,
       verifiedApartment: data.verifiedApartment,
       verificationLevel: data.verificationLevel,
       createdAt: data.createdAt,
@@ -69,4 +70,13 @@ export async function updateFrontName(uid: string, frontName: string): Promise<v
   const userRef = doc(db, 'users', uid);
   await updateDoc(userRef, { frontName });
   logger.info('UserRepository.updateFrontName', 'Front name updated', { uid, frontName });
+}
+
+/**
+ * Updates the user's profile photo URL.
+ */
+export async function updatePhotoURL(uid: string, photoURL: string): Promise<void> {
+  const userRef = doc(db, 'users', uid);
+  await updateDoc(userRef, { photoURL });
+  logger.info('UserRepository.updatePhotoURL', 'Photo URL updated', { uid });
 }
