@@ -664,58 +664,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* 2. Quick Stats */}
-          <div className="grid grid-cols-3 gap-3 md:gap-4 mb-8">
-            {[
-              { icon: MapIcon, label: '투자 권역', value: `${ZONES.length}개`, color: '#3182f6' },
-              { icon: Building, label: '분석 단지', value: `${fieldReports.length}개`, color: '#03c75a' },
-              { icon: Star, label: '평균 평점', value: fieldReports.length > 0 ? `${(fieldReports.reduce((s, r) => s + (r.rating || 5), 0) / fieldReports.length).toFixed(1)}점` : '-', color: '#f59e0b' },
-            ].map(stat => (
-              <div key={stat.label} className="bg-white rounded-2xl border border-[#e5e8eb] p-4 md:p-5 text-center hover:shadow-md transition-shadow">
-                <div className="w-9 h-9 rounded-xl mx-auto mb-2.5 flex items-center justify-center" style={{ backgroundColor: stat.color + '12' }}>
-                  <stat.icon size={18} style={{ color: stat.color }} />
-                </div>
-                <div className="text-[22px] md:text-[24px] font-extrabold text-[#191f28] tracking-tight">{stat.value}</div>
-                <div className="text-[12px] text-[#8b95a1] font-bold mt-0.5">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* 3. Zone Grid (2-col) */}
-          <div className="mb-10">
-            <h3 className="text-[18px] font-extrabold text-[#191f28] mb-4 flex items-center gap-2">
-              <MapPin size={18} className="text-[#3182f6]" />
-              권역별 탐색
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {ZONES.map(zone => {
-                const count = zoneReportCounts[zone.id] || 0;
-                return (
-                  <div
-                    key={zone.id}
-                    onClick={() => router.push(`/zone/${zone.id}`)}
-                    className="bg-white rounded-2xl border border-[#e5e8eb] p-4 md:p-5 flex gap-4 items-start cursor-pointer hover:shadow-lg hover:border-transparent hover:-translate-y-0.5 transition-all duration-200 group"
-                  >
-                    {/* Color accent */}
-                    <div className="w-1.5 self-stretch rounded-full shrink-0" style={{ backgroundColor: zone.color }} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <h4 className="text-[15px] font-extrabold text-[#191f28] truncate">{zone.name}</h4>
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0" style={{ backgroundColor: zone.color + '18', color: zone.color }}>{zone.dongLabel}</span>
-                      </div>
-                      <p className="text-[12px] text-[#8b95a1] leading-relaxed line-clamp-2 mb-2.5">{zone.description}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[12px] font-bold text-[#4e5968]">{count}개 단지 리뷰</span>
-                        <span className="text-[12px] font-bold opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: zone.color }}>보기 →</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* 4. Latest Reports (filtered) */}
+          {/* Latest Reports (filtered) */}
           {filteredReports.length > 0 ? (
             <div>
               <h3 className="text-[18px] font-extrabold text-[#191f28] mb-4 flex items-center gap-2">
@@ -773,6 +722,39 @@ export default function Dashboard() {
               <p className="text-[13px] text-[#8b95a1] mt-1">첫 번째 리포트를 작성해보세요!</p>
             </div>
           )}
+
+          {/* 권역별 탐색 */}
+          <div className="mt-10">
+            <h3 className="text-[18px] font-extrabold text-[#191f28] mb-4 flex items-center gap-2">
+              <MapPin size={18} className="text-[#3182f6]" />
+              권역별 탐색
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {ZONES.map(zone => {
+                const count = zoneReportCounts[zone.id] || 0;
+                return (
+                  <div
+                    key={zone.id}
+                    onClick={() => router.push(`/zone/${zone.id}`)}
+                    className="bg-white rounded-2xl border border-[#e5e8eb] p-4 md:p-5 flex gap-4 items-start cursor-pointer hover:shadow-lg hover:border-transparent hover:-translate-y-0.5 transition-all duration-200 group"
+                  >
+                    <div className="w-1.5 self-stretch rounded-full shrink-0" style={{ backgroundColor: zone.color }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <h4 className="text-[15px] font-extrabold text-[#191f28] truncate">{zone.name}</h4>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0" style={{ backgroundColor: zone.color + '18', color: zone.color }}>{zone.dongLabel}</span>
+                      </div>
+                      <p className="text-[12px] text-[#8b95a1] leading-relaxed line-clamp-2 mb-2.5">{zone.description}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[12px] font-bold text-[#4e5968]">{count}개 단지 리뷰</span>
+                        <span className="text-[12px] font-bold opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: zone.color }}>보기 →</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </section>
         )}
 
