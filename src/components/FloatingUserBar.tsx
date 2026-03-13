@@ -46,7 +46,7 @@ export default function FloatingUserBar() {
   return (
     <>
       {/* Floating User Bar */}
-      <div className="fixed top-4 right-4 z-40 animate-in slide-in-from-top-2 duration-300">
+      <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 duration-300">
         {user ? (
           <div className="flex items-center gap-2 bg-white/90 backdrop-blur-xl rounded-full pl-3 pr-4 py-1.5 shadow-lg border border-[#e5e8eb]/50">
             <button onClick={() => {
