@@ -4,7 +4,7 @@ import {
   Building, MapPin, Map as MapIcon, Info, Users, AlertCircle, ShieldAlert,
   Car, BookOpen, Clock, Tag, X, FileText, CheckCircle2, TrendingUp, Radar,
   MessageSquare, Heart, Compass, LayoutDashboard, Camera, UserCircle, Star, Maximize2, Link2, Trash2, Text, LogOut,
-  Home, PenLine, Send
+  Home, PenLine, Send, Edit3
 } from 'lucide-react';
 import MainChart from '@/components/MainChart';
 import EduBubbleChart from '@/components/EduBubbleChart';
@@ -380,6 +380,9 @@ export default function Dashboard() {
   // Auth & Profile State
   const [user, setUser] = useState<User | null>(null);
   const [anonProfile, setAnonProfile] = useState<{nickname: string} | null>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [editNickname, setEditNickname] = useState('');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   // (Optional) Image State - For when storage is unpaused
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -521,11 +524,12 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             {user ? (
               <div className="flex items-center gap-2 bg-[#f2f4f6] rounded-full pl-3 pr-4 py-1.5 shadow-sm">
-                <button onClick={() => router.push('/lounge')} className="flex items-center gap-1.5 hover:opacity-70 transition-opacity">
+                <button onClick={() => { setEditNickname(anonProfile?.nickname || ''); setShowProfileModal(true); }} className="flex items-center gap-1.5 hover:opacity-70 transition-opacity">
                   <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-[#3182f6]">
                     <UserCircle size={14} />
                   </div>
                   <span className="text-[12px] font-bold text-[#191f28] hidden sm:inline">{anonProfile?.nickname || user.displayName || user.email?.split('@')[0] || '사용자'}</span>
+                  <Edit3 size={10} className="text-[#8b95a1] hidden sm:inline" />
                 </button>
                 {dashboardFacade.isAdmin(user.email) && (
                   <button 
@@ -761,6 +765,65 @@ export default function Dashboard() {
         />
       )}
 
+      {/* Profile Edit Modal */}
+      {showProfileModal && user && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="absolute inset-0 bg-[#191f28]/50 backdrop-blur-sm" onClick={() => setShowProfileModal(false)} />
+          <div className="relative bg-white rounded-3xl p-8 w-full max-w-[400px] shadow-2xl">
+            <button onClick={() => setShowProfileModal(false)} className="absolute top-4 right-4 text-[#8b95a1] hover:text-[#191f28] p-1 rounded-full transition-colors">
+              <X size={18} />
+            </button>
+
+            <div className="flex flex-col items-center mb-6">
+              <div className="w-16 h-16 rounded-full bg-[#e8f3ff] flex items-center justify-center mb-3">
+                <UserCircle size={32} className="text-[#3182f6]" />
+              </div>
+              <h3 className="text-[18px] font-extrabold text-[#191f28]">프로필 수정</h3>
+              <p className="text-[13px] text-[#8b95a1] mt-1">{user.email}</p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-[12px] font-bold text-[#4e5968] mb-1.5 block">닉네임</label>
+                <input
+                  type="text"
+                  value={editNickname}
+                  onChange={(e) => setEditNickname(e.target.value)}
+                  className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[14px] font-bold text-[#191f28] focus:ring-2 focus:ring-[#3182f6]/20 focus:border-[#3182f6] outline-none"
+                  placeholder="새 닉네임을 입력하세요"
+                  maxLength={20}
+                />
+                <p className="text-[11px] text-[#8b95a1] mt-1.5">다른 사용자에게 보이는 이름입니다.</p>
+              </div>
+
+              <button
+                onClick={async () => {
+                  if (!editNickname.trim()) return;
+                  setIsSavingProfile(true);
+                  try {
+                    await dashboardFacade.updateNickname(user.uid, editNickname.trim());
+                    setAnonProfile(prev => prev ? { ...prev, nickname: editNickname.trim() } : { nickname: editNickname.trim() });
+                    setShowProfileModal(false);
+                  } catch (err) {
+                    console.error('Profile update failed:', err);
+                    alert('프로필 수정에 실패했습니다.');
+                  } finally {
+                    setIsSavingProfile(false);
+                  }
+                }}
+                disabled={isSavingProfile || !editNickname.trim()}
+                className="w-full py-3 bg-[#3182f6] hover:bg-[#2b72d6] text-white font-bold text-[14px] rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSavingProfile ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  '저장하기'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

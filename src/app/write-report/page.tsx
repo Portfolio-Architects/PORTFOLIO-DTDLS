@@ -77,6 +77,12 @@ export default function WriteFieldReport() {
 
   // -- Auth guard --
   useEffect(() => {
+    // Dev mode: skip auth entirely
+    if (process.env.NODE_ENV === 'development') {
+      setUser({ uid: 'dev-user', email: 'dev@localhost' } as User);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
         alert("로그인이 필요한 페이지입니다.");

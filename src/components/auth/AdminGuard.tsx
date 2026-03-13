@@ -9,9 +9,17 @@ import { Loader2 } from 'lucide-react';
 export default function AdminGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(
+    process.env.NODE_ENV === 'development' ? true : null
+  );
 
   useEffect(() => {
+    // Dev mode: skip auth entirely
+    if (process.env.NODE_ENV === 'development') {
+      setIsAuthorized(true);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         setIsAuthorized(false);
