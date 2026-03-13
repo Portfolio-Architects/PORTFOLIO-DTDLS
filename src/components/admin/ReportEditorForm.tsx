@@ -121,8 +121,13 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         const res = await fetch('/api/apartments');
         if (res.ok) {
           const data = await res.json();
-          if (Object.keys(data).length > 1) { // More than just '기타'
-            setDongData(data);
+          if (Object.keys(data).length > 1) {
+            // 동이름 가나다순 정렬
+            const sorted: Record<string, string[]> = {};
+            Object.keys(data).sort((a, b) => a.localeCompare(b, 'ko')).forEach(k => {
+              sorted[k] = (data[k] as string[]).sort((a: string, b: string) => a.localeCompare(b, 'ko'));
+            });
+            setDongData(sorted);
           }
         }
       } catch (err) {
