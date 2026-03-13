@@ -21,19 +21,11 @@ export function normalizeAptName(name: string): string {
 }
 
 /**
- * 두 아파트명이 같은 단지인지 확인
+ * 두 아파트명이 같은 단지인지 확인 (정확 일치만)
+ * "힐스테이트동탄" ≠ "힐스테이트동탄역" (다른 아파트)
  */
 export function isSameApartment(reportName: string, txName: string): boolean {
   const a = normalizeAptName(reportName);
   const b = normalizeAptName(txName);
-  
-  // 완전 일치
-  if (a === b) return true;
-  
-  // 한쪽이 다른 쪽을 포함 (긴 이름이 짧은 이름을 포함)
-  if (a.length > 3 && b.length > 3) {
-    if (a.includes(b) || b.includes(a)) return true;
-  }
-  
-  return false;
+  return a === b;
 }
