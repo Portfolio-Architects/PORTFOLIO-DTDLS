@@ -60,7 +60,7 @@ export default function PostDetailPage() {
           likes: data.likes || 0,
           verifiedApartment: data.verifiedApartment,
           verificationLevel: data.verificationLevel,
-          createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString() : '방금 전',
+          createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전',
         });
       }
       setLoading(false);
@@ -80,7 +80,7 @@ export default function PostDetailPage() {
           id: d.id,
           text: data.text,
           authorName: data.authorName || '익명',
-          createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleTimeString() : '방금 전',
+          createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전',
         });
       });
       setComments(list);

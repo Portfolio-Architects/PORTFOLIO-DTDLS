@@ -61,7 +61,7 @@ export function listenToComments(
         id: docSnap.id,
         text: data.text,
         author: data.authorName,
-        createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleTimeString() : '방금 전',
+        createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전',
       });
     });
     callback(comments);

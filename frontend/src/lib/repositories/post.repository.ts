@@ -33,7 +33,7 @@ export function listenToPosts(callback: (posts: NewsItemData[]) => void): () => 
       else if (data.category === '부동산') { icon = Building; tagClass = 'tag-realestate'; }
       else if (data.category === '교육') { icon = BookOpen; tagClass = 'tag-edu'; }
 
-      const dateStr = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleTimeString() : '방금 전';
+      const dateStr = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전';
 
       posts.push({
         id: docSnap.id,

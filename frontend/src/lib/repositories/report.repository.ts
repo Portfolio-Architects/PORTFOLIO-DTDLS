@@ -34,7 +34,7 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
         commentCount: data.commentCount || 0,
         imageUrl: data.thumbnailUrl || data.imageUrl,
         images: data.images || [],
-        createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleTimeString() : '방금 전',
+        createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전',
       });
     });
     callback(reports);
