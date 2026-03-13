@@ -59,6 +59,50 @@ const IMAGE_CATEGORIES = [
   '분리수거장 및 기타',
 ];
 
+// Caption templates per category
+const CAPTION_TEMPLATES: Record<string, string[]> = {
+  '메인 (단지 전경)': [
+    '단지 정면 전경 — 세대수 약 N세대, 동간 거리 양호',
+    '단지 전경 — 주변 녹지 및 스카이라인 확인',
+    '단지 진입로에서 바라본 외관 조감',
+  ],
+  '문주 (정문/출입구)': [
+    '정문 문주 — 차량 2차선 진입, 보행자 분리 확인',
+    '후문 출입구 — 보행자 전용, 카드키 출입',
+    '정문 야간 조명 및 CCTV 설치 상태',
+  ],
+  '조경 (산책로/수경시설)': [
+    '중앙 광장 조경 — 소나무/단풍나무 식재, 정리 양호',
+    '단지 내 산책로 — 폭 약 2m, 야간 조명 있음',
+    '수경시설(분수/연못) 가동 상태 확인',
+  ],
+  '놀이터 (어린이 놀이시설)': [
+    '중앙 놀이터 — 미끄럼틀, 그네, 모래놀이 시설 구비',
+    '유아 전용 놀이터 — 바닥 우레탄 포장, 안전펜스 있음',
+    '놀이터 인근 벤치 및 그늘막 현황',
+  ],
+  '커뮤니티 (외관/입구)': [
+    '커뮤니티센터 외관 — GX룸, 독서실, 카페 운영 중',
+    '피트니스센터 입구 — 24시간 운영, 사우나 포함',
+    '커뮤니티 시설 안내판 — 골프/수영장/조식 서비스 확인',
+  ],
+  '지하주차장': [
+    '지하주차장 입구 — 층고 약 2.3m, 대형SUV 진입 가능',
+    '주차 구획 폭 약 2.5m — 여유 있는 편, 기둥 간섭 적음',
+    '지하 보행 통로 — 엘리베이터 연결, 밝기 양호',
+  ],
+  '단지 내 상가': [
+    '단지 내 상가 전경 — 편의점, 세탁소, 부동산 입점',
+    '상가 2층 — 학원가 밀집, 주요 과목 학원 확인',
+    '상가 내 병원/약국 — 소아과, 치과, 내과 입점 확인',
+  ],
+  '분리수거장 및 기타': [
+    '분리수거장 — 밀폐형, 악취 관리 양호, 청소 상태 깔끔',
+    '택배 보관함(무인택배함) — 각 동 1층 설치',
+    '경비실 및 관리사무소 외관 — 방문객 출입 관리 양호',
+  ],
+};
+
 interface ReportEditorFormProps {
   initialData?: FormValues | null;
   reportId?: string;
@@ -132,6 +176,8 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
   const availableApartments = dongData[selectedDong] || [];
 
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const batchInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleImageSelect = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -140,6 +186,33 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
       const currentVal = imageFields[index];
       updateImage(index, { ...currentVal, file, previewUrl });
     }
+  };
+
+  // Get next unused category for smart cycling
+  const getNextCategory = () => {
+    const usedTags = imageFields.map(f => f.locationTag);
+    const unused = IMAGE_CATEGORIES.find(cat => !usedTags.includes(cat));
+    return unused || IMAGE_CATEGORIES[0];
+  };
+
+  // Batch upload: create one block per file with sequential categories
+  const handleBatchFiles = (files: FileList | File[]) => {
+    const fileArr = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (fileArr.length === 0) return;
+    const usedTags = imageFields.map(f => f.locationTag);
+    const remainingCats = IMAGE_CATEGORIES.filter(cat => !usedTags.includes(cat));
+
+    fileArr.forEach((file, idx) => {
+      const previewUrl = URL.createObjectURL(file);
+      const tag = remainingCats[idx] || IMAGE_CATEGORIES[idx % IMAGE_CATEGORIES.length];
+      appendImage({ file, previewUrl, url: '', caption: '', locationTag: tag, isPremium: false });
+    });
+  };
+
+  const handleDropZone = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files) handleBatchFiles(e.dataTransfer.files);
   };
 
   const onSubmit = async (data: FormValues) => {
@@ -326,7 +399,30 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         <h3 className="text-[18px] font-bold text-[#191f28] mb-6 flex items-center gap-2">
           <span className="w-6 h-6 rounded-full bg-[#f2f4f6] text-[#4e5968] flex items-center justify-center text-[12px]">3</span>
           현장 사진 데이터베이스
+          <span className="text-[12px] font-medium text-[#8b95a1] ml-auto">{imageFields.length}장</span>
         </h3>
+
+        {/* Batch Drop Zone */}
+        <div
+          className={`mb-6 border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
+            isDragging
+              ? 'border-[#3182f6] bg-[#e8f3ff] scale-[1.01]'
+              : 'border-[#d1d6db] bg-[#f9fafb] hover:bg-[#f2f4f6] hover:border-[#3182f6]'
+          }`}
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDropZone}
+          onClick={() => batchInputRef.current?.click()}
+        >
+          <input ref={batchInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { if (e.target.files) handleBatchFiles(e.target.files); }} />
+          <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-3">
+            <ImagePlus size={22} className="text-[#3182f6]" />
+          </div>
+          <p className="text-[15px] font-bold text-[#191f28] mb-1">
+            {isDragging ? '여기에 놓으세요!' : '사진을 한번에 여러 장 추가'}
+          </p>
+          <p className="text-[12px] text-[#8b95a1]">드래그하거나 클릭하여 여러 사진을 선택하면 카테고리가 자동 지정됩니다</p>
+        </div>
 
         <div className="space-y-4 mb-6">
           {imageFields.map((field, index) => (
@@ -378,9 +474,28 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
                   <input
                     {...register(`images.${index}.caption`)}
                     className="flex-1 px-3 py-2 bg-[#f9fafb] border border-[#e5e8eb] rounded-lg text-[13px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none placeholder-[#b0b8c1]"
-                    placeholder="사진 설명 캡션을 입력하세요"
+                    placeholder={CAPTION_TEMPLATES[field.locationTag]?.[0] || '사진 설명 캡션을 입력하세요'}
                   />
                 </div>
+                {/* Caption Template Chips */}
+                {CAPTION_TEMPLATES[field.locationTag] && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {CAPTION_TEMPLATES[field.locationTag].map((tmpl, tIdx) => (
+                      <button
+                        key={tIdx}
+                        type="button"
+                        onClick={() => {
+                          const currentVal = imageFields[index];
+                          updateImage(index, { ...currentVal, caption: tmpl });
+                        }}
+                        className="px-2.5 py-1 bg-[#f2f4f6] hover:bg-[#e8f3ff] hover:text-[#3182f6] border border-[#e5e8eb] hover:border-[#3182f6] rounded-lg text-[11px] text-[#4e5968] font-medium transition-all truncate max-w-[240px]"
+                        title={tmpl}
+                      >
+                        📝 {tmpl}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div className="flex items-center gap-3 w-full">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" {...register(`images.${index}.isPremium`)} className="w-4 h-4 rounded text-[#3182f6] focus:ring-[#3182f6] border-[#d1d6db]" />
@@ -402,10 +517,10 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
 
         <button 
           type="button" 
-          onClick={() => appendImage({ url: '', caption: '', locationTag: '메인 (단지 전경)', isPremium: false })}
+          onClick={() => appendImage({ url: '', caption: '', locationTag: getNextCategory(), isPremium: false })}
           className="w-full py-4 border-2 border-dashed border-[#d1d6db] rounded-2xl text-[#4e5968] font-bold text-[14px] hover:bg-[#f9fafb] hover:text-[#3182f6] hover:border-[#3182f6] transition-all flex items-center justify-center gap-2"
         >
-          <ImagePlus size={18} /> 사진 블록(Block) 추가
+          <ImagePlus size={18} /> 사진 블록(Block) 추가 — 다음: {getNextCategory()}
         </button>
       </section>
 

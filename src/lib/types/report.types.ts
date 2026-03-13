@@ -7,10 +7,26 @@
 /** 임장기 섹션별 상세 데이터 */
 export interface ReportSections {
   specs: { builtYear: string; scale: string; farBuild: string; parkingRatio: string; };
-  infra: { gateText: string; gateImg?: string; landscapeText: string; landscapeImg?: string; parkingText: string; parkingImg?: string; maintenanceText: string; maintenanceImg?: string; };
-  ecosystem: { communityText: string; communityImg?: string; schoolText: string; schoolImg?: string; commerceText: string; commerceImg?: string; };
-  location: { trafficText: string; developmentText: string; };
-  assessment: { alphaDriver: string; systemicRisk: string; synthesis: string; probability: string; };
+  infra: {
+    gateText: string; gateImgs?: string[]; gateRating?: number;
+    landscapeText: string; landscapeImgs?: string[]; landscapeRating?: number;
+    parkingText: string; parkingImgs?: string[]; parkingRating?: number;
+    maintenanceText: string; maintenanceImgs?: string[]; maintenanceRating?: number;
+    // Legacy single-image compat
+    gateImg?: string; landscapeImg?: string; parkingImg?: string; maintenanceImg?: string;
+  };
+  ecosystem: {
+    communityText: string; communityImgs?: string[]; communityRating?: number;
+    schoolText: string; schoolImgs?: string[]; schoolRating?: number;
+    commerceText: string; commerceImgs?: string[]; commerceRating?: number;
+    // Legacy single-image compat
+    communityImg?: string; schoolImg?: string; commerceImg?: string;
+  };
+  location: {
+    trafficText: string; trafficRating?: number;
+    developmentText: string; developmentRating?: number;
+  };
+  assessment: { alphaDriver: string; systemicRisk: string; synthesis: string; probability: string; autoGrade?: string; };
 }
 
 /** 댓글 데이터 */
