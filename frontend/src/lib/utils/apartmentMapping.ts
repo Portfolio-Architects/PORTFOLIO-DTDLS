@@ -29,3 +29,27 @@ export function isSameApartment(reportName: string, txName: string): boolean {
   const b = normalizeAptName(txName);
   return a === b;
 }
+
+/**
+ * 전용면적 → 타입 변환 매핑
+ * 아파트별 전용면적을 타입 코드로 변환
+ */
+const AREA_TYPE_MAP: Record<string, Record<string, string>> = {
+  '힐스테이트동탄역': {
+    '54.5533': '78A',
+    '54.4202': '78B',
+    '54.5508': '77C',
+    '54.9749': '78D',
+  },
+};
+
+/**
+ * 전용면적(㎡)을 타입명으로 변환.
+ * 매핑이 없으면 null 반환.
+ */
+export function getAreaType(aptName: string, areaStr: string): string | null {
+  const normalized = normalizeAptName(aptName);
+  const typeMap = AREA_TYPE_MAP[normalized];
+  if (!typeMap) return null;
+  return typeMap[areaStr] || null;
+}

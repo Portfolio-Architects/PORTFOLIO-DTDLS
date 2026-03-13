@@ -14,7 +14,7 @@ import PropertyScoreChart from '@/components/consumer/PropertyScoreChart';
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
 import WriteReviewModal from '@/components/WriteReviewModal';
 import { ZONES, dongToZoneId, getZoneById, getDongsForZone, getAllDongs, getZoneColorForDong, ZoneInfo } from '@/lib/zones';
-import { isSameApartment } from '@/lib/utils/apartmentMapping';
+import { isSameApartment, getAreaType } from '@/lib/utils/apartmentMapping';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
@@ -97,7 +97,7 @@ export function FieldReportModal({
                           <tr key={idx} className="border-b border-[#f2f4f6] hover:bg-white/60 transition-colors">
                             <td className="py-2 text-[#4e5968]">{tx.contractYm.slice(0,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}</td>
                             <td className="py-2 text-right font-extrabold text-[#191f28]">{tx.priceEok}</td>
-                            <td className="py-2 text-right text-[#4e5968]">{tx.areaPyeong}평 ({tx.area}㎡)</td>
+                            <td className="py-2 text-right text-[#4e5968]">{(() => { const t = getAreaType(tx.aptName, String(tx.area)); return t ? <span className="font-bold text-[#3182f6]">{t}</span> : `${tx.areaPyeong}평`; })()}</td>
                             <td className="py-2 text-right text-[#4e5968]">{tx.floor}층</td>
                             <td className="py-2 text-right text-[#8b95a1]">{tx.dealType}</td>
                           </tr>
