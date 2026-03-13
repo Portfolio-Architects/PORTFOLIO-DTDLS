@@ -10,10 +10,10 @@ interface Props {
 
 export default function PropertyScoreChart({ scores }: Props) {
   const data = [
-    { subject: '육아·교육 타임세이브', A: scores.eduTimePremium, fullMark: 100 },
-    { subject: '주차 쾌적성 지표', A: scores.stressFreeParking, fullMark: 100 },
-    { subject: '직주근접 마찰비용 역산', A: scores.commuteFrictional, fullMark: 100 },
-    { subject: '메가-단지 스케일', A: scores.megaScaleLiquidity, fullMark: 100 },
+    { subject: '교육 환경', A: scores.eduTimePremium, fullMark: 100 },
+    { subject: '주차 쾌적성', A: scores.stressFreeParking, fullMark: 100 },
+    { subject: '교통 편의', A: scores.commuteFrictional, fullMark: 100 },
+    { subject: '단지 규모', A: scores.megaScaleLiquidity, fullMark: 100 },
   ];
 
   return (
@@ -22,14 +22,14 @@ export default function PropertyScoreChart({ scores }: Props) {
         <div>
           <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2">
             <ShieldCheck size={22} className="text-[#3182f6]"/> 
-            프리미엄 지수 분석 (Premium Score)
+            아파트 프리미엄 분석
           </h2>
-          <p className="text-[13px] text-[#8b95a1] mt-1">객관적 데이터 기반 다중공선성을 통제한 4대 핵심 지표</p>
+          <p className="text-[13px] text-[#8b95a1] mt-1">교육·교통·주차·규모 4가지 핵심 지표로 산출한 점수</p>
         </div>
         
         {/* Total Score Badge */}
         <div className="bg-[#f0fdf4] border border-[#bbf7d0] px-5 py-3 rounded-2xl flex flex-col items-center">
-            <span className="text-[11px] font-bold text-[#03c75a] mb-0.5">Total Premium</span>
+            <span className="text-[11px] font-bold text-[#03c75a] mb-0.5">종합 점수</span>
             <span className="text-[28px] font-extrabold text-[#191f28] leading-none">{scores.totalPremiumScore}<span className="text-[14px] text-[#4e5968] font-bold ml-1">점</span></span>
         </div>
       </div>
@@ -55,10 +55,10 @@ export default function PropertyScoreChart({ scores }: Props) {
         {/* Detailed Score Cards */}
         <div className="w-full md:w-1/2 grid grid-cols-2 gap-4">
            {[
-             { title: '교육 환경', score: scores.eduTimePremium, desc: '학교·학원가 접근성' },
-             { title: '주차 쾌적성', score: scores.stressFreeParking, desc: '주차공간 및 단지 밀집도' },
-             { title: '교통 편의', score: scores.commuteFrictional, desc: '지하철·GTX 중심지 접근' },
-             { title: '단지 스케일', score: scores.megaScaleLiquidity, desc: '세대수 규모 프리미엄' }
+             { title: '교육 환경', score: scores.eduTimePremium, desc: '학교·학원가까지 거리' },
+             { title: '주차 쾌적성', score: scores.stressFreeParking, desc: '주차 대수와 동 간격' },
+             { title: '교통 편의', score: scores.commuteFrictional, desc: '지하철·GTX역까지 거리' },
+             { title: '단지 규모', score: scores.megaScaleLiquidity, desc: '세대수가 많을수록 유리' }
            ].map((item, idx) => (
              <div key={idx} className="bg-[#f9fafb] border border-[#e5e8eb] p-4 rounded-2xl hover:border-[#3182f6]/30 transition-colors">
                <h4 className="text-[12px] text-[#8b95a1] font-bold mb-1">{item.title}</h4>

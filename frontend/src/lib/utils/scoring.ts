@@ -1,23 +1,21 @@
 import { ObjectiveMetrics } from '../types/scoutingReport';
 
 export interface PremiumScores {
-  eduTimePremium: number;       // 0-100 (육아·교육 타임세이브 지수)
-  stressFreeParking: number;    // 0-100 (주차 쾌적성 지표)
-  commuteFrictional: number;    // 0-100 (직주근접 마찰비용 역산 지표)
-  megaScaleLiquidity: number;   // 0-100 (메가-단지 스케일 프리미엄)
-  totalPremiumScore: number;    // 0-100 (종합 프리미엄 점수)
+  eduTimePremium: number;       // 0-100 (교육 환경)
+  stressFreeParking: number;    // 0-100 (주차 쾌적성)
+  commuteFrictional: number;    // 0-100 (교통 편의)
+  megaScaleLiquidity: number;   // 0-100 (단지 규모)
+  totalPremiumScore: number;    // 0-100 (종합 점수)
 }
 
 /**
- * Pure functions to calculate the 4 derivative premium metrics and the Total Score.
- * This function guarantees no side effects and calculates normalized scores based strictly on raw data.
- * 
- * Constraint Checklist:
- * 1. Edu-Time: Inverse of school distance + weighted academy density.
- * 2. Stress-Free: Step-function (parking >= 1.3, BCR < 15% gives bonus).
- * 3. Commute Frictional: Inverse penalty on subway distance.
- * 4. Mega-Scale: Step-up (1000+, 2000+).
- * 5. Multicollinearity Control: Dampen scale weight to avoid double-counting with new-build parking/BCR stats.
+ * 4대 핵심 지표를 계산하여 아파트 프리미엄 점수를 산출합니다.
+ * 각 지표는 0~100점이며, 종합 점수는 가중 평균입니다.
+ *
+ * 가중치 배분 원칙:
+ * - 교육·교통은 독립적으로 가격에 큰 영향 → 높은 비중 (각 35%)
+ * - 주차는 대단지일수록 좋은 경향이 있어 규모와 겹침 → 중간 비중 (20%)
+ * - 단지 규모는 주차·건폐율과 겹칠 수 있으므로 → 낮은 비중 (10%)
  */
 export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): PremiumScores {
   if (!metrics) {
@@ -25,24 +23,23 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   }
 
   // ---------------------------------------------------------
-  // 1. Edu-Time Premium Score (육아·교육 타임세이브 지수)
-  // - School distance penalty: base 100, -1 point per 15m (1500m = 0점)
-  // - Academy density: max 100 points at 100 academies (radius 1km)
-  // - Weight: 50% / 50%
+  // 1. 교육 환경 점수
+  // - 초등학교 거리: 가까울수록 높은 점수 (0m=100점, 1500m=0점)
+  // - 학원가 밀집도: 반경 1km 내 학원 수 (100개 이상=만점)
+  // - 배분: 학교 거리 50% + 학원 밀집도 50%
   // ---------------------------------------------------------
   const schoolScore = Math.max(0, 100 - (metrics.distanceToElementary / 15)); 
   const academyScore = Math.min(100, (metrics.academyDensity / 100) * 100);
   const eduTimePremium = (schoolScore * 0.5) + (academyScore * 0.5);
 
   // ---------------------------------------------------------
-  // 2. Stress-Free Parking Index (주차 쾌적성 지표)
-  // - Step-function for Parking: >= 1.3 base 50pt, scaling up to 2.0.
-  // - Step-function for BCR: <= 15% gets bonus.
-  // - Weight: 60% Parking / 40% Build Coverage Ratio
+  // 2. 주차 쾌적성 점수
+  // - 세대당 주차 대수: 1.3대 이상이면 기본 50점 + 가산
+  // - 건폐율(건물 밀집도): 15% 이하면 가산, 넘으면 감점
+  // - 배분: 주차 60% + 건폐율 40%
   // ---------------------------------------------------------
   let parkingScore = 0;
   if (metrics.parkingPerHousehold >= 1.3) {
-    // 1.3대 이상부터 가점
     parkingScore = 50 + ((metrics.parkingPerHousehold - 1.3) / 0.7) * 50; 
   } else {
     parkingScore = (metrics.parkingPerHousehold / 1.3) * 50;
@@ -51,24 +48,24 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   
   let bcrScore = 0;
   if (metrics.bcr <= 15) {
-    // 15% 이하부터 가점
-    bcrScore = 60 + ((15 - metrics.bcr) / 5) * 40; // 10% -> 100점
+    bcrScore = 60 + ((15 - metrics.bcr) / 5) * 40;
   } else {
-    bcrScore = Math.max(0, 60 - ((metrics.bcr - 15) / 10) * 60); // 25% 이상 감점 심화
+    bcrScore = Math.max(0, 60 - ((metrics.bcr - 15) / 10) * 60);
   }
   bcrScore = Math.min(100, bcrScore);
 
   const stressFreeParking = (parkingScore * 0.6) + (bcrScore * 0.4);
 
   // ---------------------------------------------------------
-  // 3. Commute Frictional Cost Inverse (직주근접 마찰비용 역산 지표)
-  // - Distance to Subway penalty. Assumes 0m = 100점, 2000m = 0점 (walk limit).
+  // 3. 교통 편의 점수
+  // - 지하철역까지 거리: 가까울수록 높은 점수 (0m=100점, 2000m=0점)
   // ---------------------------------------------------------
   const commuteFrictional = Math.max(0, 100 - (metrics.distanceToSubway / 20));
 
   // ---------------------------------------------------------
-  // 4. Mega-Scale Liquidity Premium (메가-단지 스케일 프리미엄)
-  // - Step-up score: 2000+ (100pt), 1000+ (80pt~), 500+ (50pt~)
+  // 4. 단지 규모 점수
+  // - 세대수 기반: 2000세대 이상 100점, 1000세대 이상 80점~
+  // - 대단지일수록 커뮤니티·관리비·환금성에 유리
   // ---------------------------------------------------------
   let megaScaleLiquidity = 0;
   if (metrics.householdCount >= 2000) {
@@ -83,16 +80,16 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   megaScaleLiquidity = Math.min(100, megaScaleLiquidity);
 
   // ---------------------------------------------------------
-  // 5. Total Premium Score (Data Correlation Control / Multicollinearity)
-  // - Challenge: Mega-scale (householdCount) strongly correlates with high parking & low BCR in new towns.
-  // - Control mechanism: Dampen the 'MegaScale' and 'StressFree' weights in the Total Score 
-  //   so that 'Commute' and 'Edu' (independent variables) retain strong differentiating power.
+  // 5. 종합 점수 (가중 평균)
+  // - 교육·교통은 독립적 변수이므로 각 35%
+  // - 주차는 규모와 일부 겹치므로 20%
+  // - 규모는 다른 지표와 겹칠 수 있어 10%
   // ---------------------------------------------------------
   const totalPremiumScore = 
-    (eduTimePremium * 0.35) +       // High independent weight
-    (commuteFrictional * 0.35) +    // High independent weight
-    (stressFreeParking * 0.20) +    // Dampened due to partial collinearity with Scale
-    (megaScaleLiquidity * 0.10);    // Highly dampened
+    (eduTimePremium * 0.35) +
+    (commuteFrictional * 0.35) +
+    (stressFreeParking * 0.20) +
+    (megaScaleLiquidity * 0.10);
 
   return {
     eduTimePremium: Math.round(eduTimePremium),
