@@ -675,7 +675,7 @@ export default function Dashboard() {
             <div>
               <h3 className="text-[18px] font-extrabold text-[#191f28] mb-4 flex items-center gap-2">
                 <Clock size={18} className="text-[#f59e0b]" />
-                {selectedDong ? '필터 결과' : '최신 임장 리포트'}
+                {selectedDong ? '필터 결과' : '임장 리포트'}
                 <span className="text-[13px] font-bold text-[#8b95a1] ml-1">{filteredReports.length}개</span>
               </h3>
               <div className="flex flex-col gap-3">
