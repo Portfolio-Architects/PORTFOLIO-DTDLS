@@ -13,6 +13,7 @@ import PropertyScoreChart from '@/components/consumer/PropertyScoreChart';
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
 import WriteReviewModal from '@/components/WriteReviewModal';
 import { ZONES, dongToZoneId, getZoneById, getDongsForZone, getAllDongs, getZoneColorForDong, ZoneInfo } from '@/lib/zones';
+import { isSameApartment } from '@/lib/utils/apartmentMapping';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
@@ -696,7 +697,7 @@ export default function Dashboard() {
                       <div className="flex items-center gap-2">
                         <h4 className="text-[15px] font-extrabold text-[#191f28] truncate">{report.apartmentName}</h4>
                         {(() => {
-                          const latestTx = allTransactions.find(tx => report.apartmentName.includes(tx.aptName) || tx.aptName.includes(report.apartmentName.split(' ').pop() || ''));
+                          const latestTx = allTransactions.find(tx => isSameApartment(report.apartmentName, tx.aptName));
                           return latestTx ? (
                             <span className="shrink-0 bg-[#e8f7ee] text-[#03c75a] text-[11px] font-bold px-2 py-0.5 rounded-md">
                               {latestTx.priceEok} · {latestTx.areaPyeong}평
@@ -931,10 +932,7 @@ export default function Dashboard() {
           onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}
           onSubmitComment={() => handleSubmitComment(selectedReport.id)}
           user={user}
-          transactions={allTransactions.filter(tx => 
-            selectedReport.apartmentName.includes(tx.aptName) || 
-            tx.aptName.includes(selectedReport.apartmentName.split(' ').pop() || '__NOMATCH__')
-          )}
+          transactions={allTransactions.filter(tx => isSameApartment(selectedReport.apartmentName, tx.aptName))}
         />
       )}
 
