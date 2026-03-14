@@ -54,6 +54,7 @@ export interface DashboardDataStrategy {
   incrementFieldReportLike?(reportId: string): Promise<void>;
   incrementReviewLike?(reviewId: string): Promise<void>;
   deleteReview?(reviewId: string): Promise<void>;
+  deletePost?(postId: string): Promise<void>;
   listenToComments?(reportId: string, callback: (comments: CommentData[]) => void): () => void;
   getUserProfile?(uid: string): Promise<{ nickname: string; reviewCount?: number }>;
   getUserReviews?(): UserReview[];
@@ -262,6 +263,11 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     catch (e) { logger.error('DashboardFacade.deleteReview', 'Delete failed', { reviewId }, e); throw e; }
   }
 
+  async deletePost(postId: string) {
+    try { await PostRepo.deletePost(postId); }
+    catch (e) { logger.error('DashboardFacade.deletePost', 'Delete failed', { postId }, e); throw e; }
+  }
+
   isAdmin(email: string | null | undefined): boolean {
     return checkAdmin(email);
   }
@@ -297,6 +303,7 @@ export class DashboardFacade {
   public async incrementFieldReportLike(reportId: string) { if (this.strategy.incrementFieldReportLike) await this.strategy.incrementFieldReportLike(reportId); }
   public async incrementReviewLike(reviewId: string) { if (this.strategy.incrementReviewLike) await this.strategy.incrementReviewLike(reviewId); }
   public async deleteReview(reviewId: string) { if (this.strategy.deleteReview) await this.strategy.deleteReview(reviewId); }
+  public async deletePost(postId: string) { if (this.strategy.deletePost) await this.strategy.deletePost(postId); }
   public getDongtanApartments(): string[] { return this.strategy.getDongtanApartments ? this.strategy.getDongtanApartments() : []; }
   public isAdmin(email: string | null | undefined): boolean { return this.strategy.isAdmin ? this.strategy.isAdmin(email) : false; }
 }

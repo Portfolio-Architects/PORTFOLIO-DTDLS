@@ -7,7 +7,7 @@
  * remains database-agnostic. Enables future migration to another DB.
  */
 import { db } from '@/lib/firebaseConfig';
-import { collection, onSnapshot, query, orderBy, limit, addDoc, doc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, limit, addDoc, doc, updateDoc, increment, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import type { NewsItemData } from '@/lib/types/dashboard.types';
 import { Train, Building, BookOpen, Calendar, MessageSquare } from 'lucide-react';
@@ -44,6 +44,7 @@ export function listenToPosts(callback: (posts: NewsItemData[]) => void): () => 
         tagClass,
         icon,
         likes: data.likes || 0,
+        authorUid: data.authorUid || undefined,
         verifiedApartment: data.verifiedApartment || undefined,
         verificationLevel: data.verificationLevel || undefined,
       });
@@ -85,4 +86,15 @@ export async function createPost(data: {
 export async function incrementPostLike(postId: string): Promise<void> {
   const postRef = doc(db, 'posts', postId);
   await updateDoc(postRef, { likes: increment(1) });
+}
+
+/**
+ * Deletes a post document from Firestore.
+ * @param postId - The Firestore document ID
+ * @throws FirestoreError if delete fails
+ */
+export async function deletePost(postId: string): Promise<void> {
+  const postRef = doc(db, 'posts', postId);
+  await deleteDoc(postRef);
+  logger.info('PostRepository.deletePost', 'Post deleted', { postId });
 }

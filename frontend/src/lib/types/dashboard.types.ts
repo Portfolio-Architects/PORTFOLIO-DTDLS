@@ -51,6 +51,8 @@ export interface NewsItemData {
   icon: ElementType;
   /** 좋아요 수 */
   likes?: number;
+  /** 작성자 UID (삭제 권한 확인용) */
+  authorUid?: string;
   /** 인증된 아파트명 */
   verifiedApartment?: string;
   /** 인증 등급 ('self_declared' | 'registry_verified') */

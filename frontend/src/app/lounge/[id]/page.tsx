@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare } from 'lucide-react';
+import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2 } from 'lucide-react';
 import { db, auth } from '@/lib/firebaseConfig';
-import { doc, getDoc, collection, onSnapshot, addDoc, updateDoc, increment, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, addDoc, updateDoc, increment, deleteDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import type { UserProfile } from '@/lib/types/user.types';
 import { getDisplayName } from '@/lib/types/user.types';
+import { isAdmin as checkAdmin } from '@/lib/config/admin.config';
 
 interface PostComment {
   id: string;
@@ -58,6 +59,7 @@ export default function PostDetailPage() {
           category: data.category,
           author: data.authorName || '익명',
           likes: data.likes || 0,
+          authorUid: data.authorUid || null,
           verifiedApartment: data.verifiedApartment,
           verificationLevel: data.verificationLevel,
           createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전',
@@ -149,6 +151,23 @@ export default function PostDetailPage() {
           <ChevronLeft size={24} />
         </button>
         <h1 className="text-[17px] font-bold text-[#191f28] flex-1 line-clamp-1">라운지 글</h1>
+        {(user?.uid === post?.authorUid || checkAdmin(user?.email)) && (
+          <button
+            onClick={async () => {
+              if (!confirm('이 글을 삭제하시겠습니까?')) return;
+              try {
+                await deleteDoc(doc(db, 'posts', postId));
+                router.push('/lounge');
+              } catch {
+                alert('삭제에 실패했습니다.');
+              }
+            }}
+            className="p-2 rounded-full hover:bg-[#fff0f0] text-[#adb5bd] hover:text-[#ff6b6b] transition-colors"
+            title="삭제"
+          >
+            <Trash2 size={18} />
+          </button>
+        )}
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-6 pb-32">

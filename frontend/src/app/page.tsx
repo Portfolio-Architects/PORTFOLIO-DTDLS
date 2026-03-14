@@ -1052,7 +1052,26 @@ export default function Dashboard() {
             ) : (
               newsFeed.map((news) => (
                 <div key={news.id} onClick={() => router.push(`/lounge/${news.id}`)} className="bg-white rounded-2xl border border-[#e5e8eb] px-5 py-4 hover:shadow-md transition-shadow cursor-pointer">
-                  <h3 className="text-[16px] font-bold text-[#191f28] leading-snug mb-2">{news.title}</h3>
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <h3 className="text-[16px] font-bold text-[#191f28] leading-snug flex-1">{news.title}</h3>
+                    {(user?.uid === news.authorUid || dashboardFacade.isAdmin(user?.email)) && (
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (!confirm('이 글을 삭제하시겠습니까?')) return;
+                          try {
+                            await dashboardFacade.deletePost(news.id);
+                          } catch {
+                            alert('삭제에 실패했습니다.');
+                          }
+                        }}
+                        className="shrink-0 p-1.5 rounded-lg hover:bg-[#fff0f0] text-[#adb5bd] hover:text-[#ff6b6b] transition-colors"
+                        title="삭제"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[13px] text-[#8b95a1]">{news.author} · {news.meta}</span>
                     <div className="flex items-center gap-3">
