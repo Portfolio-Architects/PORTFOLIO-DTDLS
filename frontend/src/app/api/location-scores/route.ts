@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
-import { Coord, findNearest, countWithinRadius, parseCoordString } from '@/lib/utils/haversine';
+import { Coord, haversineDistance, findNearest, countWithinRadius, parseCoordString } from '@/lib/utils/haversine';
 
 export const revalidate = 86400; // ISR: 24 hours (coordinate data rarely changes)
 
@@ -8,6 +8,8 @@ export const revalidate = 86400; // ISR: 24 hours (coordinate data rarely change
 
 interface POI extends Coord { name: string; }
 interface SchoolPOI extends POI { type: string; }
+interface StationPOI extends POI { line: string; }
+interface AcademyPOI extends Coord { category: string; }
 interface ApartmentPOI extends POI {
   householdCount?: number;
   yearBuilt?: string;
@@ -72,31 +74,32 @@ async function loadSchools(): Promise<SchoolPOI[]> {
 }
 
 /** stations 시트: 역명 | 좌표 | 노선 */
-async function loadStations(): Promise<POI[]> {
+async function loadStations(): Promise<StationPOI[]> {
   const rows = await fetchSheetCSV(SHEET_TABS.STATIONS);
-  const result: POI[] = [];
+  const result: StationPOI[] = [];
   for (let i = 1; i < rows.length; i++) {
-    const [name, coordStr] = rows[i];
-    if (!name || !coordStr) continue;
-    const coord = parseCoordString(coordStr);
-    if (coord) result.push({ name: name.trim(), ...coord });
+    const cols = rows[i];
+    if (!cols[0] || !cols[1]) continue;
+    const coord = parseCoordString(cols[1]);
+    if (coord) result.push({ name: cols[0].trim(), ...coord, line: (cols[2] || '').trim() });
   }
   return result;
 }
 
 /** academies 시트: 상호명 | 위도 | 경도 | 업종소분류 | 행정동 | 주소 */
-async function loadAcademies(): Promise<Coord[]> {
+async function loadAcademies(): Promise<AcademyPOI[]> {
   const rows = await fetchSheetCSV(SHEET_TABS.ACADEMIES);
-  const result: Coord[] = [];
+  const result: AcademyPOI[] = [];
   for (let i = 1; i < rows.length; i++) {
     const cols = rows[i];
     if (cols.length < 3) continue;
     const lat = parseFloat(cols[1]);
     const lng = parseFloat(cols[2]);
     if (!isNaN(lat) && !isNaN(lng) && lat > 0 && lng > 0) {
-      result.push({ lat, lng });
+      result.push({ lat, lng, category: (cols[3] || '기타').trim() });
     }
   }
+  console.log(`[LOCATION_SCORES] Loaded ${result.length} academies`);
   return result;
 }
 
@@ -158,7 +161,7 @@ export async function GET(request: NextRequest) {
 
     const aptCoord: Coord = { lat: apt.lat, lng: apt.lng };
 
-    // Calculate distances
+    // Calculate school distances
     const elementary = schools.filter(s => s.type.includes('초'));
     const middle = schools.filter(s => s.type.includes('중'));
     const high = schools.filter(s => s.type.includes('고'));
@@ -166,10 +169,21 @@ export async function GET(request: NextRequest) {
     const nearestElementary = findNearest(aptCoord, elementary);
     const nearestMiddle = findNearest(aptCoord, middle);
     const nearestHigh = findNearest(aptCoord, high);
-    const nearestStation = findNearest(aptCoord, stations);
 
-    // Academy density: count within 1km radius
-    const academyDensity = countWithinRadius(aptCoord, academies, 1000);
+    // Station distances by line type
+    const nearestStation = findNearest(aptCoord, stations);
+    const indeokwonLine = stations.filter(s => s.line.includes('인덕원') || s.line.includes('동탄인덕원'));
+    const tramLine = stations.filter(s => s.line.includes('트램') || s.line.includes('동탄트램'));
+    const nearestIndeokwon = indeokwonLine.length > 0 ? findNearest(aptCoord, indeokwonLine) : null;
+    const nearestTram = tramLine.length > 0 ? findNearest(aptCoord, tramLine) : null;
+
+    // Academy density: count within 1km radius with category breakdown
+    const nearbyAcademies = academies.filter(a => haversineDistance(aptCoord, a) <= 1000);
+    const academyDensity = nearbyAcademies.length;
+    const academyCategories: Record<string, number> = {};
+    for (const a of nearbyAcademies) {
+      academyCategories[a.category] = (academyCategories[a.category] || 0) + 1;
+    }
 
     // Parking per household
     const parkingPerHousehold = (apt.householdCount && apt.parkingCount)
@@ -183,7 +197,10 @@ export async function GET(request: NextRequest) {
       distanceToMiddle: nearestMiddle?.distance ?? null,
       distanceToHigh: nearestHigh?.distance ?? null,
       distanceToSubway: nearestStation?.distance ?? null,
+      distanceToIndeokwon: nearestIndeokwon?.distance ?? null,
+      distanceToTram: nearestTram?.distance ?? null,
       academyDensity,
+      academyCategories,
       // Building info from sheet
       buildingInfo: {
         householdCount: apt.householdCount ?? null,
@@ -199,6 +216,8 @@ export async function GET(request: NextRequest) {
         high: nearestHigh,
       },
       nearestStation,
+      nearestIndeokwon,
+      nearestTram,
       meta: {
         totalSchools: schools.length,
         totalStations: stations.length,

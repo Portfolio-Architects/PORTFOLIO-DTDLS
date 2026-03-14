@@ -25,6 +25,8 @@ type FormValues = {
     distanceToMiddle: string;
     distanceToHigh: string;
     distanceToSubway: string;
+    distanceToIndeokwon: string;
+    distanceToTram: string;
     academyDensity: string;
   };
   isPremium: boolean;
@@ -198,6 +200,8 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         distanceToMiddle: '',
         distanceToHigh: '',
         distanceToSubway: '',
+        distanceToIndeokwon: '',
+        distanceToTram: '',
         academyDensity: ''
       },
       images: [
@@ -305,6 +309,8 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         distanceToMiddle: Number(data.metrics.distanceToMiddle),
         distanceToHigh: Number(data.metrics.distanceToHigh),
         distanceToSubway: Number(data.metrics.distanceToSubway),
+        distanceToIndeokwon: Number(data.metrics.distanceToIndeokwon),
+        distanceToTram: Number(data.metrics.distanceToTram),
         academyDensity: Number(data.metrics.academyDensity),
       };
 
@@ -446,11 +452,17 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
                   if (bld.parkingPerHousehold) setValue('metrics.parkingPerHousehold', String(bld.parkingPerHousehold));
                 }
 
-                const bldMsg = bld?.householdCount
-                  ? `\n\n🏢 건물 정보\n시공사: ${bld.brand ?? '-'}\n세대수: ${bld.householdCount}\n준공: ${bld.yearBuilt ?? '-'}\n용적률: ${bld.far ?? '-'}%\n건폐율: ${bld.bcr ?? '-'}%\n주차: ${bld.parkingPerHousehold ?? '-'}대/세대`
-                  : '\n\n⚠️ 건물 정보 없음 (시트 C~H열 입력 필요)';
+                  // 교통 (인덕원선, 트램)
+                  if (loc.distanceToIndeokwon != null) setValue('metrics.distanceToIndeokwon', String(loc.distanceToIndeokwon));
+                  if (loc.distanceToTram != null) setValue('metrics.distanceToTram', String(loc.distanceToTram));
 
-                alert(`✅ 자동 출력 완료!\n📍 위치\n초등: ${loc.nearestSchools?.elementary?.name || '-'} (${loc.distanceToElementary ?? '-'}m)\n중학: ${loc.nearestSchools?.middle?.name || '-'} (${loc.distanceToMiddle ?? '-'}m)\n고등: ${loc.nearestSchools?.high?.name || '-'} (${loc.distanceToHigh ?? '-'}m)\n역: ${loc.nearestStation?.name || '-'} (${loc.distanceToSubway ?? '-'}m)\n학원: ${loc.academyDensity}개 (반경 1km)${bldMsg}`);
+                  const bldMsg = bld?.householdCount
+                    ? `\n\n🏢 건물\n시공사: ${bld.brand ?? '-'}\n세대수: ${bld.householdCount}\n준공: ${bld.yearBuilt ?? '-'}\n용적률: ${bld.far ?? '-'}%\n건폐율: ${bld.bcr ?? '-'}%\n주차: ${bld.parkingPerHousehold ?? '-'}대/세대`
+                    : '\n\n⚠️ 건물 정보 없음 (시트 C~H열 입력 필요)';
+                  const catEntries = Object.entries(loc.academyCategories || {}).sort(([,a], [,b]) => (b as number) - (a as number));
+                  const catMsg = catEntries.length > 0 ? `\n\n📚 학원 ${loc.academyDensity}개 (1km)\n${catEntries.map(([c, n]) => `  ${c}: ${n}개`).join('\n')}` : `\n\n📚 학원: ${loc.academyDensity}개`;
+                  const transitMsg = `\n\n🚇 교통\n역: ${loc.nearestStation?.name || '-'} (${loc.distanceToSubway ?? '-'}m)${loc.distanceToIndeokwon != null ? `\n인덕원선: ${loc.nearestIndeokwon?.name || '-'} (${loc.distanceToIndeokwon}m)` : ''}${loc.distanceToTram != null ? `\n트램: ${loc.nearestTram?.name || '-'} (${loc.distanceToTram}m)` : ''}`;
+                  alert(`✅ 자동 출력 완료!\n📍 학교\n초등: ${loc.nearestSchools?.elementary?.name || '-'} (${loc.distanceToElementary ?? '-'}m)\n중학: ${loc.nearestSchools?.middle?.name || '-'} (${loc.distanceToMiddle ?? '-'}m)\n고등: ${loc.nearestSchools?.high?.name || '-'} (${loc.distanceToHigh ?? '-'}m)${transitMsg}${catMsg}${bldMsg}`);
               } catch (e) {
                 alert('자동 출력 중 오류가 발생했습니다.');
                 console.error(e);
@@ -494,8 +506,13 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
           <NumberInput name="metrics.distanceToHigh" label="고등학교 통학거리" placeholder="예: 1200" unit="m" />
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-2 mb-4">
+          <NumberInput name="metrics.distanceToSubway" label="지하철(SRT/GTX) 거리" placeholder="예: 500" unit="m" />
+          <NumberInput name="metrics.distanceToIndeokwon" label="동탄인덕원선 거리" placeholder="예: 800" unit="m" />
+          <NumberInput name="metrics.distanceToTram" label="동탄트램 거리" placeholder="예: 300" unit="m" />
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-          <NumberInput name="metrics.distanceToSubway" label="지하철역(SRT/GTX)까지의 거리" placeholder="예: 500" unit="m" />
           <NumberInput name="metrics.academyDensity" label="반경 1km 이내 학원 개수 (학군 밀집도)" placeholder="예: 120" unit="개" />
         </div>
       </section>
