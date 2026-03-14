@@ -739,46 +739,83 @@ export default function Dashboard() {
                 {selectedDong ? '필터 결과' : '임장 리포트'}
                 <span className="text-[13px] font-bold text-[#8b95a1] ml-1">{filteredReports.length}개</span>
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredReports.map(report => (
+              <div className="grid grid-cols-1 gap-4">
+                {filteredReports.map(report => {
+                  const txs = allTransactions.filter(tx => isSameApartment(report.apartmentName, tx.aptName));
+                  const chartData = [...txs].reverse().slice(-20).map(tx => ({
+                    price: Math.round(tx.price / 100) / 100,
+                  }));
+                  return (
                   <div
                     key={report.id}
                     onClick={() => setSelectedReport(report)}
-                    className="bg-white rounded-2xl border border-[#e5e8eb] overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
+                    className="bg-white rounded-2xl border border-[#e5e8eb] overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group flex flex-col md:flex-row"
                   >
-                    {/* Thumbnail */}
-                    <div className="w-full h-[160px] bg-[#f2f4f6] overflow-hidden relative">
+                    {/* Left: Photo */}
+                    <div className="w-full md:w-[240px] h-[180px] md:h-auto bg-[#f2f4f6] overflow-hidden relative shrink-0">
                       {report.imageUrl ? (
                         <img src={report.imageUrl} alt={report.apartmentName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Camera size={28} className="text-[#d1d6db]" />
+                        <div className="w-full h-full flex items-center justify-center min-h-[160px]">
+                          <Camera size={32} className="text-[#d1d6db]" />
                         </div>
                       )}
                     </div>
-                    {/* Content */}
-                    <div className="p-4">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        {report.dong && <span className="text-[11px] font-bold text-[#3182f6] bg-[#e8f3ff] px-2 py-0.5 rounded-md">{report.dong}</span>}
-                        {report.premiumScores?.totalPremiumScore != null && (
-                          <span className="text-[11px] font-bold text-[#f59e0b] bg-[#fff8e1] px-2 py-0.5 rounded-md">종합 {report.premiumScores.totalPremiumScore}점</span>
-                        )}
+                    {/* Right: Info */}
+                    <div className="flex-1 p-5 flex flex-col justify-between min-w-0">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          {report.dong && <span className="text-[11px] font-bold text-[#3182f6] bg-[#e8f3ff] px-2 py-0.5 rounded-md">{report.dong}</span>}
+                          {report.premiumScores?.totalPremiumScore != null && (
+                            <span className="text-[11px] font-bold text-[#f59e0b] bg-[#fff8e1] px-2 py-0.5 rounded-md">종합 {report.premiumScores.totalPremiumScore}점</span>
+                          )}
+                          <span className="ml-auto text-[11px] text-[#8b95a1]">{report.createdAt}</span>
+                        </div>
+                        <h4 className="text-[17px] font-extrabold text-[#191f28] truncate mb-3">{report.apartmentName}</h4>
                       </div>
-                      <h4 className="text-[15px] font-extrabold text-[#191f28] truncate mb-1.5">{report.apartmentName}</h4>
-                      <div className="flex items-center gap-2">
-                        {(() => {
-                          const latestTx = allTransactions.find(tx => isSameApartment(report.apartmentName, tx.aptName));
-                          return latestTx ? (
-                            <span className="text-[11px] font-bold text-[#03c75a]">{latestTx.priceEok} · {latestTx.areaPyeong}평</span>
-                          ) : null;
-                        })()}
-                        <span className="text-[11px] text-[#8b95a1] font-bold">{report.author}</span>
-                        <span className="text-[11px] text-[#d1d6db]">·</span>
-                        <span className="text-[11px] text-[#8b95a1]">{report.createdAt}</span>
+
+                      {/* 최근 실거래 + 미니 차트 */}
+                      <div className="flex items-end gap-4">
+                        {txs.length > 0 && (
+                          <div className="flex-1 min-w-0">
+                            <table className="w-full text-[11px]">
+                              <tbody>
+                                {txs.slice(0, 3).map((tx, idx) => {
+                                  const norm = normalizeAptName(tx.aptName);
+                                  const t = typeMap[norm]?.[String(tx.area)];
+                                  return (
+                                    <tr key={idx} className="border-b border-[#f2f4f6] last:border-0">
+                                      <td className="py-1 text-[#8b95a1]">{tx.contractYm.slice(2,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}</td>
+                                      <td className="py-1 text-right font-extrabold text-[#191f28]">{tx.priceEok}</td>
+                                      <td className="py-1 text-right text-[#3182f6] font-bold">{t || `${tx.areaPyeong}평`}</td>
+                                      <td className="py-1 text-right text-[#8b95a1]">{tx.floor}층</td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                        {chartData.length > 2 && (
+                          <div className="w-[100px] h-[50px] shrink-0">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <AreaChart data={chartData} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
+                                <defs>
+                                  <linearGradient id={`miniGrad-${report.id}`} x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#03c75a" stopOpacity={0.3}/>
+                                    <stop offset="95%" stopColor="#03c75a" stopOpacity={0}/>
+                                  </linearGradient>
+                                </defs>
+                                <Area type="monotone" dataKey="price" stroke="#03c75a" strokeWidth={1.5} fill={`url(#miniGrad-${report.id})`} dot={false} />
+                              </AreaChart>
+                            </ResponsiveContainer>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ) : selectedDong && (
