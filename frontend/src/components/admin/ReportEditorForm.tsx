@@ -446,12 +446,30 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
                     return;
                   }
                   const loc = await res.json();
+
+                  // 위치 거리
                   if (loc.distanceToElementary != null) setValue('metrics.distanceToElementary', String(loc.distanceToElementary));
                   if (loc.distanceToMiddle != null) setValue('metrics.distanceToMiddle', String(loc.distanceToMiddle));
                   if (loc.distanceToHigh != null) setValue('metrics.distanceToHigh', String(loc.distanceToHigh));
                   if (loc.distanceToSubway != null) setValue('metrics.distanceToSubway', String(loc.distanceToSubway));
                   if (loc.academyDensity != null) setValue('metrics.academyDensity', String(loc.academyDensity));
-                  alert(`✅ 자동 계산 완료!\n초등: ${loc.nearestSchools?.elementary?.name || '-'} (${loc.distanceToElementary ?? '-'}m)\n중학: ${loc.nearestSchools?.middle?.name || '-'} (${loc.distanceToMiddle ?? '-'}m)\n고등: ${loc.nearestSchools?.high?.name || '-'} (${loc.distanceToHigh ?? '-'}m)\n역: ${loc.nearestStation?.name || '-'} (${loc.distanceToSubway ?? '-'}m)\n학원: ${loc.academyDensity}개 (반경 1km)`);
+
+                  // 건물 정보 (시트 C~H열)
+                  const bld = loc.buildingInfo;
+                  if (bld) {
+                    if (bld.brand) setValue('metrics.brand', bld.brand);
+                    if (bld.householdCount) setValue('metrics.householdCount', String(bld.householdCount));
+                    if (bld.yearBuilt) setValue('metrics.yearBuilt', String(bld.yearBuilt));
+                    if (bld.far) setValue('metrics.far', String(bld.far));
+                    if (bld.bcr) setValue('metrics.bcr', String(bld.bcr));
+                    if (bld.parkingPerHousehold) setValue('metrics.parkingPerHousehold', String(bld.parkingPerHousehold));
+                  }
+
+                  const bldMsg = bld?.householdCount
+                    ? `\n\n🏢 건물 정보\n시공사: ${bld.brand ?? '-'}\n세대수: ${bld.householdCount}\n준공: ${bld.yearBuilt ?? '-'}\n용적률: ${bld.far ?? '-'}%\n건폐율: ${bld.bcr ?? '-'}%\n주차: ${bld.parkingPerHousehold ?? '-'}대/세대`
+                    : '\n\n⚠️ 건물 정보 없음 (시트 C~H열 입력 필요)';
+
+                  alert(`✅ 자동 계산 완료!\n📍 위치\n초등: ${loc.nearestSchools?.elementary?.name || '-'} (${loc.distanceToElementary ?? '-'}m)\n중학: ${loc.nearestSchools?.middle?.name || '-'} (${loc.distanceToMiddle ?? '-'}m)\n고등: ${loc.nearestSchools?.high?.name || '-'} (${loc.distanceToHigh ?? '-'}m)\n역: ${loc.nearestStation?.name || '-'} (${loc.distanceToSubway ?? '-'}m)\n학원: ${loc.academyDensity}개 (반경 1km)${bldMsg}`);
                 } catch (e) {
                   alert('자동 계산 중 오류가 발생했습니다.');
                   console.error(e);
@@ -464,7 +482,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
               {isCalculating ? (
                 <><div className="w-4 h-4 border-2 border-[#3182f6] border-t-transparent rounded-full animate-spin" /> 계산 중...</>
               ) : (
-                <>📍 학교·역·학원 거리 자동 계산</>
+                <>📍 단지 정보 자동 계산</>
               )}
             </button>
           </div>

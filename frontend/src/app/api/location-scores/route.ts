@@ -8,6 +8,14 @@ export const revalidate = 86400; // ISR: 24 hours (coordinate data rarely change
 
 interface POI extends Coord { name: string; }
 interface SchoolPOI extends POI { type: string; }
+interface ApartmentPOI extends POI {
+  householdCount?: number;
+  yearBuilt?: string;
+  far?: number;
+  bcr?: number;
+  parkingCount?: number;
+  brand?: string;
+}
 
 // ── Google Sheet Loaders ───────────────────────────
 
@@ -21,15 +29,31 @@ async function fetchSheetCSV(tabName: string): Promise<string[][]> {
   return lines.map(l => parseCsvLine(l));
 }
 
-/** apartments 시트: 아파트명 | 좌표 */
-async function loadApartments(): Promise<POI[]> {
+/** apartments 시트: 아파트명 | 좌표 | 세대수 | 준공연도 | 용적률 | 건폐율 | 주차대수 | 시공사 */
+async function loadApartments(): Promise<ApartmentPOI[]> {
   const rows = await fetchSheetCSV(SHEET_TABS.APARTMENTS);
-  const result: POI[] = [];
+  const result: ApartmentPOI[] = [];
   for (let i = 1; i < rows.length; i++) {
-    const [name, coordStr] = rows[i];
+    const cols = rows[i];
+    const name = cols[0];
+    const coordStr = cols[1];
     if (!name || !coordStr) continue;
     const coord = parseCoordString(coordStr);
-    if (coord) result.push({ name: name.trim(), ...coord });
+    if (!coord) continue;
+
+    const householdCount = cols[2] ? parseInt(cols[2]) : undefined;
+    const parkingCount = cols[6] ? parseInt(cols[6]) : undefined;
+
+    result.push({
+      name: name.trim(),
+      ...coord,
+      householdCount: isNaN(householdCount as number) ? undefined : householdCount,
+      yearBuilt: cols[3]?.trim() || undefined,
+      far: cols[4] ? parseFloat(cols[4]) || undefined : undefined,
+      bcr: cols[5] ? parseFloat(cols[5]) || undefined : undefined,
+      parkingCount: isNaN(parkingCount as number) ? undefined : parkingCount,
+      brand: cols[7]?.trim() || undefined,
+    });
   }
   return result;
 }
@@ -78,17 +102,17 @@ async function loadAcademies(): Promise<Coord[]> {
 
 // ── Apartment Resolver ─────────────────────────────
 
-/** Resolves apartment coordinates by name (exact → partial match). */
-function resolveApartmentCoord(name: string, apartments: POI[]): Coord | null {
+/** Resolves apartment coordinates and building info by name. */
+function resolveApartment(name: string, apartments: ApartmentPOI[]): ApartmentPOI | null {
   const cleanName = name.replace(/\[.*?\]\s*/, '').trim();
 
   const exact = apartments.find(a => a.name === cleanName || a.name === name);
-  if (exact) return { lat: exact.lat, lng: exact.lng };
+  if (exact) return exact;
 
   const partial = apartments.find(a =>
     cleanName.includes(a.name) || a.name.includes(cleanName)
   );
-  if (partial) return { lat: partial.lat, lng: partial.lng };
+  if (partial) return partial;
 
   return null;
 }
@@ -111,13 +135,15 @@ export async function GET(request: NextRequest) {
       loadAcademies(),
     ]);
 
-    const aptCoord = resolveApartmentCoord(apartment, apartments);
-    if (!aptCoord) {
+    const apt = resolveApartment(apartment, apartments);
+    if (!apt) {
       return NextResponse.json(
         { error: `Unknown apartment: ${apartment}`, availableApartments: apartments.map(a => a.name) },
         { status: 404 }
       );
     }
+
+    const aptCoord: Coord = { lat: apt.lat, lng: apt.lng };
 
     // Calculate distances
     const elementary = schools.filter(s => s.type.includes('초'));
@@ -132,6 +158,11 @@ export async function GET(request: NextRequest) {
     // Academy density: count within 1km radius
     const academyDensity = countWithinRadius(aptCoord, academies, 1000);
 
+    // Parking per household
+    const parkingPerHousehold = (apt.householdCount && apt.parkingCount)
+      ? Math.round((apt.parkingCount / apt.householdCount) * 100) / 100
+      : null;
+
     const result = {
       apartmentName: apartment,
       coordinates: aptCoord,
@@ -140,6 +171,15 @@ export async function GET(request: NextRequest) {
       distanceToHigh: nearestHigh?.distance ?? null,
       distanceToSubway: nearestStation?.distance ?? null,
       academyDensity,
+      // Building info from sheet
+      buildingInfo: {
+        householdCount: apt.householdCount ?? null,
+        yearBuilt: apt.yearBuilt ?? null,
+        far: apt.far ?? null,
+        bcr: apt.bcr ?? null,
+        parkingPerHousehold,
+        brand: apt.brand ?? null,
+      },
       nearestSchools: {
         elementary: nearestElementary,
         middle: nearestMiddle,
