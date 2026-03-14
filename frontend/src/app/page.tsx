@@ -14,7 +14,7 @@ import PropertyScoreChart from '@/components/consumer/PropertyScoreChart';
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
 import WriteReviewModal from '@/components/WriteReviewModal';
 import { ZONES, dongToZoneId, getZoneById, getDongsForZone, getAllDongs, getZoneColorForDong, ZoneInfo } from '@/lib/zones';
-import { isSameApartment, getAreaType } from '@/lib/utils/apartmentMapping';
+import { isSameApartment, normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
@@ -42,7 +42,8 @@ export function FieldReportModal({
   onCommentChange,
   onSubmitComment,
   user,
-  transactions
+  transactions,
+  typeMap
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -52,6 +53,7 @@ export function FieldReportModal({
   onSubmitComment: () => void;
   user: User | null;
   transactions: TransactionRecord[];
+  typeMap: Record<string, Record<string, string>>;
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
@@ -97,7 +99,7 @@ export function FieldReportModal({
                           <tr key={idx} className="border-b border-[#f2f4f6] hover:bg-white/60 transition-colors">
                             <td className="py-2 text-[#4e5968]">{tx.contractYm.slice(0,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}</td>
                             <td className="py-2 text-right font-extrabold text-[#191f28]">{tx.priceEok}</td>
-                            <td className="py-2 text-right text-[#4e5968]">{(() => { const t = getAreaType(tx.aptName, String(tx.area)); return t ? <span className="font-bold text-[#3182f6]">{t}</span> : `${tx.areaPyeong}평`; })()}</td>
+                            <td className="py-2 text-right text-[#4e5968]">{(() => { const norm = normalizeAptName(tx.aptName); const t = typeMap[norm]?.[String(tx.area)]; return t ? <span className="font-bold text-[#3182f6]">{t}</span> : `${tx.areaPyeong}평`; })()}</td>
                             <td className="py-2 text-right text-[#4e5968]">{tx.floor}층</td>
                             <td className="py-2 text-right text-[#8b95a1]">{tx.dealType}</td>
                           </tr>
@@ -479,6 +481,7 @@ export default function Dashboard() {
 
   // Transaction data
   const [allTransactions, setAllTransactions] = useState<TransactionRecord[]>([]);
+  const [typeMap, setTypeMap] = useState<Record<string, Record<string, string>>>({});
 
   // Auth & Profile State
   const [user, setUser] = useState<User | null>(null);
@@ -509,6 +512,22 @@ export default function Dashboard() {
         if (data.records) setAllTransactions(data.records);
       })
       .catch(err => console.warn('실거래가 로딩 실패:', err));
+
+    // Fetch type map
+    fetch('/api/type-map')
+      .then(r => r.json())
+      .then(data => {
+        if (data.entries) {
+          const map: Record<string, Record<string, string>> = {};
+          for (const e of data.entries) {
+            const key = normalizeAptName(e.aptName);
+            if (!map[key]) map[key] = {};
+            map[key][e.area] = e.typeName;
+          }
+          setTypeMap(map);
+        }
+      })
+      .catch(err => console.warn('타입맵 로딩 실패:', err));
   }, []);
 
   const handleLogin = async () => {
@@ -974,6 +993,7 @@ export default function Dashboard() {
           onSubmitComment={() => handleSubmitComment(selectedReport.id)}
           user={user}
           transactions={allTransactions.filter(tx => isSameApartment(selectedReport.apartmentName, tx.aptName))}
+          typeMap={typeMap}
         />
       )}
 
