@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebaseConfig';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
+export const revalidate = 86400; // ISR: 24 hours (아파트 목록은 거의 변하지 않음)
+
 // 동탄2 신도시 아파트 전체 데이터 (수동 업데이트 2026.03.13)
 const FULL_DONG_DATA: Record<string, string[]> = {
   '능동': [

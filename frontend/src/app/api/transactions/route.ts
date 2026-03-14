@@ -4,8 +4,8 @@ import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 
 const SHEET_TAB = SHEET_TABS.TRANSACTIONS;
 
-// ISR: revalidate every 5 minutes (300s) instead of force-dynamic
-export const revalidate = 300;
+// ISR: revalidate every 1 hour (3600s) — 실거래가 데이터는 일 1회 업데이트
+export const revalidate = 3600;
 
 export interface TransactionRecord {
   no: number;
@@ -53,7 +53,7 @@ export async function GET(request: Request) {
     const dong = searchParams.get('dong'); // 동 필터 (optional)
 
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TAB)}`;
-    const res = await fetch(csvUrl, { next: { revalidate: 300 } });
+    const res = await fetch(csvUrl, { next: { revalidate: 3600 } });
 
     if (!res.ok) {
       return NextResponse.json({ error: 'Failed to fetch sheet' }, { status: 502 });
@@ -120,7 +120,7 @@ export async function GET(request: Request) {
       total: records.length,
       records,
     }, {
-      headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' },
+      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' },
     });
   } catch (error: any) {
     console.error('Transaction API error:', error);

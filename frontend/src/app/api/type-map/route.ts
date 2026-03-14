@@ -4,7 +4,7 @@ import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 
 const TYPE_MAP_TAB = SHEET_TABS.TYPE_MAP;
 
-export const revalidate = 600; // ISR: 10 minutes
+export const revalidate = 86400; // ISR: 24 hours (타입 매핑은 거의 변하지 않음)
 
 export interface TypeMapEntry {
   aptName: string;
@@ -17,7 +17,7 @@ export interface TypeMapEntry {
 export async function GET() {
   try {
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(TYPE_MAP_TAB)}`;
-    const res = await fetch(csvUrl, { next: { revalidate: 600 } });
+    const res = await fetch(csvUrl, { next: { revalidate: 86400 } });
 
     if (!res.ok) {
       console.warn('[TYPE_MAP] Sheet fetch failed, using fallback');
@@ -48,7 +48,7 @@ export async function GET() {
     }
 
     return NextResponse.json({ entries, source: 'sheet' }, {
-      headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
+      headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=172800' },
     });
   } catch (error: any) {
     console.error('[TYPE_MAP] Error:', error.message);
