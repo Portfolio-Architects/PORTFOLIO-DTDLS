@@ -471,7 +471,7 @@ export default function Dashboard() {
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<'imjang' | 'review' | 'lounge' | 'recommend'>('imjang');
+  const [activeTab, setActiveTab] = useState<'imjang' | 'lounge' | 'recommend'>('imjang');
 
   // Review modal state
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -648,8 +648,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <div className="inline-flex bg-[#f2f4f6] rounded-full p-1 gap-0.5">
               {[
-                { id: 'imjang' as const, label: '프리미엄 임장기', icon: Compass },
-                { id: 'review' as const, label: '동네 리뷰', icon: Edit3 },
+                { id: 'imjang' as const, label: '임장기', icon: Compass },
                 { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
                 { id: 'recommend' as const, label: '추천', icon: Home },
               ].map(tab => (
@@ -858,86 +857,85 @@ export default function Dashboard() {
               })}
             </div>
           </div>
-        </section>
-        )}
 
-        {/* ═══ TAB: 동네 리뷰 ═══ */}
-        {activeTab === 'review' && (
-        <section>
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] mb-1">동네 리뷰</h2>
-              <p className="text-[15px] text-[#8b95a1] font-medium">주민들의 솔직한 한줄평</p>
-            </div>
-            <button
-              onClick={() => user ? setShowReviewModal(true) : alert('로그인 후 리뷰를 작성할 수 있습니다.')}
-              className="px-4 py-2 bg-[#191f28] text-white rounded-xl text-[13px] font-bold flex items-center gap-1.5 hover:bg-[#333d4b] active:scale-[0.97] transition-all"
-            >
-              <PenLine size={14} />
-              리뷰 쓰기
-            </button>
-          </div>
-
-          {userReviews.length > 0 ? (
-            <div className="flex flex-col gap-3">
-              {userReviews.map(review => (
-                <div key={review.id} className="bg-white rounded-2xl border border-[#e5e8eb] p-5 hover:shadow-md transition-shadow">
-                  {/* Header: author + level badge */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[13px] font-bold text-[#191f28]">{review.author}</span>
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#f2f4f6] text-[#4e5968]">
-                        {review.authorBadge} {review.authorLevel}
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-[#8b95a1]">{review.createdAt}</span>
-                  </div>
-
-                  {/* Apartment name */}
-                  <h4 className="text-[15px] font-extrabold text-[#191f28] mb-2 truncate">{review.apartmentName}</h4>
-
-                  {/* Rating stars */}
-                  <div className="flex items-center gap-1 mb-2">
-                    {Array.from({ length: 5 }, (_, i) => (
-                      <Star key={i} size={14} className={i < review.rating ? 'text-[#f59e0b] fill-[#f59e0b]' : 'text-[#e5e8eb]'} />
-                    ))}
-                    <span className="text-[12px] font-bold text-[#8b95a1] ml-1">{review.rating}.0</span>
-                  </div>
-
-                  {/* Content */}
-                  <p className="text-[14px] text-[#4e5968] leading-relaxed mb-3">{review.content}</p>
-
-                  {/* Photo */}
-                  {review.photoURL && (
-                    <div className="w-full h-48 rounded-xl overflow-hidden mb-3">
-                      <img src={review.photoURL} alt="Review" className="w-full h-full object-cover" />
-                    </div>
-                  )}
-
-                  {/* Like button */}
-                  <button
-                    onClick={() => dashboardFacade.incrementReviewLike(review.id)}
-                    className="flex items-center gap-1 text-[12px] font-bold text-[#8b95a1] hover:text-[#f04452] transition-colors"
-                  >
-                    <Heart size={14} />
-                    {review.likes || 0}
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-2xl border border-[#e5e8eb] p-12 text-center">
-              <Edit3 size={40} className="mx-auto mb-4 text-[#d1d6db]" />
-              <p className="text-[15px] font-bold text-[#4e5968] mb-2">아직 리뷰가 없습니다</p>
-              <p className="text-[13px] text-[#8b95a1] mb-4">첫 번째 리뷰를 남겨보세요!</p>
+          {/* ── 동네 리뷰 ── */}
+          <div className="mt-12">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] mb-1">동네 리뷰</h2>
+                <p className="text-[15px] text-[#8b95a1] font-medium">주민들의 솔직한 한줄평</p>
+              </div>
               <button
                 onClick={() => user ? setShowReviewModal(true) : alert('로그인 후 리뷰를 작성할 수 있습니다.')}
-                className="px-5 py-2.5 bg-[#3182f6] text-white rounded-xl text-[13px] font-bold active:scale-[0.97] transition-all"
+                className="px-4 py-2 bg-[#191f28] text-white rounded-xl text-[13px] font-bold flex items-center gap-1.5 hover:bg-[#333d4b] active:scale-[0.97] transition-all"
               >
-                리뷰 작성하기
+                <PenLine size={14} />
+                리뷰 쓰기
               </button>
             </div>
-          )}
+
+            {userReviews.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                {userReviews.map(review => (
+                  <div key={review.id} className="bg-white rounded-2xl border border-[#e5e8eb] p-5 hover:shadow-md transition-shadow">
+                    {/* Header: author + level badge */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[13px] font-bold text-[#191f28]">{review.author}</span>
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#f2f4f6] text-[#4e5968]">
+                          {review.authorBadge} {review.authorLevel}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-[#8b95a1]">{review.createdAt}</span>
+                    </div>
+
+                    {/* Apartment name */}
+                    <h4 className="text-[15px] font-extrabold text-[#191f28] mb-2 truncate">{review.apartmentName}</h4>
+
+                    {/* Rating stars */}
+                    <div className="flex items-center gap-1 mb-2">
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <Star key={i} size={14} className={i < review.rating ? 'text-[#f59e0b] fill-[#f59e0b]' : 'text-[#e5e8eb]'} />
+                      ))}
+                      <span className="text-[12px] font-bold text-[#8b95a1] ml-1">{review.rating}.0</span>
+                    </div>
+
+                    {/* Content */}
+                    <p className="text-[14px] text-[#4e5968] leading-relaxed mb-3">{review.content}</p>
+
+                    {/* Photo */}
+                    {review.photoURL && (
+                      <div className="w-full h-48 rounded-xl overflow-hidden mb-3">
+                        <img src={review.photoURL} alt="Review" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+
+                    {/* Like button */}
+                    <button
+                      onClick={() => dashboardFacade.incrementReviewLike(review.id)}
+                      className="flex items-center gap-1 text-[12px] font-bold text-[#8b95a1] hover:text-[#f04452] transition-colors"
+                    >
+                      <Heart size={14} />
+                      {review.likes || 0}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-[#e5e8eb] p-12 text-center">
+                <Edit3 size={40} className="mx-auto mb-4 text-[#d1d6db]" />
+                <p className="text-[15px] font-bold text-[#4e5968] mb-2">아직 리뷰가 없습니다</p>
+                <p className="text-[13px] text-[#8b95a1] mb-4">첫 번째 리뷰를 남겨보세요!</p>
+                <button
+                  onClick={() => user ? setShowReviewModal(true) : alert('로그인 후 리뷰를 작성할 수 있습니다.')}
+                  className="px-5 py-2.5 bg-[#3182f6] text-white rounded-xl text-[13px] font-bold active:scale-[0.97] transition-all"
+                >
+                  리뷰 작성하기
+                </button>
+              </div>
+            )}
+          </div>
+
         </section>
         )}
 
