@@ -105,14 +105,27 @@ async function loadAcademies(): Promise<Coord[]> {
 /** Resolves apartment coordinates and building info by name. */
 function resolveApartment(name: string, apartments: ApartmentPOI[]): ApartmentPOI | null {
   const cleanName = name.replace(/\[.*?\]\s*/, '').trim();
+  const norm = (s: string) => s.replace(/\s/g, '');
 
+  // 1) Exact match
   const exact = apartments.find(a => a.name === cleanName || a.name === name);
   if (exact) return exact;
 
+  // 2) Whitespace-normalized match (힐스테이트동탄역 ↔ 힐스테이트 동탄역)
+  const normalized = apartments.find(a => norm(a.name) === norm(cleanName));
+  if (normalized) return normalized;
+
+  // 3) Partial match (contains)
   const partial = apartments.find(a =>
     cleanName.includes(a.name) || a.name.includes(cleanName)
   );
   if (partial) return partial;
+
+  // 4) Partial normalized match
+  const partialNorm = apartments.find(a =>
+    norm(cleanName).includes(norm(a.name)) || norm(a.name).includes(norm(cleanName))
+  );
+  if (partialNorm) return partialNorm;
 
   return null;
 }
