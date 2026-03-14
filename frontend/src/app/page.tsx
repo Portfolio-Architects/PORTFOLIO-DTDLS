@@ -617,7 +617,7 @@ export default function Dashboard() {
               {[
                 { id: 'imjang' as const, label: '임장기', icon: Compass },
                 { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
-                { id: 'recommend' as const, label: '추천', icon: Home },
+                { id: 'recommend' as const, label: '집 추천', icon: Home },
               ].map(tab => (
                 <button
                   key={tab.id}
