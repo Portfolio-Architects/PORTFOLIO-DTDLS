@@ -4,7 +4,7 @@ import {
   Building, MapPin, Map as MapIcon, Info, Users, AlertCircle, ShieldAlert,
   Car, BookOpen, Clock, Tag, X, FileText, CheckCircle2, TrendingUp, Radar,
   MessageSquare, Heart, Compass, LayoutDashboard, Camera, UserCircle, Star, Maximize2, Link2, Trash2, Text, LogOut,
-  Home, PenLine, Send, Edit3
+  Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil
 } from 'lucide-react';
 import MainChart from '@/components/MainChart';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
@@ -19,6 +19,9 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
+import * as UserRepo from '@/lib/repositories/user.repository';
+import type { UserProfile } from '@/lib/types/user.types';
+import { getDisplayName } from '@/lib/types/user.types';
 
 interface TransactionRecord {
   dong: string;
@@ -459,12 +462,7 @@ export function FieldReportModal({
 export default function Dashboard() {
   const router = useRouter();
   const { kpis, newsFeed, fieldReports, userReviews, dongtanApartments, adBanner } = useDashboardData();
-  const [isWriting, setIsWriting] = useState(false);
-  const [postTitle, setPostTitle] = useState('');
-  const [postCategory, setPostCategory] = useState('교통');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
-  
   // Comments State
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [commentsData, setCommentsData] = useState<Record<string, CommentData[]>>({});
@@ -475,6 +473,16 @@ export default function Dashboard() {
 
   // Review modal state
   const [showReviewModal, setShowReviewModal] = useState(false);
+
+  // Lounge compose & verify state
+  const [showCompose, setShowCompose] = useState(false);
+  const [postTitle, setPostTitle] = useState('');
+  const [postCategory, setPostCategory] = useState('자유');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showVerify, setShowVerify] = useState(false);
+  const [verifyDong, setVerifyDong] = useState('');
+  const [verifyApt, setVerifyApt] = useState('');
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   // Dong filter state
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
@@ -494,11 +502,13 @@ export default function Dashboard() {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        // Fetch or create their anonymous profile immediately upon login
         const profile = await dashboardFacade.getUserProfile(currentUser.uid);
         setAnonProfile(profile);
+        const up = await UserRepo.getOrCreateProfile(currentUser.uid);
+        setUserProfile(up);
       } else {
         setAnonProfile(null);
+        setUserProfile(null);
       }
     });
     return () => unsubscribe();
@@ -546,39 +556,6 @@ export default function Dashboard() {
     }
   };
 
-  const handleOpenWriteModal = () => {
-    if (!user) {
-      alert("로그인이 필요한 기능입니다.");
-      handleLogin();
-      return;
-    }
-    setIsWriting(true);
-  };
-
-  const handleLikeClick = (e: React.MouseEvent, postId: string) => {
-    e.stopPropagation();
-    if (!user) { alert("로그인 후 좋아요를 누를 수 있습니다!"); return; }
-    dashboardFacade.incrementLike(postId);
-  };
-
-  const handleReportLikeClick = (e: React.MouseEvent, reportId: string) => {
-    e.stopPropagation();
-    if (!user) { alert("로그인 후 좋아요를 누를 수 있습니다!"); return; }
-    dashboardFacade.incrementFieldReportLike(reportId);
-  };
-
-  const handleToggleComments = (reportId: string) => {
-    const isExpanding = !expandedComments[reportId];
-    setExpandedComments(prev => ({ ...prev, [reportId]: isExpanding }));
-
-    if (isExpanding && !commentsData[reportId]) {
-      // Subscribe to comments
-      dashboardFacade.listenToComments(reportId, (comments) => {
-        setCommentsData(prev => ({ ...prev, [reportId]: comments }));
-      });
-    }
-  };
-
   const handleSubmitComment = async (reportId: string) => {
     if (!user) { alert("로그인 후 댓글을 남길 수 있습니다."); handleLogin(); return; }
     const text = commentInput[reportId];
@@ -586,16 +563,6 @@ export default function Dashboard() {
 
     await dashboardFacade.addFieldReportComment(reportId, text, user.uid);
     setCommentInput(prev => ({ ...prev, [reportId]: '' }));
-  };
-
-  const handleSubmitPost = async () => {
-    if (!postTitle.trim() || !user) return;
-    setIsSubmitting(true);
-    await dashboardFacade.addPost(postTitle, postCategory, user.uid, imageFile || undefined);
-    setPostTitle('');
-    setImageFile(null);
-    setIsWriting(false);
-    setIsSubmitting(false);
   };
 
   // Fetch comments automatically when a report modal is opened
@@ -878,14 +845,9 @@ export default function Dashboard() {
               <div className="flex flex-col gap-3">
                 {userReviews.map(review => (
                   <div key={review.id} className="bg-white rounded-2xl border border-[#e5e8eb] p-5 hover:shadow-md transition-shadow">
-                    {/* Header: author + level badge */}
+                    {/* Header: author */}
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[13px] font-bold text-[#191f28]">{review.author}</span>
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#f2f4f6] text-[#4e5968]">
-                          {review.authorBadge} {review.authorLevel}
-                        </span>
-                      </div>
+                      <span className="text-[13px] font-bold text-[#191f28]">{review.author}</span>
                       <span className="text-[11px] text-[#8b95a1]">{review.createdAt}</span>
                     </div>
 
@@ -948,6 +910,29 @@ export default function Dashboard() {
               <p className="text-[15px] text-[#8b95a1] font-medium">동탄 주민들의 솔직한 이야기</p>
             </div>
           </div>
+
+          {/* Profile & Verification Bar */}
+          {user && userProfile && (
+            <div className="bg-white rounded-2xl border border-[#e5e8eb] p-4 mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-[14px] font-bold text-[#191f28]">{getDisplayName(userProfile)}</span>
+                {userProfile.verifiedApartment && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#e8f3ff] text-[#3182f6] px-2 py-0.5 rounded-md">
+                    <ShieldCheck size={11} /> {userProfile.verifiedApartment.replace(/\[.*?\]\s*/, '')}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => setShowVerify(true)}
+                className="text-[12px] font-bold text-[#3182f6] bg-[#e8f3ff] px-3 py-1.5 rounded-lg hover:bg-[#d4e9ff] transition-colors flex items-center gap-1"
+              >
+                <Building2 size={13} />
+                {userProfile?.verifiedApartment ? '변경' : '아파트 인증'}
+              </button>
+            </div>
+          )}
+
+          {/* Feed */}
           <div className="flex flex-col gap-3">
             {newsFeed.length === 0 ? (
               <div className="bg-white rounded-2xl p-12 text-center border border-[#e5e8eb]">
@@ -968,15 +953,99 @@ export default function Dashboard() {
               ))
             )}
           </div>
+
           {/* Floating write button */}
           {user && (
             <button
-              onClick={() => router.push('/lounge')}
+              onClick={() => setShowCompose(true)}
               className="fixed bottom-6 right-6 w-14 h-14 bg-[#3182f6] hover:bg-[#1b6de8] text-white rounded-full shadow-lg shadow-[#3182f6]/30 flex items-center justify-center transition-all active:scale-95 z-20"
             >
               <PenLine size={22} />
             </button>
           )}
+
+          {/* Compose Modal */}
+          {showCompose && (
+            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowCompose(false)} />
+              <div className="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-[18px] font-extrabold text-[#191f28]">익명 글쓰기</h2>
+                  <button onClick={() => setShowCompose(false)} className="w-8 h-8 rounded-full bg-[#f2f4f6] flex items-center justify-center hover:bg-[#e5e8eb] transition-colors">
+                    <X size={16} className="text-[#4e5968]" />
+                  </button>
+                </div>
+                <div className="flex gap-2 mb-4 overflow-x-auto">
+                  {['부동산', '교통', '교육', '문화', '자유'].map((cat) => (
+                    <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#191f28] text-white border-[#191f28]' : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'}`}>{cat}</button>
+                  ))}
+                </div>
+                <textarea value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="동탄 이야기를 자유롭게 나눠보세요..." rows={3} className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors resize-none focus:ring-4 focus:ring-[#3182f6]/10 mb-4" autoFocus />
+                <div className="flex items-center justify-between">
+                  <span className="text-[12px] text-[#8b95a1]">🎭 {userProfile ? getDisplayName(userProfile) : '익명'}</span>
+                  <button
+                    onClick={async () => {
+                      if (!user || !postTitle.trim()) return;
+                      setIsSubmitting(true);
+                      try {
+                        await dashboardFacade.addPost(postTitle.trim(), postCategory, user.uid);
+                        setPostTitle(''); setPostCategory('자유'); setShowCompose(false);
+                      } catch { alert('글 작성에 실패했습니다.'); }
+                      finally { setIsSubmitting(false); }
+                    }}
+                    disabled={isSubmitting || !postTitle.trim()}
+                    className="flex items-center gap-2 px-6 py-3 bg-[#3182f6] hover:bg-[#1b6de8] disabled:bg-[#d1d6db] text-white rounded-xl font-bold text-[14px] transition-all active:scale-95"
+                  >
+                    <Send size={14} />
+                    {isSubmitting ? '게시 중...' : '게시하기'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Apartment Verification Modal */}
+          {showVerify && (
+            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowVerify(false)} />
+              <div className="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl max-h-[80vh] overflow-y-auto">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-[18px] font-extrabold text-[#191f28]">🏠 아파트 인증</h2>
+                  <button onClick={() => setShowVerify(false)} className="w-8 h-8 rounded-full bg-[#f2f4f6] flex items-center justify-center hover:bg-[#e5e8eb] transition-colors">
+                    <X size={16} className="text-[#4e5968]" />
+                  </button>
+                </div>
+                <p className="text-[14px] font-bold text-[#191f28] mb-3">내 아파트를 선택해주세요</p>
+                <div className="flex gap-2 overflow-x-auto pb-3 mb-3">
+                  {Array.from(new Set(dongtanApartments.map(apt => apt.match(/\[(.*?)\]/)?.[1]).filter(Boolean))).map(dong => (
+                    <button key={dong} onClick={() => { setVerifyDong(dong as string); setVerifyApt(''); }} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${verifyDong === dong ? 'bg-[#191f28] text-white border-[#191f28]' : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'}`}>{dong}</button>
+                  ))}
+                </div>
+                {verifyDong && (
+                  <div className="bg-[#f9fafb] border border-[#d1d6db] rounded-xl overflow-hidden max-h-48 overflow-y-auto p-2 mb-5">
+                    {dongtanApartments.filter(apt => apt.includes(`[${verifyDong}]`)).map(apt => (
+                      <button key={apt} onClick={() => setVerifyApt(apt)} className={`w-full text-left px-4 py-3 text-[14px] font-medium rounded-lg transition-colors ${verifyApt === apt ? 'bg-[#e8f3ff] text-[#3182f6] font-bold' : 'text-[#191f28] hover:bg-[#f2f4f6]'}`}>{apt}</button>
+                    ))}
+                  </div>
+                )}
+                <button
+                  onClick={async () => {
+                    if (!user || !verifyApt) return;
+                    await UserRepo.setApartmentVerification(user.uid, verifyApt, 'self_declared');
+                    setUserProfile(prev => prev ? { ...prev, verifiedApartment: verifyApt, verificationLevel: 'self_declared' } : null);
+                    setShowVerify(false);
+                    alert('🏠 아파트 인증이 완료되었습니다!');
+                  }}
+                  disabled={!verifyApt}
+                  className="w-full py-4 rounded-xl font-bold text-[15px] transition-all active:scale-[0.98] disabled:bg-[#d1d6db] disabled:text-[#8b95a1] bg-[#191f28] text-white flex items-center justify-center gap-2"
+                >
+                  <Shield size={16} />
+                  자가선언 인증하기
+                </button>
+              </div>
+            </div>
+          )}
+
         </section>
         )}
 
