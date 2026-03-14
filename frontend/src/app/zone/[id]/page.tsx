@@ -166,6 +166,7 @@ export default function ZoneDetailPage() {
           onSubmitComment={() => handleSubmitComment(selectedReport.id)}
           user={user}
           transactions={[]}
+          typeMap={{}}
         />
       )}
     </div>
