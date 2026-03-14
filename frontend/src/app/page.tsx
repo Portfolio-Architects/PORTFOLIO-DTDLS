@@ -739,7 +739,7 @@ export default function Dashboard() {
                 {selectedDong ? '필터 결과' : '임장 리포트'}
                 <span className="text-[13px] font-bold text-[#8b95a1] ml-1">{filteredReports.length}개</span>
               </h3>
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {filteredReports.map(report => {
                   const txs = allTransactions.filter(tx => isSameApartment(report.apartmentName, tx.aptName));
                   const chartData = [...txs].reverse().slice(-20).map(tx => ({
