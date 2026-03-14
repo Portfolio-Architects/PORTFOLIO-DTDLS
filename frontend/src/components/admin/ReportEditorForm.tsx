@@ -437,46 +437,21 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
               disabled={isCalculating}
               onClick={async () => {
                 const aptName = getValues('apartmentName');
-                const dongName = getValues('dong');
                 if (!aptName) { alert('먼저 아파트를 선택해주세요.'); return; }
                 setIsCalculating(true);
                 try {
-                  // 두 API 동시 호출
-                  const [locRes, bldRes] = await Promise.all([
-                    fetch(`/api/location-scores?apartment=${encodeURIComponent(aptName)}`),
-                    fetch(`/api/building-info?apartment=${encodeURIComponent(aptName)}&dong=${encodeURIComponent(dongName || '')}`),
-                  ]);
-
-                  const messages: string[] = [];
-
-                  // 1) 위치 점수
-                  if (locRes.ok) {
-                    const loc = await locRes.json();
-                    if (loc.distanceToElementary != null) setValue('metrics.distanceToElementary', String(loc.distanceToElementary));
-                    if (loc.distanceToMiddle != null) setValue('metrics.distanceToMiddle', String(loc.distanceToMiddle));
-                    if (loc.distanceToHigh != null) setValue('metrics.distanceToHigh', String(loc.distanceToHigh));
-                    if (loc.distanceToSubway != null) setValue('metrics.distanceToSubway', String(loc.distanceToSubway));
-                    if (loc.academyDensity != null) setValue('metrics.academyDensity', String(loc.academyDensity));
-                    messages.push(`📍 위치\n초등: ${loc.nearestSchools?.elementary?.name || '-'} (${loc.distanceToElementary ?? '-'}m)\n중학: ${loc.nearestSchools?.middle?.name || '-'} (${loc.distanceToMiddle ?? '-'}m)\n고등: ${loc.nearestSchools?.high?.name || '-'} (${loc.distanceToHigh ?? '-'}m)\n역: ${loc.nearestStation?.name || '-'} (${loc.distanceToSubway ?? '-'}m)\n학원: ${loc.academyDensity}개`);
-                  } else {
-                    messages.push('⚠️ 위치 데이터를 찾을 수 없습니다');
+                  const res = await fetch(`/api/location-scores?apartment=${encodeURIComponent(aptName)}`);
+                  if (!res.ok) {
+                    alert('좌표 데이터를 찾을 수 없습니다.');
+                    return;
                   }
-
-                  // 2) 건물 정보
-                  if (bldRes.ok) {
-                    const bld = await bldRes.json();
-                    if (bld.householdCount) setValue('metrics.householdCount', String(bld.householdCount));
-                    if (bld.yearBuilt) setValue('metrics.yearBuilt', String(bld.yearBuilt));
-                    if (bld.far) setValue('metrics.far', String(bld.far));
-                    if (bld.bcr) setValue('metrics.bcr', String(bld.bcr));
-                    if (bld.parkingPerHousehold) setValue('metrics.parkingPerHousehold', String(bld.parkingPerHousehold));
-                    if (bld.brand) setValue('metrics.brand', bld.brand);
-                    messages.push(`🏢 건물 (${bld.source})\n세대수: ${bld.householdCount ?? '-'}\n준공: ${bld.yearBuilt ?? '-'}\n용적률: ${bld.far ?? '-'}%\n건폐율: ${bld.bcr ?? '-'}%\n주차: ${bld.parkingPerHousehold ?? '-'}대/세대`);
-                  } else {
-                    messages.push('⚠️ 건물 정보를 찾을 수 없습니다 (시트에 추가해주세요)');
-                  }
-
-                  alert(`✅ 자동 계산 완료!\n\n${messages.join('\n\n')}`);
+                  const loc = await res.json();
+                  if (loc.distanceToElementary != null) setValue('metrics.distanceToElementary', String(loc.distanceToElementary));
+                  if (loc.distanceToMiddle != null) setValue('metrics.distanceToMiddle', String(loc.distanceToMiddle));
+                  if (loc.distanceToHigh != null) setValue('metrics.distanceToHigh', String(loc.distanceToHigh));
+                  if (loc.distanceToSubway != null) setValue('metrics.distanceToSubway', String(loc.distanceToSubway));
+                  if (loc.academyDensity != null) setValue('metrics.academyDensity', String(loc.academyDensity));
+                  alert(`✅ 자동 계산 완료!\n초등: ${loc.nearestSchools?.elementary?.name || '-'} (${loc.distanceToElementary ?? '-'}m)\n중학: ${loc.nearestSchools?.middle?.name || '-'} (${loc.distanceToMiddle ?? '-'}m)\n고등: ${loc.nearestSchools?.high?.name || '-'} (${loc.distanceToHigh ?? '-'}m)\n역: ${loc.nearestStation?.name || '-'} (${loc.distanceToSubway ?? '-'}m)\n학원: ${loc.academyDensity}개 (반경 1km)`);
                 } catch (e) {
                   alert('자동 계산 중 오류가 발생했습니다.');
                   console.error(e);
@@ -489,7 +464,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
               {isCalculating ? (
                 <><div className="w-4 h-4 border-2 border-[#3182f6] border-t-transparent rounded-full animate-spin" /> 계산 중...</>
               ) : (
-                <>📍 단지 정보 + 거리 자동 계산</>
+                <>📍 학교·역·학원 거리 자동 계산</>
               )}
             </button>
           </div>
