@@ -8,6 +8,7 @@ import { storage } from '@/lib/firebaseConfig';
 import * as PostRepo from '@/lib/repositories/post.repository';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import { logger } from '@/lib/services/logger';
+import { compressImage } from '@/lib/utils/imageCompression';
 
 /**
  * Creates a new community post with optional image upload.
@@ -32,8 +33,9 @@ export async function createPost(
     // 2. Upload image if provided
     let imageUrl: string | null = null;
     if (imageFile) {
+      const compressed = await compressImage(imageFile);
       const storageRef = ref(storage, `posts/${Date.now()}_${imageFile.name}`);
-      const snapshot = await uploadBytes(storageRef, imageFile);
+      const snapshot = await uploadBytes(storageRef, compressed);
       imageUrl = await getDownloadURL(snapshot.ref);
       logger.info('PostService.createPost', 'Image uploaded', { imageUrl });
     }

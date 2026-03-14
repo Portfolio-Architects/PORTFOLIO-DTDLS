@@ -152,6 +152,7 @@ interface ReportEditorFormProps {
 
 export default function ReportEditorForm({ initialData = null, reportId }: ReportEditorFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCalculating, setIsCalculating] = useState(false);
   const [dongData, setDongData] = useState<Record<string, string[]>>(FALLBACK_DONG_DATA);
   const [isLoadingApts, setIsLoadingApts] = useState(true);
   const router = useRouter();
@@ -182,7 +183,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
   }, []);
 
   // Initialize React Hook Form
-  const { register, control, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
+  const { register, control, handleSubmit, reset, setValue, getValues, formState: { errors } } = useForm<FormValues>({
     defaultValues: initialData || {
       dong: Object.keys(FALLBACK_DONG_DATA)[0],
       apartmentName: FALLBACK_DONG_DATA[Object.keys(FALLBACK_DONG_DATA)[0]][0],
@@ -430,6 +431,44 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-2 mb-4">
+          <div className="md:col-span-3 mb-2">
+            <button
+              type="button"
+              disabled={isCalculating}
+              onClick={async () => {
+                const aptName = getValues('apartmentName');
+                if (!aptName) { alert('먼저 아파트를 선택해주세요.'); return; }
+                setIsCalculating(true);
+                try {
+                  const res = await fetch(`/api/location-scores?apartment=${encodeURIComponent(aptName)}`);
+                  if (!res.ok) {
+                    const err = await res.json();
+                    alert(`좌표 데이터를 찾을 수 없습니다: ${err.error}`);
+                    return;
+                  }
+                  const data = await res.json();
+                  if (data.distanceToElementary != null) setValue('metrics.distanceToElementary', String(data.distanceToElementary));
+                  if (data.distanceToMiddle != null) setValue('metrics.distanceToMiddle', String(data.distanceToMiddle));
+                  if (data.distanceToHigh != null) setValue('metrics.distanceToHigh', String(data.distanceToHigh));
+                  if (data.distanceToSubway != null) setValue('metrics.distanceToSubway', String(data.distanceToSubway));
+                  if (data.academyDensity != null) setValue('metrics.academyDensity', String(data.academyDensity));
+                  alert(`✅ 자동 계산 완료!\n초등: ${data.nearestSchools?.elementary?.name || '-'} (${data.distanceToElementary}m)\n중학: ${data.nearestSchools?.middle?.name || '-'} (${data.distanceToMiddle || '-'}m)\n고등: ${data.nearestSchools?.high?.name || '-'} (${data.distanceToHigh || '-'}m)\n역: ${data.nearestStation?.name || '-'} (${data.distanceToSubway}m)\n학원: ${data.academyDensity}개 (반경 1km)`);
+                } catch (e) {
+                  alert('자동 계산 중 오류가 발생했습니다.');
+                  console.error(e);
+                } finally {
+                  setIsCalculating(false);
+                }
+              }}
+              className="px-5 py-2.5 bg-[#e8f3ff] hover:bg-[#d0e8ff] text-[#3182f6] font-bold text-[13px] rounded-xl transition-all flex items-center gap-2 disabled:opacity-50"
+            >
+              {isCalculating ? (
+                <><div className="w-4 h-4 border-2 border-[#3182f6] border-t-transparent rounded-full animate-spin" /> 계산 중...</>
+              ) : (
+                <>📍 학교·역·학원 거리 자동 계산</>
+              )}
+            </button>
+          </div>
           <NumberInput name="metrics.distanceToElementary" label="초등학교 통학거리 (초품아 여부)" placeholder="예: 300" unit="m" />
           <NumberInput name="metrics.distanceToMiddle" label="중학교 통학거리" placeholder="예: 800" unit="m" />
           <NumberInput name="metrics.distanceToHigh" label="고등학교 통학거리" placeholder="예: 1200" unit="m" />

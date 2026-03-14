@@ -2,6 +2,7 @@ import { db, storage } from '@/lib/firebaseConfig';
 import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { ScoutingReport } from '@/lib/types/scoutingReport';
+import { compressImage } from '@/lib/utils/imageCompression';
 
 /**
  * Uploads an image file to Firebase Storage and returns its download URL.
@@ -10,8 +11,9 @@ export async function uploadImage(file: File, folderPath: string): Promise<strin
   const ext = file.name.split('.').pop();
   const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
   const storageRef = ref(storage, `${folderPath}/${uniqueName}`);
-  
-  const snapshot = await uploadBytes(storageRef, file);
+
+  const compressed = await compressImage(file);
+  const snapshot = await uploadBytes(storageRef, compressed);
   const downloadURL = await getDownloadURL(snapshot.ref);
   return downloadURL;
 }

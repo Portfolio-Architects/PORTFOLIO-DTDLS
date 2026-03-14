@@ -3,6 +3,7 @@
  * @description Type definitions for Field Reports, Report Sections, and Comments.
  * Architecture Layer: Types (zero dependencies)
  */
+import type { ObjectiveMetrics } from './scoutingReport';
 
 /** 임장기 섹션별 상세 데이터 */
 export interface ReportSections {
@@ -53,6 +54,8 @@ export interface FieldReportData {
   sections?: ReportSections;
   /** 프리미엄 점수 (서버 계산) */
   premiumScores?: import('../utils/scoring').PremiumScores;
+  /** 객관적 지표 (거리/밀집도 등) */
+  metrics?: ObjectiveMetrics;
   /** 프리미엄 콘텐츠 텍스트 */
   premiumContent?: string;
   /** 장점 (Legacy) */

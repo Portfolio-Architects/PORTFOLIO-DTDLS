@@ -46,7 +46,8 @@ export function FieldReportModal({
   onSubmitComment,
   user,
   transactions,
-  typeMap
+  typeMap,
+  isLoadingDetail
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -57,6 +58,7 @@ export function FieldReportModal({
   user: User | null;
   transactions: TransactionRecord[];
   typeMap: Record<string, Record<string, string>>;
+  isLoadingDetail?: boolean;
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
@@ -187,9 +189,63 @@ export function FieldReportModal({
           <div className="px-6 py-8 md:p-12 flex flex-col gap-10 max-w-[1000px] mx-auto w-full">
 
             {/* 0. Premium Score Analysis (If Available, outside of legacy toggle) */}
+            {isLoadingDetail ? (
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm animate-pulse">
+                <div className="h-6 bg-[#e5e8eb] rounded-lg w-48 mb-6" />
+                <div className="space-y-3">
+                  <div className="h-4 bg-[#f2f4f6] rounded w-full" />
+                  <div className="h-4 bg-[#f2f4f6] rounded w-5/6" />
+                  <div className="h-4 bg-[#f2f4f6] rounded w-4/6" />
+                  <div className="h-32 bg-[#f2f4f6] rounded-2xl mt-4" />
+                  <div className="h-32 bg-[#f2f4f6] rounded-2xl" />
+                </div>
+              </div>
+            ) : (
+            <>
             {report.premiumScores && (
               <div className="mb-2">
                  <PropertyScoreChart scores={report.premiumScores} />
+              </div>
+            )}
+
+            {/* Location Infrastructure Info */}
+            {report.metrics && (report.metrics.distanceToElementary || report.metrics.distanceToSubway || report.metrics.academyDensity) && (
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+                <h2 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2 mb-5 border-b border-[#e5e8eb] pb-3">
+                  <MapPin size={18} className="text-[#3182f6]"/> 학군·교통 인프라
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {report.metrics.distanceToElementary > 0 && (
+                    <div className="bg-[#f9fafb] rounded-2xl p-4 text-center">
+                      <div className="text-[11px] font-bold text-[#8b95a1] mb-1">🏫 초등학교</div>
+                      <div className="text-[22px] font-extrabold text-[#191f28]">{report.metrics.distanceToElementary}<span className="text-[13px] text-[#8b95a1] ml-0.5">m</span></div>
+                    </div>
+                  )}
+                  {report.metrics.distanceToMiddle > 0 && (
+                    <div className="bg-[#f9fafb] rounded-2xl p-4 text-center">
+                      <div className="text-[11px] font-bold text-[#8b95a1] mb-1">🏫 중학교</div>
+                      <div className="text-[22px] font-extrabold text-[#191f28]">{report.metrics.distanceToMiddle}<span className="text-[13px] text-[#8b95a1] ml-0.5">m</span></div>
+                    </div>
+                  )}
+                  {report.metrics.distanceToHigh > 0 && (
+                    <div className="bg-[#f9fafb] rounded-2xl p-4 text-center">
+                      <div className="text-[11px] font-bold text-[#8b95a1] mb-1">🏫 고등학교</div>
+                      <div className="text-[22px] font-extrabold text-[#191f28]">{report.metrics.distanceToHigh}<span className="text-[13px] text-[#8b95a1] ml-0.5">m</span></div>
+                    </div>
+                  )}
+                  {report.metrics.distanceToSubway > 0 && (
+                    <div className="bg-[#e8f3ff] rounded-2xl p-4 text-center">
+                      <div className="text-[11px] font-bold text-[#3182f6] mb-1">🚇 지하철역</div>
+                      <div className="text-[22px] font-extrabold text-[#3182f6]">{report.metrics.distanceToSubway}<span className="text-[13px] text-[#3182f6]/70 ml-0.5">m</span></div>
+                    </div>
+                  )}
+                  {report.metrics.academyDensity > 0 && (
+                    <div className="bg-[#f0fdf4] rounded-2xl p-4 text-center">
+                      <div className="text-[11px] font-bold text-[#03c75a] mb-1">📚 학원 (1km)</div>
+                      <div className="text-[22px] font-extrabold text-[#03c75a]">{report.metrics.academyDensity}<span className="text-[13px] text-[#03c75a]/70 ml-0.5">개</span></div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -377,6 +433,7 @@ export function FieldReportModal({
             )}
 
             {/* Comments Section */}
+            </>)}
             <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
               <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3">
                 <MessageSquare size={20} className="text-[#3182f6]"/> 
@@ -463,6 +520,8 @@ export default function Dashboard() {
   const router = useRouter();
   const { kpis, newsFeed, fieldReports, userReviews, dongtanApartments, adBanner } = useDashboardData();
   const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
+  const [fullReportData, setFullReportData] = useState<FieldReportData | null>(null);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   // Comments State
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [commentsData, setCommentsData] = useState<Record<string, CommentData[]>>({});
@@ -557,6 +616,22 @@ export default function Dashboard() {
     await dashboardFacade.addFieldReportComment(reportId, text, user.uid);
     setCommentInput(prev => ({ ...prev, [reportId]: '' }));
   };
+
+  // Fetch full report detail data when modal opens (lazy loading)
+  useEffect(() => {
+    if (selectedReport) {
+      setIsLoadingDetail(true);
+      setFullReportData(null);
+      dashboardFacade.getFullReport(selectedReport.id).then((data) => {
+        setFullReportData(data);
+        setIsLoadingDetail(false);
+      }).catch(() => {
+        setIsLoadingDetail(false);
+      });
+    } else {
+      setFullReportData(null);
+    }
+  }, [selectedReport]);
 
   // Fetch comments automatically when a report modal is opened
   useEffect(() => {
@@ -725,7 +800,7 @@ export default function Dashboard() {
                     {/* Left: Photo */}
                     <div className="w-full md:w-[240px] h-[180px] md:h-auto bg-[#f2f4f6] overflow-hidden relative shrink-0">
                       {report.imageUrl ? (
-                        <img src={report.imageUrl} alt={report.apartmentName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                         <img src={report.imageUrl} alt={report.apartmentName} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center min-h-[160px]">
                           <Camera size={32} className="text-[#d1d6db]" />
@@ -852,15 +927,19 @@ export default function Dashboard() {
                   <div key={review.id} className="bg-white rounded-2xl border border-[#e5e8eb] p-5 hover:shadow-md transition-shadow">
                     {/* Header: author + verification */}
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[13px] font-bold text-[#191f28]">{review.author}</span>
-                        {review.verifiedApartment && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#e8f3ff] text-[#3182f6] px-2 py-0.5 rounded-md">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-[13px] font-bold text-[#191f28] shrink-0">{review.author}</span>
+                        {review.verifiedApartment && review.verificationLevel === 'registry_verified' ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#e8f3ff] text-[#3182f6] px-2 py-0.5 rounded-md shrink-0">
                             <ShieldCheck size={11} /> {review.verifiedApartment.replace(/\[.*?\]\s*/, '')}
                           </span>
-                        )}
+                        ) : review.verifiedApartment ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-2 py-0.5 rounded-md shrink-0">
+                            <Shield size={11} /> {review.verifiedApartment.replace(/\[.*?\]\s*/, '')}
+                          </span>
+                        ) : null}
                       </div>
-                      <span className="text-[11px] text-[#8b95a1]">{review.createdAt}</span>
+                      <span className="text-[11px] text-[#8b95a1] shrink-0 ml-2">{review.createdAt}</span>
                     </div>
 
                     {/* Apartment name */}
@@ -884,14 +963,33 @@ export default function Dashboard() {
                       </div>
                     )}
 
-                    {/* Like button */}
-                    <button
-                      onClick={() => dashboardFacade.incrementReviewLike(review.id)}
-                      className="flex items-center gap-1 text-[12px] font-bold text-[#8b95a1] hover:text-[#f04452] transition-colors"
-                    >
-                      <Heart size={14} />
-                      {review.likes || 0}
-                    </button>
+                    {/* Actions: Like + Delete */}
+                    <div className="flex items-center justify-between">
+                      <button
+                        onClick={() => dashboardFacade.incrementReviewLike(review.id)}
+                        className="flex items-center gap-1 text-[12px] font-bold text-[#8b95a1] hover:text-[#f04452] transition-colors"
+                      >
+                        <Heart size={14} />
+                        {review.likes || 0}
+                      </button>
+                      {(user?.uid === review.authorUid || dashboardFacade.isAdmin(user?.email)) && (
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (!confirm('이 리뷰를 삭제하시겠습니까?')) return;
+                            try {
+                              await dashboardFacade.deleteReview(review.id);
+                            } catch {
+                              alert('삭제에 실패했습니다.');
+                            }
+                          }}
+                          className="flex items-center gap-1 text-[11px] font-bold text-[#8b95a1] hover:text-[#f04452] transition-colors"
+                        >
+                          <Trash2 size={13} />
+                          삭제
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1101,7 +1199,7 @@ export default function Dashboard() {
       {/* Field Report Full View Modal */}
       {selectedReport && (
         <FieldReportModal 
-          report={selectedReport} 
+          report={fullReportData || selectedReport} 
           onClose={() => setSelectedReport(null)} 
           comments={commentsData[selectedReport.id] || []}
           commentInput={commentInput[selectedReport.id] || ''}
@@ -1110,6 +1208,7 @@ export default function Dashboard() {
           user={user}
           transactions={allTransactions.filter(tx => isSameApartment(selectedReport.apartmentName, tx.aptName))}
           typeMap={typeMap}
+          isLoadingDetail={isLoadingDetail}
         />
       )}
 

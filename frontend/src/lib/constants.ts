@@ -11,6 +11,10 @@ export const SHEET_ID = process.env.SHEET_ID || '1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1
 export const SHEET_TABS = {
   TRANSACTIONS: 'DTDLS',
   TYPE_MAP: 'TYPE_MAP',
+  ACADEMIES: 'academies',
+  SCHOOLS: 'schools',
+  STATIONS: 'stations',
+  APARTMENTS: 'apartments',
 } as const;
 
 /** CSV line parser (shared between transaction and type-map routes) */

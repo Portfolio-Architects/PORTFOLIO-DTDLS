@@ -6,11 +6,12 @@
 import { db, storage } from '@/lib/firebaseConfig';
 import {
   collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit,
-  doc, updateDoc, increment,
+  doc, updateDoc, increment, deleteDoc,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { logger } from '@/lib/services/logger';
 import type { UserReview } from '@/lib/types/review.types';
+import { compressImage } from '@/lib/utils/imageCompression';
 
 const COLLECTION = 'user_reviews';
 
@@ -61,8 +62,9 @@ export async function addReview(
   // Upload image if provided
   if (imageFile) {
     try {
+      const compressed = await compressImage(imageFile);
       const storageRef = ref(storage, `user_reviews/${Date.now()}_${imageFile.name}`);
-      const snapshot = await uploadBytes(storageRef, imageFile);
+      const snapshot = await uploadBytes(storageRef, compressed);
       photoURL = await getDownloadURL(snapshot.ref);
     } catch (e) {
       logger.error('ReviewRepository.addReview', 'Image upload failed', undefined, e);
@@ -91,4 +93,15 @@ export async function addReview(
 export async function incrementReviewLike(reviewId: string): Promise<void> {
   const reviewRef = doc(db, COLLECTION, reviewId);
   await updateDoc(reviewRef, { likes: increment(1) });
+}
+
+/**
+ * Deletes a user review by ID.
+ * @param reviewId - The Firestore document ID
+ * @throws FirestoreError if delete fails
+ */
+export async function deleteReview(reviewId: string): Promise<void> {
+  const reviewRef = doc(db, COLLECTION, reviewId);
+  await deleteDoc(reviewRef);
+  logger.info('ReviewRepository.deleteReview', 'Review deleted', { reviewId });
 }

@@ -1,0 +1,78 @@
+/**
+ * @module haversine
+ * @description Haversine formula for calculating great-circle distance
+ * between two points on Earth's surface.
+ * Used for apartment-to-POI distance calculations.
+ */
+
+/** Earth's mean radius in meters */
+const EARTH_RADIUS_M = 6_371_000;
+
+/** A geographic coordinate (latitude, longitude in degrees) */
+export interface Coord {
+  lat: number;
+  lng: number;
+}
+
+/**
+ * Calculates the Haversine distance between two coordinates.
+ * @returns Distance in meters (rounded to nearest integer)
+ */
+export function haversineDistance(a: Coord, b: Coord): number {
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+
+  const sinLat = Math.sin(dLat / 2);
+  const sinLng = Math.sin(dLng / 2);
+
+  const h = sinLat * sinLat +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * sinLng * sinLng;
+
+  return Math.round(2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(h)));
+}
+
+/**
+ * Finds the nearest POI from a list and returns its name + distance.
+ */
+export function findNearest<T extends Coord & { name: string }>(
+  origin: Coord,
+  pois: T[]
+): { name: string; distance: number } | null {
+  if (pois.length === 0) return null;
+
+  let nearest = pois[0];
+  let minDist = haversineDistance(origin, pois[0]);
+
+  for (let i = 1; i < pois.length; i++) {
+    const dist = haversineDistance(origin, pois[i]);
+    if (dist < minDist) {
+      minDist = dist;
+      nearest = pois[i];
+    }
+  }
+
+  return { name: nearest.name, distance: minDist };
+}
+
+/**
+ * Counts POIs within a given radius (meters) from origin.
+ */
+export function countWithinRadius(origin: Coord, pois: Coord[], radiusM: number): number {
+  return pois.filter(p => haversineDistance(origin, p) <= radiusM).length;
+}
+
+/**
+ * Parses a "lat, lng" string into a Coord object.
+ * Supports both "37.2083, 127.0588" and separate lat/lng values.
+ */
+export function parseCoordString(coordStr: string): Coord | null {
+  const parts = coordStr.split(',').map(s => parseFloat(s.trim()));
+  if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+    return { lat: parts[0], lng: parts[1] };
+  }
+  return null;
+}
+
+function toRad(deg: number): number {
+  return deg * (Math.PI / 180);
+}

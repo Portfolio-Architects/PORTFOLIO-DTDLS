@@ -17,6 +17,8 @@ export default function ZoneDetailPage() {
 
   const { fieldReports } = useDashboardData();
   const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
+  const [fullReportData, setFullReportData] = useState<FieldReportData | null>(null);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
   // Comments state for modal
@@ -29,6 +31,22 @@ export default function ZoneDetailPage() {
     });
     return () => unsubscribe();
   }, []);
+
+  // Fetch full report detail data when modal opens (lazy loading)
+  useEffect(() => {
+    if (selectedReport) {
+      setIsLoadingDetail(true);
+      setFullReportData(null);
+      dashboardFacade.getFullReport(selectedReport.id).then((data) => {
+        setFullReportData(data);
+        setIsLoadingDetail(false);
+      }).catch(() => {
+        setIsLoadingDetail(false);
+      });
+    } else {
+      setFullReportData(null);
+    }
+  }, [selectedReport]);
 
   // Listen to comments when a report is selected
   useEffect(() => {
@@ -113,7 +131,7 @@ export default function ZoneDetailPage() {
                 <div key={report.id} onClick={() => setSelectedReport(report)} className="bg-white border shadow-sm border-[#e5e8eb] rounded-3xl overflow-hidden hover:border-[#3182f6]/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 flex flex-col group">
                   {coverImage ? (
                     <div className="w-full h-[200px] shrink-0 bg-[#f2f4f6] relative overflow-hidden">
-                      <img src={coverImage} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img src={coverImage} alt="Cover" loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     </div>
                   ) : (
                     <div className="w-full h-[200px] shrink-0 bg-[#f2f4f6] flex items-center justify-center relative overflow-hidden">
@@ -158,7 +176,7 @@ export default function ZoneDetailPage() {
       {/* Report Detail Modal */}
       {selectedReport && (
         <FieldReportModal 
-          report={selectedReport} 
+          report={fullReportData || selectedReport} 
           onClose={() => setSelectedReport(null)} 
           comments={commentsData[selectedReport.id] || []}
           commentInput={commentInput[selectedReport.id] || ''}
@@ -167,6 +185,7 @@ export default function ZoneDetailPage() {
           user={user}
           transactions={[]}
           typeMap={{}}
+          isLoadingDetail={isLoadingDetail}
         />
       )}
     </div>
