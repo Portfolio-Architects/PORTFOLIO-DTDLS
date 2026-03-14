@@ -415,11 +415,14 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         <p className="text-[14px] text-[#4e5968] mb-6">입력하신 실제 데이터는 소비자 대상 팩트 프리미엄 지표로 자동 가공되어 표시됩니다.</p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-2 mb-4">
-          <SelectInput 
-            name="metrics.brand" 
-            label="대표 시공사 (브랜드)" 
-            options={['래미안', '자이', '디에이치', '아크로', '롯데캐슬', '푸르지오', '힐스테이트', '아이파크', 'e편한세상', '더샵', '포레나', '기타']} 
-          />
+          <div>
+            <label className="block text-[13px] font-bold text-[#4e5968] mb-1 pl-0.5">대표 시공사 (브랜드)</label>
+            <input
+              {...register('metrics.brand')}
+              placeholder="예: 현대건설"
+              className="w-full bg-[#f9fafb] border border-[#e5e8eb] rounded-xl px-4 py-3 text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors"
+            />
+          </div>
           <NumberInput name="metrics.householdCount" label="총 세대수 (단지 규모)" placeholder="예: 1200" unit="세대" />
           <NumberInput name="metrics.yearBuilt" label="준공 연월 (연식 계산용)" placeholder="예: 2018" unit="년" />
         </div>
