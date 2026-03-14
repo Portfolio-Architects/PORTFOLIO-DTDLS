@@ -514,30 +514,23 @@ export default function Dashboard() {
     return () => unsubscribe();
   }, []);
 
-  // Fetch transaction data from Google Sheet
+  // Fetch transaction + type map data in parallel
   useEffect(() => {
-    fetch('/api/transactions')
-      .then(r => r.json())
-      .then(data => {
-        if (data.records) setAllTransactions(data.records);
-      })
-      .catch(err => console.warn('실거래가 로딩 실패:', err));
-
-    // Fetch type map
-    fetch('/api/type-map')
-      .then(r => r.json())
-      .then(data => {
-        if (data.entries) {
-          const map: Record<string, Record<string, string>> = {};
-          for (const e of data.entries) {
-            const key = normalizeAptName(e.aptName);
-            if (!map[key]) map[key] = {};
-            map[key][e.area] = e.typeName;
-          }
-          setTypeMap(map);
+    Promise.all([
+      fetch('/api/transactions').then(r => r.json()),
+      fetch('/api/type-map').then(r => r.json()),
+    ]).then(([txData, tmData]) => {
+      if (txData.records) setAllTransactions(txData.records);
+      if (tmData.entries) {
+        const map: Record<string, Record<string, string>> = {};
+        for (const e of tmData.entries) {
+          const key = normalizeAptName(e.aptName);
+          if (!map[key]) map[key] = {};
+          map[key][e.area] = e.typeName;
         }
-      })
-      .catch(err => console.warn('타입맵 로딩 실패:', err));
+        setTypeMap(map);
+      }
+    }).catch(err => console.warn('데이터 로딩 실패:', err));
   }, []);
 
   const handleLogin = async () => {
@@ -595,6 +588,17 @@ export default function Dashboard() {
     });
     return counts;
   }, [fieldReports]);
+
+  // Pre-group transactions by apartment name (O(N) once, then O(1) per card lookup)
+  const transactionsByApt = useMemo(() => {
+    const map: Record<string, TransactionRecord[]> = {};
+    for (const tx of allTransactions) {
+      const norm = normalizeAptName(tx.aptName);
+      if (!map[norm]) map[norm] = [];
+      map[norm].push(tx);
+    }
+    return map;
+  }, [allTransactions]);
 
   // Filtered reports based on dong selection
   const filteredReports = useMemo(() => {
@@ -707,7 +711,8 @@ export default function Dashboard() {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {filteredReports.map(report => {
-                  const txs = allTransactions.filter(tx => isSameApartment(report.apartmentName, tx.aptName));
+                  const normName = normalizeAptName(report.apartmentName);
+                  const txs = transactionsByApt[normName] || [];
                   const chartData = [...txs].reverse().slice(-20).map(tx => ({
                     price: Math.round(tx.price / 100) / 100,
                   }));

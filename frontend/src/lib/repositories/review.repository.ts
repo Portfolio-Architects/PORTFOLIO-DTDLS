@@ -5,7 +5,7 @@
  */
 import { db, storage } from '@/lib/firebaseConfig';
 import {
-  collection, addDoc, serverTimestamp, onSnapshot, query, orderBy,
+  collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, limit,
   doc, updateDoc, increment,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -18,7 +18,7 @@ const COLLECTION = 'user_reviews';
  * Listens to user reviews in real-time, ordered by newest first.
  */
 export function listenToReviews(callback: (reviews: UserReview[]) => void): () => void {
-  const q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'));
+  const q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'), limit(30));
   return onSnapshot(q, (snapshot) => {
     const reviews: UserReview[] = snapshot.docs.map(d => {
       const data = d.data();

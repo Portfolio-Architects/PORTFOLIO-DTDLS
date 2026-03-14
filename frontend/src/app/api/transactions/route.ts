@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 
-const SHEET_ID = '1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1AGnY7XXE7pCEE';
-const SHEET_TAB = 'DTDLS';
+import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 
-export const dynamic = 'force-dynamic';
+const SHEET_TAB = SHEET_TABS.TRANSACTIONS;
+
+// ISR: revalidate every 5 minutes (300s) instead of force-dynamic
+export const revalidate = 300;
 
 export interface TransactionRecord {
   no: number;
@@ -28,24 +30,7 @@ export interface TransactionRecord {
   housingType: string;
 }
 
-function parseCsvLine(line: string): string[] {
-  const result: string[] = [];
-  let current = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (c === '"') {
-      inQuotes = !inQuotes;
-    } else if (c === ',' && !inQuotes) {
-      result.push(current.trim());
-      current = '';
-    } else {
-      current += c;
-    }
-  }
-  result.push(current.trim());
-  return result;
-}
+
 
 function extractDong(sigungu: string): string {
   // "경기도 화성시 동탄구 능동" → "능동"
@@ -68,7 +53,7 @@ export async function GET(request: Request) {
     const dong = searchParams.get('dong'); // 동 필터 (optional)
 
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TAB)}`;
-    const res = await fetch(csvUrl, { cache: 'no-store' }); // 항상 최신 데이터
+    const res = await fetch(csvUrl, { next: { revalidate: 300 } });
 
     if (!res.ok) {
       return NextResponse.json({ error: 'Failed to fetch sheet' }, { status: 502 });
@@ -135,7 +120,7 @@ export async function GET(request: Request) {
       total: records.length,
       records,
     }, {
-      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' },
+      headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' },
     });
   } catch (error: any) {
     console.error('Transaction API error:', error);

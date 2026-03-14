@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 
-const SHEET_ID = '1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1AGnY7XXE7pCEE';
-const TYPE_MAP_TAB = 'TYPE_MAP';
+import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 
-export const dynamic = 'force-dynamic';
+const TYPE_MAP_TAB = SHEET_TABS.TYPE_MAP;
+
+export const revalidate = 600; // ISR: 10 minutes
 
 export interface TypeMapEntry {
   aptName: string;
@@ -11,29 +12,12 @@ export interface TypeMapEntry {
   typeName: string;
 }
 
-function parseCsvLine(line: string): string[] {
-  const result: string[] = [];
-  let current = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (c === '"') {
-      inQuotes = !inQuotes;
-    } else if (c === ',' && !inQuotes) {
-      result.push(current.trim());
-      current = '';
-    } else {
-      current += c;
-    }
-  }
-  result.push(current.trim());
-  return result;
-}
+
 
 export async function GET() {
   try {
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(TYPE_MAP_TAB)}`;
-    const res = await fetch(csvUrl, { cache: 'no-store' });
+    const res = await fetch(csvUrl, { next: { revalidate: 600 } });
 
     if (!res.ok) {
       console.warn('[TYPE_MAP] Sheet fetch failed, using fallback');
