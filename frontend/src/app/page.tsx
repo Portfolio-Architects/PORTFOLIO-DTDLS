@@ -845,9 +845,16 @@ export default function Dashboard() {
               <div className="flex flex-col gap-3">
                 {userReviews.map(review => (
                   <div key={review.id} className="bg-white rounded-2xl border border-[#e5e8eb] p-5 hover:shadow-md transition-shadow">
-                    {/* Header: author */}
+                    {/* Header: author + verification */}
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-[13px] font-bold text-[#191f28]">{review.author}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[13px] font-bold text-[#191f28]">{review.author}</span>
+                        {review.verifiedApartment && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#e8f3ff] text-[#3182f6] px-2 py-0.5 rounded-md">
+                            <ShieldCheck size={11} /> {review.verifiedApartment.replace(/\[.*?\]\s*/, '')}
+                          </span>
+                        )}
+                      </div>
                       <span className="text-[11px] text-[#8b95a1]">{review.createdAt}</span>
                     </div>
 

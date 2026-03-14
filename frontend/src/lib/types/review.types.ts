@@ -22,10 +22,10 @@ export interface UserReview {
   author: string;
   /** 작성자 UID */
   authorUid: string;
-  /** 작성자 레벨 칭호 */
-  authorLevel?: string;
-  /** 작성자 레벨 배지 */
-  authorBadge?: string;
+  /** 인증 아파트명 */
+  verifiedApartment?: string;
+  /** 인증 레벨 (self_declared | registry_verified) */
+  verificationLevel?: string;
   /** 좋아요 수 */
   likes: number;
   /** 작성 시각 */

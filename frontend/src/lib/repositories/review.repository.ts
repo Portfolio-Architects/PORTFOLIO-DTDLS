@@ -33,8 +33,8 @@ export function listenToReviews(callback: (reviews: UserReview[]) => void): () =
         photoURL: data.photoURL,
         author: data.author || data.authorName || '익명',
         authorUid: data.authorUid || '',
-        authorLevel: data.authorLevel,
-        authorBadge: data.authorBadge,
+        verifiedApartment: data.verifiedApartment || '',
+        verificationLevel: data.verificationLevel || '',
         likes: data.likes || 0,
         createdAt: data.createdAt?.toDate?.()?.toLocaleDateString?.('ko-KR') || '',
       };
@@ -52,8 +52,8 @@ export async function addReview(
   content: string,
   authorNickname: string,
   authorUid: string,
-  authorLevel?: string,
-  authorBadge?: string,
+  verifiedApartment?: string,
+  verificationLevel?: string,
   imageFile?: File,
 ): Promise<void> {
   let photoURL: string | undefined;
@@ -76,8 +76,8 @@ export async function addReview(
     photoURL: photoURL || null,
     author: authorNickname,
     authorUid,
-    authorLevel: authorLevel || '새내기',
-    authorBadge: authorBadge || '🌱',
+    verifiedApartment: verifiedApartment || '',
+    verificationLevel: verificationLevel || '',
     likes: 0,
     createdAt: serverTimestamp(),
   });

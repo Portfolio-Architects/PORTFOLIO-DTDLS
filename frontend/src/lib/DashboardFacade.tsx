@@ -230,9 +230,13 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   async addUserReview(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File) {
     try {
       const profile = await UserRepo.getOrCreateProfile(authorUid);
-      const levelInfo = computeUserLevel(profile.reviewCount || 0);
-      await ReviewRepo.addReview(apartmentName, rating, content, profile.nickname, authorUid, levelInfo.title, levelInfo.badge, imageFile);
-      await UserRepo.incrementReviewCount(authorUid);
+      const displayName = profile.frontName && profile.nickname
+        ? `${profile.frontName} ${profile.nickname}`
+        : profile.nickname || '익명';
+      await ReviewRepo.addReview(
+        apartmentName, rating, content, displayName, authorUid,
+        profile.verifiedApartment, profile.verificationLevel, imageFile
+      );
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       logger.error('DashboardFacade.addUserReview', 'Review failed', { apartmentName }, e);
