@@ -6,13 +6,13 @@
  */
 import imageCompression from 'browser-image-compression';
 
-/** Compression options — QHD max, high visual quality */
+/** Compression options — FHD max, optimized for mobile */
 const COMPRESSION_OPTIONS = {
-  maxSizeMB: 2,                // Target max ~2MB per image
-  maxWidthOrHeight: 2560,      // QHD — sharp even on 4K displays
+  maxSizeMB: 1,                // Target max ~1MB per image
+  maxWidthOrHeight: 1920,      // FHD — sharp on mobile & most displays
   useWebWorker: true,          // Non-blocking compression
   fileType: 'image/jpeg' as const,
-  initialQuality: 0.85,       // Near-lossless visual quality
+  initialQuality: 0.82,        // High visual quality, smaller file
 };
 
 /**
