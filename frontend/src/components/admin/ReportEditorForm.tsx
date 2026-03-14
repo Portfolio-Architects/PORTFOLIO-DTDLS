@@ -379,7 +379,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
-            <label className="block text-[14px] font-bold text-[#4e5968] mb-2">행정동 / 권역 선택 <span className="text-[#f04452]">*</span></label>
+            <label className="block text-[14px] font-bold text-[#4e5968] mb-2">행정동 선택 <span className="text-[#f04452]">*</span></label>
             <SelectInput 
               name="dong" 
               label="" 
@@ -408,10 +408,65 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
 
       {/* 2. Objective Metrics Section */}
       <section className="mb-12 bg-[#f9fafb] -mx-6 md:-mx-8 px-6 md:px-8 py-8 border-y border-[#e5e8eb]">
-        <h3 className="text-[18px] font-bold text-[#191f28] mb-6 flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-white text-[#4e5968] shadow-sm flex items-center justify-center text-[12px]">2</span>
-          객관적 지표 통계
-        </h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2">
+            <span className="w-6 h-6 rounded-full bg-white text-[#4e5968] shadow-sm flex items-center justify-center text-[12px]">2</span>
+            객관적 지표 통계
+          </h3>
+          <button
+            type="button"
+            disabled={isCalculating}
+            onClick={async () => {
+              const aptName = getValues('apartmentName');
+              if (!aptName) { alert('먼저 아파트를 선택해주세요.'); return; }
+              setIsCalculating(true);
+              try {
+                const res = await fetch(`/api/location-scores?apartment=${encodeURIComponent(aptName)}`);
+                if (!res.ok) {
+                  alert('좌표 데이터를 찾을 수 없습니다.');
+                  return;
+                }
+                const loc = await res.json();
+
+                // 위치 거리
+                if (loc.distanceToElementary != null) setValue('metrics.distanceToElementary', String(loc.distanceToElementary));
+                if (loc.distanceToMiddle != null) setValue('metrics.distanceToMiddle', String(loc.distanceToMiddle));
+                if (loc.distanceToHigh != null) setValue('metrics.distanceToHigh', String(loc.distanceToHigh));
+                if (loc.distanceToSubway != null) setValue('metrics.distanceToSubway', String(loc.distanceToSubway));
+                if (loc.academyDensity != null) setValue('metrics.academyDensity', String(loc.academyDensity));
+
+                // 건물 정보 (시트 C~H열)
+                const bld = loc.buildingInfo;
+                if (bld) {
+                  if (bld.brand) setValue('metrics.brand', bld.brand);
+                  if (bld.householdCount) setValue('metrics.householdCount', String(bld.householdCount));
+                  if (bld.yearBuilt) setValue('metrics.yearBuilt', String(bld.yearBuilt));
+                  if (bld.far) setValue('metrics.far', String(bld.far));
+                  if (bld.bcr) setValue('metrics.bcr', String(bld.bcr));
+                  if (bld.parkingPerHousehold) setValue('metrics.parkingPerHousehold', String(bld.parkingPerHousehold));
+                }
+
+                const bldMsg = bld?.householdCount
+                  ? `\n\n🏢 건물 정보\n시공사: ${bld.brand ?? '-'}\n세대수: ${bld.householdCount}\n준공: ${bld.yearBuilt ?? '-'}\n용적률: ${bld.far ?? '-'}%\n건폐율: ${bld.bcr ?? '-'}%\n주차: ${bld.parkingPerHousehold ?? '-'}대/세대`
+                  : '\n\n⚠️ 건물 정보 없음 (시트 C~H열 입력 필요)';
+
+                alert(`✅ 자동 출력 완료!\n📍 위치\n초등: ${loc.nearestSchools?.elementary?.name || '-'} (${loc.distanceToElementary ?? '-'}m)\n중학: ${loc.nearestSchools?.middle?.name || '-'} (${loc.distanceToMiddle ?? '-'}m)\n고등: ${loc.nearestSchools?.high?.name || '-'} (${loc.distanceToHigh ?? '-'}m)\n역: ${loc.nearestStation?.name || '-'} (${loc.distanceToSubway ?? '-'}m)\n학원: ${loc.academyDensity}개 (반경 1km)${bldMsg}`);
+              } catch (e) {
+                alert('자동 출력 중 오류가 발생했습니다.');
+                console.error(e);
+              } finally {
+                setIsCalculating(false);
+              }
+            }}
+            className="px-5 py-2.5 bg-[#e8f3ff] hover:bg-[#d0e8ff] text-[#3182f6] font-bold text-[13px] rounded-xl transition-all flex items-center gap-2 disabled:opacity-50"
+          >
+            {isCalculating ? (
+              <><div className="w-4 h-4 border-2 border-[#3182f6] border-t-transparent rounded-full animate-spin" /> 불러오는 중...</>
+            ) : (
+              <>📍 단지 정보 자동 출력</>
+            )}
+          </button>
+        </div>
         <p className="text-[14px] text-[#4e5968] mb-6">입력하신 실제 데이터는 소비자 대상 팩트 프리미엄 지표로 자동 가공되어 표시됩니다.</p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-2 mb-4">
@@ -434,61 +489,6 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-2 mb-4">
-          <div className="md:col-span-3 mb-2">
-            <button
-              type="button"
-              disabled={isCalculating}
-              onClick={async () => {
-                const aptName = getValues('apartmentName');
-                if (!aptName) { alert('먼저 아파트를 선택해주세요.'); return; }
-                setIsCalculating(true);
-                try {
-                  const res = await fetch(`/api/location-scores?apartment=${encodeURIComponent(aptName)}`);
-                  if (!res.ok) {
-                    alert('좌표 데이터를 찾을 수 없습니다.');
-                    return;
-                  }
-                  const loc = await res.json();
-
-                  // 위치 거리
-                  if (loc.distanceToElementary != null) setValue('metrics.distanceToElementary', String(loc.distanceToElementary));
-                  if (loc.distanceToMiddle != null) setValue('metrics.distanceToMiddle', String(loc.distanceToMiddle));
-                  if (loc.distanceToHigh != null) setValue('metrics.distanceToHigh', String(loc.distanceToHigh));
-                  if (loc.distanceToSubway != null) setValue('metrics.distanceToSubway', String(loc.distanceToSubway));
-                  if (loc.academyDensity != null) setValue('metrics.academyDensity', String(loc.academyDensity));
-
-                  // 건물 정보 (시트 C~H열)
-                  const bld = loc.buildingInfo;
-                  if (bld) {
-                    if (bld.brand) setValue('metrics.brand', bld.brand);
-                    if (bld.householdCount) setValue('metrics.householdCount', String(bld.householdCount));
-                    if (bld.yearBuilt) setValue('metrics.yearBuilt', String(bld.yearBuilt));
-                    if (bld.far) setValue('metrics.far', String(bld.far));
-                    if (bld.bcr) setValue('metrics.bcr', String(bld.bcr));
-                    if (bld.parkingPerHousehold) setValue('metrics.parkingPerHousehold', String(bld.parkingPerHousehold));
-                  }
-
-                  const bldMsg = bld?.householdCount
-                    ? `\n\n🏢 건물 정보\n시공사: ${bld.brand ?? '-'}\n세대수: ${bld.householdCount}\n준공: ${bld.yearBuilt ?? '-'}\n용적률: ${bld.far ?? '-'}%\n건폐율: ${bld.bcr ?? '-'}%\n주차: ${bld.parkingPerHousehold ?? '-'}대/세대`
-                    : '\n\n⚠️ 건물 정보 없음 (시트 C~H열 입력 필요)';
-
-                  alert(`✅ 자동 계산 완료!\n📍 위치\n초등: ${loc.nearestSchools?.elementary?.name || '-'} (${loc.distanceToElementary ?? '-'}m)\n중학: ${loc.nearestSchools?.middle?.name || '-'} (${loc.distanceToMiddle ?? '-'}m)\n고등: ${loc.nearestSchools?.high?.name || '-'} (${loc.distanceToHigh ?? '-'}m)\n역: ${loc.nearestStation?.name || '-'} (${loc.distanceToSubway ?? '-'}m)\n학원: ${loc.academyDensity}개 (반경 1km)${bldMsg}`);
-                } catch (e) {
-                  alert('자동 계산 중 오류가 발생했습니다.');
-                  console.error(e);
-                } finally {
-                  setIsCalculating(false);
-                }
-              }}
-              className="px-5 py-2.5 bg-[#e8f3ff] hover:bg-[#d0e8ff] text-[#3182f6] font-bold text-[13px] rounded-xl transition-all flex items-center gap-2 disabled:opacity-50"
-            >
-              {isCalculating ? (
-                <><div className="w-4 h-4 border-2 border-[#3182f6] border-t-transparent rounded-full animate-spin" /> 계산 중...</>
-              ) : (
-                <>📍 단지 정보 자동 계산</>
-              )}
-            </button>
-          </div>
           <NumberInput name="metrics.distanceToElementary" label="초등학교 통학거리 (초품아 여부)" placeholder="예: 300" unit="m" />
           <NumberInput name="metrics.distanceToMiddle" label="중학교 통학거리" placeholder="예: 800" unit="m" />
           <NumberInput name="metrics.distanceToHigh" label="고등학교 통학거리" placeholder="예: 1200" unit="m" />
