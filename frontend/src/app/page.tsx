@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Scatter } from 'recharts';
+import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Scatter, Bar, ReferenceDot } from 'recharts';
 
 // Lazy-loaded heavy chart components (reduces initial bundle ~40KB)
 const MainChart = dynamic(() => import('@/components/MainChart'), { ssr: false });
@@ -281,6 +281,7 @@ export function FieldReportModal({
                      return {
                        ts: new Date(year, month - 1, 15).getTime(), // 매월 15일 중앙값
                        monthAvg: Math.round(getAvg(prices) * 1000) / 1000,
+                       volume: prices.length,
                      };
                    })
                    .sort((a, b) => a.ts - b.ts);
@@ -291,6 +292,10 @@ export function FieldReportModal({
                  const avgP = prices.reduce((a, b) => a + b, 0) / prices.length;
                  const domainMin = Math.floor(minP * 10) / 10 - 0.3;
                  const domainMax = Math.ceil(maxP * 10) / 10 + 0.3;
+
+                 // 최고/최저가 식별
+                 const maxPoint = [...scatterData].sort((a,b) => b.price === a.price ? b.ts - a.ts : b.price - a.price)[0];
+                 const minPoint = [...scatterData].sort((a,b) => a.price === b.price ? b.ts - a.ts : a.price - b.price)[0];
 
                  return (
                    <div className="mt-4 bg-white rounded-2xl p-4 ring-1 ring-black/5 flex-1">
@@ -326,11 +331,11 @@ export function FieldReportModal({
                      {/* Chart */}
                      <div className="h-[200px]">
                        <ResponsiveContainer width="100%" height="100%">
-                         <ComposedChart margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                         <ComposedChart data={monthlyData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                            <defs>
                              <linearGradient id="priceGradModal" x1="0" y1="0" x2="0" y2="1">
-                               <stop offset="5%" stopColor="#3182f6" stopOpacity={0.12}/>
-                               <stop offset="95%" stopColor="#3182f6" stopOpacity={0.01}/>
+                               <stop offset="5%" stopColor="#4A6CF7" stopOpacity={0.12}/>
+                               <stop offset="95%" stopColor="#4A6CF7" stopOpacity={0.01}/>
                              </linearGradient>
                            </defs>
                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e8eb" vertical={false} />
@@ -339,61 +344,133 @@ export function FieldReportModal({
                              type="number"
                              scale="time"
                              domain={['dataMin', 'dataMax']}
-                             tick={{ fill: '#8b95a1', fontSize: 9 }}
-                             axisLine={false}
+                             tick={{ fill: '#8b95a1', fontSize: 10, fontWeight: 600 }}
+                             axisLine={{ stroke: '#e5e8eb' }}
                              tickLine={false}
                              tickFormatter={(ts: number) => {
                                const d = new Date(ts);
-                               return `${String(d.getFullYear()).slice(2)}.${String(d.getMonth() + 1).padStart(2, '0')}`;
+                               return `${String(d.getFullYear())}.${String(d.getMonth() + 1).padStart(2, '0')}`;
                              }}
                              allowDuplicatedCategory={false}
+                             tickMargin={8}
                            />
                            <YAxis
+                             yAxisId="price"
+                             orientation="left"
                              domain={[Math.max(0, domainMin), domainMax]}
-                             tick={{ fill: '#8b95a1', fontSize: 10 }}
+                             tick={{ fill: '#8b95a1', fontSize: 11, fontWeight: 600 }}
                              axisLine={false}
                              tickLine={false}
-                             width={45}
-                             tickFormatter={(v: number) => `${v.toFixed(1)}억`}
+                             width={40}
+                             tickFormatter={(v: number) => `${v.toFixed(0)}억`}
+                             dx={-5}
+                           />
+                           <YAxis
+                             yAxisId="volume"
+                             orientation="right"
+                             domain={[0, 'dataMax * 4']} // 바 차트 높이를 아래 25% 정도로 제한
+                             hide={true} // 축 숫자는 숨김
                            />
                            <RechartsTooltip
-                             contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e5e8eb', fontSize: '12px', fontWeight: 'bold', color: '#191f28', padding: '8px 12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                             itemStyle={{ color: '#191f28', padding: 0 }}
-                             labelStyle={{ color: '#8b95a1', marginBottom: '4px', fontSize: '10px' }}
+                             contentStyle={{ backgroundColor: '#215cbb', borderRadius: '4px', border: 'none', fontSize: '13px', fontWeight: 'bold', color: '#fff', padding: '6px 12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                             itemStyle={{ color: '#fff', padding: 0 }}
+                             labelStyle={{ color: 'rgba(255,255,255,0.8)', marginBottom: '4px', fontSize: '11px', fontWeight: 500 }}
                              labelFormatter={(label: any, payload: any) => {
                                const item = payload?.[0]?.payload;
-                               return item?.fullDate ? `📅 ${item.fullDate}` : `📅 ${new Date(label).getFullYear()}.${String(new Date(label).getMonth() + 1).padStart(2,'0')}월 추세`;
+                               return item?.fullDate ? `${item.fullDate}` : `${new Date(label).getFullYear()}.${String(new Date(label).getMonth() + 1).padStart(2,'0')}월 평균`;
                              }}
                              formatter={(value: any, name: any, props: any) => {
                                const item = props?.payload;
-                               if (name === 'monthAvg') return [`평균가 ${value.toFixed(2)}억`, ''];
-                               return [`${item?.priceEok || value + '억'}  ·  ${item?.area || '-'}평  ·  ${item?.floor || '-'}층`, ''];
+                               if (name === 'volume') return [`${value}건`, '거래량'];
+                               if (name === 'monthAvg') return [`${value.toFixed(2)}억`, ''];
+                               return [`${item?.priceEok || value + '억'} (${item?.area || '-'}평 ${item?.floor || '-'}층)`, ''];
                              }}
-                             cursor={{ stroke: '#3182f6', strokeWidth: 1, strokeDasharray: '4 4' }}
+                             cursor={{ stroke: '#8b95a1', strokeWidth: 1, strokeDasharray: '2 2' }}
+                           />
+                           {/* 거래량 바 그래프 */}
+                           <Bar
+                             dataKey="volume"
+                             yAxisId="volume"
+                             fill="#e5e8eb"
+                             barSize={12}
+                             radius={[2, 2, 0, 0]}
                            />
                            {/* 월별 평균값 추세선 */}
                            <Area
-                             data={monthlyData}
                              type="monotone"
                              dataKey="monthAvg"
-                             stroke="#3182f6"
-                             strokeWidth={2.5}
+                             yAxisId="price"
+                             stroke="#4A6CF7"
+                             strokeWidth={3}
                              fill="url(#priceGradModal)"
                              dot={false}
                              activeDot={false}
                              connectNulls
                            />
-                           {/* 개별 거래 점 */}
+                           {/* 개별 거래 점 (호갱노노 스타일) */}
                            <Scatter
                              data={scatterData}
                              dataKey="price"
-                             fill="#3182f6"
+                             yAxisId="price"
+                             fill="#4A6CF7"
                              shape={(props: any) => {
                                const { cx, cy } = props;
                                if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
-                               return <circle cx={cx} cy={cy} r={3} fill="#3182f6" fillOpacity={0.4} stroke="#fff" strokeWidth={0.8} />;
+                               return (
+                                 <circle 
+                                   cx={cx} cy={cy} r={4.5} 
+                                   fill="#4A6CF7" 
+                                   stroke="#fff" 
+                                   strokeWidth={2} 
+                                   style={{ filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.1))' }}
+                                 />
+                               );
                              }}
                            />
+                           {/* 최고가 핀 마커 */}
+                           {maxPoint && (
+                             <ReferenceDot
+                               x={maxPoint.ts}
+                               y={maxPoint.price}
+                               yAxisId="price"
+                               r={4.5}
+                               fill="#EF4444"
+                               stroke="#fff"
+                               strokeWidth={2}
+                               label={({ viewBox }: any) => {
+                                 const { cx, cy } = viewBox;
+                                 return (
+                                   <g>
+                                     <rect x={cx - 30} y={cy - 28} width={60} height={18} fill="#EF4444" rx={4} />
+                                     <polygon points={`${cx - 4},${cy - 10} ${cx + 4},${cy - 10} ${cx},${cy - 4}`} fill="#EF4444" />
+                                     <text x={cx} y={cy - 15} fill="#fff" fontSize="9" fontWeight="bold" textAnchor="middle">최고 {maxPoint.price}억</text>
+                                   </g>
+                                 );
+                               }}
+                             />
+                           )}
+                           {/* 최저가 핀 마커 */}
+                           {minPoint && minPoint !== maxPoint && (
+                             <ReferenceDot
+                               x={minPoint.ts}
+                               y={minPoint.price}
+                               yAxisId="price"
+                               r={4.5}
+                               fill="#3B82F6"
+                               stroke="#fff"
+                               strokeWidth={2}
+                               label={({ viewBox }: any) => {
+                                 const { cx, cy } = viewBox;
+                                 return (
+                                   <g>
+                                     <rect x={cx - 30} y={cy + 10} width={60} height={18} fill="#3B82F6" rx={4} />
+                                     <polygon points={`${cx - 4},${cy + 10} ${cx + 4},${cy + 10} ${cx},${cy + 4}`} fill="#3B82F6" />
+                                     <text x={cx} y={cy + 23} fill="#fff" fontSize="9" fontWeight="bold" textAnchor="middle">최저 {minPoint.price}억</text>
+                                   </g>
+                                 );
+                               }}
+                             />
+                           )}
                          </ComposedChart>
                        </ResponsiveContainer>
                      </div>
