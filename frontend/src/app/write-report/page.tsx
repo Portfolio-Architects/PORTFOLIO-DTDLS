@@ -668,6 +668,22 @@ export default function WriteFieldReport() {
               이전
            </button>
         )}
+        <button
+          type="button"
+          onClick={() => {
+            try {
+              const draft = { step, selectedDong, reportAptName, sections, savedAt: Date.now() };
+              localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+              setLastSaved(new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }));
+              alert('✅ 임시 저장되었습니다!');
+            } catch {
+              alert('임시 저장에 실패했습니다.');
+            }
+          }}
+          className="py-3.5 px-4 rounded-xl font-bold bg-[#f2f4f6] text-[#4e5968] active:bg-[#e5e8eb] transition-colors text-[14px]"
+        >
+          💾 저장
+        </button>
         {step < 6 ? (
            <button onClick={handleNextStep} className="flex-1 py-3.5 rounded-xl font-bold bg-[#3182f6] text-white active:scale-[0.98] transition-transform text-[14px]">
               다음 단계로
