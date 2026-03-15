@@ -229,9 +229,14 @@ export function FieldReportModal({
                    let priceEokNum = tx.price / 10000;
                    if (priceEokNum > 100) priceEokNum = tx.price / 100000000;
                    const ym = tx.contractYm; // e.g. '202511'
+                   const year = parseInt(ym.slice(0, 4));
+                   const month = parseInt(ym.slice(4));
+                   const day = parseInt(tx.contractDay) || 15;
+                   const ts = new Date(year, month - 1, day).getTime();
                    return {
+                     ts,
                      date: `${ym.slice(2,4)}.${ym.slice(4)}`,
-                     fullDate: `${ym.slice(0,4)}.${ym.slice(4)}.${tx.contractDay}`,
+                     fullDate: `${year}.${String(month).padStart(2,'0')}.${String(day).padStart(2,'0')}`,
                      yearMonth: parseInt(ym),
                      price: Math.round(priceEokNum * 1000) / 1000,
                      area: tx.areaPyeong,
@@ -327,11 +332,17 @@ export function FieldReportModal({
                            </defs>
                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e8eb" vertical={false} />
                            <XAxis
-                             dataKey="date"
+                             dataKey="ts"
+                             type="number"
+                             scale="time"
+                             domain={['dataMin', 'dataMax']}
                              tick={{ fill: '#8b95a1', fontSize: 9 }}
                              axisLine={false}
                              tickLine={false}
-                             interval={Math.max(1, Math.floor(enrichedData.length / 7))}
+                             tickFormatter={(ts: number) => {
+                               const d = new Date(ts);
+                               return `${String(d.getFullYear()).slice(2)}.${String(d.getMonth() + 1).padStart(2, '0')}`;
+                             }}
                            />
                            <YAxis
                              domain={[Math.max(0, domainMin), domainMax]}
