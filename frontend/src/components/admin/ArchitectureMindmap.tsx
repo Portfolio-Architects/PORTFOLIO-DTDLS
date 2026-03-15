@@ -1,6 +1,9 @@
 'use client';
 
 import { useRef, useCallback, useMemo, useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
+
+const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), { ssr: false });
 
 interface GraphNode {
   id: string;
@@ -9,7 +12,6 @@ interface GraphNode {
   color: string;
   x?: number;
   y?: number;
-  z?: number;
 }
 
 interface GraphLink {
@@ -113,237 +115,200 @@ const FALLBACK_LINKS: GraphLink[] = [
   { source: 'Post', target: 'User', strength: 0.7 },
   { source: 'Chart', target: 'Transaction', strength: 0.7 },
   { source: 'Modal', target: 'Report', strength: 0.8 },
-  { source: 'Modal', target: 'React', strength: 0.5 },
-  { source: 'FloatingBar', target: 'User', strength: 0.6 },
-  { source: 'Map', target: 'Haversine', strength: 0.6 },
+  { source: 'FloatingBar', target: '임장기', strength: 0.5 },
+  { source: '사진DB', target: 'ImageCompression', strength: 0.8 },
 ];
 
-// Category labels — softer pastel palette for light theme
-const GROUP_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  core:    { label: '코어 기술', color: '#D97706', bg: '#FEF3C7' },
-  page:    { label: '페이지', color: '#4F46E5', bg: '#EEF2FF' },
-  data:    { label: '데이터', color: '#DB2777', bg: '#FCE7F3' },
-  api:     { label: 'API', color: '#059669', bg: '#D1FAE5' },
-  service: { label: '서비스', color: '#EA580C', bg: '#FFEDD5' },
-  feature: { label: '기능', color: '#16A34A', bg: '#DCFCE7' },
-  ui:      { label: 'UI', color: '#4F46E5', bg: '#E0E7FF' },
+const GROUP_META: Record<string, { label: string; color: string }> = {
+  core:    { label: '코어 기술',    color: '#6366F1' },
+  page:    { label: '페이지',      color: '#3B82F6' },
+  data:    { label: '데이터 모델',  color: '#EC4899' },
+  api:     { label: 'API',         color: '#10B981' },
+  service: { label: '서비스/유틸',  color: '#F59E0B' },
+  feature: { label: '기능',        color: '#8B5CF6' },
+  ui:      { label: 'UI 컴포넌트', color: '#06B6D4' },
 };
 
 export default function ArchitectureMindmap() {
-  const containerRef = useRef<HTMLDivElement>(null);
   const fgRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [hoverNode, setHoverNode] = useState<GraphNode | null>(null);
-  const [Component, setComponent] = useState<any>(null);
-  const [nodes, setNodes] = useState<GraphNode[]>(FALLBACK_NODES);
-  const [links, setLinks] = useState<GraphLink[]>(FALLBACK_LINKS);
-  const [dataSource, setDataSource] = useState<'fallback' | 'sheets'>('fallback');
+  const [graphData, setGraphData] = useState<{ nodes: GraphNode[]; links: GraphLink[] }>({ nodes: FALLBACK_NODES, links: FALLBACK_LINKS });
+  const [dataSource, setDataSource] = useState<'local' | 'sheets'>('local');
 
+  // Fetch from Google Sheets
   useEffect(() => {
-    import('react-force-graph-3d').then(mod => {
-      setComponent(() => mod.default);
-    });
-  }, []);
-
-  // Fetch data from Google Sheets API
-  useEffect(() => {
-    fetch('/api/mindmap')
-      .then(res => res.json())
-      .then(data => {
-        if (data.nodes?.length > 0 && data.links?.length > 0) {
-          setNodes(data.nodes);
-          setLinks(data.links);
+    (async () => {
+      try {
+        const res = await fetch('/api/mindmap');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.nodes?.length > 0) {
+          setGraphData({ nodes: data.nodes, links: data.links || [] });
           setDataSource('sheets');
         }
-      })
-      .catch(() => {});
+      } catch { /* use fallback */ }
+    })();
   }, []);
 
-  const graphData = useMemo(() => ({
-    nodes: nodes.map(n => ({ ...n })),
-    links: links.map(l => ({ ...l })),
-  }), [nodes, links]);
-
+  // Highlighted neighbors
   const highlightNodes = useMemo(() => {
     if (!hoverNode) return new Set<string>();
-    const connected = new Set<string>([hoverNode.id]);
-    links.forEach(l => {
-      const sId = typeof l.source === 'string' ? l.source : (l.source as any).id;
-      const tId = typeof l.target === 'string' ? l.target : (l.target as any).id;
-      if (sId === hoverNode.id) connected.add(tId);
-      if (tId === hoverNode.id) connected.add(sId);
+    const s = new Set<string>([hoverNode.id]);
+    graphData.links.forEach((link) => {
+      const sId = typeof link.source === 'string' ? link.source : (link.source as any)?.id;
+      const tId = typeof link.target === 'string' ? link.target : (link.target as any)?.id;
+      if (sId === hoverNode.id) s.add(tId);
+      if (tId === hoverNode.id) s.add(sId);
     });
-    return connected;
-  }, [hoverNode, links]);
+    return s;
+  }, [hoverNode, graphData.links]);
 
-  // Light-theme node rendering
-  const nodeThreeObject = useCallback((node: any) => {
-    if (typeof window === 'undefined') return null;
-    const THREE = require('three');
-    const size = 2 + node.weight * 1.1;
-    const isHighlighted = !hoverNode || highlightNodes.has(node.id);
-    const opacity = isHighlighted ? 0.85 : 0.12;
+  // Canvas-based node rendering (2D)
+  const nodeCanvasObject = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+    const r = 3 + (node.weight || 3) * 1.8;
+    const isHovered = hoverNode?.id === node.id;
+    const isNeighbor = highlightNodes.has(node.id);
+    const dimmed = hoverNode && !isHovered && !isNeighbor;
 
-    // Soft sphere with subtle glow
-    const geometry = new THREE.SphereGeometry(size, 20, 20);
-    const material = new THREE.MeshLambertMaterial({
-      color: node.color,
-      transparent: true,
-      opacity,
-    });
-    const sphere = new THREE.Mesh(geometry, material);
+    // Circle
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, r, 0, 2 * Math.PI);
+    ctx.fillStyle = dimmed ? `${node.color}30` : node.color;
+    ctx.fill();
 
-    // Text label with dark text for readability on light bg
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d')!;
-    canvas.width = 256;
-    canvas.height = 64;
-    ctx.font = 'bold 22px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = isHighlighted ? '#1F2937' : 'rgba(100,100,100,0.15)';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(node.id, 128, 32);
+    // Glow on hover
+    if (isHovered) {
+      ctx.shadowColor = node.color;
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, r + 2, 0, 2 * Math.PI);
+      ctx.strokeStyle = node.color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
 
-    const texture = new THREE.CanvasTexture(canvas);
-    const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true });
-    const sprite = new THREE.Sprite(spriteMaterial);
-    sprite.scale.set(size * 4, size * 1.2, 1);
-    sprite.position.set(0, size + 2.5, 0);
-
-    const group = new THREE.Group();
-    group.add(sphere);
-    group.add(sprite);
-    return group;
+    // Label (only when zoomed enough or hovered/neighbor)
+    const showLabel = globalScale > 1.2 || isHovered || isNeighbor;
+    if (showLabel) {
+      const fontSize = isHovered ? 12 : Math.max(9, 11 / globalScale);
+      ctx.font = `${isHovered ? 'bold ' : '600 '}${fontSize}px -apple-system, "Pretendard", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = dimmed ? '#C0C0C0' : '#374151';
+      ctx.fillText(node.id, node.x, node.y + r + 3);
+    }
   }, [hoverNode, highlightNodes]);
 
-  const handleEngineStop = useCallback(() => {
-    if (fgRef.current) {
-      fgRef.current.d3Force('charge')?.strength((node: any) => -30 * (node.weight || 1));
-      fgRef.current.d3Force('center')?.strength(0.05);
-    }
-  }, []);
+  // Link colors
+  const linkColor = useCallback((link: any) => {
+    if (!hoverNode) return 'rgba(180,180,200,0.2)';
+    const sId = typeof link.source === 'string' ? link.source : link.source?.id;
+    const tId = typeof link.target === 'string' ? link.target : link.target?.id;
+    if (highlightNodes.has(sId) && highlightNodes.has(tId)) return 'rgba(99,102,241,0.6)';
+    return 'rgba(200,200,210,0.05)';
+  }, [hoverNode, highlightNodes]);
 
+  const linkWidth = useCallback((link: any) => {
+    if (!hoverNode) return 0.5;
+    const sId = typeof link.source === 'string' ? link.source : link.source?.id;
+    const tId = typeof link.target === 'string' ? link.target : link.target?.id;
+    if (highlightNodes.has(sId) && highlightNodes.has(tId)) return 2;
+    return 0.15;
+  }, [hoverNode, highlightNodes]);
+
+  // Zoom to fit on load
   useEffect(() => {
     if (fgRef.current) {
-      setTimeout(() => fgRef.current?.zoomToFit(500, 100), 1500);
-      // Force light background on Three.js renderer & scene
-      try {
-        const THREE = require('three');
-        const renderer = fgRef.current.renderer();
-        const scene = fgRef.current.scene();
-        if (renderer) {
-          renderer.setClearColor(new THREE.Color('#FAFAFA'), 1);
-        }
-        if (scene) {
-          scene.background = new THREE.Color('#FAFAFA');
-        }
-      } catch { /* silent */ }
+      setTimeout(() => {
+        fgRef.current?.d3Force('charge')?.strength((node: any) => -60 * (node.weight || 1));
+        fgRef.current?.d3Force('center')?.strength(0.05);
+        fgRef.current?.d3Force('link')?.distance((link: any) => 40 + (1 - (link.strength || 0.5)) * 60);
+      }, 100);
+      setTimeout(() => fgRef.current?.zoomToFit(600, 60), 2000);
     }
-  }, [Component]);
-
-  if (!Component) {
-    return (
-      <div className="w-full h-[500px] rounded-3xl bg-[#FAFAFA] border border-[#E5E7EB] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-[#D1D5DB] border-t-[#6366F1] rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-[#9CA3AF] text-[13px] font-medium">3D 마인드맵 불러오는 중...</p>
-        </div>
-      </div>
-    );
-  }
+  }, [graphData]);
 
   return (
     <div className="relative w-full rounded-3xl overflow-hidden border border-[#E5E7EB] bg-[#FAFAFA] shadow-sm">
-      {/* Header — casual style */}
+      {/* Header */}
       <div className="absolute top-5 left-6 z-10">
         <h3 className="text-[17px] font-extrabold text-[#1F2937] mb-0.5 tracking-tight">
           🧠 앱 아키텍처 맵
         </h3>
         <p className="text-[11px] text-[#9CA3AF] font-medium">
-          드래그로 회전 · 스크롤로 줌 · 노드 호버로 연결 탐색
-          <span className="ml-2 px-1.5 py-0.5 rounded-md bg-[#F3F4F6] text-[9px] text-[#6B7280] font-bold">
-            {dataSource === 'sheets' ? '📊 Sheets 연동' : '💾 로컬'}
-          </span>
+          드래그로 이동 · 스크롤로 줌 · 노드 호버 시 연결 관계 표시
+          {dataSource === 'sheets' && (
+            <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-[#F3F4F6] text-[#6B7280] font-bold">📊 Google Sheets</span>
+          )}
         </p>
       </div>
 
-      {/* Legend — pill chips */}
-      <div className="absolute top-5 right-6 z-10 flex flex-wrap gap-1 max-w-[220px] justify-end">
-        {Object.entries(GROUP_LABELS).map(([key, { label, color, bg }]) => (
-          <span
-            key={key}
-            className="flex items-center gap-1 text-[10px] font-bold rounded-full px-2.5 py-1 border"
-            style={{ backgroundColor: bg, color, borderColor: `${color}30` }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
+      {/* Legend */}
+      <div className="absolute top-5 right-6 z-10 flex flex-wrap gap-1.5 justify-end max-w-[200px]">
+        {Object.entries(GROUP_META).map(([key, { label, color }]) => (
+          <span key={key} className="inline-flex items-center gap-1 bg-white/80 backdrop-blur-sm border border-[#E5E7EB] px-2 py-0.5 rounded-full text-[10px] font-bold text-[#4B5563] whitespace-nowrap">
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
             {label}
           </span>
         ))}
       </div>
 
-      {/* Hover Info — floating card */}
+      {/* Hover Info Card */}
       {hoverNode && (
-        <div className="absolute bottom-5 left-6 z-10 bg-white/90 backdrop-blur-md rounded-2xl px-5 py-3.5 shadow-lg border border-[#E5E7EB] max-w-[260px]">
-          <div className="flex items-center gap-2.5 mb-1">
-            <span className="w-3.5 h-3.5 rounded-full shadow-sm" style={{ backgroundColor: hoverNode.color }} />
-            <span className="text-[15px] font-bold text-[#1F2937]">{hoverNode.id}</span>
+        <div className="absolute bottom-5 left-6 z-10 bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border border-[#E5E7EB] px-4 py-3 max-w-[260px] animate-in fade-in duration-150">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-3.5 h-3.5 rounded-full shadow-sm" style={{ backgroundColor: hoverNode.color }} />
+            <span className="text-[15px] font-extrabold text-[#1F2937]">{hoverNode.id}</span>
           </div>
           <div className="flex items-center gap-3 text-[11px] text-[#6B7280] font-medium">
-            <span className="px-1.5 py-0.5 rounded bg-[#F3F4F6] text-[10px]">
-              {GROUP_LABELS[hoverNode.group]?.label || hoverNode.group}
-            </span>
-            <span>가중치 {hoverNode.weight}/10</span>
-            <span>연결 {links.filter(l => {
-              const sId = typeof l.source === 'string' ? l.source : (l.source as any).id;
-              const tId = typeof l.target === 'string' ? l.target : (l.target as any).id;
-              return sId === hoverNode.id || tId === hoverNode.id;
-            }).length}개</span>
+            <span className="px-1.5 py-0.5 rounded bg-[#F3F4F6]">{GROUP_META[hoverNode.group]?.label || hoverNode.group}</span>
+            <span>가중치 {hoverNode.weight}</span>
+            <span>연결 {highlightNodes.size - 1}개</span>
           </div>
         </div>
       )}
 
+      {/* 2D Force Graph */}
       <div ref={containerRef} style={{ height: 500 }}>
-        <Component
+        <ForceGraph2D
           ref={fgRef}
           graphData={graphData}
-          nodeThreeObject={nodeThreeObject}
-          nodeThreeObjectExtend={false}
-          linkColor={(link: any) => {
-            if (!hoverNode) return 'rgba(180,180,195,0.15)';
+          nodeCanvasObject={nodeCanvasObject}
+          nodePointerAreaPaint={(node: any, color: string, ctx: CanvasRenderingContext2D) => {
+            const r = 3 + (node.weight || 3) * 1.8;
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, r + 4, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+          }}
+          linkColor={linkColor}
+          linkWidth={linkWidth}
+          linkCurvature={0.15}
+          linkDirectionalParticles={(link: any) => {
+            if (!hoverNode) return 0;
             const sId = typeof link.source === 'string' ? link.source : link.source?.id;
             const tId = typeof link.target === 'string' ? link.target : link.target?.id;
-            if (highlightNodes.has(sId) && highlightNodes.has(tId)) return 'rgba(99,102,241,0.5)';
-            return 'rgba(200,200,210,0.06)';
+            return (highlightNodes.has(sId) && highlightNodes.has(tId)) ? 3 : 0;
           }}
-          linkWidth={(link: any) => {
-            if (!hoverNode) return 0.4;
-            const sId = typeof link.source === 'string' ? link.source : link.source?.id;
-            const tId = typeof link.target === 'string' ? link.target : link.target?.id;
-            if (highlightNodes.has(sId) && highlightNodes.has(tId)) return 1.5;
-            return 0.15;
-          }}
-          linkOpacity={0.5}
+          linkDirectionalParticleWidth={2}
+          linkDirectionalParticleColor={() => '#6366F1'}
           backgroundColor="#FAFAFA"
           onNodeHover={(node: any) => setHoverNode(node || null)}
           onNodeClick={(node: any) => {
             if (fgRef.current && node) {
-              const distance = 80;
-              const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
-              fgRef.current.cameraPosition(
-                { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio },
-                node,
-                1000
-              );
+              fgRef.current.centerAt(node.x, node.y, 800);
+              fgRef.current.zoom(3, 800);
             }
           }}
           d3AlphaDecay={0.02}
           d3VelocityDecay={0.3}
           warmupTicks={100}
           cooldownTicks={200}
-          onEngineStop={handleEngineStop}
           width={containerRef.current?.clientWidth || 800}
           height={500}
-          enableNavigationControls={true}
-          showNavInfo={false}
+          enableNodeDrag={true}
         />
       </div>
     </div>
