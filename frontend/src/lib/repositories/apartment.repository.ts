@@ -1,57 +1,39 @@
 /**
  * @module apartment.repository
- * @description Data Access Layer for MOLIT public real estate API.
- * Architecture Layer: Repository (external API data access)
+ * @description Data Access Layer for Dongtan apartment list.
+ * Architecture Layer: Repository (data access)
  * 
- * Rationale: XML parsing and API-specific logic are isolated here,
- * keeping the service layer API-agnostic.
+ * Uses /api/apartments (FULL_DONG_DATA) as single source of truth
+ * for all apartment lists: 동네리뷰 선택, 입주민 인증, 임장기 작성 등
  */
-import { MOLIT_API_CONFIG, FALLBACK_APARTMENTS } from '@/lib/config/api.config';
 import { logger } from '@/lib/services/logger';
 
 /**
- * Fetches apartment names from the MOLIT Real Estate Open API.
- * Falls back to a curated list if the API is unavailable.
- * @returns Array of apartment name strings in "[법정동] 아파트명" format
+ * Fetches full apartment list from /api/apartments (FULL_DONG_DATA).
+ * Returns in "[법정동] 아파트명" format for WriteReviewModal, resident verification, etc.
  */
 export async function fetchApartmentNames(): Promise<string[]> {
-  const { serviceKey, lawdCode, dealYearMonth, baseUrl, timeoutMs, numOfRows } = MOLIT_API_CONFIG;
-  const url = `${baseUrl}?serviceKey=${serviceKey}&pageNo=1&numOfRows=${numOfRows}&LAWD_CD=${lawdCode}&DEAL_YMD=${dealYearMonth}`;
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
   try {
-    const response = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeoutId);
-    const text = await response.text();
-
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(text, 'text/xml');
-    const items = xmlDoc.getElementsByTagName('item');
-
-    if (items.length === 0) {
-      throw new Error('API returned no items (Auth Error or Ratelimit).');
-    }
-
-    const aptSet = new Set<string>();
-    for (let i = 0; i < items.length; i++) {
-      const aptNmNode = items[i].getElementsByTagName('aptNm')[0];
-      const dongNode = items[i].getElementsByTagName('umdNm')[0];
-
-      if (aptNmNode && dongNode) {
-        const aptNm = aptNmNode.textContent?.trim();
-        const dongNm = dongNode.textContent?.trim() || '';
-        if (aptNm) aptSet.add(`[${dongNm}] ${aptNm}`);
+    const response = await fetch('/api/apartments', {
+      next: { revalidate: 86400 }, // cache 24h
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    
+    const dongData: Record<string, string[]> = await response.json();
+    
+    const apartments: string[] = [];
+    for (const [dong, apts] of Object.entries(dongData)) {
+      if (dong === '기타') continue; // skip '기타' entry
+      for (const apt of apts) {
+        apartments.push(`[${dong}] ${apt}`);
       }
     }
-
-    const apartments = Array.from(aptSet).sort();
-    logger.info('ApartmentRepository.fetch', `Fetched ${apartments.length} apartments from MOLIT API`);
+    
+    apartments.sort();
+    logger.info('ApartmentRepository.fetch', `Loaded ${apartments.length} apartments from FULL_DONG_DATA`);
     return apartments;
   } catch (error) {
-    clearTimeout(timeoutId);
-    logger.warn('ApartmentRepository.fetch', 'MOLIT API failed, using fallback', undefined, error);
-    return [...FALLBACK_APARTMENTS];
+    logger.warn('ApartmentRepository.fetch', '/api/apartments failed', undefined, error);
+    return [];
   }
 }
