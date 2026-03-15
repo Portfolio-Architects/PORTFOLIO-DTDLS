@@ -150,9 +150,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         academyDensity: '',
         restaurantDensity: ''
       },
-      images: [
-        { url: '', caption: '', locationTag: '메인 (단지 전경)', isPremium: false }
-      ],
+      images: [],
       isPremium: true
     }
   });
