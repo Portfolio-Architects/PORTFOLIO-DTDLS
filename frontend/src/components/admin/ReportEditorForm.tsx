@@ -159,6 +159,18 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
   useEffect(() => {
     if (initialData) {
       reset(initialData);
+      // Preserve existing category data so editing doesn't drop them
+      const m = initialData.metrics as any;
+      if (m) {
+        setApiCategories(prev => ({
+          ...prev,
+          ...(m.academyCategories ? { academyCategories: m.academyCategories } : {}),
+          ...(m.restaurantCategories ? { restaurantCategories: m.restaurantCategories } : {}),
+          ...(m.restaurantDensity ? { restaurantDensity: m.restaurantDensity } : {}),
+          ...(m.nearestSchoolNames ? { nearestSchoolNames: m.nearestSchoolNames } : {}),
+          ...(m.nearestStationName ? { nearestStationName: m.nearestStationName } : {}),
+        }));
+      }
     }
   }, [initialData, reset]);
 
