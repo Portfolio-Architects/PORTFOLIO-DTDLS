@@ -197,6 +197,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
 
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const batchInputRef = useRef<HTMLInputElement>(null);
+  const uploadedFileKeys = useRef<Set<string>>(new Set());
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{done: number, total: number} | null>(null);
 
@@ -209,19 +210,22 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
     }
   };
 
-  // Batch upload: create one block per file — with duplicate detection
+  // Batch upload: create one block per file — with ref-based duplicate detection
   const handleBatchFiles = (files: FileList | File[]) => {
     const fileArr = Array.from(files).filter(f => f.type.startsWith('image/'));
     if (fileArr.length === 0) return;
 
-    // Dedup against existing images by name+size
-    const existingSet = new Set(
-      imageFields
-        .filter(img => img.file)
-        .map(img => `${img.file!.name}__${img.file!.size}`)
-    );
-    const unique = fileArr.filter(f => !existingSet.has(`${f.name}__${f.size}`));
-    const dupCount = fileArr.length - unique.length;
+    const unique: File[] = [];
+    let dupCount = 0;
+    for (const f of fileArr) {
+      const key = `${f.name}__${f.size}`;
+      if (uploadedFileKeys.current.has(key)) {
+        dupCount++;
+      } else {
+        uploadedFileKeys.current.add(key);
+        unique.push(f);
+      }
+    }
     if (dupCount > 0) alert(`중복 사진 ${dupCount}장이 제외되었습니다.`);
     if (unique.length === 0) return;
 
