@@ -223,26 +223,27 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
       }
 
       // 1. Upload Images to Firebase Storage
-      const uploadedImages = [];
-      const totalImages = data.images.filter(img => img.file || img.url).length;
+      const uploadedImages: {url: string, caption: string, locationTag: string, isPremium: boolean}[] = [];
+      const imagesToProcess = data.images.filter(img => img.file || img.url);
+      const totalImages = imagesToProcess.length;
       let uploadedCount = 0;
       setUploadProgress({ done: 0, total: totalImages });
 
-      for (const img of data.images) {
-        let finalUrl = img.url;
-        if (img.file) {
-          finalUrl = await uploadImage(img.file, 'report_images');
-        }
-        
-        if (finalUrl) {
-          uploadedImages.push({
-            url: finalUrl,
-            caption: img.caption || '',
-            locationTag: img.locationTag || '',
-            isPremium: img.isPremium
-          });
-        }
-        uploadedCount++;
+      // Parallel batch upload (3 at a time)
+      const BATCH_SIZE = 3;
+      for (let i = 0; i < imagesToProcess.length; i += BATCH_SIZE) {
+        const batch = imagesToProcess.slice(i, i + BATCH_SIZE);
+        const results = await Promise.all(
+          batch.map(async (img) => {
+            let finalUrl = img.url;
+            if (img.file) {
+              finalUrl = await uploadImage(img.file, 'report_images');
+            }
+            return finalUrl ? { url: finalUrl, caption: img.caption || '', locationTag: img.locationTag || '', isPremium: img.isPremium } : null;
+          })
+        );
+        results.forEach(r => { if (r) uploadedImages.push(r); });
+        uploadedCount += batch.length;
         setUploadProgress({ done: uploadedCount, total: totalImages });
       }
 
@@ -265,11 +266,11 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         distanceToIndeokwon: Number(data.metrics.distanceToIndeokwon),
         distanceToTram: Number(data.metrics.distanceToTram),
         academyDensity: Number(data.metrics.academyDensity),
-        academyCategories: apiCategories.academyCategories || undefined,
-        restaurantDensity: Number(data.metrics.restaurantDensity) || apiCategories.restaurantDensity || undefined,
-        restaurantCategories: apiCategories.restaurantCategories || undefined,
-        nearestSchoolNames: apiCategories.nearestSchoolNames || undefined,
-        nearestStationName: apiCategories.nearestStationName || undefined,
+        ...(apiCategories.academyCategories ? { academyCategories: apiCategories.academyCategories } : {}),
+        ...(Number(data.metrics.restaurantDensity) || apiCategories.restaurantDensity ? { restaurantDensity: Number(data.metrics.restaurantDensity) || apiCategories.restaurantDensity } : {}),
+        ...(apiCategories.restaurantCategories ? { restaurantCategories: apiCategories.restaurantCategories } : {}),
+        ...(apiCategories.nearestSchoolNames ? { nearestSchoolNames: apiCategories.nearestSchoolNames } : {}),
+        ...(apiCategories.nearestStationName ? { nearestStationName: apiCategories.nearestStationName } : {}),
       };
 
       const premiumScores = await getPremiumScoresAction(metricsPayload);
