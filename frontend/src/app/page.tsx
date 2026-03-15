@@ -358,14 +358,16 @@ export function FieldReportModal({
                            />
                            <RechartsTooltip
                              contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e5e8eb', fontSize: '12px', fontWeight: 'bold', color: '#191f28', padding: '8px 12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                             itemStyle={{ color: '#191f28', padding: 0 }}
+                             labelStyle={{ color: '#8b95a1', marginBottom: '4px', fontSize: '10px' }}
                              labelFormatter={(label: any, payload: any) => {
                                const item = payload?.[0]?.payload;
                                return item?.fullDate ? `📅 ${item.fullDate}` : `📅 ${new Date(label).getFullYear()}.${String(new Date(label).getMonth() + 1).padStart(2,'0')}월 추세`;
                              }}
                              formatter={(value: any, name: any, props: any) => {
                                const item = props?.payload;
-                               if (name === 'monthAvg') return [`평균가 ${value.toFixed(2)}억`, '월기준'];
-                               return [`${item?.priceEok || value + '억'}  ·  ${item?.area || '-'}평  ·  ${item?.floor || '-'}층`, '매매'];
+                               if (name === 'monthAvg') return [`평균가 ${value.toFixed(2)}억`, ''];
+                               return [`${item?.priceEok || value + '억'}  ·  ${item?.area || '-'}평  ·  ${item?.floor || '-'}층`, ''];
                              }}
                              cursor={{ stroke: '#3182f6', strokeWidth: 1, strokeDasharray: '4 4' }}
                            />
