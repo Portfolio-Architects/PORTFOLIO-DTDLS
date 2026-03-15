@@ -30,7 +30,10 @@ export interface TransactionRecord {
   housingType: string;
 }
 
-
+// ─── In-Memory Cache ─── 10분 TTL로 6만건 파싱 결과 캐시
+let cachedRecords: TransactionRecord[] | null = null;
+let cacheTimestamp = 0;
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10분
 
 function extractDong(sigungu: string): string {
   // "경기도 화성시 동탄구 능동" → "능동"
@@ -46,79 +49,89 @@ function formatPriceEok(priceMan: number): string {
   return `${eok}억${remainder.toLocaleString()}`;
 }
 
+async function getAllRecords(): Promise<TransactionRecord[]> {
+  // Return cached data if still fresh
+  if (cachedRecords && (Date.now() - cacheTimestamp) < CACHE_TTL_MS) {
+    return cachedRecords;
+  }
+
+  const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TAB)}`;
+  const res = await fetch(csvUrl, { next: { revalidate: 3600 } });
+
+  if (!res.ok) {
+    throw new Error('Failed to fetch sheet');
+  }
+
+  const csvText = await res.text();
+  const lines = csvText.split('\n').filter(l => l.trim());
+
+  const records: TransactionRecord[] = [];
+
+  for (let i = 2; i < lines.length; i++) {
+    const cols = parseCsvLine(lines[i]);
+    if (cols.length < 15) continue;
+
+    const sigungu = cols[1] || '';
+    const dongName = extractDong(sigungu);
+    const priceStr = (cols[9] || '0').replace(/,/g, '');
+    const priceNum = parseInt(priceStr, 10) || 0;
+    const areaNum = parseFloat(cols[6]) || 0;
+
+    records.push({
+      no: parseInt(cols[0], 10) || i,
+      sigungu,
+      dong: dongName,
+      aptName: cols[5] || '',
+      area: areaNum,
+      areaPyeong: Math.round(areaNum / 3.3058 * 10) / 10,
+      contractYm: cols[7] || '',
+      contractDay: cols[8] || '',
+      price: priceNum,
+      priceEok: formatPriceEok(priceNum),
+      floor: parseInt(cols[11], 10) || 0,
+      buyer: cols[12] || '',
+      seller: cols[13] || '',
+      buildYear: parseInt(cols[14], 10) || 0,
+      roadName: cols[15] || '',
+      cancelDate: cols[16] || '-',
+      dealType: cols[17] || '',
+      agentLocation: cols[18] || '',
+      registrationDate: cols[19] || '-',
+      housingType: cols[20] || '',
+    });
+  }
+
+  // Sort by date descending (newest first)
+  records.sort((a, b) => {
+    const dateA = `${a.contractYm}${a.contractDay.padStart(2, '0')}`;
+    const dateB = `${b.contractYm}${b.contractDay.padStart(2, '0')}`;
+    return dateB.localeCompare(dateA);
+  });
+
+  // Update cache
+  cachedRecords = records;
+  cacheTimestamp = Date.now();
+  console.log(`[TX Cache] Parsed & cached ${records.length} records`);
+
+  return records;
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const aptName = searchParams.get('apt'); // 아파트명 필터 (optional)
-    const dong = searchParams.get('dong'); // 동 필터 (optional)
+    const aptName = searchParams.get('apt');
+    const dong = searchParams.get('dong');
 
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TAB)}`;
-    const res = await fetch(csvUrl, { next: { revalidate: 3600 } });
+    const allRecords = await getAllRecords();
 
-    if (!res.ok) {
-      return NextResponse.json({ error: 'Failed to fetch sheet' }, { status: 502 });
-    }
-
-    const csvText = await res.text();
-    const lines = csvText.split('\n').filter(l => l.trim());
-
-    // Skip first row (disclaimer) and second row (header)
-    // Data starts from row index 2
-    const records: TransactionRecord[] = [];
-
-    for (let i = 2; i < lines.length; i++) {
-      const cols = parseCsvLine(lines[i]);
-      if (cols.length < 15) {
-        console.warn(`[TX] Row ${i} skipped: only ${cols.length} cols`, cols.slice(0, 6).join(', '));
-        continue;
-      }
-
-      const sigungu = cols[1] || '';
-      const dongName = extractDong(sigungu);
-      const priceStr = (cols[9] || '0').replace(/,/g, '');
-      const priceNum = parseInt(priceStr, 10) || 0;
-      const areaNum = parseFloat(cols[6]) || 0;
-
-      const record: TransactionRecord = {
-        no: parseInt(cols[0], 10) || i,
-        sigungu,
-        dong: dongName,
-        aptName: cols[5] || '',
-        area: areaNum,
-        areaPyeong: Math.round(areaNum / 3.3058 * 10) / 10,
-        contractYm: cols[7] || '',
-        contractDay: cols[8] || '',
-        price: priceNum,
-        priceEok: formatPriceEok(priceNum),
-        floor: parseInt(cols[11], 10) || 0,
-        buyer: cols[12] || '',
-        seller: cols[13] || '',
-        buildYear: parseInt(cols[14], 10) || 0,
-        roadName: cols[15] || '',
-        cancelDate: cols[16] || '-',
-        dealType: cols[17] || '',
-        agentLocation: cols[18] || '',
-        registrationDate: cols[19] || '-',
-        housingType: cols[20] || '',
-      };
-
-      // Apply filters
-      if (dong && dongName !== dong) continue;
-      if (aptName && !record.aptName.includes(aptName)) continue;
-
-      records.push(record);
-    }
-
-    // Sort by date descending (newest first)
-    records.sort((a, b) => {
-      const dateA = `${a.contractYm}${a.contractDay.padStart(2, '0')}`;
-      const dateB = `${b.contractYm}${b.contractDay.padStart(2, '0')}`;
-      return dateB.localeCompare(dateA);
-    });
+    // Filter from cached data (instant)
+    let filtered = allRecords;
+    if (dong) filtered = filtered.filter(r => r.dong === dong);
+    if (aptName) filtered = filtered.filter(r => r.aptName.includes(aptName));
 
     return NextResponse.json({
-      total: records.length,
-      records,
+      total: filtered.length,
+      records: filtered,
     }, {
       headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' },
     });
