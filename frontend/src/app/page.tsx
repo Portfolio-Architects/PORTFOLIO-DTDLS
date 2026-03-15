@@ -2,7 +2,7 @@
 
 import { 
   Building, MapPin, Map as MapIcon, Info, Users, AlertCircle, ShieldAlert,
-  Car, BookOpen, Clock, Tag, X, FileText, CheckCircle2, TrendingUp, Radar,
+  Car, BookOpen, ClipboardCheck, Tag, X, FileText, CheckCircle2, TrendingUp, Radar,
   MessageSquare, Heart, Compass, LayoutDashboard, Camera, UserCircle, Star, Maximize2, Link2, Trash2, Text, LogOut,
   Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil
 } from 'lucide-react';
@@ -1009,7 +1009,7 @@ export default function Dashboard() {
           {filteredReports.length > 0 ? (
             <div>
               <h3 className="text-[18px] font-extrabold text-[#191f28] mb-4 flex items-center gap-2">
-                <Clock size={18} className="text-[#f59e0b]" />
+                <ClipboardCheck size={18} className="text-[#f59e0b]" />
                 {selectedDong ? '필터 결과' : '임장 리포트'}
                 <span className="text-[13px] font-bold text-[#8b95a1] ml-1">{filteredReports.length}개</span>
               </h3>
