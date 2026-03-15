@@ -2,7 +2,7 @@
 
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { useState, useRef, useEffect } from 'react';
-import { ImagePlus, Trash2, GripVertical, CheckCircle2, X } from 'lucide-react';
+import { ImagePlus, Trash2, GripVertical, CheckCircle2 } from 'lucide-react';
 import { uploadImage, createScoutingReport, updateScoutingReport } from '@/lib/services/reportService';
 import { auth } from '@/lib/firebaseConfig';
 import { useRouter } from 'next/navigation';
@@ -240,7 +240,6 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
   const batchInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{done: number, total: number} | null>(null);
-  const [imageViewMode, setImageViewMode] = useState<'list' | 'grid'>('list');
 
   const handleImageSelect = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -600,14 +599,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         <h3 className="text-[18px] font-bold text-[#191f28] mb-6 flex items-center gap-2">
           <span className="w-6 h-6 rounded-full bg-[#f2f4f6] text-[#4e5968] flex items-center justify-center text-[12px]">3</span>
           현장 사진 데이터베이스
-          <span className="text-[12px] font-medium text-[#8b95a1] ml-2">{imageFields.length}장</span>
-          {/* Grid/List Toggle */}
-          {imageFields.length >= 6 && (
-            <div className="ml-auto flex bg-[#f2f4f6] rounded-lg p-0.5">
-              <button type="button" onClick={() => setImageViewMode('list')} className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${imageViewMode === 'list' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>목록</button>
-              <button type="button" onClick={() => setImageViewMode('grid')} className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${imageViewMode === 'grid' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>그리드</button>
-            </div>
-          )}
+          <span className="text-[12px] font-medium text-[#8b95a1] ml-auto">{imageFields.length}장</span>
         </h3>
 
         {/* Batch Drop Zone */}
@@ -629,43 +621,9 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
           <p className="text-[15px] font-bold text-[#191f28] mb-1">
             {isDragging ? '여기에 놓으세요!' : '사진을 한번에 여러 장 추가'}
           </p>
-          <p className="text-[12px] text-[#8b95a1]">드래그하거나 클릭하여 여러 사진을 선택하면 카테고리가 자동 지정됩니다</p>
+          <p className="text-[12px] text-[#8b95a1]">드래그하거나 클릭하여 여러 사진을 선택한 후 카테고리를 직접 지정해주세요</p>
         </div>
 
-        {imageViewMode === 'grid' && imageFields.length >= 6 ? (
-          /* Compact Grid View */
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-6">
-            {imageFields.map((field, index) => (
-              <div key={field.id} className="relative group">
-                <input type="file" accept="image/*" className="hidden" ref={(el) => { fileInputRefs.current[index] = el; }} onChange={(e) => handleImageSelect(index, e)} />
-                <div 
-                  className="aspect-square rounded-xl overflow-hidden cursor-pointer border border-[#e5e8eb] shadow-sm hover:border-[#3182f6] transition-colors bg-[#f9fafb]"
-                  onClick={() => fileInputRefs.current[index]?.click()}
-                >
-                  {(field.previewUrl || field.url) ? (
-                    <>
-                      <img src={field.previewUrl || field.url} alt="Preview" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
-                        <span className="text-[9px] font-bold text-white/90 bg-white/20 backdrop-blur-sm px-1.5 py-0.5 rounded self-start">{field.locationTag}</span>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-[#8b95a1]">
-                      <ImagePlus size={20} className="mb-1" />
-                      <span className="text-[10px] font-bold">추가</span>
-                    </div>
-                  )}
-                </div>
-                <button type="button" onClick={() => removeImage(index)} className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#f04452] text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
-                  <X size={10} />
-                </button>
-                {field.isPremium && (
-                  <span className="absolute top-1.5 left-1.5 text-[8px] font-bold bg-[#ffc107] text-[#191f28] px-1.5 py-0.5 rounded shadow-sm">★ PRO</span>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
         <div className="space-y-4 mb-6">
           {imageFields.map((field, index) => (
             <div key={field.id} className="flex flex-col md:flex-row gap-4 p-4 border border-[#e5e8eb] rounded-2xl bg-white shadow-sm hover:border-[#3182f6] transition-colors group relative">
@@ -756,7 +714,6 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
             </div>
           ))}
         </div>
-        )}
 
         <button 
           type="button" 
