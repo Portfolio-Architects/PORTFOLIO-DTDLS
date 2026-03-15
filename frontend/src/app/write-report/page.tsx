@@ -163,25 +163,21 @@ export default function WriteFieldReport() {
   // -- Multi Image Handling --
   const handleMultiImageChange = (key: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const existingFiles = imageFiles[key] || [];
-      const existingSet = new Set(existingFiles.map(f => `${f.name}__${f.size}`));
       const allNew = Array.from(e.target.files);
-      const newFiles = allNew.filter(f => !existingSet.has(`${f.name}__${f.size}`));
-      const dupCount = allNew.length - newFiles.length;
-      if (dupCount > 0) alert(`중복 사진 ${dupCount}장이 제외되었습니다.`);
-      if (newFiles.length > 0) {
-        setImageFiles(prev => ({
-          ...prev,
-          [key]: [...(prev[key] || []), ...newFiles]
-        }));
-        const newPreviews = newFiles.map(file => URL.createObjectURL(file));
-        setImagePreviews(prev => ({
-          ...prev,
-          [key]: [...(prev[key] || []), ...newPreviews]
-        }));
-      }
+      // Dedup inside functional update to always use latest state
+      setImageFiles(prev => {
+        const existing = prev[key] || [];
+        const existingSet = new Set(existing.map(f => `${f.name}__${f.size}`));
+        const unique = allNew.filter(f => !existingSet.has(`${f.name}__${f.size}`));
+        const dupCount = allNew.length - unique.length;
+        if (dupCount > 0) setTimeout(() => alert(`중복 사진 ${dupCount}장이 제외되었습니다.`), 0);
+        if (unique.length === 0) return prev;
+        // Also update previews
+        const newPreviews = unique.map(file => URL.createObjectURL(file));
+        setImagePreviews(p => ({ ...p, [key]: [...(p[key] || []), ...newPreviews] }));
+        return { ...prev, [key]: [...existing, ...unique] };
+      });
     }
-    // Reset input so re-selecting same file triggers onChange again
     e.target.value = '';
   };
 
@@ -306,16 +302,19 @@ export default function WriteFieldReport() {
       e.preventDefault();
       setIsDragging(false);
       if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        const existingFiles = imageFiles[apiKey] || [];
-        const existingSet = new Set(existingFiles.map(f => `${f.name}__${f.size}`));
         const allNew = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-        const newFiles = allNew.filter(f => !existingSet.has(`${f.name}__${f.size}`));
-        const dupCount = allNew.length - newFiles.length;
-        if (dupCount > 0) alert(`중복 사진 ${dupCount}장이 제외되었습니다.`);
-        if (newFiles.length === 0) return;
-        setImageFiles(prev => ({ ...prev, [apiKey]: [...(prev[apiKey] || []), ...newFiles] }));
-        const newPreviews = newFiles.map(file => URL.createObjectURL(file));
-        setImagePreviews(prev => ({ ...prev, [apiKey]: [...(prev[apiKey] || []), ...newPreviews] }));
+        if (allNew.length === 0) return;
+        setImageFiles(prev => {
+          const existing = prev[apiKey] || [];
+          const existingSet = new Set(existing.map(f => `${f.name}__${f.size}`));
+          const unique = allNew.filter(f => !existingSet.has(`${f.name}__${f.size}`));
+          const dupCount = allNew.length - unique.length;
+          if (dupCount > 0) setTimeout(() => alert(`중복 사진 ${dupCount}장이 제외되었습니다.`), 0);
+          if (unique.length === 0) return prev;
+          const newPreviews = unique.map(file => URL.createObjectURL(file));
+          setImagePreviews(p => ({ ...p, [apiKey]: [...(p[apiKey] || []), ...newPreviews] }));
+          return { ...prev, [apiKey]: [...existing, ...unique] };
+        });
       }
     };
 
