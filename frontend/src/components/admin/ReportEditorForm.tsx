@@ -204,10 +204,18 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
   const handleImageSelect = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const key = `${file.name}__${file.size}`;
+      if (uploadedFileKeys.current.has(key)) {
+        alert('이미 업로드된 사진입니다.');
+        e.target.value = '';
+        return;
+      }
+      uploadedFileKeys.current.add(key);
       const previewUrl = URL.createObjectURL(file);
       const currentVal = imageFields[index];
       updateImage(index, { ...currentVal, file, previewUrl });
     }
+    e.target.value = '';
   };
 
   // Batch upload: create one block per file — with ref-based duplicate detection
@@ -580,7 +588,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
           onDrop={handleDropZone}
           onClick={() => batchInputRef.current?.click()}
         >
-          <input ref={batchInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { if (e.target.files) handleBatchFiles(e.target.files); }} />
+          <input ref={batchInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { if (e.target.files) handleBatchFiles(e.target.files); e.target.value = ''; }} />
           <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-3">
             <ImagePlus size={22} className="text-[#3182f6]" />
           </div>
