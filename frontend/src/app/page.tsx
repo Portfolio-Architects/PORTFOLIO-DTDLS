@@ -953,7 +953,7 @@ export default function Dashboard() {
       </header>
 
       {/* Main Container */}
-      <main className="w-full max-w-[2000px] mx-auto px-2 md:px-3 lg:px-4 py-8 md:py-12 animate-in fade-in duration-500">
+      <main className="w-full max-w-[2000px] mx-auto px-1 md:px-2 lg:px-3 py-8 md:py-12 animate-in fade-in duration-500">
 
         {/* ═══ TAB 1: 임장기 ═══ */}
         {activeTab === 'imjang' && (
@@ -1137,26 +1137,24 @@ export default function Dashboard() {
               <MapPin size={18} className="text-[#3182f6]" />
               권역별 탐색
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="flex gap-3 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {ZONES.map(zone => {
                 const count = zoneReportCounts[zone.id] || 0;
                 return (
                   <div
                     key={zone.id}
                     onClick={() => router.push(`/zone/${zone.id}`)}
-                    className="bg-white rounded-2xl border border-[#e5e8eb] p-4 md:p-5 flex gap-4 items-start cursor-pointer hover:shadow-lg hover:border-transparent hover:-translate-y-0.5 transition-all duration-200 group"
+                    className="snap-start shrink-0 w-[260px] md:w-[300px] bg-white rounded-2xl border border-[#e5e8eb] p-4 cursor-pointer hover:shadow-lg hover:border-transparent hover:-translate-y-0.5 transition-all duration-200 group"
                   >
-                    <div className="w-1.5 self-stretch rounded-full shrink-0" style={{ backgroundColor: zone.color }} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <h4 className="text-[15px] font-extrabold text-[#191f28] truncate">{zone.name}</h4>
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0" style={{ backgroundColor: zone.color + '18', color: zone.color }}>{zone.dongLabel}</span>
-                      </div>
-                      <p className="text-[12px] text-[#8b95a1] leading-relaxed line-clamp-2 mb-2.5">{zone.description}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[12px] font-bold text-[#4e5968]">{count}개 단지 리뷰</span>
-                        <span className="text-[12px] font-bold opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: zone.color }}>보기 →</span>
-                      </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: zone.color }} />
+                      <h4 className="text-[14px] font-extrabold text-[#191f28] truncate">{zone.name}</h4>
+                    </div>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded inline-block mb-2" style={{ backgroundColor: zone.color + '18', color: zone.color }}>{zone.dongLabel}</span>
+                    <p className="text-[12px] text-[#8b95a1] leading-relaxed line-clamp-2 mb-3">{zone.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[12px] font-bold text-[#4e5968]">{count}개 단지</span>
+                      <span className="text-[12px] font-bold transition-opacity" style={{ color: zone.color }}>보기 →</span>
                     </div>
                   </div>
                 );

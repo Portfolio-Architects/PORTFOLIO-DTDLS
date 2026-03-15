@@ -14,7 +14,7 @@ export const ZONES: ZoneInfo[] = [
     id: 'metropolis',
     name: '메타폴리스 & 중상지구',
     dongLabel: '동탄 1동',
-    description: '이미 다 갖춰진 동탄2의 중심지. 상권·교통·학군이 안정적이라 가격 방어력이 가장 강한 지역.',
+    description: '이미 다 갖춰진 동탄1신도시의 중심지. 상권·교통·학군이 안정적이라 가격 방어력이 가장 강한 지역.',
     color: '#191f28',
   },
   {
