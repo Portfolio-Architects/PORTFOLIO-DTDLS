@@ -169,17 +169,20 @@ export default function WriteFieldReport() {
       const newFiles = allNew.filter(f => !existingSet.has(`${f.name}__${f.size}`));
       const dupCount = allNew.length - newFiles.length;
       if (dupCount > 0) alert(`중복 사진 ${dupCount}장이 제외되었습니다.`);
-      if (newFiles.length === 0) return;
-      setImageFiles(prev => ({
-        ...prev,
-        [key]: [...(prev[key] || []), ...newFiles]
-      }));
-      const newPreviews = newFiles.map(file => URL.createObjectURL(file));
-      setImagePreviews(prev => ({
-        ...prev,
-        [key]: [...(prev[key] || []), ...newPreviews]
-      }));
+      if (newFiles.length > 0) {
+        setImageFiles(prev => ({
+          ...prev,
+          [key]: [...(prev[key] || []), ...newFiles]
+        }));
+        const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+        setImagePreviews(prev => ({
+          ...prev,
+          [key]: [...(prev[key] || []), ...newPreviews]
+        }));
+      }
     }
+    // Reset input so re-selecting same file triggers onChange again
+    e.target.value = '';
   };
 
   const handleRemoveImage = (key: string, index: number) => {
