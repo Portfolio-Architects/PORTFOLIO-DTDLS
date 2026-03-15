@@ -171,6 +171,22 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
           ...(m.nearestStationName ? { nearestStationName: m.nearestStationName } : {}),
         }));
       }
+      // Pre-populate uploaded file keys from existing images
+      if (initialData.images) {
+        for (const img of initialData.images) {
+          if (img.url) {
+            // Extract decoded filename from Firebase Storage URL
+            try {
+              const decoded = decodeURIComponent(img.url);
+              const match = decoded.match(/\/([^/?]+)\?/);
+              if (match) uploadedFileKeys.current.add(match[1]);
+            } catch { /* ignore */ }
+          }
+          if (img.file) {
+            uploadedFileKeys.current.add(img.file.name);
+          }
+        }
+      }
     }
   }, [initialData, reset]);
 
@@ -204,13 +220,12 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
   const handleImageSelect = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const key = `${file.name}__${file.size}`;
-      if (uploadedFileKeys.current.has(key)) {
+      if (uploadedFileKeys.current.has(file.name)) {
         alert('이미 업로드된 사진입니다.');
         e.target.value = '';
         return;
       }
-      uploadedFileKeys.current.add(key);
+      uploadedFileKeys.current.add(file.name);
       const previewUrl = URL.createObjectURL(file);
       const currentVal = imageFields[index];
       updateImage(index, { ...currentVal, file, previewUrl });
@@ -218,7 +233,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
     e.target.value = '';
   };
 
-  // Batch upload: create one block per file — with ref-based duplicate detection
+  // Batch upload: create one block per file — with ref-based duplicate detection (filename only)
   const handleBatchFiles = (files: FileList | File[]) => {
     const fileArr = Array.from(files).filter(f => f.type.startsWith('image/'));
     if (fileArr.length === 0) return;
@@ -226,11 +241,10 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
     const unique: File[] = [];
     let dupCount = 0;
     for (const f of fileArr) {
-      const key = `${f.name}__${f.size}`;
-      if (uploadedFileKeys.current.has(key)) {
+      if (uploadedFileKeys.current.has(f.name)) {
         dupCount++;
       } else {
-        uploadedFileKeys.current.add(key);
+        uploadedFileKeys.current.add(f.name);
         unique.push(f);
       }
     }
