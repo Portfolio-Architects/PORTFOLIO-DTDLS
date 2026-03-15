@@ -703,19 +703,90 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
 
               <div className="flex-1 space-y-3">
                 <div className="flex gap-3">
-                  <select
-                    {...register(`images.${index}.locationTag`)}
-                    className="w-[220px] px-3 py-2 bg-[#f9fafb] border border-[#e5e8eb] rounded-lg text-[13px] font-bold focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none cursor-pointer text-[#191f28]"
-                  >
-                    <option value="" disabled>카테고리 선택</option>
-                    {IMAGE_CATEGORY_GROUPS.map(g => (
-                      <optgroup key={g.group} label={g.group}>
-                        {g.items.map(item => (
-                          <option key={item} value={item}>{item}</option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
+                  {/* Category Picker — 2-level popover */}
+                  {(() => {
+                    const currentTag = field.locationTag;
+                    const currentGroup = IMAGE_CATEGORY_GROUPS.find(g => g.items.includes(currentTag));
+                    return (
+                      <div className="relative w-[220px]">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const el = document.getElementById(`cat-popover-${index}`);
+                            if (el) el.classList.toggle('hidden');
+                          }}
+                          className="w-full px-3 py-2 bg-[#f9fafb] border border-[#e5e8eb] rounded-lg text-[13px] font-bold text-left cursor-pointer hover:border-[#3182f6] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-colors text-[#191f28] flex items-center justify-between"
+                        >
+                          <span className="truncate">{currentTag || '카테고리 선택'}</span>
+                          <svg width="12" height="12" viewBox="0 0 12 12" className="shrink-0 ml-1 text-[#8b95a1]"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>
+                        </button>
+                        <div
+                          id={`cat-popover-${index}`}
+                          className="hidden absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-xl border border-[#e5e8eb] w-[380px] max-h-[280px] overflow-hidden"
+                        >
+                          {/* Group tabs — horizontal scroll */}
+                          <div className="flex gap-1 p-2 overflow-x-auto border-b border-[#f2f4f6] bg-[#fafbfc]">
+                            {IMAGE_CATEGORY_GROUPS.map((g, gIdx) => (
+                              <button
+                                key={g.group}
+                                type="button"
+                                onClick={() => {
+                                  // Show this group's items
+                                  const container = document.getElementById(`cat-popover-${index}`);
+                                  if (!container) return;
+                                  container.querySelectorAll('[data-cat-group]').forEach(el => el.classList.add('hidden'));
+                                  container.querySelector(`[data-cat-group="${gIdx}"]`)?.classList.remove('hidden');
+                                  container.querySelectorAll('[data-cat-tab]').forEach(el => {
+                                    el.classList.remove('bg-[#191f28]', 'text-white');
+                                    el.classList.add('bg-[#f2f4f6]', 'text-[#4e5968]');
+                                  });
+                                  container.querySelector(`[data-cat-tab="${gIdx}"]`)?.classList.remove('bg-[#f2f4f6]', 'text-[#4e5968]');
+                                  container.querySelector(`[data-cat-tab="${gIdx}"]`)?.classList.add('bg-[#191f28]', 'text-white');
+                                }}
+                                data-cat-tab={gIdx}
+                                className={`shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                                  (currentGroup === g || (!currentGroup && gIdx === 0))
+                                    ? 'bg-[#191f28] text-white'
+                                    : 'bg-[#f2f4f6] text-[#4e5968] hover:bg-[#e5e8eb]'
+                                }`}
+                              >
+                                {g.group.replace(/[^\w가-힣·\s]/g, '').trim()}
+                              </button>
+                            ))}
+                          </div>
+                          {/* Items per group */}
+                          {IMAGE_CATEGORY_GROUPS.map((g, gIdx) => (
+                            <div
+                              key={g.group}
+                              data-cat-group={gIdx}
+                              className={`p-2 flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto ${
+                                (currentGroup === g || (!currentGroup && gIdx === 0)) ? '' : 'hidden'
+                              }`}
+                            >
+                              {g.items.map(item => (
+                                <button
+                                  key={item}
+                                  type="button"
+                                  onClick={() => {
+                                    const currentVal = imageFields[index];
+                                    updateImage(index, { ...currentVal, locationTag: item });
+                                    document.getElementById(`cat-popover-${index}`)?.classList.add('hidden');
+                                  }}
+                                  className={`px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-all ${
+                                    currentTag === item
+                                      ? 'bg-[#e8f3ff] text-[#3182f6] border-[#3182f6] font-bold'
+                                      : 'bg-white text-[#4e5968] border-[#e5e8eb] hover:bg-[#f2f4f6] hover:border-[#3182f6]'
+                                  }`}
+                                >
+                                  {item}
+                                </button>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
                   <input
                     {...register(`images.${index}.caption`)}
                     className="flex-1 px-3 py-2 bg-[#f9fafb] border border-[#e5e8eb] rounded-lg text-[13px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none placeholder-[#b0b8c1]"
