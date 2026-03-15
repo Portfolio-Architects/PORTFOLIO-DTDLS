@@ -10,6 +10,7 @@ interface POI extends Coord { name: string; }
 interface SchoolPOI extends POI { type: string; }
 interface StationPOI extends POI { line: string; }
 interface AcademyPOI extends Coord { category: string; }
+interface RestaurantPOI extends Coord { category: string; }
 interface ApartmentPOI extends POI {
   householdCount?: number;
   yearBuilt?: string;
@@ -103,6 +104,23 @@ async function loadAcademies(): Promise<AcademyPOI[]> {
   return result;
 }
 
+/** restaurants 시트: 상호명 | 위도 | 경도 | 업종소분류 | 행정동 | 주소 */
+async function loadRestaurants(): Promise<RestaurantPOI[]> {
+  const rows = await fetchSheetCSV(SHEET_TABS.RESTAURANTS);
+  const result: RestaurantPOI[] = [];
+  for (let i = 1; i < rows.length; i++) {
+    const cols = rows[i];
+    if (cols.length < 3) continue;
+    const lat = parseFloat(cols[1]);
+    const lng = parseFloat(cols[2]);
+    if (!isNaN(lat) && !isNaN(lng) && lat > 0 && lng > 0) {
+      result.push({ lat, lng, category: (cols[3] || '기타').trim() });
+    }
+  }
+  console.log(`[LOCATION_SCORES] Loaded ${result.length} restaurants`);
+  return result;
+}
+
 // ── Apartment Resolver ─────────────────────────────
 
 /** Resolves apartment coordinates and building info by name. */
@@ -144,11 +162,12 @@ export async function GET(request: NextRequest) {
 
   try {
     // Load all data in parallel
-    const [apartments, schools, stations, academies] = await Promise.all([
+    const [apartments, schools, stations, academies, restaurants] = await Promise.all([
       loadApartments(),
       loadSchools(),
       loadStations(),
       loadAcademies(),
+      loadRestaurants(),
     ]);
 
     const apt = resolveApartment(apartment, apartments);
@@ -171,9 +190,10 @@ export async function GET(request: NextRequest) {
     const nearestHigh = findNearest(aptCoord, high);
 
     // Station distances by line type
-    const nearestStation = findNearest(aptCoord, stations);
+    const gtxSrtLine = stations.filter(s => s.line.includes('GTX') || s.line.includes('SRT'));
     const indeokwonLine = stations.filter(s => s.line.includes('인덕원') || s.line.includes('동탄인덕원'));
     const tramLine = stations.filter(s => s.line.includes('트램') || s.line.includes('동탄트램'));
+    const nearestStation = gtxSrtLine.length > 0 ? findNearest(aptCoord, gtxSrtLine) : findNearest(aptCoord, stations);
     const nearestIndeokwon = indeokwonLine.length > 0 ? findNearest(aptCoord, indeokwonLine) : null;
     const nearestTram = tramLine.length > 0 ? findNearest(aptCoord, tramLine) : null;
 
@@ -183,6 +203,14 @@ export async function GET(request: NextRequest) {
     const academyCategories: Record<string, number> = {};
     for (const a of nearbyAcademies) {
       academyCategories[a.category] = (academyCategories[a.category] || 0) + 1;
+    }
+
+    // Restaurant/cafe density: count within 1km radius with category breakdown
+    const nearbyRestaurants = restaurants.filter(r => haversineDistance(aptCoord, r) <= 1000);
+    const restaurantDensity = nearbyRestaurants.length;
+    const restaurantCategories: Record<string, number> = {};
+    for (const r of nearbyRestaurants) {
+      restaurantCategories[r.category] = (restaurantCategories[r.category] || 0) + 1;
     }
 
     // Parking per household
@@ -201,6 +229,8 @@ export async function GET(request: NextRequest) {
       distanceToTram: nearestTram?.distance ?? null,
       academyDensity,
       academyCategories,
+      restaurantDensity,
+      restaurantCategories,
       // Building info from sheet
       buildingInfo: {
         householdCount: apt.householdCount ?? null,
@@ -222,6 +252,7 @@ export async function GET(request: NextRequest) {
         totalSchools: schools.length,
         totalStations: stations.length,
         totalAcademies: academies.length,
+        totalRestaurants: restaurants.length,
         totalApartments: apartments.length,
       },
     };

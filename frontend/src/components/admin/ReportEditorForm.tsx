@@ -155,6 +155,13 @@ interface ReportEditorFormProps {
 export default function ReportEditorForm({ initialData = null, reportId }: ReportEditorFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [apiCategories, setApiCategories] = useState<{
+    academyCategories?: Record<string, number>;
+    restaurantDensity?: number;
+    restaurantCategories?: Record<string, number>;
+    nearestSchoolNames?: { elementary?: string; middle?: string; high?: string };
+    nearestStationName?: string;
+  }>({});
   const [dongData, setDongData] = useState<Record<string, string[]>>(FALLBACK_DONG_DATA);
   const [isLoadingApts, setIsLoadingApts] = useState(true);
   const router = useRouter();
@@ -312,6 +319,11 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         distanceToIndeokwon: Number(data.metrics.distanceToIndeokwon),
         distanceToTram: Number(data.metrics.distanceToTram),
         academyDensity: Number(data.metrics.academyDensity),
+        academyCategories: apiCategories.academyCategories || undefined,
+        restaurantDensity: apiCategories.restaurantDensity || undefined,
+        restaurantCategories: apiCategories.restaurantCategories || undefined,
+        nearestSchoolNames: apiCategories.nearestSchoolNames || undefined,
+        nearestStationName: apiCategories.nearestStationName || undefined,
       };
 
       const premiumScores = await getPremiumScoresAction(metricsPayload);
@@ -441,6 +453,19 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
                 if (loc.distanceToSubway != null) setValue('metrics.distanceToSubway', String(loc.distanceToSubway));
                 if (loc.academyDensity != null) setValue('metrics.academyDensity', String(loc.academyDensity));
 
+                // Save category data for Firestore
+                setApiCategories({
+                  academyCategories: loc.academyCategories || {},
+                  restaurantDensity: loc.restaurantDensity,
+                  restaurantCategories: loc.restaurantCategories || {},
+                  nearestSchoolNames: {
+                    elementary: loc.nearestSchools?.elementary?.name,
+                    middle: loc.nearestSchools?.middle?.name,
+                    high: loc.nearestSchools?.high?.name,
+                  },
+                  nearestStationName: loc.nearestStation?.name,
+                });
+
                 // 건물 정보 (시트 C~H열)
                 const bld = loc.buildingInfo;
                 if (bld) {
@@ -461,8 +486,10 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
                     : '\n\n⚠️ 건물 정보 없음 (시트 C~H열 입력 필요)';
                   const catEntries = Object.entries(loc.academyCategories || {}).sort(([,a], [,b]) => (b as number) - (a as number));
                   const catMsg = catEntries.length > 0 ? `\n\n📚 학원 ${loc.academyDensity}개 (1km)\n${catEntries.map(([c, n]) => `  ${c}: ${n}개`).join('\n')}` : `\n\n📚 학원: ${loc.academyDensity}개`;
-                  const transitMsg = `\n\n🚇 교통\n역: ${loc.nearestStation?.name || '-'} (${loc.distanceToSubway ?? '-'}m)${loc.distanceToIndeokwon != null ? `\n인덕원선: ${loc.nearestIndeokwon?.name || '-'} (${loc.distanceToIndeokwon}m)` : ''}${loc.distanceToTram != null ? `\n트램: ${loc.nearestTram?.name || '-'} (${loc.distanceToTram}m)` : ''}`;
-                  alert(`✅ 자동 출력 완료!\n📍 학교\n초등: ${loc.nearestSchools?.elementary?.name || '-'} (${loc.distanceToElementary ?? '-'}m)\n중학: ${loc.nearestSchools?.middle?.name || '-'} (${loc.distanceToMiddle ?? '-'}m)\n고등: ${loc.nearestSchools?.high?.name || '-'} (${loc.distanceToHigh ?? '-'}m)${transitMsg}${catMsg}${bldMsg}`);
+                  const restEntries = Object.entries(loc.restaurantCategories || {}).sort(([,a], [,b]) => (b as number) - (a as number));
+                  const restMsg = restEntries.length > 0 ? `\n\n🍽️ 음식점·카페 ${loc.restaurantDensity}개 (1km)\n${restEntries.map(([c, n]) => `  ${c}: ${n}개`).join('\n')}` : '';
+                  const transitMsg = `\n\n🚇 교통\nGTX-A/SRT: ${loc.nearestStation?.name || '-'} (${loc.distanceToSubway ?? '-'}m)${loc.distanceToIndeokwon != null ? `\n인덕원선: ${loc.nearestIndeokwon?.name || '-'} (${loc.distanceToIndeokwon}m)` : ''}${loc.distanceToTram != null ? `\n트램: ${loc.nearestTram?.name || '-'} (${loc.distanceToTram}m)` : ''}`;
+                  alert(`✅ 자동 출력 완료!\n📍 학교\n초등: ${loc.nearestSchools?.elementary?.name || '-'} (${loc.distanceToElementary ?? '-'}m)\n중학: ${loc.nearestSchools?.middle?.name || '-'} (${loc.distanceToMiddle ?? '-'}m)\n고등: ${loc.nearestSchools?.high?.name || '-'} (${loc.distanceToHigh ?? '-'}m)${transitMsg}${catMsg}${restMsg}${bldMsg}`);
               } catch (e) {
                 alert('자동 출력 중 오류가 발생했습니다.');
                 console.error(e);
@@ -507,7 +534,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-2 mb-4">
-          <NumberInput name="metrics.distanceToSubway" label="지하철(SRT/GTX) 거리" placeholder="예: 500" unit="m" />
+          <NumberInput name="metrics.distanceToSubway" label="GTX-A/SRT 거리" placeholder="예: 500" unit="m" />
           <NumberInput name="metrics.distanceToIndeokwon" label="동탄인덕원선 거리" placeholder="예: 800" unit="m" />
           <NumberInput name="metrics.distanceToTram" label="동탄트램 거리" placeholder="예: 300" unit="m" />
         </div>

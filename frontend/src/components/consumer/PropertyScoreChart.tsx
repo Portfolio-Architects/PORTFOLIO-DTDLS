@@ -57,7 +57,7 @@ export default function PropertyScoreChart({ scores }: Props) {
            {[
              { title: '교육 환경', score: scores.eduTimePremium, desc: '학교·학원가까지 거리' },
              { title: '주차 쾌적성', score: scores.stressFreeParking, desc: '주차 대수와 동 간격' },
-             { title: '교통 편의', score: scores.commuteFrictional, desc: '지하철·GTX역까지 거리' },
+             { title: '교통 편의', score: scores.commuteFrictional, desc: 'GTX-A/SRT역까지 거리' },
              { title: '단지 규모', score: scores.megaScaleLiquidity, desc: '세대수가 많을수록 유리' }
            ].map((item, idx) => (
              <div key={idx} className="bg-[#f9fafb] border border-[#e5e8eb] p-4 rounded-2xl hover:border-[#3182f6]/30 transition-colors text-center">

@@ -58,7 +58,7 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
 
   // ---------------------------------------------------------
   // 3. 교통 편의 점수
-  // - 지하철역까지 거리: 가까울수록 높은 점수 (0m=100점, 2000m=0점)
+  // - GTX-A/SRT역까지 거리: 가까울수록 높은 점수 (0m=100점, 2000m=0점)
   // ---------------------------------------------------------
   const commuteFrictional = Math.max(0, 100 - (metrics.distanceToSubway / 20));
 
