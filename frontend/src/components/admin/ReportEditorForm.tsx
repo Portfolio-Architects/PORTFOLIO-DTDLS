@@ -250,24 +250,14 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
     }
   };
 
-  // Get next unused category for smart cycling
-  const getNextCategory = () => {
-    const usedTags = imageFields.map(f => f.locationTag);
-    const unused = IMAGE_CATEGORIES.find(cat => !usedTags.includes(cat));
-    return unused || IMAGE_CATEGORIES[0];
-  };
-
-  // Batch upload: create one block per file with sequential categories
+  // Batch upload: create one block per file — all default to first category, user sets manually
   const handleBatchFiles = (files: FileList | File[]) => {
     const fileArr = Array.from(files).filter(f => f.type.startsWith('image/'));
     if (fileArr.length === 0) return;
-    const usedTags = imageFields.map(f => f.locationTag);
-    const remainingCats = IMAGE_CATEGORIES.filter(cat => !usedTags.includes(cat));
 
-    fileArr.forEach((file, idx) => {
+    fileArr.forEach((file) => {
       const previewUrl = URL.createObjectURL(file);
-      const tag = remainingCats[idx] || IMAGE_CATEGORIES[idx % IMAGE_CATEGORIES.length];
-      appendImage({ file, previewUrl, url: '', caption: '', locationTag: tag, isPremium: false });
+      appendImage({ file, previewUrl, url: '', caption: '', locationTag: IMAGE_CATEGORIES[0], isPremium: false });
     });
   };
 
@@ -717,10 +707,10 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
 
         <button 
           type="button" 
-          onClick={() => appendImage({ url: '', caption: '', locationTag: getNextCategory(), isPremium: false })}
+          onClick={() => appendImage({ url: '', caption: '', locationTag: IMAGE_CATEGORIES[0], isPremium: false })}
           className="w-full py-4 border-2 border-dashed border-[#d1d6db] rounded-2xl text-[#4e5968] font-bold text-[14px] hover:bg-[#f9fafb] hover:text-[#3182f6] hover:border-[#3182f6] transition-all flex items-center justify-center gap-2"
         >
-          <ImagePlus size={18} /> 사진 블록(Block) 추가 — 다음: {getNextCategory()}
+          <ImagePlus size={18} /> 사진 블록(Block) 추가
         </button>
       </section>
 
