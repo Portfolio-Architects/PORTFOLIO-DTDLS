@@ -2,9 +2,6 @@
 
 import { useRef, useCallback, useMemo, useEffect, useState } from 'react';
 
-// Lazy-load to avoid SSR issues with three.js
-let ForceGraph3D: any = null;
-
 interface GraphNode {
   id: string;
   group: string;
@@ -21,24 +18,18 @@ interface GraphLink {
   strength: number;
 }
 
-// ──── App Architecture Node Data ────
-// Weights based on codebase analysis: higher = more central
-const NODES: GraphNode[] = [
-  // Core (가장 높은 가중치 → 중심)
+// ──── FALLBACK: Hardcoded Data (used when Google Sheets is unavailable) ────
+const FALLBACK_NODES: GraphNode[] = [
   { id: 'Firebase', group: 'core', weight: 10, color: '#FFCA28' },
   { id: 'Firestore', group: 'core', weight: 9, color: '#FFA726' },
   { id: 'Next.js', group: 'core', weight: 9, color: '#000000' },
   { id: 'React', group: 'core', weight: 8, color: '#61DAFB' },
   { id: 'TypeScript', group: 'core', weight: 7, color: '#3178C6' },
-
-  // Pages
   { id: '임장기', group: 'page', weight: 8, color: '#3182F6' },
   { id: '라운지', group: 'page', weight: 6, color: '#36B37E' },
   { id: '집추천', group: 'page', weight: 5, color: '#6554C0' },
   { id: '관리자', group: 'page', weight: 7, color: '#FF5630' },
   { id: '권역별', group: 'page', weight: 5, color: '#00B8D9' },
-
-  // Data Models
   { id: 'Report', group: 'data', weight: 9, color: '#E91E63' },
   { id: 'Review', group: 'data', weight: 6, color: '#9C27B0' },
   { id: 'Post', group: 'data', weight: 5, color: '#673AB7' },
@@ -46,53 +37,38 @@ const NODES: GraphNode[] = [
   { id: 'User', group: 'data', weight: 7, color: '#FF7043' },
   { id: 'Apartment', group: 'data', weight: 8, color: '#26A69A' },
   { id: 'Transaction', group: 'data', weight: 7, color: '#42A5F5' },
-
-  // APIs
   { id: 'location-scores', group: 'api', weight: 7, color: '#66BB6A' },
   { id: 'apartments-api', group: 'api', weight: 6, color: '#29B6F6' },
   { id: 'transactions-api', group: 'api', weight: 6, color: '#AB47BC' },
   { id: 'type-map', group: 'api', weight: 5, color: '#EC407A' },
-
-  // Services & Utils
   { id: 'DashboardFacade', group: 'service', weight: 8, color: '#FF8A65' },
   { id: 'Scoring', group: 'service', weight: 6, color: '#4DB6AC' },
   { id: 'Haversine', group: 'service', weight: 5, color: '#7986CB' },
   { id: 'ImageCompression', group: 'service', weight: 4, color: '#A1887F' },
   { id: 'KPI', group: 'service', weight: 5, color: '#F06292' },
-
-  // Features
   { id: '학군분석', group: 'feature', weight: 7, color: '#4CAF50' },
   { id: '교통접근성', group: 'feature', weight: 6, color: '#FF9800' },
   { id: '프리미엄지표', group: 'feature', weight: 7, color: '#E040FB' },
   { id: '입주민인증', group: 'feature', weight: 4, color: '#00BCD4' },
   { id: '중복감지', group: 'feature', weight: 3, color: '#8BC34A' },
   { id: '사진DB', group: 'feature', weight: 6, color: '#FFC107' },
-
-  // UI Components
   { id: 'Chart', group: 'ui', weight: 5, color: '#5C6BC0' },
   { id: 'Modal', group: 'ui', weight: 6, color: '#26C6DA' },
   { id: 'Map', group: 'ui', weight: 4, color: '#9CCC65' },
   { id: 'FloatingBar', group: 'ui', weight: 3, color: '#FFCA28' },
 ];
 
-// ──── Co-occurrence Based Links ────
-// Connected if they appear in the same file / have import relationships
-const LINKS: GraphLink[] = [
-  // Core connections
+const FALLBACK_LINKS: GraphLink[] = [
   { source: 'Firebase', target: 'Firestore', strength: 1.0 },
   { source: 'Next.js', target: 'React', strength: 0.9 },
   { source: 'Next.js', target: 'TypeScript', strength: 0.8 },
   { source: 'React', target: 'TypeScript', strength: 0.7 },
-
-  // Firebase → Data layer
   { source: 'Firestore', target: 'Report', strength: 0.9 },
   { source: 'Firestore', target: 'Review', strength: 0.7 },
   { source: 'Firestore', target: 'Post', strength: 0.7 },
   { source: 'Firestore', target: 'Comment', strength: 0.6 },
   { source: 'Firestore', target: 'User', strength: 0.8 },
   { source: 'Firestore', target: 'Apartment', strength: 0.7 },
-
-  // DashboardFacade → everything
   { source: 'DashboardFacade', target: 'Report', strength: 0.9 },
   { source: 'DashboardFacade', target: 'Review', strength: 0.8 },
   { source: 'DashboardFacade', target: 'Post', strength: 0.7 },
@@ -101,8 +77,6 @@ const LINKS: GraphLink[] = [
   { source: 'DashboardFacade', target: 'KPI', strength: 0.6 },
   { source: 'DashboardFacade', target: '임장기', strength: 0.9 },
   { source: 'DashboardFacade', target: '라운지', strength: 0.7 },
-
-  // Pages → Features
   { source: '임장기', target: 'Report', strength: 1.0 },
   { source: '임장기', target: '프리미엄지표', strength: 0.8 },
   { source: '임장기', target: '사진DB', strength: 0.8 },
@@ -117,8 +91,6 @@ const LINKS: GraphLink[] = [
   { source: '관리자', target: 'ImageCompression', strength: 0.6 },
   { source: '권역별', target: 'Map', strength: 0.8 },
   { source: '권역별', target: 'Apartment', strength: 0.7 },
-
-  // APIs → Data
   { source: 'location-scores', target: '학군분석', strength: 0.9 },
   { source: 'location-scores', target: 'Haversine', strength: 0.8 },
   { source: 'location-scores', target: 'Apartment', strength: 0.7 },
@@ -126,8 +98,6 @@ const LINKS: GraphLink[] = [
   { source: 'apartments-api', target: 'Apartment', strength: 1.0 },
   { source: 'transactions-api', target: 'Transaction', strength: 1.0 },
   { source: 'type-map', target: 'Transaction', strength: 0.7 },
-
-  // Features → Services
   { source: '학군분석', target: 'Scoring', strength: 0.8 },
   { source: '학군분석', target: 'Haversine', strength: 0.7 },
   { source: '교통접근성', target: 'Haversine', strength: 0.7 },
@@ -135,16 +105,12 @@ const LINKS: GraphLink[] = [
   { source: '프리미엄지표', target: 'Report', strength: 0.8 },
   { source: '입주민인증', target: 'User', strength: 0.8 },
   { source: '입주민인증', target: 'Apartment', strength: 0.6 },
-
-  // Data → Data
   { source: 'Report', target: 'Apartment', strength: 0.8 },
   { source: 'Review', target: 'Apartment', strength: 0.7 },
   { source: 'Transaction', target: 'Apartment', strength: 0.9 },
   { source: 'Report', target: 'User', strength: 0.6 },
   { source: 'Review', target: 'User', strength: 0.6 },
   { source: 'Post', target: 'User', strength: 0.7 },
-
-  // UI connections
   { source: 'Chart', target: 'Transaction', strength: 0.7 },
   { source: 'Modal', target: 'Report', strength: 0.8 },
   { source: 'Modal', target: 'React', strength: 0.5 },
@@ -168,6 +134,9 @@ export default function ArchitectureMindmap() {
   const fgRef = useRef<any>(null);
   const [hoverNode, setHoverNode] = useState<GraphNode | null>(null);
   const [Component, setComponent] = useState<any>(null);
+  const [nodes, setNodes] = useState<GraphNode[]>(FALLBACK_NODES);
+  const [links, setLinks] = useState<GraphLink[]>(FALLBACK_LINKS);
+  const [dataSource, setDataSource] = useState<'fallback' | 'sheets'>('fallback');
 
   // Dynamically import react-force-graph-3d (SSR-incompatible)
   useEffect(() => {
@@ -176,22 +145,38 @@ export default function ArchitectureMindmap() {
     });
   }, []);
 
-  // Graph data
+  // Fetch data from Google Sheets API (falls back to hardcoded data)
+  useEffect(() => {
+    fetch('/api/mindmap')
+      .then(res => res.json())
+      .then(data => {
+        if (data.nodes?.length > 0 && data.links?.length > 0) {
+          setNodes(data.nodes);
+          setLinks(data.links);
+          setDataSource('sheets');
+        }
+      })
+      .catch(() => { /* silent fallback to hardcoded data */ });
+  }, []);
+
+  // Graph data (re-create when source data changes)
   const graphData = useMemo(() => ({
-    nodes: NODES.map(n => ({ ...n })),
-    links: LINKS.map(l => ({ ...l })),
-  }), []);
+    nodes: nodes.map(n => ({ ...n })),
+    links: links.map(l => ({ ...l })),
+  }), [nodes, links]);
 
   // Highlight connected nodes on hover
   const highlightNodes = useMemo(() => {
     if (!hoverNode) return new Set<string>();
     const connected = new Set<string>([hoverNode.id]);
-    LINKS.forEach(l => {
-      if (l.source === hoverNode.id) connected.add(l.target);
-      if (l.target === hoverNode.id) connected.add(typeof l.source === 'string' ? l.source : (l.source as any).id);
+    links.forEach(l => {
+      const sId = typeof l.source === 'string' ? l.source : (l.source as any).id;
+      const tId = typeof l.target === 'string' ? l.target : (l.target as any).id;
+      if (sId === hoverNode.id) connected.add(tId);
+      if (tId === hoverNode.id) connected.add(sId);
     });
     return connected;
-  }, [hoverNode]);
+  }, [hoverNode, links]);
 
   // Node rendering
   const nodeThreeObject = useCallback((node: any) => {
@@ -201,7 +186,6 @@ export default function ArchitectureMindmap() {
     const isHighlighted = !hoverNode || highlightNodes.has(node.id);
     const opacity = isHighlighted ? 1 : 0.15;
 
-    // Sphere
     const geometry = new THREE.SphereGeometry(size, 16, 16);
     const material = new THREE.MeshPhongMaterial({
       color: node.color,
@@ -211,7 +195,6 @@ export default function ArchitectureMindmap() {
     });
     const sphere = new THREE.Mesh(geometry, material);
 
-    // Text sprite
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
     canvas.width = 256;
@@ -269,7 +252,12 @@ export default function ArchitectureMindmap() {
       {/* Header */}
       <div className="absolute top-4 left-5 z-10">
         <h3 className="text-[16px] font-extrabold text-white/90 mb-0.5">앱 아키텍처 3D 마인드맵</h3>
-        <p className="text-[11px] text-white/40">드래그/줌으로 탐색 · 노드 호버 시 연결 관계 표시</p>
+        <p className="text-[11px] text-white/40">
+          드래그/줌으로 탐색 · 노드 호버 시 연결 관계 표시
+          <span className="ml-2 px-1.5 py-0.5 rounded bg-white/10 text-[9px]">
+            {dataSource === 'sheets' ? '📊 Google Sheets' : '💾 로컬 데이터'}
+          </span>
+        </p>
       </div>
 
       {/* Legend */}
@@ -290,9 +278,13 @@ export default function ArchitectureMindmap() {
             <span className="text-[14px] font-bold text-white">{hoverNode.id}</span>
           </div>
           <div className="flex items-center gap-3 text-[11px] text-white/50">
-            <span>{GROUP_LABELS[hoverNode.group]?.label}</span>
+            <span>{GROUP_LABELS[hoverNode.group]?.label || hoverNode.group}</span>
             <span>가중치: {hoverNode.weight}/10</span>
-            <span>연결: {LINKS.filter(l => l.source === hoverNode.id || l.target === hoverNode.id).length}개</span>
+            <span>연결: {links.filter(l => {
+              const sId = typeof l.source === 'string' ? l.source : (l.source as any).id;
+              const tId = typeof l.target === 'string' ? l.target : (l.target as any).id;
+              return sId === hoverNode.id || tId === hoverNode.id;
+            }).length}개</span>
           </div>
         </div>
       )}

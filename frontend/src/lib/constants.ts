@@ -16,6 +16,8 @@ export const SHEET_TABS = {
   STATIONS: 'stations',
   APARTMENTS: 'apartments',
   RESTAURANTS: 'restaurants',
+  MINDMAP_NODES: 'mindmap_nodes',
+  MINDMAP_LINKS: 'mindmap_links',
 } as const;
 
 /** CSV line parser (shared between transaction and type-map routes) */
