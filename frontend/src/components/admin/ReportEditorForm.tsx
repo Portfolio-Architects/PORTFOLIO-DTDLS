@@ -155,6 +155,25 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
     }
   });
 
+  // Restore draft from localStorage if available
+  useEffect(() => {
+    try {
+      const key = `draft_report_${reportId || 'new'}`;
+      const raw = localStorage.getItem(key);
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (!draft._savedAt) return;
+      const savedTime = new Date(draft._savedAt).toLocaleString('ko-KR');
+      if (confirm(`💾 ${savedTime}에 임시 저장된 데이터가 있습니다.\n불러오시겠습니까?`)) {
+        const { _savedAt, images, ...rest } = draft;
+        // Restore text fields (exclude images to avoid broken File refs)
+        reset({ ...rest, images: initialData?.images || [] });
+      } else {
+        localStorage.removeItem(key);
+      }
+    } catch { /* ignore */ }
+  }, [reportId]);
+
   // If initialData is loaded asynchronously or changed
   useEffect(() => {
     if (initialData) {
