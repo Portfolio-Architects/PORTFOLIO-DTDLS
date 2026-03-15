@@ -1,0 +1,172 @@
+/**
+ * GET /api/cron/sync-transactions
+ * 
+ * 국토교통부 실거래가 API → Firestore 'transactions' 신규 거래 동기화
+ * Vercel Cron에서 매일 1회 호출 (vercel.json에서 설정)
+ * 수동 호출도 가능: fetch('/api/cron/sync-transactions')
+ */
+import { NextResponse } from 'next/server';
+import { db } from '@/lib/firebaseConfig';
+import { collection, doc, writeBatch, query, orderBy, limit, getDocs } from 'firebase/firestore';
+
+const API_KEY = process.env.BUILDING_API_KEY || '';
+const LAWD_CD = '41597'; // 동탄구
+const API_BASE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev';
+
+interface GovApiItem {
+  aptNm: string;
+  dealAmount: string;
+  dealDay: string;
+  dealMonth: string;
+  dealYear: string;
+  excluUseAr: string;
+  floor: string;
+  buildYear: string;
+  umdNm: string;
+  roadNm: string;
+  buyerGbn: string;
+  slerGbn: string;
+  cdealDay: string;
+  cdealType: string;
+  dealingGbn: string;
+  estateAgentSggNm: string;
+  rgstDate: string;
+  sggCd: string;
+}
+
+function extractDong(umdNm: string): string {
+  return umdNm || '';
+}
+
+export async function GET() {
+  try {
+    if (!API_KEY) {
+      return NextResponse.json({ error: 'BUILDING_API_KEY not set' }, { status: 500 });
+    }
+
+    // 1. Find the latest contractDate in Firestore to determine sync range
+    const collRef = collection(db, 'transactions');
+    const latestQ = query(collRef, orderBy('contractDate', 'desc'), limit(1));
+    const latestSnap = await getDocs(latestQ);
+    
+    let latestYm = '';
+    if (!latestSnap.empty) {
+      const latestDoc = latestSnap.docs[0].data();
+      latestYm = latestDoc.contractYm || '';
+    }
+
+    // 2. Determine months to sync (latest month + current month)
+    const now = new Date();
+    const currentYm = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const monthsToSync = new Set<string>();
+    
+    if (latestYm) {
+      monthsToSync.add(latestYm); // Re-sync latest month (may have new entries)
+    }
+    monthsToSync.add(currentYm); // Always sync current month
+    
+    // Also add previous month if we're early in the month (data delay)
+    if (now.getDate() <= 15) {
+      const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      monthsToSync.add(`${prevDate.getFullYear()}${String(prevDate.getMonth() + 1).padStart(2, '0')}`);
+    }
+
+    // 3. Fetch from 국토부 API for each month
+    let totalNew = 0;
+    const syncLog: string[] = [];
+
+    for (const ym of Array.from(monthsToSync).sort()) {
+      let page = 1;
+      let totalCount = 0;
+      const monthRecords: any[] = [];
+
+      do {
+        const url = `${API_BASE}?serviceKey=${API_KEY}&LAWD_CD=${LAWD_CD}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000`;
+        const res = await fetch(url);
+        if (!res.ok) { syncLog.push(`${ym} page ${page}: HTTP ${res.status}`); break; }
+
+        const text = await res.text();
+        // Parse XML response
+        const totalMatch = text.match(/<totalCount>(\d+)<\/totalCount>/);
+        totalCount = totalMatch ? parseInt(totalMatch[1], 10) : 0;
+
+        if (totalCount === 0) break;
+
+        // Extract items using regex (simple XML parsing)
+        const items = text.match(/<item>([\s\S]*?)<\/item>/g) || [];
+        
+        for (const itemXml of items) {
+          const get = (tag: string) => {
+            const m = itemXml.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`));
+            return m ? m[1].trim() : '';
+          };
+
+          const aptName = get('aptNm');
+          const priceStr = get('dealAmount').replace(/,/g, '').trim();
+          const price = parseInt(priceStr, 10) || 0;
+          const area = parseFloat(get('excluUseAr')) || 0;
+          const contractDay = get('dealDay').padStart(2, '0');
+          const floor = parseInt(get('floor'), 10) || 0;
+          const dong = get('umdNm');
+
+          const record = {
+            sigungu: `경기도 화성시 동탄구 ${dong}`,
+            dong,
+            aptName,
+            area,
+            areaPyeong: Math.round(area / 3.3058 * 10) / 10,
+            contractYm: ym,
+            contractDay,
+            contractDate: `${ym}${contractDay}`,
+            price,
+            floor,
+            buyer: get('buyerGbn'),
+            seller: get('slerGbn'),
+            buildYear: parseInt(get('buildYear'), 10) || 0,
+            roadName: get('roadNm'),
+            cancelDate: get('cdealDay') || '',
+            dealType: get('cdealType') || get('dealingGbn') || '',
+            agentLocation: get('estateAgentSggNm'),
+            registrationDate: get('rgstDate'),
+            housingType: '',
+            source: 'govt_api',
+            _key: `${aptName}_${ym}_${contractDay}_${area}_${price}_${floor}`,
+          };
+
+          monthRecords.push(record);
+        }
+
+        page++;
+      } while (monthRecords.length < totalCount);
+
+      // 4. Batch write to Firestore
+      if (monthRecords.length > 0) {
+        const BATCH_SIZE = 500;
+        let written = 0;
+        for (let i = 0; i < monthRecords.length; i += BATCH_SIZE) {
+          const batch = writeBatch(db);
+          const slice = monthRecords.slice(i, i + BATCH_SIZE);
+          for (const r of slice) {
+            batch.set(doc(collRef, r._key), r, { merge: true });
+          }
+          await batch.commit();
+          written += slice.length;
+        }
+        totalNew += written;
+        syncLog.push(`${ym}: ${written}건 동기화`);
+      } else {
+        syncLog.push(`${ym}: 0건`);
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      synced: totalNew,
+      months: Array.from(monthsToSync),
+      log: syncLog,
+    });
+  } catch (error: any) {
+    console.error('Sync error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
