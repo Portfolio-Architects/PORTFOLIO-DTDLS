@@ -168,8 +168,8 @@ export function FieldReportModal({
           {/* Hero Section */}
           <div className="bg-white w-full flex flex-col md:flex-row p-6 md:p-10 gap-6 md:gap-8 rounded-t-3xl shrink-0 pt-4 md:pt-8 border-b border-[#e5e8eb]">
             
-            {/* Left: 실거래가 전체 리스트 */}
-            <div className="w-full md:w-[50%] shrink-0">
+            {/* Left: 실거래가 전체 리스트 — mobile: 2번째, desktop: 1번째 */}
+            <div className="w-full md:w-[50%] shrink-0 order-2 md:order-1">
               {transactions.length > 0 ? (
                 <div className="bg-[#f9fafb] rounded-2xl p-4 ring-1 ring-black/5">
                   <h4 className="text-[13px] font-bold text-[#8b95a1] mb-3 flex items-center gap-1.5">
@@ -208,8 +208,8 @@ export function FieldReportModal({
               )}
             </div>
 
-            {/* Right: Title + Chart */}
-            <div className="w-full md:w-[50%] flex flex-col">
+            {/* Right: Title + Chart — mobile: 1번째, desktop: 2번째 */}
+            <div className="w-full md:w-[50%] flex flex-col order-1 md:order-2">
                <div className="flex items-center gap-2 mb-3">
                  <span className="bg-[#3182f6] text-white text-[13px] font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
                </div>
