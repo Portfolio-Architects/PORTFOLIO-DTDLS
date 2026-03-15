@@ -722,7 +722,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
                         </button>
                         <div
                           id={`cat-popover-${index}`}
-                          className="hidden absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-xl border border-[#e5e8eb] w-[380px] max-h-[280px] overflow-hidden"
+                          className="hidden absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-xl border border-[#e5e8eb] w-[380px] md:w-[560px] max-h-[280px] overflow-hidden"
                         >
                           {/* Group tabs — horizontal scroll */}
                           <div className="flex gap-1 p-2 overflow-x-auto border-b border-[#f2f4f6] bg-[#fafbfc]">
@@ -842,7 +842,22 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
 
       {/* 4. Publishing & Save */}
       <div className="fixed bottom-0 left-0 right-0 md:left-[240px] bg-white/90 backdrop-blur-md p-4 border-t border-[#e5e8eb] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] flex justify-end gap-3 z-50">
-        <button type="button" className="px-6 py-3 font-bold text-[#4e5968] bg-[#f2f4f6] hover:bg-[#e5e8eb] rounded-xl transition-colors">
+        <button
+          type="button"
+          onClick={() => {
+            try {
+              const data = getValues();
+              localStorage.setItem(`draft_report_${reportId || 'new'}`, JSON.stringify({
+                ...data,
+                _savedAt: new Date().toISOString(),
+              }));
+              alert('✅ 임시 저장되었습니다!');
+            } catch {
+              alert('임시 저장에 실패했습니다.');
+            }
+          }}
+          className="px-6 py-3 font-bold text-[#4e5968] bg-[#f2f4f6] hover:bg-[#e5e8eb] rounded-xl transition-colors"
+        >
           임시 저장
         </button>
         <button 
