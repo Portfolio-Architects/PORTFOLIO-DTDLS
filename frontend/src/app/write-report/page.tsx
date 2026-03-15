@@ -51,6 +51,7 @@ export default function WriteFieldReport() {
   // Wizard State (1 to 6)
   const [step, setStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{done: number, total: number} | null>(null);
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
 
@@ -168,16 +169,12 @@ export default function WriteFieldReport() {
         [key]: [...(prev[key] || []), ...newFiles]
       }));
 
-      newFiles.forEach(file => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreviews(prev => ({
-            ...prev,
-            [key]: [...(prev[key] || []), reader.result as string]
-          }));
-        };
-        reader.readAsDataURL(file);
-      });
+      // Use createObjectURL instead of readAsDataURL (much more memory-efficient)
+      const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+      setImagePreviews(prev => ({
+        ...prev,
+        [key]: [...(prev[key] || []), ...newPreviews]
+      }));
     }
   };
 
@@ -197,11 +194,12 @@ export default function WriteFieldReport() {
   const handleSubmit = async () => {
     if (!user) return;
     setIsSubmitting(true);
+    setUploadProgress(null);
     try {
-      // Build flat imageFiles record for facade (first image per category as legacy compat)
-      const flatFiles: Record<string, File> = {};
+      // Build array of all image entries with category tags
+      const imageEntries: {file: File, category: string}[] = [];
       Object.entries(imageFiles).forEach(([key, files]) => {
-        if (files.length > 0) flatFiles[key] = files[0];
+        files.forEach(file => imageEntries.push({ file, category: key }));
       });
 
       // Set auto grade
@@ -211,15 +209,28 @@ export default function WriteFieldReport() {
         assessment: { ...sections.assessment, autoGrade: gradeInfo.grade }
       };
 
-      await dashboardFacade.addFieldReport(reportAptName, finalSections, null, user.uid, flatFiles);
+      const totalImages = imageEntries.length;
+      if (totalImages > 0) {
+        setUploadProgress({ done: 0, total: totalImages });
+      }
+
+      await dashboardFacade.addFieldReport(
+        reportAptName,
+        finalSections,
+        null,
+        user.uid,
+        imageEntries,
+        (done, total) => setUploadProgress({ done, total })
+      );
       localStorage.removeItem(DRAFT_KEY);
-      alert("🔥 프로 임장기가 성공적으로 등록되었습니다!");
+      alert(`🔥 프로 임장기가 성공적으로 등록되었습니다! (${totalImages}장 업로드)`);
       router.push('/');
     } catch (error) {
        console.error("Submission failed", error);
        alert("등록 중 오류가 발생했습니다.");
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(null);
     }
   };
 
@@ -291,13 +302,8 @@ export default function WriteFieldReport() {
         const newFiles = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
         if (newFiles.length === 0) return;
         setImageFiles(prev => ({ ...prev, [apiKey]: [...(prev[apiKey] || []), ...newFiles] }));
-        newFiles.forEach(file => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setImagePreviews(prev => ({ ...prev, [apiKey]: [...(prev[apiKey] || []), reader.result as string] }));
-          };
-          reader.readAsDataURL(file);
-        });
+        const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+        setImagePreviews(prev => ({ ...prev, [apiKey]: [...(prev[apiKey] || []), ...newPreviews] }));
       }
     };
 
@@ -657,7 +663,7 @@ export default function WriteFieldReport() {
            </button>
         ) : (
            <button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 py-3.5 rounded-xl font-bold bg-[#191f28] text-white active:scale-[0.98] transition-transform flex items-center justify-center gap-2 text-[14px]">
-              {isSubmitting ? '서버에 저장 중...' : '🔥 최종 제출하기'}
+               {isSubmitting ? (uploadProgress ? `📤 ${uploadProgress.done}/${uploadProgress.total}장 업로드 중...` : '서버에 저장 중...') : '🔥 최종 제출하기'}
            </button>
         )}
       </div>

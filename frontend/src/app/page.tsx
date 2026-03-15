@@ -37,6 +37,78 @@ interface TransactionRecord {
   dealType: string;
 }
 
+/** GalleryGrid — Compact category-tab photo grid for 100+ photos */
+function GalleryGrid({ images, tags, tagLabels, onImageClick }: {
+  images: {url: string; caption?: string; locationTag?: string; isPremium?: boolean}[];
+  tags: string[];
+  tagLabels: Record<string, string>;
+  onImageClick: (url: string) => void;
+}) {
+  const [activeTag, setActiveTag] = useState('전체');
+  const filtered = activeTag === '전체' ? images : images.filter(img => (img.locationTag || '기타') === activeTag);
+
+  return (
+    <>
+      {/* Category Filter Chips */}
+      <div className="flex gap-2 overflow-x-auto pb-3 mb-4 custom-scrollbar">
+        {tags.map(tag => {
+          const count = tag === '전체' ? images.length : images.filter(img => (img.locationTag || '기타') === tag).length;
+          const label = tagLabels[tag] || tag;
+          return (
+            <button
+              key={tag}
+              onClick={() => setActiveTag(tag)}
+              className={`shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-all border ${
+                activeTag === tag
+                  ? 'bg-[#191f28] text-white border-[#191f28]'
+                  : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6] hover:text-[#3182f6]'
+              }`}
+            >
+              {label} <span className="opacity-60 ml-0.5">{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Photo Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+        {filtered.map((img, i) => (
+          <div
+            key={i}
+            className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group border border-[#e5e8eb] shadow-sm"
+            onClick={() => onImageClick(img.url)}
+          >
+            <img
+              src={img.url}
+              alt={img.caption || img.locationTag || `Photo ${i + 1}`}
+              loading="lazy"
+              className="w-full h-full object-cover bg-[#f2f4f6] group-hover:scale-105 transition-transform duration-300"
+            />
+            {/* Hover overlay with caption + tag */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-2.5">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-bold text-white/90 bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-md">
+                  {tagLabels[img.locationTag || ''] || img.locationTag || '기타'}
+                </span>
+                {img.isPremium && (
+                  <span className="text-[9px] font-bold bg-[#ffc107] text-[#191f28] px-1.5 py-0.5 rounded-md">★ PRO</span>
+                )}
+              </div>
+              {img.caption && (
+                <p className="text-[11px] text-white/90 mt-1 line-clamp-2">{img.caption}</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {filtered.length === 0 && (
+        <div className="text-center py-8 text-[#8b95a1] text-[13px]">이 카테고리에 등록된 사진이 없습니다.</div>
+      )}
+    </>
+  );
+}
+
 export function FieldReportModal({ 
   report, 
   onClose,
@@ -419,42 +491,28 @@ export function FieldReportModal({
               </div>
             )}
 
-            {/* New Schema (Premium CMS): Render dynamic images if available */}
-            {report.images && report.images.length > 0 && (
-              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
-                 <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3">
-                   <Camera size={20} className="text-[#3182f6]"/> 현장 프리미엄 사진 브리핑
-                 </h2>
-                 <div className="flex flex-col gap-12">
-                   {report.images.map((img, i) => (
-                     <div key={i} className="flex flex-col md:flex-row gap-8 pt-8 first:pt-0 first:border-0 border-t border-[#f2f4f6]">
-                       <div 
-                         className="w-full md:w-[400px] lg:w-[480px] h-[280px] lg:h-[320px] rounded-2xl overflow-hidden shrink-0 cursor-pointer group relative shadow-sm"
-                         onClick={() => setFullscreenImage(img.url)}
-                       >
-                         <img src={img.url} alt={img.locationTag} className="w-full h-full object-cover bg-[#f2f4f6] group-hover:scale-105 transition-transform duration-500" />
-                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                           <Maximize2 className="text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md" size={32} />
-                         </div>
-                       </div>
-                       <div className="flex-1 flex flex-col justify-center">
-                         <div className="flex items-center gap-2 mb-4">
-                           <h4 className="text-[16px] font-bold text-[#191f28] bg-[#f8f9fa] border border-[#e5e8eb] px-4 py-1.5 rounded-lg">
-                             {img.locationTag}
-                           </h4>
-                           {img.isPremium && (
-                             <span className="text-[10px] font-bold bg-[#191f28] text-white px-2 py-0.5 rounded-md flex items-center gap-1">
-                               <Star size={10} className="fill-[#ffc107] text-[#ffc107]" /> PREMIUM
-                             </span>
-                           )}
-                         </div>
-                         <p className="text-[16px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{img.caption || '상세 설명이 등록되지 않았습니다.'}</p>
-                       </div>
-                     </div>
-                   ))}
-                 </div>
-              </div>
-            )}
+            {/* Photo Gallery — Category Tab Grid (100+ photos) */}
+            {report.images && report.images.length > 0 && (() => {
+              const IMAGE_TAG_LABELS: Record<string, string> = {
+                'gateImg': '정문', 'landscapeImg': '조경', 'parkingImg': '주차장',
+                'maintenanceImg': '공용부', 'communityImg': '커뮤니티', 'schoolImg': '통학로', 'commerceImg': '상권',
+              };
+              const allTags = ['전체', ...Array.from(new Set(report.images.map(img => img.locationTag || '기타')))];
+              return (
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+                  <details open>
+                    <summary className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-5 border-b border-[#e5e8eb] pb-3 cursor-pointer list-none">
+                      <Camera size={20} className="text-[#3182f6]"/>
+                      현장 사진 갤러리
+                      <span className="text-[13px] font-medium text-[#8b95a1] ml-auto">{report.images.length}장</span>
+                    </summary>
+
+                    {/* Category Filter Chips */}
+                    <GalleryGrid images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
+                  </details>
+                </div>
+              );
+            })()}
 
             {!s ? (
               // Legacy Template Render (Fallback if both schemas are empty)

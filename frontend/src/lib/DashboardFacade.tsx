@@ -48,7 +48,7 @@ export interface DashboardDataStrategy {
   getAdBanner(): AdBannerData;
   subscribe?(callback: () => void): () => void;
   addPost?(title: string, category: string, authorUid: string, imageFile?: File): Promise<void>;
-  addFieldReport?(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageFiles: Record<string, File>): Promise<void>;
+  addFieldReport?(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void): Promise<void>;
   addFieldReportComment?(reportId: string, text: string, authorUid: string): Promise<void>;
   incrementLike?(postId: string): Promise<void>;
   incrementFieldReportLike?(reportId: string): Promise<void>;
@@ -157,41 +157,68 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     }
   }
 
-  async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageFiles: Record<string, File>) {
+  async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) {
     try {
       const profile = await UserRepo.getOrCreateProfile(authorUid);
+      const total = imageEntries.length;
+      let done = 0;
 
-      // Upload images in parallel
-      const uploadPromises = Object.entries(imageFiles).map(async ([key, file]) => {
-        try {
-          const compressed = await compressImage(file);
-          const storageRef = ref(storage, `field_reports/${Date.now()}_${key}_${file.name}`);
-          const snapshot = await uploadBytes(storageRef, compressed);
-          const downloadUrl = await getDownloadURL(snapshot.ref);
-          return { key, url: downloadUrl };
-        } catch (storageError) {
-          logger.error('DashboardFacade.addFieldReport', `Upload failed for ${key}`, undefined, storageError);
-          return null;
-        }
-      });
+      // Upload all images — batched 5 at a time to avoid overwhelming Firebase
+      const BATCH_SIZE = 5;
+      const uploadedImages: {url: string, category: string}[] = [];
 
-      const uploadedImages = (await Promise.all(uploadPromises)).filter(Boolean) as {key: string, url: string}[];
+      for (let i = 0; i < total; i += BATCH_SIZE) {
+        const batch = imageEntries.slice(i, i + BATCH_SIZE);
+        const results = await Promise.all(batch.map(async ({ file, category }) => {
+          try {
+            const compressed = await compressImage(file);
+            const storageRef = ref(storage, `field_reports/${Date.now()}_${Math.random().toString(36).slice(2, 7)}_${file.name}`);
+            const snapshot = await uploadBytes(storageRef, compressed);
+            const downloadUrl = await getDownloadURL(snapshot.ref);
+            done++;
+            onProgress?.(done, total);
+            return { url: downloadUrl, category };
+          } catch (storageError) {
+            logger.error('DashboardFacade.addFieldReport', `Upload failed for ${file.name}`, undefined, storageError);
+            done++;
+            onProgress?.(done, total);
+            return null;
+          }
+        }));
+        uploadedImages.push(...results.filter(Boolean) as {url: string, category: string}[]);
+      }
+
+      // Build ImageMeta array
+      const images = uploadedImages.map(img => ({
+        url: img.url,
+        caption: '',
+        locationTag: img.category,
+      }));
+
+      // Legacy compat: also set first image per category in sections
       const mergedSections = JSON.parse(JSON.stringify(sections)) as ReportSections;
-      uploadedImages.forEach(({key, url}) => {
-        if (key === 'gateImg') mergedSections.infra.gateImg = url;
-        if (key === 'landscapeImg') mergedSections.infra.landscapeImg = url;
-        if (key === 'parkingImg') mergedSections.infra.parkingImg = url;
-        if (key === 'maintenanceImg') mergedSections.infra.maintenanceImg = url;
-        if (key === 'communityImg') mergedSections.ecosystem.communityImg = url;
-        if (key === 'schoolImg') mergedSections.ecosystem.schoolImg = url;
-        if (key === 'commerceImg') mergedSections.ecosystem.commerceImg = url;
-      });
+      const SECTION_MAP: Record<string, [keyof ReportSections, string]> = {
+        'gateImg': ['infra', 'gateImg'], 'landscapeImg': ['infra', 'landscapeImg'],
+        'parkingImg': ['infra', 'parkingImg'], 'maintenanceImg': ['infra', 'maintenanceImg'],
+        'communityImg': ['ecosystem', 'communityImg'], 'schoolImg': ['ecosystem', 'schoolImg'],
+        'commerceImg': ['ecosystem', 'commerceImg'],
+      };
+      for (const img of uploadedImages) {
+        const mapping = SECTION_MAP[img.category];
+        if (mapping) {
+          const [section, field] = mapping;
+          if (!(mergedSections[section] as any)[field]) {
+            (mergedSections[section] as any)[field] = img.url;
+          }
+        }
+      }
 
       const { addDoc, collection, serverTimestamp } = await import('firebase/firestore');
       const { db } = await import('@/lib/firebaseConfig');
       await addDoc(collection(db, 'field_reports'), {
         apartmentName,
         sections: mergedSections,
+        images,
         premiumScores: premiumScores || null,
         authorName: profile?.nickname || '익명',
         authorUid,
@@ -199,7 +226,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
         commentCount: 0,
         createdAt: serverTimestamp(),
       });
-      logger.info('DashboardFacade.addFieldReport', 'Field report created', { apartmentName });
+      logger.info('DashboardFacade.addFieldReport', 'Field report created', { apartmentName, imageCount: images.length });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       logger.error('DashboardFacade.addFieldReport', 'Failed', { apartmentName }, e);
@@ -291,7 +318,7 @@ export class DashboardFacade {
   public getUserReviews(): UserReview[] { return this.strategy.getUserReviews ? this.strategy.getUserReviews() : []; }
   public getAdBanner(): AdBannerData { return this.strategy.getAdBanner(); }
   public async addPost(title: string, category: string, authorUid: string, imageFile?: File) { if (this.strategy.addPost) await this.strategy.addPost(title, category, authorUid, imageFile); }
-  public async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageFiles: Record<string, File>) { if (this.strategy.addFieldReport) await this.strategy.addFieldReport(apartmentName, sections, premiumScores, authorUid, imageFiles); }
+  public async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) { if (this.strategy.addFieldReport) await this.strategy.addFieldReport(apartmentName, sections, premiumScores, authorUid, imageEntries, onProgress); }
   public async addFieldReportComment(reportId: string, text: string, authorUid: string) { if (this.strategy.addFieldReportComment) await this.strategy.addFieldReportComment(reportId, text, authorUid); }
   public async addUserReview(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File) { if (this.strategy.addUserReview) await this.strategy.addUserReview(apartmentName, rating, content, authorUid, imageFile); }
   public listenToComments(reportId: string, callback: (comments: CommentData[]) => void) { return this.strategy.listenToComments ? this.strategy.listenToComments(reportId, callback) : () => {}; }
