@@ -918,7 +918,7 @@ export default function Dashboard() {
       
       {/* Top Navigation Bar */}
       <header className="bg-white/90 backdrop-blur-xl border-b border-[#e5e8eb] sticky top-0 z-40 transition-all duration-300">
-        <div className="w-full max-w-[2000px] mx-auto px-6 md:px-12 lg:px-24 xl:px-32 h-16 flex justify-between items-center">
+        <div className="w-full max-w-[2000px] mx-auto px-4 md:px-6 lg:px-8 h-16 flex justify-between items-center">
           {/* Left: Pill Tabs + Branding */}
           <div className="flex items-center gap-3">
             <div className="inline-flex bg-[#f2f4f6] rounded-full p-1 gap-0.5">
