@@ -1017,9 +1017,6 @@ export default function Dashboard() {
                 {filteredReports.map(report => {
                   const normName = normalizeAptName(report.apartmentName);
                   const txs = transactionsByApt[normName] || [];
-                  const chartData = [...txs].reverse().slice(-20).map(tx => ({
-                    price: Math.round(tx.price / 100) / 100,
-                  }));
                   return (
                   <div
                     key={report.id}
@@ -1076,21 +1073,35 @@ export default function Dashboard() {
                             </table>
                           </div>
                         )}
-                        {chartData.length > 2 && (
-                          <div className="w-[100px] h-[50px] shrink-0">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <AreaChart data={chartData} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
-                                <defs>
-                                  <linearGradient id={`miniGrad-${report.id}`} x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#03c75a" stopOpacity={0.3}/>
-                                    <stop offset="95%" stopColor="#03c75a" stopOpacity={0}/>
-                                  </linearGradient>
-                                </defs>
-                                <Area type="monotone" dataKey="price" stroke="#03c75a" strokeWidth={1.5} fill={`url(#miniGrad-${report.id})`} dot={false} />
-                              </AreaChart>
-                            </ResponsiveContainer>
-                          </div>
-                        )}
+                        {txs.length > 2 && (() => {
+                          const prices = txs.map(t => t.price);
+                          const maxPrice = Math.max(...prices);
+                          const latestPrice = prices[0];
+                          const prevPrice = prices[Math.min(2, prices.length - 1)];
+                          const changePercent = prevPrice > 0 ? ((latestPrice - prevPrice) / prevPrice * 100) : 0;
+                          const gapFromHigh = maxPrice > 0 ? ((latestPrice - maxPrice) / maxPrice * 100) : 0;
+                          const isUp = changePercent >= 0;
+                          const formatEok = (p: number) => {
+                            const e = Math.floor(p / 10000);
+                            const r = Math.round((p % 10000) / 1000) * 1000;
+                            return e > 0 ? (r > 0 ? `${e}.${Math.round(r/1000)}억` : `${e}억`) : `${p.toLocaleString()}만`;
+                          };
+                          return (
+                            <div className="shrink-0 text-right flex flex-col items-end gap-0.5">
+                              <div className="text-[10px] text-[#8b95a1]">
+                                최고 <span className="font-bold text-[#191f28]">{formatEok(maxPrice)}</span>
+                              </div>
+                              <div className={`text-[11px] font-bold ${isUp ? 'text-[#f04452]' : 'text-[#3182f6]'}`}>
+                                {isUp ? '▲' : '▼'} {Math.abs(changePercent).toFixed(1)}%
+                              </div>
+                              {gapFromHigh < -3 && (
+                                <div className="text-[9px] text-[#8b95a1] bg-[#f2f4f6] px-1.5 py-0.5 rounded">
+                                  고점대비 {gapFromHigh.toFixed(0)}%
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
