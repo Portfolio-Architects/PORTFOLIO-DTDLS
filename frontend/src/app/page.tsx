@@ -329,9 +329,9 @@ export function FieldReportModal({
                        <span className="ml-auto text-[#8b95a1]">{scatterData.length}건</span>
                      </div>
                      {/* Chart */}
-                     <div className="h-[200px]">
+                     <div className="h-[210px] mt-2">
                        <ResponsiveContainer width="100%" height="100%">
-                         <ComposedChart data={monthlyData} margin={{ top: 35, right: 10, left: 0, bottom: 5 }}>
+                         <ComposedChart data={monthlyData} margin={{ top: 40, right: 10, left: 0, bottom: 5 }} style={{ overflow: 'visible' }}>
                            <defs>
                              <linearGradient id="priceGradModal" x1="0" y1="0" x2="0" y2="1">
                                <stop offset="5%" stopColor="#4A6CF7" stopOpacity={0.12}/>
