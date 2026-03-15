@@ -1046,15 +1046,15 @@ export default function Dashboard() {
                         <h4 className="text-[17px] font-extrabold text-[#191f28] truncate mb-3">{report.apartmentName}</h4>
                       </div>
 
-                      {/* 최근 실거래 + 미니 차트 */}
-                      <div className="flex items-end gap-4">
+                      {/* 최근 실거래 + 가격 요약 */}
+                      <div className="flex items-center gap-3">
                         {txLoading ? (
                           <div className="flex-1 min-w-0 space-y-1.5">
                             {[1,2,3].map(i => <div key={i} className="h-3 bg-[#e5e8eb] rounded animate-pulse" style={{width: `${90-i*15}%`}} />)}
                             <p className="text-[10px] text-[#8b95a1] mt-1 animate-pulse">📊 실거래가 로드중...</p>
                           </div>
                         ) : txs.length > 0 && (
-                          <div className="min-w-0">
+                          <div className="flex-1 min-w-0">
                             <table className="w-full text-[11px]">
                               <tbody>
                                 {txs.slice(0, 3).map((tx, idx) => {
@@ -1088,18 +1088,14 @@ export default function Dashboard() {
                             return e > 0 ? (r > 0 ? `${e}.${Math.round(r/1000)}억` : `${e}억`) : `${p.toLocaleString()}만`;
                           };
                           return (
-                            <div className="shrink-0 bg-[#f9fafb] rounded-lg px-3 py-2 flex flex-col items-end gap-1 min-w-[90px]">
-                              <div className="flex items-center gap-1.5 text-[12px]">
-                                <span className="text-[#f04452] font-bold">▴ {formatEok(maxPrice)}</span>
-                              </div>
-                              <div className="flex items-center gap-1.5 text-[12px]">
-                                <span className="text-[#3182f6] font-bold">▾ {formatEok(minPrice)}</span>
-                              </div>
-                              <div className={`text-[12px] font-extrabold ${isUp ? 'text-[#f04452]' : 'text-[#3182f6]'}`}>
+                            <div className="shrink-0 bg-[#f9fafb] rounded-xl px-4 py-2.5 flex flex-col items-end gap-1 min-w-[110px]">
+                              <div className="text-[14px] font-extrabold text-[#f04452]">▴ {formatEok(maxPrice)}</div>
+                              <div className="text-[14px] font-extrabold text-[#3182f6]">▾ {formatEok(minPrice)}</div>
+                              <div className={`text-[13px] font-extrabold ${isUp ? 'text-[#f04452]' : 'text-[#3182f6]'}`}>
                                 {isUp ? '▲' : '▼'} {Math.abs(changePercent).toFixed(1)}%
                               </div>
                               {gapFromHigh < -3 && (
-                                <div className="text-[9px] text-[#8b95a1]">
+                                <div className="text-[10px] text-[#8b95a1]">
                                   고점대비 {gapFromHigh.toFixed(0)}%
                                 </div>
                               )}
