@@ -292,7 +292,7 @@ export function FieldReportModal({
           </nav>
 
           {/* Magazine Content Wrapper */}
-          <div className="px-6 py-8 md:p-12 flex flex-col gap-10 max-w-[1000px] mx-auto w-full">
+          <div className="px-2 py-6 md:px-3 md:py-8 flex flex-col gap-8 w-full">
 
             {/* 0. Premium Score Analysis (If Available, outside of legacy toggle) */}
             {isLoadingDetail ? (
