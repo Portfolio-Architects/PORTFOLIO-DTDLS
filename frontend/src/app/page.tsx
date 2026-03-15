@@ -6,11 +6,16 @@ import {
   MessageSquare, Heart, Compass, LayoutDashboard, Camera, UserCircle, Star, Maximize2, Link2, Trash2, Text, LogOut,
   Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil
 } from 'lucide-react';
-import MainChart from '@/components/MainChart';
+import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
-import EduBubbleChart from '@/components/EduBubbleChart';
-import LifestyleRadarChart from '@/components/LifestyleRadarChart';
-import PropertyScoreChart from '@/components/consumer/PropertyScoreChart';
+
+// Lazy-loaded heavy chart components (reduces initial bundle ~40KB)
+const MainChart = dynamic(() => import('@/components/MainChart'), { ssr: false });
+const EduBubbleChart = dynamic(() => import('@/components/EduBubbleChart'), { ssr: false });
+const LifestyleRadarChart = dynamic(() => import('@/components/LifestyleRadarChart'), { ssr: false });
+const PropertyScoreChart = dynamic(() => import('@/components/consumer/PropertyScoreChart'), { ssr: false });
+
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
 import WriteReviewModal from '@/components/WriteReviewModal';
 import { ZONES, dongToZoneId, getZoneById, getDongsForZone, getAllDongs, getZoneColorForDong, ZoneInfo } from '@/lib/zones';
@@ -577,7 +582,7 @@ export function FieldReportModal({
                       {/* Gate */}
                       {(s.infra.gateText || s.infra.gateImg) && (
                         <div className="flex flex-col md:flex-row gap-6">
-                          {s.infra.gateImg && <img src={s.infra.gateImg} alt="진입로/문주" className="w-full md:w-[280px] h-[200px] rounded-2xl object-cover shadow-sm bg-[#f2f4f6]" />}
+                          {s.infra.gateImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.infra.gateImg} alt="진입로/문주" fill sizes="280px" className="object-cover" /></div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f2f4f6] inline-block px-3 py-1 rounded-lg">진입로 및 정문</h4>
                             <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.infra.gateText || '사진만 제공됨'}</p>
@@ -587,7 +592,7 @@ export function FieldReportModal({
                       {/* Landscaping */}
                       {(s.infra.landscapeText || s.infra.landscapeImg) && (
                         <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-[#f2f4f6]">
-                          {s.infra.landscapeImg && <img src={s.infra.landscapeImg} alt="조경/지형" className="w-full md:w-[280px] h-[200px] rounded-2xl object-cover shadow-sm bg-[#f2f4f6]" />}
+                          {s.infra.landscapeImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.infra.landscapeImg} alt="조경/지형" fill sizes="280px" className="object-cover" /></div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f2f4f6] inline-block px-3 py-1 rounded-lg">단지 조경 및 지형</h4>
                             <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.infra.landscapeText || '사진만 제공됨'}</p>
@@ -597,7 +602,7 @@ export function FieldReportModal({
                       {/* Parking & Maintenance ... (Skip strict layout for brevity, just render them similarly) */}
                        {(s.infra.parkingText || s.infra.parkingImg) && (
                         <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-[#f2f4f6]">
-                          {s.infra.parkingImg && <img src={s.infra.parkingImg} alt="지하주차장" className="w-full md:w-[280px] h-[200px] rounded-2xl object-cover shadow-sm bg-[#f2f4f6]" />}
+                          {s.infra.parkingImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.infra.parkingImg} alt="지하주차장" fill sizes="280px" className="object-cover" /></div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f2f4f6] inline-block px-3 py-1 rounded-lg">지하주차장 인프라</h4>
                             <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.infra.parkingText || '사진만 제공됨'}</p>
@@ -613,7 +618,7 @@ export function FieldReportModal({
                    <div className="flex flex-col gap-8">
                       {(s.ecosystem.schoolText || s.ecosystem.schoolImg) && (
                         <div className="flex flex-col md:flex-row gap-6">
-                          {s.ecosystem.schoolImg && <img src={s.ecosystem.schoolImg} alt="학군" className="w-full md:w-[280px] h-[200px] rounded-2xl object-cover shadow-sm bg-[#f2f4f6]" />}
+                          {s.ecosystem.schoolImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.ecosystem.schoolImg} alt="학군" fill sizes="280px" className="object-cover" /></div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f8f9fa] border border-[#e5e8eb] inline-block px-3 py-1 rounded-lg">학군 및 통학로</h4>
                             <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.ecosystem.schoolText}</p>
@@ -622,7 +627,7 @@ export function FieldReportModal({
                       )}
                       {(s.ecosystem.commerceText || s.ecosystem.commerceImg) && (
                         <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-[#f2f4f6]">
-                          {s.ecosystem.commerceImg && <img src={s.ecosystem.commerceImg} alt="상권" className="w-full md:w-[280px] h-[200px] rounded-2xl object-cover shadow-sm bg-[#f2f4f6]" />}
+                          {s.ecosystem.commerceImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.ecosystem.commerceImg} alt="상권" fill sizes="280px" className="object-cover" /></div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f8f9fa] border border-[#e5e8eb] inline-block px-3 py-1 rounded-lg">동네 상권</h4>
                             <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.ecosystem.commerceText}</p>
@@ -1026,7 +1031,7 @@ export default function Dashboard() {
                     {/* Left: Photo */}
                     <div className="w-full md:w-[240px] h-[180px] md:h-auto bg-[#f2f4f6] overflow-hidden relative shrink-0">
                       {report.imageUrl ? (
-                         <img src={report.imageUrl} alt={report.apartmentName} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                         <Image src={report.imageUrl} alt={report.apartmentName} fill sizes="(max-width: 768px) 100vw, 240px" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center min-h-[160px]">
                           <Camera size={32} className="text-[#d1d6db]" />
