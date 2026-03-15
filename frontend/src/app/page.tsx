@@ -953,7 +953,7 @@ export default function Dashboard() {
       </header>
 
       {/* Main Container */}
-      <main className="w-full max-w-[2000px] mx-auto py-8 md:py-12 animate-in fade-in duration-500">
+      <main className="w-full max-w-[2000px] mx-auto px-4 md:px-6 lg:px-8 py-8 md:py-12 animate-in fade-in duration-500">
 
         {/* ═══ TAB 1: 임장기 ═══ */}
         {activeTab === 'imjang' && (
