@@ -1088,11 +1088,20 @@ export default function Dashboard() {
                             return e > 0 ? (r > 0 ? `${e}.${Math.round(r/1000)}억` : `${e}억`) : `${p.toLocaleString()}만`;
                           };
                           return (
-                            <div className="shrink-0 bg-[#f9fafb] rounded-xl px-4 py-2.5 flex flex-col items-end gap-1 min-w-[110px]">
-                              <div className="text-[14px] font-extrabold text-[#f04452]">▴ {formatEok(maxPrice)}</div>
-                              <div className="text-[14px] font-extrabold text-[#3182f6]">▾ {formatEok(minPrice)}</div>
-                              <div className={`text-[13px] font-extrabold ${isUp ? 'text-[#f04452]' : 'text-[#3182f6]'}`}>
-                                {isUp ? '▲' : '▼'} {Math.abs(changePercent).toFixed(1)}%
+                            <div className="shrink-0 bg-[#f9fafb] rounded-xl px-4 py-2.5 flex flex-col items-end gap-1.5 min-w-[120px]">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] text-[#8b95a1]">최고가</span>
+                                <span className="text-[14px] font-extrabold text-[#f04452]">{formatEok(maxPrice)}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] text-[#8b95a1]">최저가</span>
+                                <span className="text-[14px] font-extrabold text-[#3182f6]">{formatEok(minPrice)}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] text-[#8b95a1]">최근변동</span>
+                                <span className={`text-[13px] font-extrabold ${isUp ? 'text-[#f04452]' : 'text-[#3182f6]'}`}>
+                                  {isUp ? '▲' : '▼'} {Math.abs(changePercent).toFixed(1)}%
+                                </span>
                               </div>
                               {gapFromHigh < -3 && (
                                 <div className="text-[10px] text-[#8b95a1]">
