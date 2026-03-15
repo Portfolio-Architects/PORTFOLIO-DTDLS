@@ -163,13 +163,17 @@ export default function WriteFieldReport() {
   // -- Multi Image Handling --
   const handleMultiImageChange = (key: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const newFiles = Array.from(e.target.files);
+      const existingFiles = imageFiles[key] || [];
+      const existingSet = new Set(existingFiles.map(f => `${f.name}__${f.size}`));
+      const allNew = Array.from(e.target.files);
+      const newFiles = allNew.filter(f => !existingSet.has(`${f.name}__${f.size}`));
+      const dupCount = allNew.length - newFiles.length;
+      if (dupCount > 0) alert(`중복 사진 ${dupCount}장이 제외되었습니다.`);
+      if (newFiles.length === 0) return;
       setImageFiles(prev => ({
         ...prev,
         [key]: [...(prev[key] || []), ...newFiles]
       }));
-
-      // Use createObjectURL instead of readAsDataURL (much more memory-efficient)
       const newPreviews = newFiles.map(file => URL.createObjectURL(file));
       setImagePreviews(prev => ({
         ...prev,
@@ -299,7 +303,12 @@ export default function WriteFieldReport() {
       e.preventDefault();
       setIsDragging(false);
       if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        const newFiles = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        const existingFiles = imageFiles[apiKey] || [];
+        const existingSet = new Set(existingFiles.map(f => `${f.name}__${f.size}`));
+        const allNew = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        const newFiles = allNew.filter(f => !existingSet.has(`${f.name}__${f.size}`));
+        const dupCount = allNew.length - newFiles.length;
+        if (dupCount > 0) alert(`중복 사진 ${dupCount}장이 제외되었습니다.`);
         if (newFiles.length === 0) return;
         setImageFiles(prev => ({ ...prev, [apiKey]: [...(prev[apiKey] || []), ...newFiles] }));
         const newPreviews = newFiles.map(file => URL.createObjectURL(file));
