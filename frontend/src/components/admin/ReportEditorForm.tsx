@@ -56,7 +56,7 @@ const IMAGE_CATEGORY_GROUPS: { group: string; items: string[] }[] = [
   { group: '🚪 문주·출입구', items: ['정문 (메인게이트)', '후문/측문', '차량 출입구', '보행자 출입구', '보안실', '기타'] },
   { group: '🌿 조경·외부', items: ['중앙 조경', '산책로/보행로', '수경시설 (분수/연못)', '놀이터', '운동기구/트랙', '정원/화단', '단지 내 어린이집', '분리수거장/쓰레기', '단지 내 상가'] },
   { group: '🅿 주차장', items: ['지하주차장 입구', '지하주차장 내부', '주차장 바닥/도색', '지상 주차', 'EV 충전기'] },
-  { group: '🏋️ 커뮤니티 시설', items: ['커뮤니티 외관/입구', '피트니스센터 (헬스장)', '골프연습장', '실내 수영장', '키즈카페/놀이방', '독서실/스터디룸', '사우나/찜질방', '경로당/주민회의실', '게스트하우스', '공용 화장실', '기타 커뮤니티'] },
+  { group: '🏋️ 커뮤니티 시설', items: ['커뮤니티 외관/입구', '피트니스센터 (헬스장)', '골프연습장', '실내 수영장', '키즈카페/놀이방', '독서실/스터디룸', '사우나/찜질방', '공용 샤워장', '경로당/주민회의실', '게스트하우스', '공용 화장실', '기타 커뮤니티'] },
   { group: '🏠 동별·세대', items: ['동 외관', '엘리베이터/로비', '복도/계단', '택배함/무인택배'] },
   { group: '🪟 실내 (세대 내부)', items: ['거실/리빙', '주방', '욕실/화장실', '발코니/베란다', '현관', '조망/뷰 (창문)', '채광/향 (일조량)'] },
   { group: '🏙️ 주변 환경', items: ['역세권/교통 접근성', '통학로/학교', '주변 상권', '공원', '소음 환경 (도로)', '어린이집', '유치원', '기타'] },
@@ -271,7 +271,10 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
 
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const batchInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
   const uploadedFileKeys = useRef<Set<string>>(new Set());
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string>(initialData?.thumbnailUrl || '');
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{done: number, total: number} | null>(null);
 
@@ -382,10 +385,16 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
 
       const premiumScores = await getPremiumScoresAction(metricsPayload);
 
+      // Upload thumbnail if selected
+      let finalThumbnailUrl = thumbnailPreview || '';
+      if (thumbnailFile) {
+        finalThumbnailUrl = await uploadImage(thumbnailFile, 'thumbnails');
+      }
+
       const reportData = {
         dong: data.dong,
         apartmentName: data.apartmentName,
-        thumbnailUrl: data.thumbnailUrl || uploadedImages[0].url,
+        thumbnailUrl: finalThumbnailUrl || uploadedImages[0]?.url || '',
         images: uploadedImages,
         metrics: metricsPayload,
         premiumScores,
@@ -476,6 +485,65 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
               />
             )}
             <p className="text-[12px] text-[#8b95a1] font-medium mt-2">* 동을 먼저 선택하면 해당 지역의 주요 아파트 목록이 연동됩니다.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* 1.5 Thumbnail Section */}
+      <section className="mb-12">
+        <h3 className="text-[18px] font-bold text-[#191f28] mb-4 flex items-center gap-2">
+          <span className="w-6 h-6 rounded-full bg-[#f2f4f6] text-[#4e5968] flex items-center justify-center text-[12px]">📷</span>
+          대표 썸네일
+        </h3>
+        <div className="flex items-start gap-5">
+          <input
+            ref={thumbnailInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                setThumbnailFile(file);
+                setThumbnailPreview(URL.createObjectURL(file));
+              }
+              e.target.value = '';
+            }}
+          />
+          <div
+            onClick={() => thumbnailInputRef.current?.click()}
+            className="w-[200px] h-[130px] bg-[#f9fafb] border-2 border-dashed border-[#d1d6db] rounded-2xl flex flex-col items-center justify-center text-[#8b95a1] cursor-pointer hover:bg-[#f2f4f6] hover:text-[#3182f6] transition-colors overflow-hidden group relative shrink-0"
+          >
+            {thumbnailPreview ? (
+              <>
+                <img src={thumbnailPreview} alt="Thumbnail" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-white text-[11px] font-bold">변경하기</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <ImagePlus size={28} className="mb-1" />
+                <span className="text-[12px] font-semibold">썸네일 등록</span>
+              </>
+            )}
+          </div>
+          <div className="flex-1">
+            <p className="text-[13px] text-[#4e5968] font-medium mb-2">
+              메인 피드에 표시될 대표 이미지입니다.
+            </p>
+            <p className="text-[12px] text-[#8b95a1]">
+              미등록 시 첫 번째 현장 사진이 자동 적용됩니다.
+            </p>
+            {thumbnailPreview && (
+              <button
+                type="button"
+                onClick={() => { setThumbnailFile(null); setThumbnailPreview(''); }}
+                className="mt-3 text-[12px] text-[#f04452] font-bold hover:underline"
+              >
+                썸네일 삭제
+              </button>
+            )}
           </div>
         </div>
       </section>
