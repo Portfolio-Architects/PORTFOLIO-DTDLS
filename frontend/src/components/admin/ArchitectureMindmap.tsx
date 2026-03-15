@@ -29,23 +29,46 @@ export default function ArchitectureMindmap() {
   const [hoverNode, setHoverNode] = useState<GNode | null>(null);
   const [pinnedNode, setPinnedNode] = useState<GNode | null>(null);
   const activeNode = pinnedNode || hoverNode;
+  const [dataSource, setDataSource] = useState<'local' | 'sheets'>('local');
 
-  // Convert ontology data to graph format
-  const graphData = useMemo(() => {
+  // Local fallback data
+  const localData = useMemo(() => {
     const nodes: GNode[] = ONTOLOGY_NODES.map(n => ({
-      id: n.id,
-      label: n.label,
-      domain: n.domain,
-      base_value: n.base_value,
-      color: DOMAIN_META[n.domain]?.color || '#999',
+      id: n.id, label: n.label, domain: n.domain,
+      base_value: n.base_value, color: DOMAIN_META[n.domain]?.color || '#999',
     }));
     const links: GLink[] = ONTOLOGY_EDGES.map(e => ({
-      source: e.source,
-      target: e.target,
-      type: e.type,
-      weight: e.weight,
+      source: e.source, target: e.target, type: e.type, weight: e.weight,
     }));
     return { nodes, links };
+  }, []);
+
+  const [graphData, setGraphData] = useState<{ nodes: GNode[]; links: GLink[] }>(localData);
+
+  // Fetch from Google Sheets (with local fallback)
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/mindmap');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.nodes?.length > 0) {
+          const nodes: GNode[] = data.nodes.map((n: any) => ({
+            id: n.id, label: n.label || n.id,
+            domain: n.domain || 'REAL_ESTATE',
+            base_value: n.base_value || 50,
+            color: DOMAIN_META[n.domain]?.color || '#999',
+          }));
+          const links: GLink[] = (data.links || []).map((e: any) => ({
+            source: e.source, target: e.target,
+            type: e.type || 'CORRELATION',
+            weight: typeof e.weight === 'number' ? e.weight : 0.5,
+          }));
+          setGraphData({ nodes, links });
+          setDataSource('sheets');
+        }
+      } catch { /* use local fallback */ }
+    })();
   }, []);
 
   // Highlighted neighbors
@@ -182,6 +205,9 @@ export default function ArchitectureMindmap() {
           노드 {graphData.nodes.length}개 · 엣지 {graphData.links.length}개 · 클릭으로 연결 고정
           <span className="ml-2 text-[9px] px-1.5 py-0.5 rounded bg-[#F3F4F6] text-[#6B7280] font-bold">
             ⚡ Eigenvector Centrality
+          </span>
+          <span className="ml-1 text-[9px] px-1.5 py-0.5 rounded bg-[#F3F4F6] text-[#6B7280] font-bold">
+            {dataSource === 'sheets' ? '📊 Google Sheets' : '💾 로컬'}
           </span>
         </p>
       </div>
