@@ -95,6 +95,8 @@ export default function ArchitectureMindmap() {
 
   // Canvas node rendering — Eigenvector centrality sizing
   const nodeCanvasObject = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
+    // Guard: skip if coordinates are not ready
+    if (!Number.isFinite(node.x) || !Number.isFinite(node.y)) return;
     // base_value → radius: 100 → 22, 30 → 4
     const r = 3 + (node.base_value / 100) * 19;
     const isActive = activeNode?.id === node.id;
