@@ -209,12 +209,23 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
     }
   };
 
-  // Batch upload: create one block per file — all default to first category, user sets manually
+  // Batch upload: create one block per file — with duplicate detection
   const handleBatchFiles = (files: FileList | File[]) => {
     const fileArr = Array.from(files).filter(f => f.type.startsWith('image/'));
     if (fileArr.length === 0) return;
 
-    fileArr.forEach((file) => {
+    // Dedup against existing images by name+size
+    const existingSet = new Set(
+      imageFields
+        .filter(img => img.file)
+        .map(img => `${img.file!.name}__${img.file!.size}`)
+    );
+    const unique = fileArr.filter(f => !existingSet.has(`${f.name}__${f.size}`));
+    const dupCount = fileArr.length - unique.length;
+    if (dupCount > 0) alert(`중복 사진 ${dupCount}장이 제외되었습니다.`);
+    if (unique.length === 0) return;
+
+    unique.forEach((file) => {
       const previewUrl = URL.createObjectURL(file);
       appendImage({ file, previewUrl, url: '', caption: '', locationTag: '', isPremium: false });
     });
@@ -512,8 +523,8 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
             {/* Academy Categories */}
             {apiCategories.academyCategories && Object.keys(apiCategories.academyCategories).length > 0 && (
               <div className="bg-[#f0fdf4] rounded-xl p-4 border border-[#bbf7d0]">
-                <div className="text-[13px] font-bold text-[#03c75a] mb-2">📚 학원 카테고리 ({Object.values(apiCategories.academyCategories).reduce((a, b) => a + b, 0)}개)</div>
-                <div className="space-y-1 max-h-40 overflow-y-auto custom-scrollbar">
+                <div className="text-[13px] font-bold text-[#03c75a] mb-2">학원 카테고리 ({Object.values(apiCategories.academyCategories).reduce((a, b) => a + b, 0)}개)</div>
+                <div className="space-y-1">
                   {Object.entries(apiCategories.academyCategories)
                     .sort(([,a], [,b]) => b - a)
                     .map(([cat, cnt]) => (
@@ -528,8 +539,8 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
             {/* Restaurant Categories */}
             {apiCategories.restaurantCategories && Object.keys(apiCategories.restaurantCategories).length > 0 && (
               <div className="bg-[#fffbeb] rounded-xl p-4 border border-[#fde68a]">
-                <div className="text-[13px] font-bold text-[#f59e0b] mb-2">🍽️ 음식점·카페 ({apiCategories.restaurantDensity ?? Object.values(apiCategories.restaurantCategories).reduce((a, b) => a + b, 0)}개)</div>
-                <div className="space-y-1 max-h-40 overflow-y-auto custom-scrollbar">
+                <div className="text-[13px] font-bold text-[#f59e0b] mb-2">음식점·카페 ({apiCategories.restaurantDensity ?? Object.values(apiCategories.restaurantCategories).reduce((a, b) => a + b, 0)}개)</div>
+                <div className="space-y-1">
                   {Object.entries(apiCategories.restaurantCategories)
                     .sort(([,a], [,b]) => b - a)
                     .map(([cat, cnt]) => (
