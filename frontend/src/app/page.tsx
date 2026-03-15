@@ -1054,7 +1054,7 @@ export default function Dashboard() {
                             <p className="text-[10px] text-[#8b95a1] mt-1 animate-pulse">📊 실거래가 로드중...</p>
                           </div>
                         ) : txs.length > 0 && (
-                          <div className="flex-1 min-w-0">
+                          <div className="min-w-0">
                             <table className="w-full text-[11px]">
                               <tbody>
                                 {txs.slice(0, 3).map((tx, idx) => {
@@ -1062,10 +1062,10 @@ export default function Dashboard() {
                                   const t = typeMap[norm]?.[String(tx.area)];
                                   return (
                                     <tr key={idx} className="border-b border-[#f2f4f6] last:border-0">
-                                      <td className="py-1 text-[#8b95a1]">{tx.contractYm.slice(2,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}</td>
-                                      <td className="py-1 text-right font-extrabold text-[#191f28]">{tx.priceEok}</td>
-                                      <td className="py-1 text-right text-[#3182f6] font-bold">{t || `${tx.areaPyeong}평`}</td>
-                                      <td className="py-1 text-right text-[#8b95a1]">{tx.floor}층</td>
+                                      <td className="py-0.5 text-[10px] text-[#8b95a1] whitespace-nowrap">{tx.contractYm.slice(4)}.{tx.contractDay}</td>
+                                      <td className="py-0.5 text-right font-extrabold text-[#191f28] whitespace-nowrap">{tx.priceEok}</td>
+                                      <td className="py-0.5 text-right text-[10px] text-[#3182f6] font-bold whitespace-nowrap">{t || `${tx.areaPyeong}평`}</td>
+                                      <td className="py-0.5 text-right text-[10px] text-[#8b95a1] whitespace-nowrap">{tx.floor}층</td>
                                     </tr>
                                   );
                                 })}
@@ -1088,16 +1088,18 @@ export default function Dashboard() {
                             return e > 0 ? (r > 0 ? `${e}.${Math.round(r/1000)}억` : `${e}억`) : `${p.toLocaleString()}만`;
                           };
                           return (
-                            <div className="shrink-0 text-right flex flex-col items-end gap-0.5">
-                              <div className="text-[10px] text-[#8b95a1] flex items-center gap-1">
-                                <span className="text-[#f04452]">▴</span>{formatEok(maxPrice)}
-                                <span className="text-[#3182f6] ml-0.5">▾</span>{formatEok(minPrice)}
+                            <div className="shrink-0 bg-[#f9fafb] rounded-lg px-3 py-2 flex flex-col items-end gap-1 min-w-[90px]">
+                              <div className="flex items-center gap-1.5 text-[12px]">
+                                <span className="text-[#f04452] font-bold">▴ {formatEok(maxPrice)}</span>
                               </div>
-                              <div className={`text-[11px] font-bold ${isUp ? 'text-[#f04452]' : 'text-[#3182f6]'}`}>
+                              <div className="flex items-center gap-1.5 text-[12px]">
+                                <span className="text-[#3182f6] font-bold">▾ {formatEok(minPrice)}</span>
+                              </div>
+                              <div className={`text-[12px] font-extrabold ${isUp ? 'text-[#f04452]' : 'text-[#3182f6]'}`}>
                                 {isUp ? '▲' : '▼'} {Math.abs(changePercent).toFixed(1)}%
                               </div>
                               {gapFromHigh < -3 && (
-                                <div className="text-[9px] text-[#8b95a1] bg-[#f2f4f6] px-1.5 py-0.5 rounded">
+                                <div className="text-[9px] text-[#8b95a1]">
                                   고점대비 {gapFromHigh.toFixed(0)}%
                                 </div>
                               )}
