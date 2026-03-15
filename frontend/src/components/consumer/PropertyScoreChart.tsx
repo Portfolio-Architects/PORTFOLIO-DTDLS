@@ -89,7 +89,7 @@ export default function PropertyScoreChart({ scores }: Props) {
               <Tooltip
                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontWeight: 'bold', fontSize: '13px' }}
                 itemStyle={{ color: '#3182f6', fontWeight: 'bold' }}
-                formatter={(value: number) => [`${value}점`, '']}
+                formatter={(value: any) => [`${value}점`, '']}
               />
               <Radar name="단지 점수" dataKey="A" stroke="#3182f6" fill="#3182f6" fillOpacity={0.5} strokeWidth={2} />
             </RadarChart>
