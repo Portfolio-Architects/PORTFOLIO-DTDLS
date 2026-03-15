@@ -1060,17 +1060,17 @@ export default function Dashboard() {
                           </div>
                         ) : txs.length > 0 && (
                           <div className="basis-3/5 grow min-w-0">
-                            <table className="w-full text-[11px]">
+                            <table className="w-full text-[12px]">
                               <tbody>
-                                {txs.slice(0, 3).map((tx, idx) => {
+                                {txs.slice(0, 4).map((tx, idx) => {
                                   const norm = normalizeAptName(tx.aptName);
                                   const t = typeMap[norm]?.[String(tx.area)];
                                   return (
                                     <tr key={idx} className="border-b border-[#f2f4f6] last:border-0">
-                                      <td className="py-0.5 pr-2 text-[10px] text-[#8b95a1] whitespace-nowrap">{tx.contractYm.slice(4)}.{tx.contractDay}</td>
-                                      <td className="py-0.5 pr-2 text-right font-extrabold text-[#191f28] whitespace-nowrap">{tx.priceEok}</td>
-                                      <td className="py-0.5 pr-1 text-right text-[10px] text-[#3182f6] font-bold whitespace-nowrap">{t || `${tx.areaPyeong}평`}</td>
-                                      <td className="py-0.5 text-right text-[10px] text-[#8b95a1] whitespace-nowrap">{tx.floor}층</td>
+                                      <td className="py-1 pr-2 text-[11px] text-[#8b95a1] whitespace-nowrap">{tx.contractYm.slice(4)}.{tx.contractDay}</td>
+                                      <td className="py-1 pr-2 text-right font-extrabold text-[#191f28] whitespace-nowrap">{tx.priceEok}</td>
+                                      <td className="py-1 pr-1 text-right text-[11px] text-[#3182f6] font-bold whitespace-nowrap">{t || `${tx.areaPyeong}평`}</td>
+                                      <td className="py-1 text-right text-[11px] text-[#8b95a1] whitespace-nowrap">{tx.floor}층</td>
                                     </tr>
                                   );
                                 })}
@@ -1083,7 +1083,7 @@ export default function Dashboard() {
                           const maxPrice = Math.max(...prices);
                           const minPrice = Math.min(...prices);
                           const latestPrice = prices[0];
-                          const prevPrice = prices[Math.min(2, prices.length - 1)];
+                          const prevPrice = prices[1] || prices[0];
                           const changePercent = prevPrice > 0 ? ((latestPrice - prevPrice) / prevPrice * 100) : 0;
                           const gapFromHigh = maxPrice > 0 ? ((latestPrice - maxPrice) / maxPrice * 100) : 0;
                           const isUp = changePercent >= 0;
@@ -1103,7 +1103,7 @@ export default function Dashboard() {
                                 <span className="text-[14px] font-extrabold text-[#3182f6]">{formatEok(minPrice)}</span>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className="text-[10px] text-[#8b95a1]">최근변동</span>
+                                <span className="text-[10px] text-[#8b95a1]">직전대비</span>
                                 <span className={`text-[13px] font-extrabold ${isUp ? 'text-[#f04452]' : 'text-[#3182f6]'}`}>
                                   {isUp ? '▲' : '▼'} {Math.abs(changePercent).toFixed(1)}%
                                 </span>
