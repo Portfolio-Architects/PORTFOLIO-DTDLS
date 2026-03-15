@@ -1054,7 +1054,7 @@ export default function Dashboard() {
                             <p className="text-[10px] text-[#8b95a1] mt-1 animate-pulse">📊 실거래가 로드중...</p>
                           </div>
                         ) : txs.length > 0 && (
-                          <div className="basis-3/5 min-w-0">
+                          <div className="basis-3/5 grow min-w-0">
                             <table className="w-full text-[11px]">
                               <tbody>
                                 {txs.slice(0, 3).map((tx, idx) => {
@@ -1088,7 +1088,7 @@ export default function Dashboard() {
                             return e > 0 ? (r > 0 ? `${e}.${Math.round(r/1000)}억` : `${e}억`) : `${p.toLocaleString()}만`;
                           };
                           return (
-                            <div className="basis-2/5 bg-[#f9fafb] rounded-xl px-4 py-2.5 flex flex-col items-end gap-1.5">
+                            <div className="basis-2/5 grow bg-[#f9fafb] rounded-xl px-4 py-2.5 flex flex-col items-end gap-1.5">
                               <div className="flex items-center gap-2">
                                 <span className="text-[10px] text-[#8b95a1]">최고가</span>
                                 <span className="text-[14px] font-extrabold text-[#f04452]">{formatEok(maxPrice)}</span>
