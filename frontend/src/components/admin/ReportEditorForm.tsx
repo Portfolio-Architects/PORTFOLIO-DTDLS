@@ -28,6 +28,7 @@ type FormValues = {
     distanceToIndeokwon: string;
     distanceToTram: string;
     academyDensity: string;
+    restaurantDensity: string;
   };
   isPremium: boolean;
   premiumContent: string;
@@ -209,7 +210,8 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         distanceToSubway: '',
         distanceToIndeokwon: '',
         distanceToTram: '',
-        academyDensity: ''
+        academyDensity: '',
+        restaurantDensity: ''
       },
       images: [
         { url: '', caption: '', locationTag: '메인 (단지 전경)', isPremium: false }
@@ -320,7 +322,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         distanceToTram: Number(data.metrics.distanceToTram),
         academyDensity: Number(data.metrics.academyDensity),
         academyCategories: apiCategories.academyCategories || undefined,
-        restaurantDensity: apiCategories.restaurantDensity || undefined,
+        restaurantDensity: Number(data.metrics.restaurantDensity) || apiCategories.restaurantDensity || undefined,
         restaurantCategories: apiCategories.restaurantCategories || undefined,
         nearestSchoolNames: apiCategories.nearestSchoolNames || undefined,
         nearestStationName: apiCategories.nearestStationName || undefined,
@@ -452,6 +454,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
                 if (loc.distanceToHigh != null) setValue('metrics.distanceToHigh', String(loc.distanceToHigh));
                 if (loc.distanceToSubway != null) setValue('metrics.distanceToSubway', String(loc.distanceToSubway));
                 if (loc.academyDensity != null) setValue('metrics.academyDensity', String(loc.academyDensity));
+                if (loc.restaurantDensity != null) setValue('metrics.restaurantDensity', String(loc.restaurantDensity));
 
                 // Save category data for Firestore
                 setApiCategories({
@@ -541,6 +544,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
           <NumberInput name="metrics.academyDensity" label="반경 1km 이내 학원 개수 (학군 밀집도)" placeholder="예: 120" unit="개" />
+          <NumberInput name="metrics.restaurantDensity" label="반경 1km 이내 음식점·카페 개수" placeholder="예: 472" unit="개" />
         </div>
 
         {/* Category Breakdown Panels — visible after auto-populate */}
