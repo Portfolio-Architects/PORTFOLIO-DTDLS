@@ -268,24 +268,19 @@ export function FieldReportModal({
                    if (!byMonth.has(d.yearMonth)) byMonth.set(d.yearMonth, []);
                    byMonth.get(d.yearMonth)!.push(d.price);
                  });
-                 const getMedian = (arr: number[]) => {
-                   const s = [...arr].sort((a, b) => a - b);
-                   const mid = Math.floor(s.length / 2);
-                   return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
-                 };
-                 // chartData에 median 필드 추가 (같은 월이면 같은 중앙값)
-                 const medianMap = new Map<number, number>();
-                 byMonth.forEach((prices, ym) => medianMap.set(ym, Math.round(getMedian(prices) * 1000) / 1000));
+                 const getAvg = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
+                 // chartData에 monthAvg 필드 추가 (같은 월이면 같은 평균값)
+                 const avgMap = new Map<number, number>();
+                 byMonth.forEach((prices, ym) => avgMap.set(ym, Math.round(getAvg(prices) * 1000) / 1000));
                  const enrichedData = chartData.map(d => ({
                    ...d,
-                   median: medianMap.get(d.yearMonth) ?? d.price,
+                   monthAvg: avgMap.get(d.yearMonth) ?? d.price,
                  }));
 
                  const prices = chartData.map(d => d.price);
                  const minP = Math.min(...prices);
                  const maxP = Math.max(...prices);
                  const avgP = prices.reduce((a, b) => a + b, 0) / prices.length;
-                 const medianAll = getMedian(prices);
                  const domainMin = Math.floor(minP * 10) / 10 - 0.3;
                  const domainMax = Math.ceil(maxP * 10) / 10 + 0.3;
 
@@ -316,7 +311,7 @@ export function FieldReportModal({
                      {/* Stats */}
                      <div className="flex items-center gap-3 text-[10px] mb-2">
                        <span className="text-[#3182f6] font-bold">최고 {maxP.toFixed(1)}억</span>
-                       <span className="text-[#FBBF24] font-bold">중앙 {medianAll.toFixed(1)}억</span>
+                       <span className="text-[#FBBF24] font-bold">평균 {avgP.toFixed(1)}억</span>
                        <span className="text-[#8b95a1]">최저 {minP.toFixed(1)}억</span>
                        <span className="ml-auto text-[#8b95a1]">{chartData.length}건</span>
                      </div>
@@ -354,7 +349,7 @@ export function FieldReportModal({
                              }}
                              formatter={(value: any, name: any, props: any) => {
                                const item = props?.payload;
-                               if (name === 'median') return [`월 중앙값 ${value.toFixed(2)}억`, '추세'];
+                               if (name === 'monthAvg') return [`월 평균가 ${value.toFixed(2)}억`, '추세'];
                                return [`${item?.priceEok || value + '억'}  ·  ${item?.area || '-'}평  ·  ${item?.floor || '-'}층`, '매매'];
                              }}
                              cursor={{ stroke: '#3182f6', strokeWidth: 1, strokeDasharray: '4 4' }}
@@ -362,7 +357,7 @@ export function FieldReportModal({
                            {/* 월별 중앙값 추세선 */}
                            <Area
                              type="monotone"
-                             dataKey="median"
+                             dataKey="monthAvg"
                              stroke="#3182f6"
                              strokeWidth={2.5}
                              fill="url(#priceGradModal)"
