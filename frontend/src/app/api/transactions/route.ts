@@ -30,13 +30,13 @@ export interface TransactionRecord {
   housingType: string;
 }
 
-// ─── In-Memory Cache ─── 10분 TTL로 6만건 파싱 결과 캐시
+// ─── In-Memory Cache ─── Stale-While-Revalidate 패턴
 let cachedRecords: TransactionRecord[] | null = null;
 let cacheTimestamp = 0;
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10분
+let isRefreshing = false;
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10분 후 백그라운드 갱신
 
 function extractDong(sigungu: string): string {
-  // "경기도 화성시 동탄구 능동" → "능동"
   const parts = sigungu.split(' ');
   return parts[parts.length - 1] || '';
 }
@@ -49,22 +49,14 @@ function formatPriceEok(priceMan: number): string {
   return `${eok}억${remainder.toLocaleString()}`;
 }
 
-async function getAllRecords(): Promise<TransactionRecord[]> {
-  // Return cached data if still fresh
-  if (cachedRecords && (Date.now() - cacheTimestamp) < CACHE_TTL_MS) {
-    return cachedRecords;
-  }
-
+async function fetchAndParseRecords(): Promise<TransactionRecord[]> {
   const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TAB)}`;
   const res = await fetch(csvUrl, { next: { revalidate: 3600 } });
 
-  if (!res.ok) {
-    throw new Error('Failed to fetch sheet');
-  }
+  if (!res.ok) throw new Error('Failed to fetch sheet');
 
   const csvText = await res.text();
   const lines = csvText.split('\n').filter(l => l.trim());
-
   const records: TransactionRecord[] = [];
 
   for (let i = 2; i < lines.length; i++) {
@@ -72,7 +64,6 @@ async function getAllRecords(): Promise<TransactionRecord[]> {
     if (cols.length < 15) continue;
 
     const sigungu = cols[1] || '';
-    const dongName = extractDong(sigungu);
     const priceStr = (cols[9] || '0').replace(/,/g, '');
     const priceNum = parseInt(priceStr, 10) || 0;
     const areaNum = parseFloat(cols[6]) || 0;
@@ -80,7 +71,7 @@ async function getAllRecords(): Promise<TransactionRecord[]> {
     records.push({
       no: parseInt(cols[0], 10) || i,
       sigungu,
-      dong: dongName,
+      dong: extractDong(sigungu),
       aptName: cols[5] || '',
       area: areaNum,
       areaPyeong: Math.round(areaNum / 3.3058 * 10) / 10,
@@ -101,20 +92,36 @@ async function getAllRecords(): Promise<TransactionRecord[]> {
     });
   }
 
-  // Sort by date descending (newest first)
   records.sort((a, b) => {
     const dateA = `${a.contractYm}${a.contractDay.padStart(2, '0')}`;
     const dateB = `${b.contractYm}${b.contractDay.padStart(2, '0')}`;
     return dateB.localeCompare(dateA);
   });
 
-  // Update cache
   cachedRecords = records;
   cacheTimestamp = Date.now();
   console.log(`[TX Cache] Parsed & cached ${records.length} records`);
-
   return records;
 }
+
+async function getAllRecords(): Promise<TransactionRecord[]> {
+  const isStale = (Date.now() - cacheTimestamp) > CACHE_TTL_MS;
+
+  // If cache exists (even stale), return immediately + refresh in background
+  if (cachedRecords) {
+    if (isStale && !isRefreshing) {
+      isRefreshing = true;
+      fetchAndParseRecords().finally(() => { isRefreshing = false; });
+    }
+    return cachedRecords;
+  }
+
+  // Cold start: must wait for first fetch
+  return fetchAndParseRecords();
+}
+
+// ─── Warmup ─── 서버 시작 시 즉시 캐시 예열
+fetchAndParseRecords().catch(() => {});
 
 export async function GET(request: Request) {
   try {
