@@ -776,6 +776,7 @@ export default function Dashboard() {
 
   // Transaction data
   const [allTransactions, setAllTransactions] = useState<TransactionRecord[]>([]);
+  const [txLoading, setTxLoading] = useState(true);
   const [typeMap, setTypeMap] = useState<Record<string, Record<string, string>>>({});
 
   // Auth & Profile State
@@ -817,7 +818,7 @@ export default function Dashboard() {
         }
         setTypeMap(map);
       }
-    }).catch(err => console.warn('데이터 로딩 실패:', err));
+    }).catch(err => console.warn('데이터 로딩 실패:', err)).finally(() => setTxLoading(false));
   }, []);
 
   const handleLogin = async () => {
@@ -1050,7 +1051,12 @@ export default function Dashboard() {
 
                       {/* 최근 실거래 + 미니 차트 */}
                       <div className="flex items-end gap-4">
-                        {txs.length > 0 && (
+                        {txLoading ? (
+                          <div className="flex-1 min-w-0 space-y-1.5">
+                            {[1,2,3].map(i => <div key={i} className="h-3 bg-[#e5e8eb] rounded animate-pulse" style={{width: `${90-i*15}%`}} />)}
+                            <p className="text-[10px] text-[#8b95a1] mt-1 animate-pulse">📊 실거래가 로드중...</p>
+                          </div>
+                        ) : txs.length > 0 && (
                           <div className="flex-1 min-w-0">
                             <table className="w-full text-[11px]">
                               <tbody>
