@@ -305,7 +305,7 @@ export function FieldReportModal({
                              cursor={{ stroke: '#3182f6', strokeWidth: 1, strokeDasharray: '4 4' }}
                            />
                            <Area
-                             type="monotone"
+                             type="linear"
                              dataKey="price"
                              stroke="#3182f6"
                              strokeWidth={2}
