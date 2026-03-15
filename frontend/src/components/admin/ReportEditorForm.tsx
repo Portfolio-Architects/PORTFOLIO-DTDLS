@@ -195,10 +195,10 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
   // Initialize React Hook Form
   const { register, control, handleSubmit, reset, setValue, getValues, formState: { errors } } = useForm<FormValues>({
     defaultValues: initialData || {
-      dong: Object.keys(FALLBACK_DONG_DATA)[0],
-      apartmentName: FALLBACK_DONG_DATA[Object.keys(FALLBACK_DONG_DATA)[0]][0],
+      dong: '',
+      apartmentName: '',
       metrics: {
-        brand: '롯데캐슬',
+        brand: '',
         householdCount: '',
         far: '',
         bcr: '',
@@ -381,6 +381,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         {...register(name, { required: true })}
         className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-all appearance-none cursor-pointer"
       >
+        <option value="" disabled>선택하세요</option>
         {options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
       </select>
     </div>
@@ -397,7 +398,7 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
-            <label className="block text-[14px] font-bold text-[#4e5968] mb-2">행정동 선택 <span className="text-[#f04452]">*</span></label>
+            <label className="block text-[14px] font-bold text-[#4e5968] mb-2">법정동 선택 <span className="text-[#f04452]">*</span></label>
             <SelectInput 
               name="dong" 
               label="" 
