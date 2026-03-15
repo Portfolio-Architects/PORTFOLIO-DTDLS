@@ -123,7 +123,7 @@ const CAPTION_TEMPLATES: Record<string, string[]> = {
     '층간소음 관련 관리사무소 확인 사항',
   ],
   '동선/역세권 (교통 접근성)': [
-    '지하철역 도보 동선 — 정문 기준 실측 N분',
+    'GTX-A/SRT역 도보 동선 — 정문 기준 실측 N분',
     '버스정류장 위치 및 노선 확인 — 강남직행 여부',
     'SRT/GTX 환승 동선 — 에스컬레이터/엘리베이터 유무',
     '출퇴근 시간 도로 정체 구간 — 주요 교차로 확인',
@@ -542,6 +542,44 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
           <NumberInput name="metrics.academyDensity" label="반경 1km 이내 학원 개수 (학군 밀집도)" placeholder="예: 120" unit="개" />
         </div>
+
+        {/* Category Breakdown Panels — visible after auto-populate */}
+        {(apiCategories.academyCategories && Object.keys(apiCategories.academyCategories).length > 0) || (apiCategories.restaurantCategories && Object.keys(apiCategories.restaurantCategories).length > 0) ? (
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Academy Categories */}
+            {apiCategories.academyCategories && Object.keys(apiCategories.academyCategories).length > 0 && (
+              <div className="bg-[#f0fdf4] rounded-xl p-4 border border-[#bbf7d0]">
+                <div className="text-[13px] font-bold text-[#03c75a] mb-2">📚 학원 카테고리 ({Object.values(apiCategories.academyCategories).reduce((a, b) => a + b, 0)}개)</div>
+                <div className="space-y-1 max-h-40 overflow-y-auto custom-scrollbar">
+                  {Object.entries(apiCategories.academyCategories)
+                    .sort(([,a], [,b]) => b - a)
+                    .map(([cat, cnt]) => (
+                      <div key={cat} className="flex justify-between text-[12px] py-0.5 px-1">
+                        <span className="text-[#4e5968] truncate mr-2">{cat}</span>
+                        <span className="font-bold text-[#03c75a] shrink-0">{cnt}개</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+            {/* Restaurant Categories */}
+            {apiCategories.restaurantCategories && Object.keys(apiCategories.restaurantCategories).length > 0 && (
+              <div className="bg-[#fffbeb] rounded-xl p-4 border border-[#fde68a]">
+                <div className="text-[13px] font-bold text-[#f59e0b] mb-2">🍽️ 음식점·카페 ({apiCategories.restaurantDensity ?? Object.values(apiCategories.restaurantCategories).reduce((a, b) => a + b, 0)}개)</div>
+                <div className="space-y-1 max-h-40 overflow-y-auto custom-scrollbar">
+                  {Object.entries(apiCategories.restaurantCategories)
+                    .sort(([,a], [,b]) => b - a)
+                    .map(([cat, cnt]) => (
+                      <div key={cat} className="flex justify-between text-[12px] py-0.5 px-1">
+                        <span className="text-[#4e5968] truncate mr-2">{cat}</span>
+                        <span className="font-bold text-[#f59e0b] shrink-0">{cnt}개</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : null}
       </section>
 
       {/* 3. Dynamic Images Array */}

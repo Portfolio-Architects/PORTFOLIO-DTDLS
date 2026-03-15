@@ -596,7 +596,7 @@ export default function WriteFieldReport() {
              <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#e5e8eb] flex flex-col gap-6">
                <div className="pb-5 border-b border-[#f2f4f6]">
                  <EmojiRating section="location" field="trafficRating" label="🚇 교통망 접근성" />
-                 <TextInput section="location" field="trafficText" label="" placeholder="지하철역 도보 시간, 강남(GBD)까지 실소요시간 등" isTextarea />
+                 <TextInput section="location" field="trafficText" label="" placeholder="GTX-A/SRT역 도보 시간, 강남(GBD)까지 실소요시간 등" isTextarea />
                </div>
                <div>
                  <EmojiRating section="location" field="developmentRating" label="🏗️ 주요 개발 호재" />
