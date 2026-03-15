@@ -221,48 +221,98 @@ export function FieldReportModal({
                  <span className="text-[13px]">{report.createdAt}</span>
                </div>
 
-               {/* 매매가 추이 차트 (주식 스타일) */}
+               {/* 매매가 추이 차트 (프리미엄) */}
                {transactions.length > 0 && (() => {
-                 const chartData = [...transactions]
-                   .reverse()
-                   .map((tx, idx) => ({
-                     date: `${tx.contractYm.slice(0,4)}.${tx.contractYm.slice(4)}.${tx.contractDay}`,
-                     price: Math.round(tx.price / 100) / 100,
+                 // 만원 → 억 변환 (이상치 필터링 포함)
+                 const rawData = [...transactions].reverse().map((tx, idx) => {
+                   let priceEokNum = tx.price / 10000; // 만원 → 억
+                   // 비정상 값 보정: 100억 초과 시 원→만원 가능성
+                   if (priceEokNum > 100) priceEokNum = tx.price / 100000000;
+                   return {
+                     date: `${tx.contractYm.slice(2,4)}.${tx.contractYm.slice(4)}`,
+                     fullDate: `${tx.contractYm.slice(0,4)}.${tx.contractYm.slice(4)}.${tx.contractDay}`,
+                     price: Math.round(priceEokNum * 1000) / 1000,
                      area: tx.areaPyeong,
                      floor: tx.floor,
                      priceEok: tx.priceEok,
                      idx,
-                   }));
+                   };
+                 });
+                 // IQR 이상치 필터링
+                 const sorted = [...rawData].sort((a, b) => a.price - b.price);
+                 const q1 = sorted[Math.floor(sorted.length * 0.1)]?.price || 0;
+                 const q3 = sorted[Math.floor(sorted.length * 0.9)]?.price || 10;
+                 const iqr = q3 - q1;
+                 const lower = Math.max(0, q1 - iqr * 2);
+                 const upper = q3 + iqr * 2;
+                 const chartData = rawData.filter(d => d.price >= lower && d.price <= upper);
+
                  const prices = chartData.map(d => d.price);
-                 const minPrice = Math.floor(Math.min(...prices) * 10) / 10;
-                 const maxPrice = Math.ceil(Math.max(...prices) * 10) / 10;
-                 const margin = (maxPrice - minPrice) * 0.15 || 0.5;
+                 const minP = Math.min(...prices);
+                 const maxP = Math.max(...prices);
+                 const avgP = prices.reduce((a, b) => a + b, 0) / prices.length;
+                 const domainMin = Math.floor(minP * 10) / 10 - 0.2;
+                 const domainMax = Math.ceil(maxP * 10) / 10 + 0.2;
                  return (
                    <div className="mt-4 bg-[#1a1a2e] rounded-2xl p-4 ring-1 ring-white/10 flex-1">
-                     <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">
-                       <TrendingUp size={13} className="text-[#03c75a]" />
-                       매매가 추이
-                       <span className="ml-auto text-[10px] text-[#555]">{chartData.length}건</span>
-                     </h4>
-                     <div className="h-[220px]">
+                     <div className="flex items-center justify-between mb-3">
+                       <h4 className="text-[12px] font-bold text-[#8b95a1] flex items-center gap-1.5">
+                         <TrendingUp size={13} className="text-[#03c75a]" />
+                         매매가 추이
+                       </h4>
+                       <div className="flex items-center gap-3 text-[10px]">
+                         <span className="text-[#03c75a] font-bold">최고 {maxP.toFixed(1)}억</span>
+                         <span className="text-[#FBBF24] font-bold">평균 {avgP.toFixed(1)}억</span>
+                         <span className="text-[#8b95a1]">최저 {minP.toFixed(1)}억</span>
+                         <span className="text-[#555]">{chartData.length}건</span>
+                       </div>
+                     </div>
+                     <div className="h-[200px]">
                        <ResponsiveContainer width="100%" height="100%">
-                         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -5, bottom: 0 }}>
+                         <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                            <defs>
-                             <linearGradient id="priceGrad" x1="0" y1="0" x2="0" y2="1">
-                               <stop offset="5%" stopColor="#03c75a" stopOpacity={0.35}/>
+                             <linearGradient id="priceGradModal" x1="0" y1="0" x2="0" y2="1">
+                               <stop offset="5%" stopColor="#03c75a" stopOpacity={0.3}/>
                                <stop offset="95%" stopColor="#03c75a" stopOpacity={0.02}/>
                              </linearGradient>
                            </defs>
                            <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3e" vertical={false} />
-                           <XAxis dataKey="date" tick={{ fill: '#555', fontSize: 9 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                           <YAxis domain={[minPrice - margin, maxPrice + margin]} tick={{ fill: '#777', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v}억`} />
+                           <XAxis
+                             dataKey="date"
+                             tick={{ fill: '#555', fontSize: 9 }}
+                             axisLine={false}
+                             tickLine={false}
+                             interval={Math.max(1, Math.floor(chartData.length / 8))}
+                           />
+                           <YAxis
+                             domain={[Math.max(0, domainMin), domainMax]}
+                             tick={{ fill: '#777', fontSize: 10 }}
+                             axisLine={false}
+                             tickLine={false}
+                             width={45}
+                             tickFormatter={(v: number) => `${v.toFixed(1)}억`}
+                           />
                            <RechartsTooltip
-                             contentStyle={{ backgroundColor: '#191f28', borderRadius: '10px', border: '1px solid #333', fontSize: '12px', fontWeight: 'bold', color: '#fff' }}
-                             labelStyle={{ color: '#8b95a1', fontSize: '10px' }}
-                             formatter={(value: any) => [`${value}억`, '매매가']}
+                             contentStyle={{ backgroundColor: '#191f28', borderRadius: '12px', border: '1px solid #333', fontSize: '12px', fontWeight: 'bold', color: '#fff', padding: '8px 12px' }}
+                             labelFormatter={(label: any, payload: any) => {
+                               const item = payload?.[0]?.payload;
+                               return item ? `📅 ${item.fullDate}` : label;
+                             }}
+                             formatter={(value: any, name: any, props: any) => {
+                               const item = props?.payload;
+                               return [`${item?.priceEok || value + '억'}  ·  ${item?.area || '-'}평  ·  ${item?.floor || '-'}층`, '매매'];
+                             }}
                              cursor={{ stroke: '#03c75a', strokeWidth: 1, strokeDasharray: '4 4' }}
                            />
-                           <Area type="monotone" dataKey="price" stroke="#03c75a" strokeWidth={2.5} fill="url(#priceGrad)" dot={false} activeDot={{ r: 5, fill: '#03c75a', stroke: '#fff', strokeWidth: 2 }} />
+                           <Area
+                             type="monotone"
+                             dataKey="price"
+                             stroke="#03c75a"
+                             strokeWidth={2}
+                             fill="url(#priceGradModal)"
+                             dot={false}
+                             activeDot={{ r: 4, fill: '#03c75a', stroke: '#fff', strokeWidth: 2 }}
+                           />
                          </AreaChart>
                        </ResponsiveContainer>
                      </div>
