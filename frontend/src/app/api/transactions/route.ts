@@ -6,7 +6,7 @@
  */
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebaseConfig';
-import { collection, query, where, orderBy, getDocs, limit } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,7 +49,7 @@ const CACHE_TTL_MS = 5 * 60 * 1000; // 5분
 
 async function fetchFromFirestore(): Promise<TransactionRecord[]> {
   const collRef = collection(db, 'transactions');
-  const q = query(collRef, orderBy('contractDate', 'desc'), limit(10000));
+  const q = query(collRef, orderBy('contractDate', 'desc'));
   const snapshot = await getDocs(q);
   
   const records: TransactionRecord[] = [];
