@@ -795,6 +795,8 @@ export default function Dashboard() {
 
   // Tab state
   const [activeTab, setActiveTab] = useState<'imjang' | 'lounge' | 'recommend'>('imjang');
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   // Review modal state
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -989,8 +991,8 @@ export default function Dashboard() {
       <main className="w-full max-w-[2000px] mx-auto px-6 md:px-10 lg:px-16 py-8 md:py-12 animate-in fade-in duration-500">
 
         {/* ═══ TAB 1: 임장기 ═══ */}
-        {activeTab === 'imjang' && (
-        <section suppressHydrationWarning>
+        {mounted && activeTab === 'imjang' && (
+        <section>
           {/* 1. Section Header */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
