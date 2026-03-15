@@ -1076,6 +1076,7 @@ export default function Dashboard() {
                         {txs.length > 2 && (() => {
                           const prices = txs.map(t => t.price);
                           const maxPrice = Math.max(...prices);
+                          const minPrice = Math.min(...prices);
                           const latestPrice = prices[0];
                           const prevPrice = prices[Math.min(2, prices.length - 1)];
                           const changePercent = prevPrice > 0 ? ((latestPrice - prevPrice) / prevPrice * 100) : 0;
@@ -1088,8 +1089,9 @@ export default function Dashboard() {
                           };
                           return (
                             <div className="shrink-0 text-right flex flex-col items-end gap-0.5">
-                              <div className="text-[10px] text-[#8b95a1]">
-                                최고 <span className="font-bold text-[#191f28]">{formatEok(maxPrice)}</span>
+                              <div className="text-[10px] text-[#8b95a1] flex items-center gap-1">
+                                <span className="text-[#f04452]">▴</span>{formatEok(maxPrice)}
+                                <span className="text-[#3182f6] ml-0.5">▾</span>{formatEok(minPrice)}
                               </div>
                               <div className={`text-[11px] font-bold ${isUp ? 'text-[#f04452]' : 'text-[#3182f6]'}`}>
                                 {isUp ? '▲' : '▼'} {Math.abs(changePercent).toFixed(1)}%
