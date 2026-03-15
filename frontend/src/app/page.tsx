@@ -142,6 +142,11 @@ export function FieldReportModal({
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const scrollToSection = (id: string) => {
+    if (id === 'sec-summary' && modalRef.current) {
+      // Summary = first section, just scroll modal to top
+      modalRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     const el = modalRef.current?.querySelector(`#${id}`);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
@@ -289,10 +294,10 @@ export function FieldReportModal({
           {/* Magazine Content Wrapper */}
           <div className="px-2 py-6 md:px-3 md:py-8 flex flex-col gap-8 w-full">
 
-            {/* 요약 브리프 (맨 위 배치) */}
-            {s?.assessment && (
-              <div id="sec-summary" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+            {/* 요약 브리프 (맨 위 배치 — 항상 렌더링) */}
+              <div id="sec-summary" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-16">
                 <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Text size={20} className="text-[#3182f6]"/> 요약 브리프</h2>
+                {s?.assessment ? (
                 <div className="flex flex-col gap-4">
                   <div className="flex gap-0 rounded-2xl overflow-hidden border border-[#bbf7d0]">
                     <div className="w-1.5 bg-[#03c75a] shrink-0" />
@@ -309,8 +314,10 @@ export function FieldReportModal({
                     </div>
                   </div>
                 </div>
+                ) : (
+                  <p className="text-[14px] text-[#8b95a1] text-center py-8">요약 정보가 아직 작성되지 않았습니다.</p>
+                )}
               </div>
-            )}
 
             {/* 0. Premium Score Analysis (If Available, outside of legacy toggle) */}
             {isLoadingDetail ? (
