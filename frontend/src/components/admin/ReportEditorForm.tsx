@@ -169,13 +169,14 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
 
   // Auto-sort images by category group order
   const sortByCategory = () => {
+    const currentImages = getValues('images'); // Read LIVE form values, not stale field refs
     const categoryOrder = IMAGE_CATEGORY_GROUPS.flatMap(g => g.items);
-    const sorted = [...imageFields].sort((a, b) => {
+    const sorted = [...currentImages].sort((a, b) => {
       const ai = categoryOrder.indexOf(a.locationTag);
       const bi = categoryOrder.indexOf(b.locationTag);
       return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
     });
-    replaceImages(sorted.map(({ id, ...rest }) => rest));
+    replaceImages(sorted);
   };
 
   // Watch the 'dong' field to dynamically update the apartment list
