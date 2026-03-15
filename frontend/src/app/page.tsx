@@ -15,6 +15,7 @@ const MainChart = dynamic(() => import('@/components/MainChart'), { ssr: false }
 const EduBubbleChart = dynamic(() => import('@/components/EduBubbleChart'), { ssr: false });
 const LifestyleRadarChart = dynamic(() => import('@/components/LifestyleRadarChart'), { ssr: false });
 const PropertyScoreChart = dynamic(() => import('@/components/consumer/PropertyScoreChart'), { ssr: false });
+const ArchitectureMindmap = dynamic(() => import('@/components/admin/ArchitectureMindmap'), { ssr: false });
 
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
 import WriteReviewModal from '@/components/WriteReviewModal';
@@ -1475,7 +1476,8 @@ export default function Dashboard() {
             <p className="text-[15px] text-[#8b95a1] font-medium">동탄 맞춤 아파트 추천 & 분석</p>
           </div>
           <div className="flex flex-col gap-6">
-            {/* Promo Banner */}
+            {/* 3D Architecture Mindmap */}
+            <ArchitectureMindmap />
             <div className="w-full h-[200px] bg-gradient-to-br from-[#3182f6] to-[#2b72d6] rounded-3xl p-8 flex flex-col justify-end text-white relative overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 group-hover:bg-white/20 transition-colors"></div>
               <h3 className="text-[24px] font-extrabold mb-1 relative z-10">우리 아파트 탈탈 털어드림!</h3>
