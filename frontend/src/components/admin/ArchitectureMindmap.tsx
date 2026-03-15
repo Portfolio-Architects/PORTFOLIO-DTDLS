@@ -225,6 +225,18 @@ export default function ArchitectureMindmap() {
   useEffect(() => {
     if (fgRef.current) {
       setTimeout(() => fgRef.current?.zoomToFit(500, 100), 1500);
+      // Force light background on Three.js renderer & scene
+      try {
+        const THREE = require('three');
+        const renderer = fgRef.current.renderer();
+        const scene = fgRef.current.scene();
+        if (renderer) {
+          renderer.setClearColor(new THREE.Color('#FAFAFA'), 1);
+        }
+        if (scene) {
+          scene.background = new THREE.Color('#FAFAFA');
+        }
+      } catch { /* silent */ }
     }
   }, [Component]);
 
