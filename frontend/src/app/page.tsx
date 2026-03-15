@@ -970,14 +970,14 @@ export default function Dashboard() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-200 ${
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-200 ${
                     activeTab === tab.id
                       ? 'bg-white text-[#191f28] shadow-sm'
                       : 'text-[#8b95a1] hover:text-[#4e5968]'
                   }`}
                 >
                   <tab.icon size={14} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} />
-                  {tab.label}
+                  <span className="hidden sm:inline">{tab.label}</span>
                 </button>
               ))}
             </div>
