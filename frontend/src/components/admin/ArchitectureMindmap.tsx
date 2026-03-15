@@ -133,6 +133,8 @@ export default function ArchitectureMindmap() {
   const fgRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [hoverNode, setHoverNode] = useState<GraphNode | null>(null);
+  const [pinnedNode, setPinnedNode] = useState<GraphNode | null>(null);
+  const activeNode = pinnedNode || hoverNode;
   const [graphData, setGraphData] = useState<{ nodes: GraphNode[]; links: GraphLink[] }>({ nodes: FALLBACK_NODES, links: FALLBACK_LINKS });
   const [dataSource, setDataSource] = useState<'local' | 'sheets'>('local');
 
@@ -153,23 +155,23 @@ export default function ArchitectureMindmap() {
 
   // Highlighted neighbors
   const highlightNodes = useMemo(() => {
-    if (!hoverNode) return new Set<string>();
-    const s = new Set<string>([hoverNode.id]);
+    if (!activeNode) return new Set<string>();
+    const s = new Set<string>([activeNode.id]);
     graphData.links.forEach((link) => {
       const sId = typeof link.source === 'string' ? link.source : (link.source as any)?.id;
       const tId = typeof link.target === 'string' ? link.target : (link.target as any)?.id;
-      if (sId === hoverNode.id) s.add(tId);
-      if (tId === hoverNode.id) s.add(sId);
+      if (sId === activeNode.id) s.add(tId);
+      if (tId === activeNode.id) s.add(sId);
     });
     return s;
-  }, [hoverNode, graphData.links]);
+  }, [activeNode, graphData.links]);
 
   // Canvas-based node rendering (2D)
   const nodeCanvasObject = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
     const r = 3 + (node.weight || 3) * 1.8;
-    const isHovered = hoverNode?.id === node.id;
+    const isHovered = activeNode?.id === node.id;
     const isNeighbor = highlightNodes.has(node.id);
-    const dimmed = hoverNode && !isHovered && !isNeighbor;
+    const dimmed = activeNode && !isHovered && !isNeighbor;
 
     // Circle
     ctx.beginPath();
@@ -199,24 +201,24 @@ export default function ArchitectureMindmap() {
       ctx.fillStyle = dimmed ? '#C0C0C0' : '#374151';
       ctx.fillText(node.id, node.x, node.y + r + 3);
     }
-  }, [hoverNode, highlightNodes]);
+  }, [activeNode, highlightNodes]);
 
   // Link colors
   const linkColor = useCallback((link: any) => {
-    if (!hoverNode) return 'rgba(180,180,200,0.2)';
+    if (!activeNode) return 'rgba(180,180,200,0.2)';
     const sId = typeof link.source === 'string' ? link.source : link.source?.id;
     const tId = typeof link.target === 'string' ? link.target : link.target?.id;
     if (highlightNodes.has(sId) && highlightNodes.has(tId)) return 'rgba(99,102,241,0.6)';
     return 'rgba(200,200,210,0.05)';
-  }, [hoverNode, highlightNodes]);
+  }, [activeNode, highlightNodes]);
 
   const linkWidth = useCallback((link: any) => {
-    if (!hoverNode) return 0.5;
+    if (!activeNode) return 0.5;
     const sId = typeof link.source === 'string' ? link.source : link.source?.id;
     const tId = typeof link.target === 'string' ? link.target : link.target?.id;
     if (highlightNodes.has(sId) && highlightNodes.has(tId)) return 2;
     return 0.15;
-  }, [hoverNode, highlightNodes]);
+  }, [activeNode, highlightNodes]);
 
   // Zoom to fit on load
   useEffect(() => {
@@ -238,7 +240,7 @@ export default function ArchitectureMindmap() {
           🧠 앱 아키텍처 맵
         </h3>
         <p className="text-[11px] text-[#9CA3AF] font-medium">
-          드래그로 이동 · 스크롤로 줌 · 노드 호버 시 연결 관계 표시
+          드래그로 이동 · 스크롤로 줌 · 노드 클릭으로 연결 관계 고정
           {dataSource === 'sheets' && (
             <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-[#F3F4F6] text-[#6B7280] font-bold">📊 Google Sheets</span>
           )}
@@ -255,16 +257,17 @@ export default function ArchitectureMindmap() {
         ))}
       </div>
 
-      {/* Hover Info Card */}
-      {hoverNode && (
+      {/* Active Node Info Card */}
+      {activeNode && (
         <div className="absolute bottom-5 left-6 z-10 bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border border-[#E5E7EB] px-4 py-3 max-w-[260px] animate-in fade-in duration-150">
           <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-3.5 h-3.5 rounded-full shadow-sm" style={{ backgroundColor: hoverNode.color }} />
-            <span className="text-[15px] font-extrabold text-[#1F2937]">{hoverNode.id}</span>
+            <div className="w-3.5 h-3.5 rounded-full shadow-sm" style={{ backgroundColor: activeNode.color }} />
+            <span className="text-[15px] font-extrabold text-[#1F2937]">{activeNode.id}</span>
+            {pinnedNode && <span className="text-[11px]">📌</span>}
           </div>
           <div className="flex items-center gap-3 text-[11px] text-[#6B7280] font-medium">
-            <span className="px-1.5 py-0.5 rounded bg-[#F3F4F6]">{GROUP_META[hoverNode.group]?.label || hoverNode.group}</span>
-            <span>가중치 {hoverNode.weight}</span>
+            <span className="px-1.5 py-0.5 rounded bg-[#F3F4F6]">{GROUP_META[activeNode.group]?.label || activeNode.group}</span>
+            <span>가중치 {activeNode.weight}</span>
             <span>연결 {highlightNodes.size - 1}개</span>
           </div>
         </div>
@@ -287,7 +290,7 @@ export default function ArchitectureMindmap() {
           linkWidth={linkWidth}
           linkCurvature={0.15}
           linkDirectionalParticles={(link: any) => {
-            if (!hoverNode) return 0;
+            if (!activeNode) return 0;
             const sId = typeof link.source === 'string' ? link.source : link.source?.id;
             const tId = typeof link.target === 'string' ? link.target : link.target?.id;
             return (highlightNodes.has(sId) && highlightNodes.has(tId)) ? 3 : 0;
@@ -295,13 +298,25 @@ export default function ArchitectureMindmap() {
           linkDirectionalParticleWidth={2}
           linkDirectionalParticleColor={() => '#6366F1'}
           backgroundColor="#FAFAFA"
-          onNodeHover={(node: any) => setHoverNode(node || null)}
+          onNodeHover={(node: any) => { if (!pinnedNode) setHoverNode(node || null); }}
           onNodeClick={(node: any) => {
-            if (fgRef.current && node) {
-              fgRef.current.centerAt(node.x, node.y, 800);
-              fgRef.current.zoom(3, 800);
+            if (node) {
+              // Toggle pin: clicking same node unpins, different node re-pins
+              if (pinnedNode?.id === node.id) {
+                setPinnedNode(null);
+              } else {
+                setPinnedNode(node);
+                setHoverNode(null);
+              }
+              if (fgRef.current) {
+                fgRef.current.centerAt(node.x, node.y, 800);
+                fgRef.current.zoom(3, 800);
+              }
+            } else {
+              setPinnedNode(null);
             }
           }}
+          onBackgroundClick={() => { setPinnedNode(null); setHoverNode(null); }}
           d3AlphaDecay={0.02}
           d3VelocityDecay={0.3}
           warmupTicks={100}
