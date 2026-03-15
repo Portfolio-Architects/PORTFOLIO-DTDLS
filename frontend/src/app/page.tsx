@@ -997,7 +997,7 @@ export default function Dashboard() {
               <h2 className="text-[28px] md:text-[36px] font-extrabold text-[#191f28] tracking-tight">
                 프리미엄 임장기
               </h2>
-              <span className="inline-flex items-center gap-1.5 bg-[#e8f3ff] text-[#3182f6] text-[13px] font-bold px-3 py-1 rounded-full shrink-0">
+              <span suppressHydrationWarning className="inline-flex items-center gap-1.5 bg-[#e8f3ff] text-[#3182f6] text-[13px] font-bold px-3 py-1 rounded-full shrink-0">
                 <FileText size={13} />
                 {fieldReports.length}개 단지
               </span>
