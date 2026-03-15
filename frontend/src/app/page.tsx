@@ -20,7 +20,7 @@ import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserRe
 import WriteReviewModal from '@/components/WriteReviewModal';
 import { ZONES, dongToZoneId, getZoneById, getDongsForZone, getAllDongs, getZoneColorForDong, ZoneInfo } from '@/lib/zones';
 import { isSameApartment, normalizeAptName } from '@/lib/utils/apartmentMapping';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
@@ -139,6 +139,11 @@ export function FieldReportModal({
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const scrollToSection = (id: string) => {
+    const el = modalRef.current?.querySelector(`#${id}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const s = report.sections;
   const coverImage = report.imageUrl || s?.infra?.gateImg || s?.infra?.landscapeImg || s?.ecosystem?.communityImg;
@@ -149,7 +154,7 @@ export function FieldReportModal({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-12 animate-in fade-in duration-200">
         <div className="absolute inset-0 bg-[#191f28]/60 backdrop-blur-sm" onClick={onClose} />
         
-        <div className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] max-h-[90vh] rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden shadow-2xl transition-all duration-300 ring-1 ring-black/5`}>
+        <div ref={modalRef} className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] max-h-[90vh] rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden shadow-2xl transition-all duration-300 ring-1 ring-black/5`}>
           <button onClick={onClose} className="sticky top-4 z-20 ml-auto mr-4 mt-4 -mb-14 bg-[#191f28]/80 hover:bg-[#191f28] text-white w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0">
             <X size={20} />
           </button>
@@ -262,6 +267,30 @@ export function FieldReportModal({
 
           </div>
 
+          {/* Sticky Section Nav */}
+          <nav className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] px-4 py-2">
+            <div className="flex gap-1 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-w-[1000px] mx-auto">
+              {[
+                { id: 'sec-premium', icon: '⭐', label: '프리미엄' },
+                { id: 'sec-photos', icon: '📸', label: '사진' },
+                { id: 'sec-summary', icon: '📋', label: '요약' },
+                { id: 'sec-specs', icon: '🏢', label: '명세' },
+                { id: 'sec-infra', icon: '🔍', label: '인프라' },
+                { id: 'sec-eco', icon: '🌿', label: '생태' },
+                { id: 'sec-conclusion', icon: '📝', label: '결론' },
+                { id: 'sec-comments', icon: '💬', label: '댓글' },
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => scrollToSection(tab.id)}
+                  className="shrink-0 px-3 py-1.5 rounded-full text-[12px] font-bold text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28] transition-all"
+                >
+                  {tab.icon} {tab.label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
           {/* Magazine Content Wrapper */}
           <div className="px-6 py-8 md:p-12 flex flex-col gap-10 max-w-[1000px] mx-auto w-full">
 
@@ -280,7 +309,7 @@ export function FieldReportModal({
             ) : (
             <>
             {report.premiumScores && (
-              <div className="mb-2">
+              <div id="sec-premium" className="mb-2 scroll-mt-14">
                  <PropertyScoreChart scores={report.premiumScores} />
               </div>
             )}
@@ -504,7 +533,7 @@ export function FieldReportModal({
               };
               const allTags = ['전체', ...Array.from(new Set(report.images.map(img => img.locationTag || '기타')))];
               return (
-                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+                <div id="sec-photos" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
                   <details open>
                     <summary className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-5 border-b border-[#e5e8eb] pb-3 cursor-pointer list-none">
                       <Camera size={20} className="text-[#3182f6]"/>
@@ -538,22 +567,28 @@ export function FieldReportModal({
               // Advanced Template Render
               <>
                 {/* 1. 요약 브리프 */}
-                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+                <div id="sec-summary" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
                    <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Text size={20} className="text-[#3182f6]"/> 요약 브리프</h2>
                    <div className="flex flex-col gap-4">
-                     <div className="bg-[#f0fdf4] p-5 rounded-2xl border border-[#bbf7d0]">
+                     <div className="flex gap-0 rounded-2xl overflow-hidden border border-[#bbf7d0]">
+                       <div className="w-1.5 bg-[#03c75a] shrink-0" />
+                       <div className="bg-[#f0fdf4] p-5 flex-1">
                        <h3 className="text-[15px] font-extrabold text-[#03c75a] mb-2 flex items-center gap-1.5"><CheckCircle2 size={18}/> 이 단지의 핵심 장점</h3>
                        <p className="text-[15px] text-[#191f28] leading-relaxed whitespace-pre-wrap">{s.assessment.alphaDriver || '내용 없음'}</p>
+                       </div>
                      </div>
-                     <div className="bg-[#fff5f5] p-5 rounded-2xl border border-[#ffebec]">
+                     <div className="flex gap-0 rounded-2xl overflow-hidden border border-[#ffebec]">
+                       <div className="w-1.5 bg-[#f04452] shrink-0" />
+                       <div className="bg-[#fff5f5] p-5 flex-1">
                        <h3 className="text-[15px] font-extrabold text-[#f04452] mb-2 flex items-center gap-1.5"><AlertCircle size={18}/> 주의할 단점</h3>
                        <p className="text-[15px] text-[#191f28] leading-relaxed whitespace-pre-wrap">{s.assessment.systemicRisk || '내용 없음'}</p>
+                       </div>
                      </div>
                    </div>
                 </div>
 
                 {/* 2. 단지 기본 명세 (Specs) */}
-                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+                <div id="sec-specs" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
                    <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Building size={20} className="text-[#3182f6]"/> 단지 기본 명세</h2>
                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
@@ -576,7 +611,7 @@ export function FieldReportModal({
                 </div>
 
                 {/* 3. 물리적 인프라 & 조경 */}
-                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+                <div id="sec-infra" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
                    <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Camera size={20} className="text-[#3182f6]"/> 현장 인프라 둘러보기</h2>
                    <div className="flex flex-col gap-8">
                       {/* Gate */}
@@ -591,7 +626,7 @@ export function FieldReportModal({
                       )}
                       {/* Landscaping */}
                       {(s.infra.landscapeText || s.infra.landscapeImg) && (
-                        <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-[#f2f4f6]">
+                        <div className="flex flex-col md:flex-row-reverse gap-6 pt-6 border-t border-[#f2f4f6]">
                           {s.infra.landscapeImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.infra.landscapeImg} alt="조경/지형" fill sizes="280px" className="object-cover" /></div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f2f4f6] inline-block px-3 py-1 rounded-lg">단지 조경 및 지형</h4>
@@ -613,7 +648,7 @@ export function FieldReportModal({
                 </div>
 
                  {/* 4. Ecosystem */}
-                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+                <div id="sec-eco" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
                    <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Info size={20} className="text-[#3182f6]"/> 생활 편의시설 및 거시 입지</h2>
                    <div className="flex flex-col gap-8">
                       {(s.ecosystem.schoolText || s.ecosystem.schoolImg) && (
@@ -626,7 +661,7 @@ export function FieldReportModal({
                         </div>
                       )}
                       {(s.ecosystem.commerceText || s.ecosystem.commerceImg) && (
-                        <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-[#f2f4f6]">
+                        <div className="flex flex-col md:flex-row-reverse gap-6 pt-6 border-t border-[#f2f4f6]">
                           {s.ecosystem.commerceImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.ecosystem.commerceImg} alt="상권" fill sizes="280px" className="object-cover" /></div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f8f9fa] border border-[#e5e8eb] inline-block px-3 py-1 rounded-lg">동네 상권</h4>
@@ -638,7 +673,7 @@ export function FieldReportModal({
                 </div>
 
                  {/* 5. 최종 결론 */}
-                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+                <div id="sec-conclusion" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
                    <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><ShieldAlert size={20} className="text-[#3182f6]"/> 최종 매수 타당성 평가</h2>
                    <div className="flex flex-col gap-4">
                       <div className="bg-[#191f28] p-6 rounded-2xl text-white">
@@ -667,7 +702,7 @@ export function FieldReportModal({
 
             {/* Comments Section */}
             </>)}
-            <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+            <div id="sec-comments" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
               <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3">
                 <MessageSquare size={20} className="text-[#3182f6]"/> 
                 이웃들의 이야기 <span className="text-[#3182f6] text-[16px] ml-1">{comments.length}</span>
