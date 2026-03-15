@@ -2,7 +2,7 @@
 
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { useState, useRef, useEffect } from 'react';
-import { ImagePlus, Trash2, GripVertical, CheckCircle2 } from 'lucide-react';
+import { ImagePlus, Trash2, CheckCircle2, ArrowUpDown } from 'lucide-react';
 import { uploadImage, createScoutingReport, updateScoutingReport } from '@/lib/services/reportService';
 import { auth } from '@/lib/firebaseConfig';
 import { useRouter } from 'next/navigation';
@@ -162,10 +162,21 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
     }
   }, [initialData, reset]);
 
-  const { fields: imageFields, append: appendImage, remove: removeImage, update: updateImage } = useFieldArray({
+  const { fields: imageFields, append: appendImage, remove: removeImage, update: updateImage, replace: replaceImages } = useFieldArray({
     control,
     name: "images"
   });
+
+  // Auto-sort images by category group order
+  const sortByCategory = () => {
+    const categoryOrder = IMAGE_CATEGORY_GROUPS.flatMap(g => g.items);
+    const sorted = [...imageFields].sort((a, b) => {
+      const ai = categoryOrder.indexOf(a.locationTag);
+      const bi = categoryOrder.indexOf(b.locationTag);
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
+    replaceImages(sorted.map(({ id, ...rest }) => rest));
+  };
 
   // Watch the 'dong' field to dynamically update the apartment list
   const selectedDong = useWatch({ control, name: 'dong' }) || Object.keys(dongData)[0];
@@ -550,12 +561,23 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
           <p className="text-[12px] text-[#8b95a1]">드래그하거나 클릭하여 여러 사진을 선택한 후 카테고리를 직접 지정해주세요</p>
         </div>
 
+        {/* Sort Button */}
+        {imageFields.length >= 2 && (
+          <button
+            type="button"
+            onClick={sortByCategory}
+            className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-white border border-[#e5e8eb] rounded-xl text-[13px] font-bold text-[#4e5968] hover:bg-[#f9fafb] hover:border-[#3182f6] hover:text-[#3182f6] transition-all shadow-sm"
+          >
+            <ArrowUpDown size={14} />
+            카테고리별 자동 정렬
+            <span className="text-[11px] text-[#8b95a1] font-medium">({imageFields.length}장)</span>
+          </button>
+        )}
+
         <div className="space-y-4 mb-6">
           {imageFields.map((field, index) => (
             <div key={field.id} className="flex flex-col md:flex-row gap-4 p-4 border border-[#e5e8eb] rounded-2xl bg-white shadow-sm hover:border-[#3182f6] transition-colors group relative">
-              <div className="cursor-grab active:cursor-grabbing p-2 mt-1 hidden md:block text-[#b0b8c1] group-hover:text-[#4e5968]">
-                <GripVertical size={20} />
-              </div>
+
               
               {/* Real File Input for Drag&Drop / Click */}
               <input 
