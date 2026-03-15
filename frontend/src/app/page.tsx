@@ -263,26 +263,29 @@ export function FieldReportModal({
                  const iqr = q3 - q1;
                  const lower = Math.max(0, q1 - iqr * 2);
                  const upper = q3 + iqr * 2;
-                 const chartData = timeFiltered.filter(d => d.price >= lower && d.price <= upper);
+                 const scatterData = timeFiltered;
 
-                 if (chartData.length === 0) return null;
+                 if (scatterData.length === 0) return null;
 
-                 // 월별 중앙값 계산
+                 // 월별 평균값 계산 (정확히 매월 15일 기준 하나의 포인트만 생성)
                  const byMonth = new Map<number, number[]>();
-                 chartData.forEach(d => {
+                 scatterData.forEach(d => {
                    if (!byMonth.has(d.yearMonth)) byMonth.set(d.yearMonth, []);
                    byMonth.get(d.yearMonth)!.push(d.price);
                  });
                  const getAvg = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
-                 // chartData에 monthAvg 필드 추가 (같은 월이면 같은 평균값)
-                 const avgMap = new Map<number, number>();
-                 byMonth.forEach((prices, ym) => avgMap.set(ym, Math.round(getAvg(prices) * 1000) / 1000));
-                 const enrichedData = chartData.map(d => ({
-                   ...d,
-                   monthAvg: avgMap.get(d.yearMonth) ?? d.price,
-                 }));
+                 const monthlyData = Array.from(byMonth.entries())
+                   .map(([ym, prices]) => {
+                     const year = Math.floor(ym / 100);
+                     const month = ym % 100;
+                     return {
+                       ts: new Date(year, month - 1, 15).getTime(), // 매월 15일 중앙값
+                       monthAvg: Math.round(getAvg(prices) * 1000) / 1000,
+                     };
+                   })
+                   .sort((a, b) => a.ts - b.ts);
 
-                 const prices = chartData.map(d => d.price);
+                 const prices = scatterData.map(d => d.price);
                  const minP = Math.min(...prices);
                  const maxP = Math.max(...prices);
                  const avgP = prices.reduce((a, b) => a + b, 0) / prices.length;
@@ -318,12 +321,12 @@ export function FieldReportModal({
                        <span className="text-[#3182f6] font-bold">최고 {maxP.toFixed(1)}억</span>
                        <span className="text-[#FBBF24] font-bold">평균 {avgP.toFixed(1)}억</span>
                        <span className="text-[#8b95a1]">최저 {minP.toFixed(1)}억</span>
-                       <span className="ml-auto text-[#8b95a1]">{chartData.length}건</span>
+                       <span className="ml-auto text-[#8b95a1]">{scatterData.length}건</span>
                      </div>
                      {/* Chart */}
                      <div className="h-[200px]">
                        <ResponsiveContainer width="100%" height="100%">
-                         <ComposedChart data={enrichedData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                         <ComposedChart margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                            <defs>
                              <linearGradient id="priceGradModal" x1="0" y1="0" x2="0" y2="1">
                                <stop offset="5%" stopColor="#3182f6" stopOpacity={0.12}/>
@@ -343,6 +346,7 @@ export function FieldReportModal({
                                const d = new Date(ts);
                                return `${String(d.getFullYear()).slice(2)}.${String(d.getMonth() + 1).padStart(2, '0')}`;
                              }}
+                             allowDuplicatedCategory={false}
                            />
                            <YAxis
                              domain={[Math.max(0, domainMin), domainMax]}
@@ -356,17 +360,18 @@ export function FieldReportModal({
                              contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e5e8eb', fontSize: '12px', fontWeight: 'bold', color: '#191f28', padding: '8px 12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                              labelFormatter={(label: any, payload: any) => {
                                const item = payload?.[0]?.payload;
-                               return item ? `📅 ${item.fullDate}` : label;
+                               return item?.fullDate ? `📅 ${item.fullDate}` : `📅 ${new Date(label).getFullYear()}.${String(new Date(label).getMonth() + 1).padStart(2,'0')}월 추세`;
                              }}
                              formatter={(value: any, name: any, props: any) => {
                                const item = props?.payload;
-                               if (name === 'monthAvg') return [`월 평균가 ${value.toFixed(2)}억`, '추세'];
+                               if (name === 'monthAvg') return [`평균가 ${value.toFixed(2)}억`, '월기준'];
                                return [`${item?.priceEok || value + '억'}  ·  ${item?.area || '-'}평  ·  ${item?.floor || '-'}층`, '매매'];
                              }}
                              cursor={{ stroke: '#3182f6', strokeWidth: 1, strokeDasharray: '4 4' }}
                            />
-                           {/* 월별 중앙값 추세선 */}
+                           {/* 월별 평균값 추세선 */}
                            <Area
+                             data={monthlyData}
                              type="monotone"
                              dataKey="monthAvg"
                              stroke="#3182f6"
@@ -378,6 +383,7 @@ export function FieldReportModal({
                            />
                            {/* 개별 거래 점 */}
                            <Scatter
+                             data={scatterData}
                              dataKey="price"
                              fill="#3182f6"
                              shape={(props: any) => {
