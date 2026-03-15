@@ -847,12 +847,21 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
           onClick={() => {
             try {
               const data = getValues();
-              localStorage.setItem(`draft_report_${reportId || 'new'}`, JSON.stringify({
+              // Strip non-serializable File/Blob objects from images
+              const safeData = {
                 ...data,
+                images: (data.images || []).map((img: any) => ({
+                  url: img.url || '',
+                  previewUrl: img.previewUrl || '',
+                  caption: img.caption || '',
+                  locationTag: img.locationTag || '',
+                })),
                 _savedAt: new Date().toISOString(),
-              }));
+              };
+              localStorage.setItem(`draft_report_${reportId || 'new'}`, JSON.stringify(safeData));
               alert('✅ 임시 저장되었습니다!');
-            } catch {
+            } catch (err) {
+              console.error('Draft save error:', err);
               alert('임시 저장에 실패했습니다.');
             }
           }}
