@@ -187,6 +187,45 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
           }
         }
       }
+      // Auto-fetch location scores if categories are missing
+      const hasCategories = m?.academyCategories && Object.keys(m.academyCategories).length > 0;
+      if (!hasCategories && initialData.apartmentName) {
+        (async () => {
+          try {
+            const res = await fetch(`/api/location-scores?apartment=${encodeURIComponent(initialData.apartmentName)}`);
+            if (!res.ok) return;
+            const loc = await res.json();
+            if (loc.distanceToElementary != null) setValue('metrics.distanceToElementary', String(loc.distanceToElementary));
+            if (loc.distanceToMiddle != null) setValue('metrics.distanceToMiddle', String(loc.distanceToMiddle));
+            if (loc.distanceToHigh != null) setValue('metrics.distanceToHigh', String(loc.distanceToHigh));
+            if (loc.distanceToSubway != null) setValue('metrics.distanceToSubway', String(loc.distanceToSubway));
+            if (loc.distanceToIndeokwon != null) setValue('metrics.distanceToIndeokwon', String(loc.distanceToIndeokwon));
+            if (loc.distanceToTram != null) setValue('metrics.distanceToTram', String(loc.distanceToTram));
+            if (loc.academyDensity != null) setValue('metrics.academyDensity', String(loc.academyDensity));
+            if (loc.restaurantDensity != null) setValue('metrics.restaurantDensity', String(loc.restaurantDensity));
+            const bld = loc.buildingInfo;
+            if (bld) {
+              if (bld.brand) setValue('metrics.brand', bld.brand);
+              if (bld.householdCount) setValue('metrics.householdCount', String(bld.householdCount));
+              if (bld.yearBuilt) setValue('metrics.yearBuilt', String(bld.yearBuilt));
+              if (bld.far) setValue('metrics.far', String(bld.far));
+              if (bld.bcr) setValue('metrics.bcr', String(bld.bcr));
+              if (bld.parkingPerHousehold) setValue('metrics.parkingPerHousehold', String(bld.parkingPerHousehold));
+            }
+            setApiCategories({
+              academyCategories: loc.academyCategories || {},
+              restaurantDensity: loc.restaurantDensity,
+              restaurantCategories: loc.restaurantCategories || {},
+              nearestSchoolNames: {
+                elementary: loc.nearestSchools?.elementary?.name,
+                middle: loc.nearestSchools?.middle?.name,
+                high: loc.nearestSchools?.high?.name,
+              },
+              nearestStationName: loc.nearestStation?.name,
+            });
+          } catch { /* silent fail */ }
+        })();
+      }
     }
   }, [initialData, reset]);
 
