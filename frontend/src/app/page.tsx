@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Scatter } from 'recharts';
 
 // Lazy-loaded heavy chart components (reduces initial bundle ~40KB)
 const MainChart = dynamic(() => import('@/components/MainChart'), { ssr: false });
@@ -140,6 +140,7 @@ export function FieldReportModal({
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
+  const [chartTimeframe, setChartTimeframe] = useState<'6M'|'1Y'|'3Y'|'ALL'>('ALL');
   const modalRef = useRef<HTMLDivElement>(null);
   const scrollToSection = (id: string) => {
     if (id === 'sec-summary' && modalRef.current) {
@@ -221,16 +222,17 @@ export function FieldReportModal({
                  <span className="text-[13px]">{report.createdAt}</span>
                </div>
 
-               {/* 매매가 추이 차트 (프리미엄) */}
+               {/* 매매가 추이 차트 (시계열 선택 + 스캐터) */}
                {transactions.length > 0 && (() => {
-                 // 만원 → 억 변환 (이상치 필터링 포함)
+                 // 만원 → 억 변환
                  const rawData = [...transactions].reverse().map((tx, idx) => {
-                   let priceEokNum = tx.price / 10000; // 만원 → 억
-                   // 비정상 값 보정: 100억 초과 시 원→만원 가능성
+                   let priceEokNum = tx.price / 10000;
                    if (priceEokNum > 100) priceEokNum = tx.price / 100000000;
+                   const ym = tx.contractYm; // e.g. '202511'
                    return {
-                     date: `${tx.contractYm.slice(2,4)}.${tx.contractYm.slice(4)}`,
-                     fullDate: `${tx.contractYm.slice(0,4)}.${tx.contractYm.slice(4)}.${tx.contractDay}`,
+                     date: `${ym.slice(2,4)}.${ym.slice(4)}`,
+                     fullDate: `${ym.slice(0,4)}.${ym.slice(4)}.${tx.contractDay}`,
+                     yearMonth: parseInt(ym),
                      price: Math.round(priceEokNum * 1000) / 1000,
                      area: tx.areaPyeong,
                      floor: tx.floor,
@@ -238,42 +240,73 @@ export function FieldReportModal({
                      idx,
                    };
                  });
-                 // IQR 이상치 필터링
-                 const sorted = [...rawData].sort((a, b) => a.price - b.price);
+
+                 // 시계열 필터
+                 const now = new Date();
+                 const cutoffMap: Record<string, number> = {
+                   '6M': 6, '1Y': 12, '3Y': 36, 'ALL': 9999,
+                 };
+                 const months = cutoffMap[chartTimeframe];
+                 const cutoffDate = new Date(now.getFullYear(), now.getMonth() - months, 1);
+                 const cutoffYm = cutoffDate.getFullYear() * 100 + (cutoffDate.getMonth() + 1);
+                 const timeFiltered = rawData.filter(d => d.yearMonth >= cutoffYm);
+
+                 // IQR 이상치 필터
+                 const sorted = [...timeFiltered].sort((a, b) => a.price - b.price);
                  const q1 = sorted[Math.floor(sorted.length * 0.1)]?.price || 0;
                  const q3 = sorted[Math.floor(sorted.length * 0.9)]?.price || 10;
                  const iqr = q3 - q1;
                  const lower = Math.max(0, q1 - iqr * 2);
                  const upper = q3 + iqr * 2;
-                 const chartData = rawData.filter(d => d.price >= lower && d.price <= upper);
+                 const chartData = timeFiltered.filter(d => d.price >= lower && d.price <= upper);
 
+                 if (chartData.length === 0) return null;
                  const prices = chartData.map(d => d.price);
                  const minP = Math.min(...prices);
                  const maxP = Math.max(...prices);
                  const avgP = prices.reduce((a, b) => a + b, 0) / prices.length;
-                 const domainMin = Math.floor(minP * 10) / 10 - 0.2;
-                 const domainMax = Math.ceil(maxP * 10) / 10 + 0.2;
+                 const domainMin = Math.floor(minP * 10) / 10 - 0.3;
+                 const domainMax = Math.ceil(maxP * 10) / 10 + 0.3;
+
                  return (
                    <div className="mt-4 bg-white rounded-2xl p-4 ring-1 ring-black/5 flex-1">
+                     {/* Header + Timeframe */}
                      <div className="flex items-center justify-between mb-3">
                        <h4 className="text-[12px] font-bold text-[#4e5968] flex items-center gap-1.5">
-                         <TrendingUp size={13} className="text-[#03c75a]" />
+                         <TrendingUp size={13} className="text-[#3182f6]" />
                          매매가 추이
                        </h4>
-                       <div className="flex items-center gap-3 text-[10px]">
-                         <span className="text-[#03c75a] font-bold">최고 {maxP.toFixed(1)}억</span>
-                         <span className="text-[#FBBF24] font-bold">평균 {avgP.toFixed(1)}억</span>
-                         <span className="text-[#8b95a1]">최저 {minP.toFixed(1)}억</span>
-                         <span className="text-[#8b95a1]">{chartData.length}건</span>
+                       <div className="flex items-center gap-1">
+                         {(['6M','1Y','3Y','ALL'] as const).map(tf => (
+                           <button
+                             key={tf}
+                             onClick={() => setChartTimeframe(tf)}
+                             className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${
+                               chartTimeframe === tf
+                                 ? 'bg-[#3182f6] text-white'
+                                 : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb]'
+                             }`}
+                           >
+                             {tf}
+                           </button>
+                         ))}
                        </div>
                      </div>
+                     {/* Stats */}
+                     <div className="flex items-center gap-3 text-[10px] mb-2">
+                       <span className="text-[#3182f6] font-bold">업고 {maxP.toFixed(1)}억</span>
+                       <span className="text-[#FBBF24] font-bold">평균 {avgP.toFixed(1)}억</span>
+                       <span className="text-[#8b95a1]">저점 {minP.toFixed(1)}억</span>
+                       <span className="ml-auto text-[#8b95a1]">{chartData.length}건</span>
+                     </div>
+                     {/* Chart */}
                      <div className="h-[200px]">
                        <ResponsiveContainer width="100%" height="100%">
-                         <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                         <ComposedChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                            <defs>
                              <linearGradient id="priceGradModal" x1="0" y1="0" x2="0" y2="1">
-                               <stop offset="5%" stopColor="#3182f6" stopOpacity={0.15}/>
-                               <stop offset="95%" stopColor="#3182f6" stopOpacity={0.02}/>
+                               <stop offset="5%" stopColor="#3182f6" stopOpacity={0.12}/>
+                               <stop offset="95%" stopColor="#3182f6" stopOpacity={0.01}/>
                              </linearGradient>
                            </defs>
                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e8eb" vertical={false} />
@@ -282,7 +315,7 @@ export function FieldReportModal({
                              tick={{ fill: '#8b95a1', fontSize: 9 }}
                              axisLine={false}
                              tickLine={false}
-                             interval={Math.max(1, Math.floor(chartData.length / 8))}
+                             interval={Math.max(1, Math.floor(chartData.length / 7))}
                            />
                            <YAxis
                              domain={[Math.max(0, domainMin), domainMax]}
@@ -308,12 +341,23 @@ export function FieldReportModal({
                              type="linear"
                              dataKey="price"
                              stroke="#3182f6"
-                             strokeWidth={2}
+                             strokeWidth={1.5}
                              fill="url(#priceGradModal)"
                              dot={false}
-                             activeDot={{ r: 4, fill: '#3182f6', stroke: '#fff', strokeWidth: 2 }}
+                             activeDot={false}
                            />
-                         </AreaChart>
+                           <Scatter
+                             dataKey="price"
+                             fill="#3182f6"
+                             r={3}
+                             fillOpacity={0.6}
+                             shape={(props: any) => {
+                               const { cx, cy } = props;
+                               if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
+                               return <circle cx={cx} cy={cy} r={3} fill="#3182f6" fillOpacity={0.5} stroke="#fff" strokeWidth={1} />;
+                             }}
+                           />
+                         </ComposedChart>
                        </ResponsiveContainer>
                      </div>
                    </div>
