@@ -268,26 +268,20 @@ export function FieldReportModal({
           </div>
 
           {/* Sticky Section Nav */}
-          <nav className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] px-4 py-2">
-            <div className="flex gap-1 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-w-[1000px] mx-auto">
-              {[
-                { id: 'sec-summary', icon: '📋', label: '요약' },
-                { id: 'sec-premium', icon: '⭐', label: '프리미엄' },
-                { id: 'sec-photos', icon: '📸', label: '사진' },
-                { id: 'sec-specs', icon: '🏢', label: '명세' },
-                { id: 'sec-infra', icon: '🔍', label: '인프라' },
-                { id: 'sec-eco', icon: '🌿', label: '생태' },
-                { id: 'sec-conclusion', icon: '📝', label: '결론' },
-                { id: 'sec-comments', icon: '💬', label: '댓글' },
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => scrollToSection(tab.id)}
-                  className="shrink-0 px-3 py-1.5 rounded-full text-[12px] font-bold text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28] transition-all"
-                >
-                  {tab.icon} {tab.label}
-                </button>
-              ))}
+          <nav className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] px-4 py-2.5">
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-w-[1000px] mx-auto">
+              {['요약', '프리미엄', '사진', '명세', '인프라', '생태', '결론', '댓글'].map((label, idx) => {
+                const ids = ['sec-summary', 'sec-premium', 'sec-photos', 'sec-specs', 'sec-infra', 'sec-eco', 'sec-conclusion', 'sec-comments'];
+                return (
+                  <button
+                    key={ids[idx]}
+                    onClick={() => scrollToSection(ids[idx])}
+                    className="shrink-0 px-3.5 py-1.5 rounded-lg border border-[#e5e8eb] bg-[#f9fafb] text-[12px] font-bold text-[#4e5968] hover:bg-[#191f28] hover:text-white hover:border-[#191f28] active:scale-95 transition-all duration-150"
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </nav>
 
