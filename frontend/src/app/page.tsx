@@ -1062,9 +1062,9 @@ export default function Dashboard() {
                                   const t = typeMap[norm]?.[String(tx.area)];
                                   return (
                                     <tr key={idx} className="border-b border-[#f2f4f6] last:border-0">
-                                      <td className="py-0.5 text-[10px] text-[#8b95a1] whitespace-nowrap">{tx.contractYm.slice(4)}.{tx.contractDay}</td>
-                                      <td className="py-0.5 text-right font-extrabold text-[#191f28] whitespace-nowrap">{tx.priceEok}</td>
-                                      <td className="py-0.5 text-right text-[10px] text-[#3182f6] font-bold whitespace-nowrap">{t || `${tx.areaPyeong}평`}</td>
+                                      <td className="py-0.5 pr-2 text-[10px] text-[#8b95a1] whitespace-nowrap">{tx.contractYm.slice(4)}.{tx.contractDay}</td>
+                                      <td className="py-0.5 pr-2 text-right font-extrabold text-[#191f28] whitespace-nowrap">{tx.priceEok}</td>
+                                      <td className="py-0.5 pr-1 text-right text-[10px] text-[#3182f6] font-bold whitespace-nowrap">{t || `${tx.areaPyeong}평`}</td>
                                       <td className="py-0.5 text-right text-[10px] text-[#8b95a1] whitespace-nowrap">{tx.floor}층</td>
                                     </tr>
                                   );
