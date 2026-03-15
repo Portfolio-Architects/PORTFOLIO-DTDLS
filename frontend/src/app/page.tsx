@@ -254,9 +254,9 @@ export function FieldReportModal({
                  const domainMin = Math.floor(minP * 10) / 10 - 0.2;
                  const domainMax = Math.ceil(maxP * 10) / 10 + 0.2;
                  return (
-                   <div className="mt-4 bg-[#1a1a2e] rounded-2xl p-4 ring-1 ring-white/10 flex-1">
+                   <div className="mt-4 bg-white rounded-2xl p-4 ring-1 ring-black/5 flex-1">
                      <div className="flex items-center justify-between mb-3">
-                       <h4 className="text-[12px] font-bold text-[#8b95a1] flex items-center gap-1.5">
+                       <h4 className="text-[12px] font-bold text-[#4e5968] flex items-center gap-1.5">
                          <TrendingUp size={13} className="text-[#03c75a]" />
                          매매가 추이
                        </h4>
@@ -264,7 +264,7 @@ export function FieldReportModal({
                          <span className="text-[#03c75a] font-bold">최고 {maxP.toFixed(1)}억</span>
                          <span className="text-[#FBBF24] font-bold">평균 {avgP.toFixed(1)}억</span>
                          <span className="text-[#8b95a1]">최저 {minP.toFixed(1)}억</span>
-                         <span className="text-[#555]">{chartData.length}건</span>
+                         <span className="text-[#8b95a1]">{chartData.length}건</span>
                        </div>
                      </div>
                      <div className="h-[200px]">
@@ -272,28 +272,28 @@ export function FieldReportModal({
                          <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                            <defs>
                              <linearGradient id="priceGradModal" x1="0" y1="0" x2="0" y2="1">
-                               <stop offset="5%" stopColor="#03c75a" stopOpacity={0.3}/>
-                               <stop offset="95%" stopColor="#03c75a" stopOpacity={0.02}/>
+                               <stop offset="5%" stopColor="#3182f6" stopOpacity={0.15}/>
+                               <stop offset="95%" stopColor="#3182f6" stopOpacity={0.02}/>
                              </linearGradient>
                            </defs>
-                           <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3e" vertical={false} />
+                           <CartesianGrid strokeDasharray="3 3" stroke="#e5e8eb" vertical={false} />
                            <XAxis
                              dataKey="date"
-                             tick={{ fill: '#555', fontSize: 9 }}
+                             tick={{ fill: '#8b95a1', fontSize: 9 }}
                              axisLine={false}
                              tickLine={false}
                              interval={Math.max(1, Math.floor(chartData.length / 8))}
                            />
                            <YAxis
                              domain={[Math.max(0, domainMin), domainMax]}
-                             tick={{ fill: '#777', fontSize: 10 }}
+                             tick={{ fill: '#8b95a1', fontSize: 10 }}
                              axisLine={false}
                              tickLine={false}
                              width={45}
                              tickFormatter={(v: number) => `${v.toFixed(1)}억`}
                            />
                            <RechartsTooltip
-                             contentStyle={{ backgroundColor: '#191f28', borderRadius: '12px', border: '1px solid #333', fontSize: '12px', fontWeight: 'bold', color: '#fff', padding: '8px 12px' }}
+                             contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e5e8eb', fontSize: '12px', fontWeight: 'bold', color: '#191f28', padding: '8px 12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                              labelFormatter={(label: any, payload: any) => {
                                const item = payload?.[0]?.payload;
                                return item ? `📅 ${item.fullDate}` : label;
@@ -302,16 +302,16 @@ export function FieldReportModal({
                                const item = props?.payload;
                                return [`${item?.priceEok || value + '억'}  ·  ${item?.area || '-'}평  ·  ${item?.floor || '-'}층`, '매매'];
                              }}
-                             cursor={{ stroke: '#03c75a', strokeWidth: 1, strokeDasharray: '4 4' }}
+                             cursor={{ stroke: '#3182f6', strokeWidth: 1, strokeDasharray: '4 4' }}
                            />
                            <Area
                              type="monotone"
                              dataKey="price"
-                             stroke="#03c75a"
+                             stroke="#3182f6"
                              strokeWidth={2}
                              fill="url(#priceGradModal)"
                              dot={false}
-                             activeDot={{ r: 4, fill: '#03c75a', stroke: '#fff', strokeWidth: 2 }}
+                             activeDot={{ r: 4, fill: '#3182f6', stroke: '#fff', strokeWidth: 2 }}
                            />
                          </AreaChart>
                        </ResponsiveContainer>
