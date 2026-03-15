@@ -990,7 +990,7 @@ export default function Dashboard() {
 
         {/* ═══ TAB 1: 임장기 ═══ */}
         {activeTab === 'imjang' && (
-        <section>
+        <section suppressHydrationWarning>
           {/* 1. Section Header */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
