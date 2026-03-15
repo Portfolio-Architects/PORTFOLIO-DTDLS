@@ -18,44 +18,44 @@ interface GraphLink {
   strength: number;
 }
 
-// ──── FALLBACK: Hardcoded Data (used when Google Sheets is unavailable) ────
+// ──── FALLBACK: Hardcoded Data ────
 const FALLBACK_NODES: GraphNode[] = [
-  { id: 'Firebase', group: 'core', weight: 10, color: '#FFCA28' },
-  { id: 'Firestore', group: 'core', weight: 9, color: '#FFA726' },
-  { id: 'Next.js', group: 'core', weight: 9, color: '#000000' },
-  { id: 'React', group: 'core', weight: 8, color: '#61DAFB' },
-  { id: 'TypeScript', group: 'core', weight: 7, color: '#3178C6' },
-  { id: '임장기', group: 'page', weight: 8, color: '#3182F6' },
-  { id: '라운지', group: 'page', weight: 6, color: '#36B37E' },
-  { id: '집추천', group: 'page', weight: 5, color: '#6554C0' },
-  { id: '관리자', group: 'page', weight: 7, color: '#FF5630' },
-  { id: '권역별', group: 'page', weight: 5, color: '#00B8D9' },
-  { id: 'Report', group: 'data', weight: 9, color: '#E91E63' },
-  { id: 'Review', group: 'data', weight: 6, color: '#9C27B0' },
-  { id: 'Post', group: 'data', weight: 5, color: '#673AB7' },
-  { id: 'Comment', group: 'data', weight: 4, color: '#7C4DFF' },
-  { id: 'User', group: 'data', weight: 7, color: '#FF7043' },
-  { id: 'Apartment', group: 'data', weight: 8, color: '#26A69A' },
-  { id: 'Transaction', group: 'data', weight: 7, color: '#42A5F5' },
-  { id: 'location-scores', group: 'api', weight: 7, color: '#66BB6A' },
-  { id: 'apartments-api', group: 'api', weight: 6, color: '#29B6F6' },
-  { id: 'transactions-api', group: 'api', weight: 6, color: '#AB47BC' },
-  { id: 'type-map', group: 'api', weight: 5, color: '#EC407A' },
-  { id: 'DashboardFacade', group: 'service', weight: 8, color: '#FF8A65' },
-  { id: 'Scoring', group: 'service', weight: 6, color: '#4DB6AC' },
-  { id: 'Haversine', group: 'service', weight: 5, color: '#7986CB' },
-  { id: 'ImageCompression', group: 'service', weight: 4, color: '#A1887F' },
-  { id: 'KPI', group: 'service', weight: 5, color: '#F06292' },
-  { id: '학군분석', group: 'feature', weight: 7, color: '#4CAF50' },
-  { id: '교통접근성', group: 'feature', weight: 6, color: '#FF9800' },
-  { id: '프리미엄지표', group: 'feature', weight: 7, color: '#E040FB' },
-  { id: '입주민인증', group: 'feature', weight: 4, color: '#00BCD4' },
-  { id: '중복감지', group: 'feature', weight: 3, color: '#8BC34A' },
-  { id: '사진DB', group: 'feature', weight: 6, color: '#FFC107' },
-  { id: 'Chart', group: 'ui', weight: 5, color: '#5C6BC0' },
-  { id: 'Modal', group: 'ui', weight: 6, color: '#26C6DA' },
-  { id: 'Map', group: 'ui', weight: 4, color: '#9CCC65' },
-  { id: 'FloatingBar', group: 'ui', weight: 3, color: '#FFCA28' },
+  { id: 'Firebase', group: 'core', weight: 10, color: '#F59E0B' },
+  { id: 'Firestore', group: 'core', weight: 9, color: '#D97706' },
+  { id: 'Next.js', group: 'core', weight: 9, color: '#374151' },
+  { id: 'React', group: 'core', weight: 8, color: '#06B6D4' },
+  { id: 'TypeScript', group: 'core', weight: 7, color: '#3B82F6' },
+  { id: '임장기', group: 'page', weight: 8, color: '#6366F1' },
+  { id: '라운지', group: 'page', weight: 6, color: '#10B981' },
+  { id: '집추천', group: 'page', weight: 5, color: '#8B5CF6' },
+  { id: '관리자', group: 'page', weight: 7, color: '#F43F5E' },
+  { id: '권역별', group: 'page', weight: 5, color: '#0EA5E9' },
+  { id: 'Report', group: 'data', weight: 9, color: '#EC4899' },
+  { id: 'Review', group: 'data', weight: 6, color: '#A855F7' },
+  { id: 'Post', group: 'data', weight: 5, color: '#7C3AED' },
+  { id: 'Comment', group: 'data', weight: 4, color: '#818CF8' },
+  { id: 'User', group: 'data', weight: 7, color: '#FB923C' },
+  { id: 'Apartment', group: 'data', weight: 8, color: '#14B8A6' },
+  { id: 'Transaction', group: 'data', weight: 7, color: '#38BDF8' },
+  { id: 'location-scores', group: 'api', weight: 7, color: '#4ADE80' },
+  { id: 'apartments-api', group: 'api', weight: 6, color: '#22D3EE' },
+  { id: 'transactions-api', group: 'api', weight: 6, color: '#C084FC' },
+  { id: 'type-map', group: 'api', weight: 5, color: '#F472B6' },
+  { id: 'DashboardFacade', group: 'service', weight: 8, color: '#FB923C' },
+  { id: 'Scoring', group: 'service', weight: 6, color: '#2DD4BF' },
+  { id: 'Haversine', group: 'service', weight: 5, color: '#818CF8' },
+  { id: 'ImageCompression', group: 'service', weight: 4, color: '#A78BFA' },
+  { id: 'KPI', group: 'service', weight: 5, color: '#FB7185' },
+  { id: '학군분석', group: 'feature', weight: 7, color: '#34D399' },
+  { id: '교통접근성', group: 'feature', weight: 6, color: '#FBBF24' },
+  { id: '프리미엄지표', group: 'feature', weight: 7, color: '#E879F9' },
+  { id: '입주민인증', group: 'feature', weight: 4, color: '#22D3EE' },
+  { id: '중복감지', group: 'feature', weight: 3, color: '#A3E635' },
+  { id: '사진DB', group: 'feature', weight: 6, color: '#FCD34D' },
+  { id: 'Chart', group: 'ui', weight: 5, color: '#6366F1' },
+  { id: 'Modal', group: 'ui', weight: 6, color: '#06B6D4' },
+  { id: 'Map', group: 'ui', weight: 4, color: '#84CC16' },
+  { id: 'FloatingBar', group: 'ui', weight: 3, color: '#F59E0B' },
 ];
 
 const FALLBACK_LINKS: GraphLink[] = [
@@ -118,15 +118,15 @@ const FALLBACK_LINKS: GraphLink[] = [
   { source: 'Map', target: 'Haversine', strength: 0.6 },
 ];
 
-// Category labels for legend
-const GROUP_LABELS: Record<string, { label: string; color: string }> = {
-  core: { label: '코어 기술', color: '#FFCA28' },
-  page: { label: '페이지', color: '#3182F6' },
-  data: { label: '데이터 모델', color: '#E91E63' },
-  api: { label: 'API', color: '#66BB6A' },
-  service: { label: '서비스/유틸', color: '#FF8A65' },
-  feature: { label: '기능', color: '#4CAF50' },
-  ui: { label: 'UI 컴포넌트', color: '#5C6BC0' },
+// Category labels — softer pastel palette for light theme
+const GROUP_LABELS: Record<string, { label: string; color: string; bg: string }> = {
+  core:    { label: '코어 기술', color: '#D97706', bg: '#FEF3C7' },
+  page:    { label: '페이지', color: '#4F46E5', bg: '#EEF2FF' },
+  data:    { label: '데이터', color: '#DB2777', bg: '#FCE7F3' },
+  api:     { label: 'API', color: '#059669', bg: '#D1FAE5' },
+  service: { label: '서비스', color: '#EA580C', bg: '#FFEDD5' },
+  feature: { label: '기능', color: '#16A34A', bg: '#DCFCE7' },
+  ui:      { label: 'UI', color: '#4F46E5', bg: '#E0E7FF' },
 };
 
 export default function ArchitectureMindmap() {
@@ -138,14 +138,13 @@ export default function ArchitectureMindmap() {
   const [links, setLinks] = useState<GraphLink[]>(FALLBACK_LINKS);
   const [dataSource, setDataSource] = useState<'fallback' | 'sheets'>('fallback');
 
-  // Dynamically import react-force-graph-3d (SSR-incompatible)
   useEffect(() => {
     import('react-force-graph-3d').then(mod => {
       setComponent(() => mod.default);
     });
   }, []);
 
-  // Fetch data from Google Sheets API (falls back to hardcoded data)
+  // Fetch data from Google Sheets API
   useEffect(() => {
     fetch('/api/mindmap')
       .then(res => res.json())
@@ -156,16 +155,14 @@ export default function ArchitectureMindmap() {
           setDataSource('sheets');
         }
       })
-      .catch(() => { /* silent fallback to hardcoded data */ });
+      .catch(() => {});
   }, []);
 
-  // Graph data (re-create when source data changes)
   const graphData = useMemo(() => ({
     nodes: nodes.map(n => ({ ...n })),
     links: links.map(l => ({ ...l })),
   }), [nodes, links]);
 
-  // Highlight connected nodes on hover
   const highlightNodes = useMemo(() => {
     if (!hoverNode) return new Set<string>();
     const connected = new Set<string>([hoverNode.id]);
@@ -178,29 +175,30 @@ export default function ArchitectureMindmap() {
     return connected;
   }, [hoverNode, links]);
 
-  // Node rendering
+  // Light-theme node rendering
   const nodeThreeObject = useCallback((node: any) => {
     if (typeof window === 'undefined') return null;
     const THREE = require('three');
-    const size = 2 + node.weight * 1.2;
+    const size = 2 + node.weight * 1.1;
     const isHighlighted = !hoverNode || highlightNodes.has(node.id);
-    const opacity = isHighlighted ? 1 : 0.15;
+    const opacity = isHighlighted ? 0.85 : 0.12;
 
-    const geometry = new THREE.SphereGeometry(size, 16, 16);
-    const material = new THREE.MeshPhongMaterial({
+    // Soft sphere with subtle glow
+    const geometry = new THREE.SphereGeometry(size, 20, 20);
+    const material = new THREE.MeshLambertMaterial({
       color: node.color,
       transparent: true,
       opacity,
-      shininess: 100,
     });
     const sphere = new THREE.Mesh(geometry, material);
 
+    // Text label with dark text for readability on light bg
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
     canvas.width = 256;
     canvas.height = 64;
-    ctx.font = 'bold 24px sans-serif';
-    ctx.fillStyle = isHighlighted ? '#ffffff' : 'rgba(255,255,255,0.2)';
+    ctx.font = 'bold 22px -apple-system, system-ui, sans-serif';
+    ctx.fillStyle = isHighlighted ? '#1F2937' : 'rgba(100,100,100,0.15)';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(node.id, 128, 32);
@@ -209,7 +207,7 @@ export default function ArchitectureMindmap() {
     const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true });
     const sprite = new THREE.Sprite(spriteMaterial);
     sprite.scale.set(size * 4, size * 1.2, 1);
-    sprite.position.set(0, size + 3, 0);
+    sprite.position.set(0, size + 2.5, 0);
 
     const group = new THREE.Group();
     group.add(sphere);
@@ -217,70 +215,72 @@ export default function ArchitectureMindmap() {
     return group;
   }, [hoverNode, highlightNodes]);
 
-  // Center heavy nodes with charge force
   const handleEngineStop = useCallback(() => {
     if (fgRef.current) {
-      fgRef.current.d3Force('charge')?.strength((node: any) => {
-        return -30 * (node.weight || 1);
-      });
+      fgRef.current.d3Force('charge')?.strength((node: any) => -30 * (node.weight || 1));
       fgRef.current.d3Force('center')?.strength(0.05);
     }
   }, []);
 
-  // Camera zoom to fit
   useEffect(() => {
     if (fgRef.current) {
-      setTimeout(() => {
-        fgRef.current?.zoomToFit(500, 100);
-      }, 1500);
+      setTimeout(() => fgRef.current?.zoomToFit(500, 100), 1500);
     }
   }, [Component]);
 
   if (!Component) {
     return (
-      <div className="w-full h-[500px] rounded-3xl bg-[#0d1117] flex items-center justify-center">
+      <div className="w-full h-[500px] rounded-3xl bg-[#FAFAFA] border border-[#E5E7EB] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-white/60 text-[13px]">3D 마인드맵 로딩 중...</p>
+          <div className="w-8 h-8 border-2 border-[#D1D5DB] border-t-[#6366F1] rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-[#9CA3AF] text-[13px] font-medium">3D 마인드맵 불러오는 중...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full rounded-3xl overflow-hidden border border-[#1c2333] bg-[#0d1117] shadow-xl">
-      {/* Header */}
-      <div className="absolute top-4 left-5 z-10">
-        <h3 className="text-[16px] font-extrabold text-white/90 mb-0.5">앱 아키텍처 3D 마인드맵</h3>
-        <p className="text-[11px] text-white/40">
-          드래그/줌으로 탐색 · 노드 호버 시 연결 관계 표시
-          <span className="ml-2 px-1.5 py-0.5 rounded bg-white/10 text-[9px]">
-            {dataSource === 'sheets' ? '📊 Google Sheets' : '💾 로컬 데이터'}
+    <div className="relative w-full rounded-3xl overflow-hidden border border-[#E5E7EB] bg-[#FAFAFA] shadow-sm">
+      {/* Header — casual style */}
+      <div className="absolute top-5 left-6 z-10">
+        <h3 className="text-[17px] font-extrabold text-[#1F2937] mb-0.5 tracking-tight">
+          🧠 앱 아키텍처 맵
+        </h3>
+        <p className="text-[11px] text-[#9CA3AF] font-medium">
+          드래그로 회전 · 스크롤로 줌 · 노드 호버로 연결 탐색
+          <span className="ml-2 px-1.5 py-0.5 rounded-md bg-[#F3F4F6] text-[9px] text-[#6B7280] font-bold">
+            {dataSource === 'sheets' ? '📊 Sheets 연동' : '💾 로컬'}
           </span>
         </p>
       </div>
 
-      {/* Legend */}
-      <div className="absolute top-4 right-5 z-10 flex flex-wrap gap-1.5 max-w-[200px] justify-end">
-        {Object.entries(GROUP_LABELS).map(([key, { label, color }]) => (
-          <span key={key} className="flex items-center gap-1 text-[10px] text-white/60 bg-white/5 backdrop-blur-sm rounded-full px-2 py-0.5">
-            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+      {/* Legend — pill chips */}
+      <div className="absolute top-5 right-6 z-10 flex flex-wrap gap-1 max-w-[220px] justify-end">
+        {Object.entries(GROUP_LABELS).map(([key, { label, color, bg }]) => (
+          <span
+            key={key}
+            className="flex items-center gap-1 text-[10px] font-bold rounded-full px-2.5 py-1 border"
+            style={{ backgroundColor: bg, color, borderColor: `${color}30` }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
             {label}
           </span>
         ))}
       </div>
 
-      {/* Hover Info Panel */}
+      {/* Hover Info — floating card */}
       {hoverNode && (
-        <div className="absolute bottom-4 left-5 z-10 bg-black/70 backdrop-blur-md rounded-xl px-4 py-3 max-w-[250px]">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: hoverNode.color }} />
-            <span className="text-[14px] font-bold text-white">{hoverNode.id}</span>
+        <div className="absolute bottom-5 left-6 z-10 bg-white/90 backdrop-blur-md rounded-2xl px-5 py-3.5 shadow-lg border border-[#E5E7EB] max-w-[260px]">
+          <div className="flex items-center gap-2.5 mb-1">
+            <span className="w-3.5 h-3.5 rounded-full shadow-sm" style={{ backgroundColor: hoverNode.color }} />
+            <span className="text-[15px] font-bold text-[#1F2937]">{hoverNode.id}</span>
           </div>
-          <div className="flex items-center gap-3 text-[11px] text-white/50">
-            <span>{GROUP_LABELS[hoverNode.group]?.label || hoverNode.group}</span>
-            <span>가중치: {hoverNode.weight}/10</span>
-            <span>연결: {links.filter(l => {
+          <div className="flex items-center gap-3 text-[11px] text-[#6B7280] font-medium">
+            <span className="px-1.5 py-0.5 rounded bg-[#F3F4F6] text-[10px]">
+              {GROUP_LABELS[hoverNode.group]?.label || hoverNode.group}
+            </span>
+            <span>가중치 {hoverNode.weight}/10</span>
+            <span>연결 {links.filter(l => {
               const sId = typeof l.source === 'string' ? l.source : (l.source as any).id;
               const tId = typeof l.target === 'string' ? l.target : (l.target as any).id;
               return sId === hoverNode.id || tId === hoverNode.id;
@@ -296,21 +296,21 @@ export default function ArchitectureMindmap() {
           nodeThreeObject={nodeThreeObject}
           nodeThreeObjectExtend={false}
           linkColor={(link: any) => {
-            if (!hoverNode) return 'rgba(255,255,255,0.08)';
+            if (!hoverNode) return 'rgba(180,180,195,0.15)';
             const sId = typeof link.source === 'string' ? link.source : link.source?.id;
             const tId = typeof link.target === 'string' ? link.target : link.target?.id;
-            if (highlightNodes.has(sId) && highlightNodes.has(tId)) return 'rgba(49,130,246,0.6)';
-            return 'rgba(255,255,255,0.03)';
+            if (highlightNodes.has(sId) && highlightNodes.has(tId)) return 'rgba(99,102,241,0.5)';
+            return 'rgba(200,200,210,0.06)';
           }}
           linkWidth={(link: any) => {
-            if (!hoverNode) return 0.5;
+            if (!hoverNode) return 0.4;
             const sId = typeof link.source === 'string' ? link.source : link.source?.id;
             const tId = typeof link.target === 'string' ? link.target : link.target?.id;
             if (highlightNodes.has(sId) && highlightNodes.has(tId)) return 1.5;
-            return 0.2;
+            return 0.15;
           }}
-          linkOpacity={0.6}
-          backgroundColor="#0d1117"
+          linkOpacity={0.5}
+          backgroundColor="#FAFAFA"
           onNodeHover={(node: any) => setHoverNode(node || null)}
           onNodeClick={(node: any) => {
             if (fgRef.current && node) {
