@@ -261,10 +261,31 @@ export function FieldReportModal({
                  const chartData = timeFiltered.filter(d => d.price >= lower && d.price <= upper);
 
                  if (chartData.length === 0) return null;
+
+                 // 월별 중앙값 계산
+                 const byMonth = new Map<number, number[]>();
+                 chartData.forEach(d => {
+                   if (!byMonth.has(d.yearMonth)) byMonth.set(d.yearMonth, []);
+                   byMonth.get(d.yearMonth)!.push(d.price);
+                 });
+                 const getMedian = (arr: number[]) => {
+                   const s = [...arr].sort((a, b) => a - b);
+                   const mid = Math.floor(s.length / 2);
+                   return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+                 };
+                 // chartData에 median 필드 추가 (같은 월이면 같은 중앙값)
+                 const medianMap = new Map<number, number>();
+                 byMonth.forEach((prices, ym) => medianMap.set(ym, Math.round(getMedian(prices) * 1000) / 1000));
+                 const enrichedData = chartData.map(d => ({
+                   ...d,
+                   median: medianMap.get(d.yearMonth) ?? d.price,
+                 }));
+
                  const prices = chartData.map(d => d.price);
                  const minP = Math.min(...prices);
                  const maxP = Math.max(...prices);
                  const avgP = prices.reduce((a, b) => a + b, 0) / prices.length;
+                 const medianAll = getMedian(prices);
                  const domainMin = Math.floor(minP * 10) / 10 - 0.3;
                  const domainMax = Math.ceil(maxP * 10) / 10 + 0.3;
 
@@ -294,15 +315,15 @@ export function FieldReportModal({
                      </div>
                      {/* Stats */}
                      <div className="flex items-center gap-3 text-[10px] mb-2">
-                       <span className="text-[#3182f6] font-bold">업고 {maxP.toFixed(1)}억</span>
-                       <span className="text-[#FBBF24] font-bold">평균 {avgP.toFixed(1)}억</span>
-                       <span className="text-[#8b95a1]">저점 {minP.toFixed(1)}억</span>
+                       <span className="text-[#3182f6] font-bold">최고 {maxP.toFixed(1)}억</span>
+                       <span className="text-[#FBBF24] font-bold">중앙 {medianAll.toFixed(1)}억</span>
+                       <span className="text-[#8b95a1]">최저 {minP.toFixed(1)}억</span>
                        <span className="ml-auto text-[#8b95a1]">{chartData.length}건</span>
                      </div>
                      {/* Chart */}
                      <div className="h-[200px]">
                        <ResponsiveContainer width="100%" height="100%">
-                         <ComposedChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                         <ComposedChart data={enrichedData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                            <defs>
                              <linearGradient id="priceGradModal" x1="0" y1="0" x2="0" y2="1">
                                <stop offset="5%" stopColor="#3182f6" stopOpacity={0.12}/>
@@ -315,7 +336,7 @@ export function FieldReportModal({
                              tick={{ fill: '#8b95a1', fontSize: 9 }}
                              axisLine={false}
                              tickLine={false}
-                             interval={Math.max(1, Math.floor(chartData.length / 7))}
+                             interval={Math.max(1, Math.floor(enrichedData.length / 7))}
                            />
                            <YAxis
                              domain={[Math.max(0, domainMin), domainMax]}
@@ -333,28 +354,30 @@ export function FieldReportModal({
                              }}
                              formatter={(value: any, name: any, props: any) => {
                                const item = props?.payload;
+                               if (name === 'median') return [`월 중앙값 ${value.toFixed(2)}억`, '추세'];
                                return [`${item?.priceEok || value + '억'}  ·  ${item?.area || '-'}평  ·  ${item?.floor || '-'}층`, '매매'];
                              }}
                              cursor={{ stroke: '#3182f6', strokeWidth: 1, strokeDasharray: '4 4' }}
                            />
+                           {/* 월별 중앙값 추세선 */}
                            <Area
-                             type="linear"
-                             dataKey="price"
+                             type="monotone"
+                             dataKey="median"
                              stroke="#3182f6"
-                             strokeWidth={1.5}
+                             strokeWidth={2.5}
                              fill="url(#priceGradModal)"
                              dot={false}
                              activeDot={false}
+                             connectNulls
                            />
+                           {/* 개별 거래 점 */}
                            <Scatter
                              dataKey="price"
                              fill="#3182f6"
-                             r={3}
-                             fillOpacity={0.6}
                              shape={(props: any) => {
                                const { cx, cy } = props;
                                if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
-                               return <circle cx={cx} cy={cy} r={3} fill="#3182f6" fillOpacity={0.5} stroke="#fff" strokeWidth={1} />;
+                               return <circle cx={cx} cy={cy} r={3} fill="#3182f6" fillOpacity={0.4} stroke="#fff" strokeWidth={0.8} />;
                              }}
                            />
                          </ComposedChart>
