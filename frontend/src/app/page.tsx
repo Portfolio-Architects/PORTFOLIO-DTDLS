@@ -291,7 +291,7 @@ export function FieldReportModal({
                  const maxP = Math.max(...prices);
                  const avgP = prices.reduce((a, b) => a + b, 0) / prices.length;
                  const domainMin = Math.floor(minP * 10) / 10 - 0.3;
-                 const domainMax = Math.ceil(maxP * 10) / 10 + 0.3;
+                 const domainMax = Math.ceil(maxP * 10) / 10 + 0.5;
 
                  // 최고/최저가 식별
                  const maxPoint = [...scatterData].sort((a,b) => b.price === a.price ? b.ts - a.ts : b.price - a.price)[0];
@@ -331,7 +331,7 @@ export function FieldReportModal({
                      {/* Chart */}
                      <div className="h-[200px]">
                        <ResponsiveContainer width="100%" height="100%">
-                         <ComposedChart data={monthlyData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                         <ComposedChart data={monthlyData} margin={{ top: 35, right: 10, left: 0, bottom: 5 }}>
                            <defs>
                              <linearGradient id="priceGradModal" x1="0" y1="0" x2="0" y2="1">
                                <stop offset="5%" stopColor="#4A6CF7" stopOpacity={0.12}/>
