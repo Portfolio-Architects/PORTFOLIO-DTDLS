@@ -35,7 +35,7 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
         likes: data.likes || 0,
         commentCount: data.commentCount || 0,
         imageUrl: data.thumbnailUrl || data.imageUrl,
-        createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전',
+                createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
       });
     });
     callback(reports);
@@ -69,7 +69,7 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
     commentCount: data.commentCount || 0,
     imageUrl: data.thumbnailUrl || data.imageUrl,
     images: data.images || [],
-    createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전',
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
   };
 }
 
