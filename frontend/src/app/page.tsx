@@ -1011,6 +1011,7 @@ export default function Dashboard() {
           <div className="mb-6">
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
+                suppressHydrationWarning
                 onClick={() => setSelectedDong(null)}
                 className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 whitespace-nowrap shrink-0 ${
                   !selectedDong
@@ -1026,6 +1027,7 @@ export default function Dashboard() {
                 const isActive = selectedDong === dong;
                 return (
                   <button
+                    suppressHydrationWarning
                     key={dong}
                     onClick={() => setSelectedDong(isActive ? null : dong)}
                     className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
