@@ -1,101 +1,170 @@
 import { ObjectiveMetrics } from '../types/scoutingReport';
 
 export interface PremiumScores {
-  eduTimePremium: number;       // 0-100 (교육 환경)
-  stressFreeParking: number;    // 0-100 (주차 쾌적성)
-  commuteFrictional: number;    // 0-100 (교통 편의)
-  megaScaleLiquidity: number;   // 0-100 (단지 규모)
-  totalPremiumScore: number;    // 0-100 (종합 점수)
+  education: number;      // 🎓 학군 (0-100)
+  transport: number;      // 🚇 교통 (0-100)
+  livingComfort: number;  // 🅿️ 주거 쾌적 (0-100)
+  complex: number;        // 🏢 단지 경쟁력 (0-100)
+  lifestyle: number;      // 🍽️ 생활 인프라 (0-100)
+  totalScore: number;     // 종합 점수 (0-100)
+
+  // Legacy aliases (backward compat — gradually deprecate)
+  eduTimePremium: number;
+  stressFreeParking: number;
+  commuteFrictional: number;
+  megaScaleLiquidity: number;
+  totalPremiumScore: number;
+}
+
+// 브랜드별 가산점 (시공사 인지도 + 프리미엄)
+const BRAND_BONUS: Record<string, number> = {
+  '래미안': 10, '자이': 10, '디에이치': 12,
+  '힐스테이트': 8, '푸르지오': 7, '더샵': 7,
+  '롯데캐슬': 6, '아이파크': 6, 'e편한세상': 5,
+  '해링턴': 4, '제일풍경채': 4, '호반써밋': 3,
+};
+
+function clamp(v: number, min = 0, max = 100): number {
+  return Math.max(min, Math.min(max, v));
 }
 
 /**
- * 4대 핵심 지표를 계산하여 아파트 프리미엄 점수를 산출합니다.
- * 각 지표는 0~100점이며, 종합 점수는 가중 평균입니다.
+ * 5대 핵심 영역 프리미엄 점수를 산출합니다.
+ * 각 영역 0~100점, 종합점수 = 가중 평균.
  *
- * 가중치 배분 원칙:
- * - 교육·교통은 독립적으로 가격에 큰 영향 → 높은 비중 (각 35%)
- * - 주차는 대단지일수록 좋은 경향이 있어 규모와 겹침 → 중간 비중 (20%)
- * - 단지 규모는 주차·건폐율과 겹칠 수 있으므로 → 낮은 비중 (10%)
+ * 가중치:
+ *  🎓 학군        25%  — 초등거리·중등거리·학원밀집도
+ *  🚇 교통        25%  — GTX역·인덕원선·트램
+ *  🅿️ 주거 쾌적   20%  — 주차대수·건폐율·용적률
+ *  🏢 단지 경쟁력  15%  — 세대수·브랜드·준공연도
+ *  🍽️ 생활 인프라  15%  — 음식점밀집도·카페·학원외
  */
 export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): PremiumScores {
-  if (!metrics) {
-    return { eduTimePremium: 0, stressFreeParking: 0, commuteFrictional: 0, megaScaleLiquidity: 0, totalPremiumScore: 0 };
-  }
-
-  // ---------------------------------------------------------
-  // 1. 교육 환경 점수
-  // - 초등학교 거리: 가까울수록 높은 점수 (0m=100점, 1500m=0점)
-  // - 학원가 밀집도: 반경 1km 내 학원 수 (100개 이상=만점)
-  // - 배분: 학교 거리 50% + 학원 밀집도 50%
-  // ---------------------------------------------------------
-  const schoolScore = Math.max(0, 100 - (metrics.distanceToElementary / 15)); 
-  const academyScore = Math.min(100, (metrics.academyDensity / 100) * 100);
-  const eduTimePremium = (schoolScore * 0.5) + (academyScore * 0.5);
-
-  // ---------------------------------------------------------
-  // 2. 주차 쾌적성 점수
-  // - 세대당 주차 대수: 1.3대 이상이면 기본 50점 + 가산
-  // - 건폐율(건물 밀집도): 15% 이하면 가산, 넘으면 감점
-  // - 배분: 주차 60% + 건폐율 40%
-  // ---------------------------------------------------------
-  let parkingScore = 0;
-  if (metrics.parkingPerHousehold >= 1.3) {
-    parkingScore = 50 + ((metrics.parkingPerHousehold - 1.3) / 0.7) * 50; 
-  } else {
-    parkingScore = (metrics.parkingPerHousehold / 1.3) * 50;
-  }
-  parkingScore = Math.min(100, parkingScore);
-  
-  let bcrScore = 0;
-  if (metrics.bcr <= 15) {
-    bcrScore = 60 + ((15 - metrics.bcr) / 5) * 40;
-  } else {
-    bcrScore = Math.max(0, 60 - ((metrics.bcr - 15) / 10) * 60);
-  }
-  bcrScore = Math.min(100, bcrScore);
-
-  const stressFreeParking = (parkingScore * 0.6) + (bcrScore * 0.4);
-
-  // ---------------------------------------------------------
-  // 3. 교통 편의 점수
-  // - GTX-A/SRT역까지 거리: 가까울수록 높은 점수 (0m=100점, 2000m=0점)
-  // ---------------------------------------------------------
-  const commuteFrictional = Math.max(0, 100 - (metrics.distanceToSubway / 20));
-
-  // ---------------------------------------------------------
-  // 4. 단지 규모 점수
-  // - 세대수 기반: 2000세대 이상 100점, 1000세대 이상 80점~
-  // - 대단지일수록 커뮤니티·관리비·환금성에 유리
-  // ---------------------------------------------------------
-  let megaScaleLiquidity = 0;
-  if (metrics.householdCount >= 2000) {
-    megaScaleLiquidity = 100;
-  } else if (metrics.householdCount >= 1000) {
-    megaScaleLiquidity = 80 + ((metrics.householdCount - 1000) / 1000) * 20;
-  } else if (metrics.householdCount >= 500) {
-    megaScaleLiquidity = 50 + ((metrics.householdCount - 500) / 500) * 30;
-  } else {
-    megaScaleLiquidity = (metrics.householdCount / 500) * 50;
-  }
-  megaScaleLiquidity = Math.min(100, megaScaleLiquidity);
-
-  // ---------------------------------------------------------
-  // 5. 종합 점수 (가중 평균)
-  // - 교육·교통은 독립적 변수이므로 각 35%
-  // - 주차는 규모와 일부 겹치므로 20%
-  // - 규모는 다른 지표와 겹칠 수 있어 10%
-  // ---------------------------------------------------------
-  const totalPremiumScore = 
-    (eduTimePremium * 0.35) +
-    (commuteFrictional * 0.35) +
-    (stressFreeParking * 0.20) +
-    (megaScaleLiquidity * 0.10);
-
-  return {
-    eduTimePremium: Math.round(eduTimePremium),
-    stressFreeParking: Math.round(stressFreeParking),
-    commuteFrictional: Math.round(commuteFrictional),
-    megaScaleLiquidity: Math.round(megaScaleLiquidity),
-    totalPremiumScore: Math.round(totalPremiumScore)
+  const zero: PremiumScores = {
+    education: 0, transport: 0, livingComfort: 0, complex: 0, lifestyle: 0, totalScore: 0,
+    eduTimePremium: 0, stressFreeParking: 0, commuteFrictional: 0, megaScaleLiquidity: 0, totalPremiumScore: 0,
   };
+  if (!metrics) return zero;
+
+  // ─────────────────────────────────────────────
+  // 1. 🎓 학군 (25%)
+  // 초등 거리(40%) + 중학교 거리(20%) + 학원 밀집도(40%)
+  // ─────────────────────────────────────────────
+  const elemScore = clamp(100 - (metrics.distanceToElementary / 10));   // 0m=100, 1000m=0
+  const middleScore = clamp(100 - (metrics.distanceToMiddle / 15));     // 0m=100, 1500m=0
+  const academyScore = clamp((metrics.academyDensity / 80) * 100);     // 80개=100점
+  const education = (elemScore * 0.4) + (middleScore * 0.2) + (academyScore * 0.4);
+
+  // ─────────────────────────────────────────────
+  // 2. 🚇 교통 (25%)
+  // GTX/SRT(50%) + 인덕원선(25%) + 트램(25%)
+  // 미입력 역은 해당 비중을 GTX에 합산
+  // ─────────────────────────────────────────────
+  const gtxScore = clamp(100 - (metrics.distanceToSubway / 15));       // 0m=100, 1500m=0
+  const indeokScore = metrics.distanceToIndeokwon != null
+    ? clamp(100 - ((metrics.distanceToIndeokwon) / 20))                // 0m=100, 2000m=0
+    : null;
+  const tramScore = metrics.distanceToTram != null
+    ? clamp(100 - ((metrics.distanceToTram) / 20))
+    : null;
+
+  let transport: number;
+  if (indeokScore != null && tramScore != null) {
+    transport = (gtxScore * 0.5) + (indeokScore * 0.25) + (tramScore * 0.25);
+  } else if (indeokScore != null) {
+    transport = (gtxScore * 0.6) + (indeokScore * 0.4);
+  } else if (tramScore != null) {
+    transport = (gtxScore * 0.6) + (tramScore * 0.4);
+  } else {
+    transport = gtxScore;
+  }
+
+  // ─────────────────────────────────────────────
+  // 3. 🅿️ 주거 쾌적 (20%)
+  // 주차대수(50%) + 건폐율(25%) + 용적률(25%)
+  // ─────────────────────────────────────────────
+  let parkingScore: number;
+  if (metrics.parkingPerHousehold >= 1.5) {
+    parkingScore = 90 + ((metrics.parkingPerHousehold - 1.5) / 0.5) * 10;
+  } else if (metrics.parkingPerHousehold >= 1.0) {
+    parkingScore = 50 + ((metrics.parkingPerHousehold - 1.0) / 0.5) * 40;
+  } else {
+    parkingScore = (metrics.parkingPerHousehold / 1.0) * 50;
+  }
+  parkingScore = clamp(parkingScore);
+
+  // 건폐율: 낮을수록 좋음 (10%=100점, 25%=0점)
+  const bcrScore = clamp(100 - ((metrics.bcr - 10) / 15) * 100);
+
+  // 용적률: 낮을수록 좋음 (180%=100점, 350%=0점)
+  const farScore = clamp(100 - ((metrics.far - 180) / 170) * 100);
+
+  const livingComfort = (parkingScore * 0.5) + (bcrScore * 0.25) + (farScore * 0.25);
+
+  // ─────────────────────────────────────────────
+  // 4. 🏢 단지 경쟁력 (15%)
+  // 세대수(50%) + 브랜드(25%) + 연식(25%)
+  // ─────────────────────────────────────────────
+  let sizeScore: number;
+  if (metrics.householdCount >= 3000) sizeScore = 100;
+  else if (metrics.householdCount >= 1500) sizeScore = 75 + ((metrics.householdCount - 1500) / 1500) * 25;
+  else if (metrics.householdCount >= 500) sizeScore = 30 + ((metrics.householdCount - 500) / 1000) * 45;
+  else sizeScore = (metrics.householdCount / 500) * 30;
+  sizeScore = clamp(sizeScore);
+
+  // 브랜드 가산
+  let brandScore = 40; // 기본 (무브랜드)
+  for (const [brand, bonus] of Object.entries(BRAND_BONUS)) {
+    if (metrics.brand?.includes(brand)) {
+      brandScore = 40 + bonus * 6; // 래미안: 40 + 60 = 100
+      break;
+    }
+  }
+  brandScore = clamp(brandScore);
+
+  // 연식: 신축일수록 높은 점수
+  const currentYear = new Date().getFullYear();
+  const age = currentYear - (metrics.yearBuilt || currentYear);
+  let ageScore: number;
+  if (age <= 5) ageScore = 100;
+  else if (age <= 10) ageScore = 80 + ((10 - age) / 5) * 20;
+  else if (age <= 20) ageScore = 40 + ((20 - age) / 10) * 40;
+  else ageScore = Math.max(10, 40 - (age - 20) * 2);
+  ageScore = clamp(ageScore);
+
+  const complex = (sizeScore * 0.5) + (brandScore * 0.25) + (ageScore * 0.25);
+
+  // ─────────────────────────────────────────────
+  // 5. 🍽️ 생활 인프라 (15%)
+  // 음식점 밀집도 (100%)  
+  // ─────────────────────────────────────────────
+  const restDensity = metrics.restaurantDensity ?? 0;
+  const lifestyle = clamp((restDensity / 60) * 100); // 60개=100점
+
+  // ─────────────────────────────────────────────
+  // 종합 점수 (가중 평균)
+  // ─────────────────────────────────────────────
+  const totalScore =
+    (education * 0.25) +
+    (transport * 0.25) +
+    (livingComfort * 0.20) +
+    (complex * 0.15) +
+    (lifestyle * 0.15);
+
+  const result: PremiumScores = {
+    education: Math.round(education),
+    transport: Math.round(transport),
+    livingComfort: Math.round(livingComfort),
+    complex: Math.round(complex),
+    lifestyle: Math.round(lifestyle),
+    totalScore: Math.round(totalScore),
+    // Legacy aliases (for existing data in Firestore that uses old field names)
+    eduTimePremium: Math.round(education),
+    stressFreeParking: Math.round(livingComfort),
+    commuteFrictional: Math.round(transport),
+    megaScaleLiquidity: Math.round(complex),
+    totalPremiumScore: Math.round(totalScore),
+  };
+
+  return result;
 }
