@@ -181,8 +181,8 @@ export function FieldReportModal({
                     <TrendingUp size={13} className="text-[#03c75a]" />
                     실거래가 내역 <span className="text-[11px] ml-1">{transactions.length}건</span>
                   </h4>
-                  <div className="overflow-y-auto max-h-[420px] custom-scrollbar">
-                    <table className="w-full text-[12px]">
+                  <div className="overflow-y-auto max-h-[600px] flex-1 custom-scrollbar">
+                    <table className="w-full text-[13px]">
                       <thead className="sticky top-0 bg-[#f9fafb]">
                         <tr className="border-b border-[#e5e8eb] text-[#8b95a1]">
                           <th className="py-2 text-left font-bold">거래일</th>
@@ -395,8 +395,8 @@ export function FieldReportModal({
                              tick={{ fill: '#8b95a1', fontSize: 11, fontWeight: 600 }}
                              axisLine={false}
                              tickLine={false}
-                             width={42}
-                             tickFormatter={(v: number) => `${v.toFixed(1)}억`}
+                             width={50}
+                             tickFormatter={(v: number) => v >= 1 ? `${v.toFixed(1)}억` : `${Math.round(v * 10000)}만`}
                              dx={-5}
                            />
                            <YAxis
