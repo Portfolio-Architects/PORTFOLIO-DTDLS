@@ -96,10 +96,15 @@ export async function GET() {
         const items = text.match(/<item>([\s\S]*?)<\/item>/g) || [];
         
         for (const itemXml of items) {
-          const get = (tag: string) => {
-            const m = itemXml.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`));
-            return m ? m[1].trim() : '';
-          };
+          // Single-pass: extract ALL tags into a Map (O(1) lookups)
+          // Previously: 12x new RegExp() per item -> now 1x regex scan
+          const tagMap = new Map<string, string>();
+          const tagRegex = /<(\w+)>([\s\S]*?)<\/\1>/g;
+          let tagMatch;
+          while ((tagMatch = tagRegex.exec(itemXml)) !== null) {
+            tagMap.set(tagMatch[1], tagMatch[2].trim());
+          }
+          const get = (tag: string) => tagMap.get(tag) || '';
 
           const aptName = get('aptNm');
           const priceStr = get('dealAmount').replace(/,/g, '').trim();

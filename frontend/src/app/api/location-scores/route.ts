@@ -20,6 +20,57 @@ interface ApartmentPOI extends POI {
   brand?: string;
 }
 
+// ── Module-Level In-Memory Cache ───────────────────
+// Persists across requests within the same serverless instance.
+// Eliminates redundant Google Sheets fetches (biggest CPU saver).
+
+interface CachedData {
+  apartments: ApartmentPOI[];
+  schools: SchoolPOI[];
+  stations: StationPOI[];
+  academies: AcademyPOI[];
+  restaurants: RestaurantPOI[];
+}
+
+let _cache: CachedData | null = null;
+let _cacheTimestamp = 0;
+const CACHE_TTL_MS = 3600_000; // 1 hour
+
+async function loadAllCached(): Promise<CachedData> {
+  const now = Date.now();
+  if (_cache && (now - _cacheTimestamp) < CACHE_TTL_MS) {
+    return _cache;
+  }
+
+  console.log('[LOCATION_SCORES] Cache miss — fetching all sheets...');
+  const [apartments, schools, stations, academies, restaurants] = await Promise.all([
+    loadApartments(),
+    loadSchools(),
+    loadStations(),
+    loadAcademies(),
+    loadRestaurants(),
+  ]);
+
+  _cache = { apartments, schools, stations, academies, restaurants };
+  _cacheTimestamp = now;
+  console.log(`[LOCATION_SCORES] Cache populated: ${apartments.length} apts, ${academies.length} academies, ${restaurants.length} restaurants`);
+  return _cache;
+}
+
+// ── Bounding Box Pre-Filter ────────────────────────
+// ~80% of POIs are eliminated by cheap lat/lng comparison
+// before expensive haversine trig calculations.
+// 1km ≈ 0.009° latitude; we use 0.012° for safety margin (~1.3km).
+
+const BBOX_DEGREES = 0.012;
+
+function filterByBBox<T extends Coord>(origin: Coord, pois: T[]): T[] {
+  return pois.filter(p =>
+    Math.abs(p.lat - origin.lat) <= BBOX_DEGREES &&
+    Math.abs(p.lng - origin.lng) <= BBOX_DEGREES
+  );
+}
+
 // ── Google Sheet Loaders ───────────────────────────
 
 /** Fetches CSV data from a Google Sheet tab. */
@@ -100,7 +151,6 @@ async function loadAcademies(): Promise<AcademyPOI[]> {
       result.push({ lat, lng, category: (cols[3] || '기타').trim() });
     }
   }
-  console.log(`[LOCATION_SCORES] Loaded ${result.length} academies`);
   return result;
 }
 
@@ -117,7 +167,6 @@ async function loadRestaurants(): Promise<RestaurantPOI[]> {
       result.push({ lat, lng, category: (cols[3] || '기타').trim() });
     }
   }
-  console.log(`[LOCATION_SCORES] Loaded ${result.length} restaurants`);
   return result;
 }
 
@@ -161,14 +210,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Load all data in parallel
-    const [apartments, schools, stations, academies, restaurants] = await Promise.all([
-      loadApartments(),
-      loadSchools(),
-      loadStations(),
-      loadAcademies(),
-      loadRestaurants(),
-    ]);
+    // Load from cache (or fetch & cache if stale/empty)
+    const { apartments, schools, stations, academies, restaurants } = await loadAllCached();
 
     const apt = resolveApartment(apartment, apartments);
     if (!apt) {
@@ -197,16 +240,18 @@ export async function GET(request: NextRequest) {
     const nearestIndeokwon = indeokwonLine.length > 0 ? findNearest(aptCoord, indeokwonLine) : null;
     const nearestTram = tramLine.length > 0 ? findNearest(aptCoord, tramLine) : null;
 
-    // Academy density: count within 1km radius with category breakdown
-    const nearbyAcademies = academies.filter(a => haversineDistance(aptCoord, a) <= 1000);
+    // Academy density: bounding box pre-filter → haversine within 1km
+    const candidateAcademies = filterByBBox(aptCoord, academies);
+    const nearbyAcademies = candidateAcademies.filter(a => haversineDistance(aptCoord, a) <= 1000);
     const academyDensity = nearbyAcademies.length;
     const academyCategories: Record<string, number> = {};
     for (const a of nearbyAcademies) {
       academyCategories[a.category] = (academyCategories[a.category] || 0) + 1;
     }
 
-    // Restaurant/cafe density: count within 1km radius with category breakdown
-    const nearbyRestaurants = restaurants.filter(r => haversineDistance(aptCoord, r) <= 1000);
+    // Restaurant/cafe density: bounding box pre-filter → haversine within 1km
+    const candidateRestaurants = filterByBBox(aptCoord, restaurants);
+    const nearbyRestaurants = candidateRestaurants.filter(r => haversineDistance(aptCoord, r) <= 1000);
     const restaurantDensity = nearbyRestaurants.length;
     const restaurantCategories: Record<string, number> = {};
     for (const r of nearbyRestaurants) {

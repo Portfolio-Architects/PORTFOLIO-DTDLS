@@ -100,8 +100,9 @@ async function getAllRecords(): Promise<TransactionRecord[]> {
   return fetchFromFirestore();
 }
 
-// Warmup on module load
-fetchFromFirestore().catch(() => {});
+// Lazy warmup — data loaded on first GET request instead of module load
+// (reduces cold-start CPU + avoids unnecessary Firestore connections)
+
 
 export async function GET(request: Request) {
   try {
