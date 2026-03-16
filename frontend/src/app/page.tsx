@@ -1110,6 +1110,18 @@ export default function Dashboard() {
     }).catch(err => console.warn('타입맵 로딩 실패:', err));
   }, []);
 
+  // Lazy-fetch transactions when modal opens
+  const [modalTransactions, setModalTransactions] = useState<TransactionRecord[]>([]);
+  useEffect(() => {
+    if (!selectedReport) { setModalTransactions([]); return; }
+    fetch('/api/transactions').then(r => r.json()).then(data => {
+      if (data.records) {
+        const filtered = data.records.filter((tx: TransactionRecord) => isSameApartment(selectedReport.apartmentName, tx.aptName));
+        setModalTransactions(filtered);
+      }
+    }).catch(err => console.warn('거래내역 로딩 실패:', err));
+  }, [selectedReport]);
+
   const handleLogin = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
@@ -1769,7 +1781,7 @@ export default function Dashboard() {
           onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}
           onSubmitComment={() => handleSubmitComment(selectedReport.id)}
           user={user}
-          transactions={[]}
+          transactions={modalTransactions}
           typeMap={typeMap}
           isLoadingDetail={isLoadingDetail}
         />
