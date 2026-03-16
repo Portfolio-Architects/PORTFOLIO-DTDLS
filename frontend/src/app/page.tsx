@@ -593,7 +593,7 @@ export function FieldReportModal({
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {report.metrics.distanceToElementary > 0 && (
                     <div className="bg-[#f9fafb] rounded-2xl p-4 text-center">
-                      <div className="text-[11px] font-bold text-[#8b95a1] mb-1">🏫 초등학교</div>
+                      <div className="text-[13px] font-bold text-[#8b95a1] mb-1">초등학교</div>
                       <div className="text-[22px] font-extrabold text-[#191f28]">{report.metrics.distanceToElementary}<span className="text-[13px] text-[#8b95a1] ml-0.5">m</span></div>
                       {report.metrics.nearestSchoolNames?.elementary && (
                         <div className="text-[10px] text-[#4e5968] mt-1 truncate">{report.metrics.nearestSchoolNames.elementary}</div>
@@ -602,7 +602,7 @@ export function FieldReportModal({
                   )}
                   {report.metrics.distanceToMiddle > 0 && (
                     <div className="bg-[#f9fafb] rounded-2xl p-4 text-center">
-                      <div className="text-[11px] font-bold text-[#8b95a1] mb-1">🏫 중학교</div>
+                      <div className="text-[13px] font-bold text-[#8b95a1] mb-1">중학교</div>
                       <div className="text-[22px] font-extrabold text-[#191f28]">{report.metrics.distanceToMiddle}<span className="text-[13px] text-[#8b95a1] ml-0.5">m</span></div>
                       {report.metrics.nearestSchoolNames?.middle && (
                         <div className="text-[10px] text-[#4e5968] mt-1 truncate">{report.metrics.nearestSchoolNames.middle}</div>
@@ -611,7 +611,7 @@ export function FieldReportModal({
                   )}
                   {report.metrics.distanceToHigh > 0 && (
                     <div className="bg-[#f9fafb] rounded-2xl p-4 text-center">
-                      <div className="text-[11px] font-bold text-[#8b95a1] mb-1">🏫 고등학교</div>
+                      <div className="text-[13px] font-bold text-[#8b95a1] mb-1">고등학교</div>
                       <div className="text-[22px] font-extrabold text-[#191f28]">{report.metrics.distanceToHigh}<span className="text-[13px] text-[#8b95a1] ml-0.5">m</span></div>
                       {report.metrics.nearestSchoolNames?.high && (
                         <div className="text-[10px] text-[#4e5968] mt-1 truncate">{report.metrics.nearestSchoolNames.high}</div>
@@ -620,7 +620,7 @@ export function FieldReportModal({
                   )}
                   {report.metrics.distanceToSubway > 0 && (
                     <div className="bg-[#e8f3ff] rounded-2xl p-4 text-center">
-                      <div className="text-[11px] font-bold text-[#3182f6] mb-1">🚇 GTX-A/SRT</div>
+                      <div className="text-[13px] font-bold text-[#3182f6] mb-1">GTX-A/SRT</div>
                       <div className="text-[22px] font-extrabold text-[#3182f6]">{report.metrics.distanceToSubway}<span className="text-[13px] text-[#3182f6]/70 ml-0.5">m</span></div>
                       {report.metrics.nearestStationName && (
                         <div className="text-[10px] text-[#3182f6]/80 mt-1 truncate">{report.metrics.nearestStationName}</div>
@@ -629,20 +629,20 @@ export function FieldReportModal({
                   )}
                   {report.metrics.distanceToIndeokwon != null && report.metrics.distanceToIndeokwon > 0 && (
                     <div className="bg-[#e8f3ff] rounded-2xl p-4 text-center">
-                      <div className="text-[11px] font-bold text-[#3182f6] mb-1">🚆 인덕원선</div>
+                      <div className="text-[13px] font-bold text-[#3182f6] mb-1">인덕원선</div>
                       <div className="text-[22px] font-extrabold text-[#3182f6]">{report.metrics.distanceToIndeokwon}<span className="text-[13px] text-[#3182f6]/70 ml-0.5">m</span></div>
                     </div>
                   )}
                   {report.metrics.distanceToTram != null && report.metrics.distanceToTram > 0 && (
                     <div className="bg-[#e8f3ff] rounded-2xl p-4 text-center">
-                      <div className="text-[11px] font-bold text-[#3182f6] mb-1">🚊 동탄트램</div>
+                      <div className="text-[13px] font-bold text-[#3182f6] mb-1">동탄트램</div>
                       <div className="text-[22px] font-extrabold text-[#3182f6]">{report.metrics.distanceToTram}<span className="text-[13px] text-[#3182f6]/70 ml-0.5">m</span></div>
                     </div>
                   )}
                   {/* Academy Density with Category Breakdown */}
                   {report.metrics.academyDensity > 0 && (
                     <div className="bg-[#f0fdf4] rounded-2xl p-4 text-center col-span-1">
-                      <div className="text-[11px] font-bold text-[#03c75a] mb-1">📚 학원 (1km)</div>
+                      <div className="text-[13px] font-bold text-[#03c75a] mb-1">학원 (1km)</div>
                       <div className="text-[22px] font-extrabold text-[#03c75a]">{report.metrics.academyDensity}<span className="text-[13px] text-[#03c75a]/70 ml-0.5">개</span></div>
                       {report.metrics.academyCategories && Object.keys(report.metrics.academyCategories).length > 0 && (
                         <div className="mt-2 pt-2 border-t border-[#bbf7d0]">

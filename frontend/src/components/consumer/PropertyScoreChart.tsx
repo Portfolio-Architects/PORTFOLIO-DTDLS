@@ -9,11 +9,11 @@ interface Props {
 }
 
 const AREAS = [
-  { key: 'education', label: '🎓 학군', desc: '초등·중학교 거리, 학원 밀집도' },
-  { key: 'transport', label: '🚇 교통', desc: 'GTX·인덕원선·트램 역 거리' },
-  { key: 'livingComfort', label: '🅿️ 주거쾌적', desc: '주차·건폐율·용적률' },
-  { key: 'complex', label: '🏢 단지경쟁력', desc: '세대수·브랜드·연식' },
-  { key: 'lifestyle', label: '🍽️ 생활인프라', desc: '음식점·카페 밀집도' },
+  { key: 'education', label: '학군', desc: '초등·중학교 거리, 학원 밀집도' },
+  { key: 'transport', label: '교통', desc: 'GTX·인덕원선·트램 역 거리' },
+  { key: 'livingComfort', label: '주거쾌적', desc: '주차·건폐율·용적률' },
+  { key: 'complex', label: '단지경쟁력', desc: '세대수·브랜드·연식' },
+  { key: 'lifestyle', label: '생활인프라', desc: '음식점·카페 밀집도' },
 ] as const;
 
 function getScoreColor(score: number): string {
@@ -60,7 +60,7 @@ export default function PropertyScoreChart({ scores }: Props) {
             <ShieldCheck size={20} className="text-[#3182f6]"/>
             아파트 프리미엄 분석
           </h2>
-          <p className="text-[12px] text-[#8b95a1] mt-0.5">학군·교통·쾌적·경쟁력·생활 5대 핵심 지표</p>
+          <p className="text-[13px] text-[#8b95a1] mt-0.5">학군·교통·쾌적·경쟁력·생활 5대 핵심 지표</p>
         </div>
 
         {/* Total Score Badge */}
@@ -83,7 +83,7 @@ export default function PropertyScoreChart({ scores }: Props) {
               <PolarGrid stroke="#e5e8eb" />
               <PolarAngleAxis
                 dataKey="subject"
-                tick={{ fill: '#4e5968', fontSize: 11, fontWeight: 700 }}
+                tick={{ fill: '#4e5968', fontSize: 13, fontWeight: 700 }}
               />
               <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
               <Tooltip
@@ -103,12 +103,12 @@ export default function PropertyScoreChart({ scores }: Props) {
             const color = getScoreColor(val);
             return (
               <div key={area.key} className="bg-[#f9fafb] border border-[#e5e8eb] p-3 rounded-2xl hover:border-[#3182f6]/30 transition-colors text-center">
-                <h4 className="text-[11px] text-[#8b95a1] font-bold mb-1 truncate">{area.label}</h4>
+                <h4 className="text-[13px] text-[#8b95a1] font-bold mb-1 truncate">{area.label}</h4>
                 <div className="flex items-end justify-center gap-0.5 mb-1">
                   <span className="text-[22px] font-extrabold leading-none" style={{ color }}>{val}</span>
                   <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5">점</span>
                 </div>
-                <p className="text-[9px] text-[#4e5968] font-medium leading-tight">{area.desc}</p>
+                <p className="text-[11px] text-[#4e5968] font-medium leading-tight">{area.desc}</p>
               </div>
             );
           })}
