@@ -1178,16 +1178,6 @@ export default function Dashboard() {
     return counts;
   }, [fieldReports]);
 
-  // Pre-group transactions by apartment name (O(N) once, then O(1) per card lookup)
-  const transactionsByApt = useMemo(() => {
-    const map: Record<string, TransactionRecord[]> = {};
-    for (const tx of allTransactions) {
-      const norm = normalizeAptName(tx.aptName);
-      if (!map[norm]) map[norm] = [];
-      map[norm].push(tx);
-    }
-    return map;
-  }, [allTransactions]);
 
   // Filtered reports based on dong selection
   const filteredReports = useMemo(() => {
@@ -1772,7 +1762,7 @@ export default function Dashboard() {
           onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}
           onSubmitComment={() => handleSubmitComment(selectedReport.id)}
           user={user}
-          transactions={allTransactions.filter(tx => isSameApartment(selectedReport.apartmentName, tx.aptName))}
+          transactions={[]}
           typeMap={typeMap}
           isLoadingDetail={isLoadingDetail}
         />
