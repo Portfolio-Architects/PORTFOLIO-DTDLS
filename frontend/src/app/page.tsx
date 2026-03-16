@@ -1297,7 +1297,6 @@ export default function Dashboard() {
                     }`}
                     style={isActive ? { backgroundColor: dong.color } : {}}
                   >
-                    <span className="text-[14px]">{dong.emoji}</span>
                     {dong.name} ({aptCount})
                     {reportCount > 0 && <span className="text-[10px] opacity-70">📝{reportCount}</span>}
                   </button>
@@ -1312,7 +1311,6 @@ export default function Dashboard() {
             if (!dongInfo) return null;
             return (
               <div className="mb-6 bg-white rounded-2xl border border-[#e5e8eb] p-5 flex items-center gap-4">
-                <span className="text-[32px]">{dongInfo.emoji}</span>
                 <div>
                   <h3 className="text-[18px] font-extrabold text-[#191f28]">{dongInfo.name}</h3>
                   <p className="text-[13px] text-[#8b95a1] mt-0.5">{dongInfo.description}</p>
@@ -1363,7 +1361,6 @@ export default function Dashboard() {
                       {/* 동 섹션 헤더 (전체 보기일 때만) */}
                       {!selectedDong && (
                         <div className="flex items-center gap-2 mb-4">
-                          <span className="text-[20px]">{dongInfo?.emoji}</span>
                           <h3 className="text-[18px] font-extrabold text-[#191f28]">{dongName}</h3>
                           <span className="text-[12px] text-[#8b95a1] font-bold bg-[#f2f4f6] px-2 py-0.5 rounded-full">{apts.length}개</span>
                           <button 
