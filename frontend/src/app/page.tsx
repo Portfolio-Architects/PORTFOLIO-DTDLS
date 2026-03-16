@@ -19,7 +19,8 @@ const ArchitectureMindmap = dynamic(() => import('@/components/admin/Architectur
 
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
 import WriteReviewModal from '@/components/WriteReviewModal';
-import { ZONES, dongToZoneId, getZoneById, getDongsForZone, getAllDongs, getZoneColorForDong, ZoneInfo } from '@/lib/zones';
+import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
+import type { SheetApartment } from '@/app/api/apartments-by-dong/route';
 import { isSameApartment, normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -1062,6 +1063,10 @@ export default function Dashboard() {
   // Dong filter state
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
 
+  // Apartment data from Google Sheet (by dong)
+  const [sheetApartments, setSheetApartments] = useState<Record<string, SheetApartment[]>>({});
+  const [aptLoading, setAptLoading] = useState(true);
+
   // Transaction data
   const [allTransactions, setAllTransactions] = useState<TransactionRecord[]>([]);
   const [txLoading, setTxLoading] = useState(true);
@@ -1095,7 +1100,8 @@ export default function Dashboard() {
     Promise.all([
       fetch('/api/transactions').then(r => r.json()),
       fetch('/api/type-map').then(r => r.json()),
-    ]).then(([txData, tmData]) => {
+      fetch('/api/apartments-by-dong').then(r => r.json()),
+    ]).then(([txData, tmData, aptData]) => {
       if (txData.records) setAllTransactions(txData.records);
       if (tmData.entries) {
         const map: Record<string, Record<string, string>> = {};
@@ -1106,7 +1112,8 @@ export default function Dashboard() {
         }
         setTypeMap(map);
       }
-    }).catch(err => console.warn('데이터 로딩 실패:', err)).finally(() => setTxLoading(false));
+      if (aptData.byDong) setSheetApartments(aptData.byDong);
+    }).catch(err => console.warn('데이터 로딩 실패:', err)).finally(() => { setTxLoading(false); setAptLoading(false); });
   }, []);
 
   const handleLogin = async () => {
@@ -1160,21 +1167,17 @@ export default function Dashboard() {
     }
   }, [selectedReport]);
 
-  // Count field reports by zone (for display counts on zone cards)
-  const zoneReportCounts = useMemo(() => {
+  // Count apartments per dong (from Google Sheet)
+  const dongAptCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    ZONES.forEach(z => { counts[z.id] = 0; });
-    fieldReports?.forEach(report => {
-      const zoneId = dongToZoneId(report.dong);
-      counts[zoneId] = (counts[zoneId] || 0) + 1;
-    });
+    Object.entries(sheetApartments).forEach(([dong, apts]) => { counts[dong] = apts.length; });
     return counts;
-  }, [fieldReports]);
+  }, [sheetApartments]);
 
   // Count field reports by dong (for dong filter chip counts)
   const dongReportCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    getAllDongs().forEach(d => { counts[d] = 0; });
+    getAllDongNames().forEach(d => { counts[d] = 0; });
     fieldReports?.forEach(report => {
       if (report.dong) counts[report.dong] = (counts[report.dong] || 0) + 1;
     });
@@ -1245,19 +1248,25 @@ export default function Dashboard() {
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-2">
               <h2 className="text-[28px] md:text-[36px] font-extrabold text-[#191f28] tracking-tight">
-                프리미엄 임장기
+                동탄 아파트 탐색
               </h2>
               <span suppressHydrationWarning className="inline-flex items-center gap-1.5 bg-[#e8f3ff] text-[#3182f6] text-[13px] font-bold px-3 py-1 rounded-full shrink-0">
-                <FileText size={13} />
-                {fieldReports.length}개 단지
+                <Building size={13} />
+                {Object.values(sheetApartments).flat().length}개 단지
               </span>
+              {fieldReports.length > 0 && (
+                <span className="inline-flex items-center gap-1.5 bg-[#fff8e1] text-[#f59e0b] text-[13px] font-bold px-3 py-1 rounded-full shrink-0">
+                  <FileText size={13} />
+                  {fieldReports.length}개 리포트
+                </span>
+              )}
             </div>
             <p className="text-[15px] text-[#8b95a1] font-medium">
-              장점부터 숨기고 싶은 단점까지 — 직접 현장을 다니며 기록한 솔직한 임장 리포트
+              11개 법정동 · 아파트별 인프라·실거래가·임장 리포트를 한눈에
             </p>
           </div>
 
-          {/* ── Dong Filter Chips (Single Row) ── */}
+          {/* ── Dong Filter Chips ── */}
           <div className="mb-6">
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <button
@@ -1269,183 +1278,181 @@ export default function Dashboard() {
                     : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb]'
                 }`}
               >
-                전체 ({fieldReports.length})
+                전체 ({Object.values(sheetApartments).flat().length})
               </button>
-              {getAllDongs().map(dong => {
-                const count = dongReportCounts[dong] || 0;
-                const zoneColor = getZoneColorForDong(dong);
-                const isActive = selectedDong === dong;
+              {DONGS.map(dong => {
+                const aptCount = dongAptCounts[dong.name] || 0;
+                const reportCount = dongReportCounts[dong.name] || 0;
+                const isActive = selectedDong === dong.name;
+                if (aptCount === 0) return null; // 아파트 없으면 숨김
                 return (
                   <button
                     suppressHydrationWarning
-                    key={dong}
-                    onClick={() => setSelectedDong(isActive ? null : dong)}
+                    key={dong.id}
+                    onClick={() => setSelectedDong(isActive ? null : dong.name)}
                     className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                       isActive
                         ? 'text-white shadow-md'
                         : 'bg-[#f2f4f6] text-[#4e5968] hover:bg-[#e5e8eb]'
                     }`}
-                    style={isActive ? { backgroundColor: zoneColor } : {}}
+                    style={isActive ? { backgroundColor: dong.color } : {}}
                   >
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: isActive ? '#fff' : zoneColor }} />
-                    {dong} ({count})
+                    <span className="text-[14px]">{dong.emoji}</span>
+                    {dong.name} ({aptCount})
+                    {reportCount > 0 && <span className="text-[10px] opacity-70">📝{reportCount}</span>}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Latest Reports (filtered) */}
-          {filteredReports.length > 0 ? (
-            <div>
-              <h3 className="text-[18px] font-extrabold text-[#191f28] mb-4 flex items-center gap-2">
-                <ClipboardCheck size={18} className="text-[#f59e0b]" />
-                {selectedDong ? '필터 결과' : '임장 리포트'}
-                <span className="text-[13px] font-bold text-[#8b95a1] ml-1">{filteredReports.length}개</span>
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredReports.map(report => {
-                  const normName = normalizeAptName(report.apartmentName);
-                  const txs = transactionsByApt[normName] || [];
+          {/* ── 동 소개 배너 (선택 시) ── */}
+          {selectedDong && (() => {
+            const dongInfo = getDongByName(selectedDong);
+            if (!dongInfo) return null;
+            return (
+              <div className="mb-6 bg-white rounded-2xl border border-[#e5e8eb] p-5 flex items-center gap-4">
+                <span className="text-[32px]">{dongInfo.emoji}</span>
+                <div>
+                  <h3 className="text-[18px] font-extrabold text-[#191f28]">{dongInfo.name}</h3>
+                  <p className="text-[13px] text-[#8b95a1] mt-0.5">{dongInfo.description}</p>
+                </div>
+                <div className="ml-auto flex items-center gap-3 shrink-0">
+                  <div className="text-center">
+                    <div className="text-[18px] font-extrabold text-[#191f28]">{dongAptCounts[selectedDong] || 0}</div>
+                    <div className="text-[10px] text-[#8b95a1] font-bold">아파트</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[18px] font-extrabold text-[#3182f6]">{dongReportCounts[selectedDong] || 0}</div>
+                    <div className="text-[10px] text-[#8b95a1] font-bold">리포트</div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ── 아파트 카드 그리드 ── */}
+          {aptLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1,2,3,4,5,6].map(i => (
+                <div key={i} className="bg-white rounded-2xl border border-[#e5e8eb] p-5 animate-pulse">
+                  <div className="h-4 bg-[#e5e8eb] rounded w-3/4 mb-3" />
+                  <div className="h-3 bg-[#f2f4f6] rounded w-1/2 mb-4" />
+                  <div className="flex gap-2">
+                    <div className="h-8 bg-[#f2f4f6] rounded flex-1" />
+                    <div className="h-8 bg-[#f2f4f6] rounded flex-1" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (() => {
+            // 선택된 동 또는 전체 아파트 리스트
+            const dongList = selectedDong 
+              ? [selectedDong] 
+              : DONGS.map(d => d.name).filter(d => sheetApartments[d]?.length > 0);
+
+            return (
+              <div className="space-y-10">
+                {dongList.map(dongName => {
+                  const apts = sheetApartments[dongName] || [];
+                  if (apts.length === 0) return null;
+                  const dongInfo = getDongByName(dongName);
+
                   return (
-                  <div
-                    key={report.id}
-                    onClick={() => setSelectedReport(report)}
-                    className="bg-white rounded-2xl border border-[#e5e8eb] overflow-hidden cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group flex flex-col md:flex-row"
-                  >
-                    {/* Left: Photo */}
-                    <div className="w-full md:w-[240px] h-[180px] md:h-auto bg-[#f2f4f6] overflow-hidden relative shrink-0">
-                      {report.imageUrl ? (
-                         <Image src={report.imageUrl} alt={report.apartmentName} fill sizes="(max-width: 768px) 100vw, 240px" className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center min-h-[160px]">
-                          <Camera size={32} className="text-[#d1d6db]" />
+                    <div key={dongName}>
+                      {/* 동 섹션 헤더 (전체 보기일 때만) */}
+                      {!selectedDong && (
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="text-[20px]">{dongInfo?.emoji}</span>
+                          <h3 className="text-[18px] font-extrabold text-[#191f28]">{dongName}</h3>
+                          <span className="text-[12px] text-[#8b95a1] font-bold bg-[#f2f4f6] px-2 py-0.5 rounded-full">{apts.length}개</span>
+                          <button 
+                            onClick={() => setSelectedDong(dongName)}
+                            className="ml-auto text-[12px] font-bold text-[#3182f6] hover:underline"
+                          >
+                            전체보기 →
+                          </button>
                         </div>
                       )}
-                    </div>
-                    {/* Right: Info */}
-                    <div className="flex-1 p-5 flex flex-col justify-between min-w-0">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          {report.dong && <span className="text-[11px] font-bold text-[#3182f6] bg-[#e8f3ff] px-2 py-0.5 rounded-md">{report.dong}</span>}
-                          {report.premiumScores?.totalPremiumScore != null && (
-                            <span className="text-[11px] font-bold text-[#f59e0b] bg-[#fff8e1] px-2 py-0.5 rounded-md">종합 {report.premiumScores.totalPremiumScore}점</span>
-                          )}
-                          <span className="ml-auto text-[11px] text-[#8b95a1]">{report.createdAt}</span>
-                        </div>
-                        <h4 className="text-[17px] font-extrabold text-[#191f28] truncate mb-3">{report.apartmentName}</h4>
-                      </div>
 
-                      {/* 최근 실거래 + 가격 요약 */}
-                      <div className="flex items-center gap-3">
-                        {txLoading ? (
-                          <div className="flex-1 min-w-0 space-y-1.5">
-                            {[1,2,3].map(i => <div key={i} className="h-3 bg-[#e5e8eb] rounded animate-pulse" style={{width: `${90-i*15}%`}} />)}
-                            <p className="text-[10px] text-[#8b95a1] mt-1 animate-pulse">📊 실거래가 로드중...</p>
-                          </div>
-                        ) : txs.length > 0 && (
-                          <div className="basis-3/5 grow min-w-0">
-                            <table className="w-full text-[12px]">
-                              <tbody>
-                                {txs.slice(0, 4).map((tx, idx) => {
-                                  const norm = normalizeAptName(tx.aptName);
-                                  const t = typeMap[norm]?.[String(tx.area)];
-                                  return (
-                                    <tr key={idx} className="border-b border-[#f2f4f6] last:border-0">
-                                      <td className="py-1 pr-2 text-[11px] text-[#8b95a1] whitespace-nowrap">{tx.contractYm.slice(4)}.{tx.contractDay}</td>
-                                      <td className="py-1 pr-2 text-right font-extrabold text-[#191f28] whitespace-nowrap">{tx.priceEok}</td>
-                                      <td className="py-1 pr-1 text-right text-[11px] text-[#3182f6] font-bold whitespace-nowrap">{t || `${tx.areaPyeong}평`}</td>
-                                      <td className="py-1 text-right text-[11px] text-[#8b95a1] whitespace-nowrap">{tx.floor}층</td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
-                        {txs.length > 2 && (() => {
-                          const prices = txs.map(t => t.price);
-                          const maxPrice = Math.max(...prices);
-                          const minPrice = Math.min(...prices);
-                          const latestPrice = prices[0];
-                          const prevPrice = prices[1] || prices[0];
-                          const changePercent = prevPrice > 0 ? ((latestPrice - prevPrice) / prevPrice * 100) : 0;
-                          const gapFromHigh = maxPrice > 0 ? ((latestPrice - maxPrice) / maxPrice * 100) : 0;
-                          const isUp = changePercent >= 0;
-                          const formatEok = (p: number) => {
-                            const e = Math.floor(p / 10000);
-                            const r = Math.round((p % 10000) / 1000) * 1000;
-                            return e > 0 ? (r > 0 ? `${e}.${Math.round(r/1000)}억` : `${e}억`) : `${p.toLocaleString()}만`;
-                          };
+                      {/* 아파트 카드 그리드 */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {(selectedDong ? apts : apts.slice(0, 6)).map(apt => {
+                          const normName = normalizeAptName(apt.name);
+                          const txs = transactionsByApt[normName] || [];
+                          const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name));
+                          const latestTx = txs[0];
+
                           return (
-                            <div className="basis-2/5 grow bg-[#f9fafb] rounded-xl px-4 py-2.5 flex flex-col items-end gap-1.5">
-                              <div className="flex items-center gap-2">
-                                <span className="text-[10px] text-[#8b95a1]">최고가</span>
-                                <span className="text-[14px] font-extrabold text-[#f04452]">{formatEok(maxPrice)}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-[10px] text-[#8b95a1]">최저가</span>
-                                <span className="text-[14px] font-extrabold text-[#3182f6]">{formatEok(minPrice)}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-[10px] text-[#8b95a1]">직전대비</span>
-                                <span className={`text-[13px] font-extrabold ${isUp ? 'text-[#f04452]' : 'text-[#3182f6]'}`}>
-                                  {isUp ? '▲' : '▼'} {Math.abs(changePercent).toFixed(1)}%
-                                </span>
-                              </div>
-                              {gapFromHigh < -3 && (
-                                <div className="text-[10px] text-[#8b95a1]">
-                                  고점대비 {gapFromHigh.toFixed(0)}%
+                            <div
+                              key={apt.name}
+                              onClick={() => report ? setSelectedReport(report) : undefined}
+                              className={`bg-white rounded-2xl border border-[#e5e8eb] p-5 transition-all duration-200 group ${
+                                report ? 'cursor-pointer hover:shadow-lg hover:-translate-y-0.5 hover:border-[#3182f6]/30' : 'opacity-90'
+                              }`}
+                            >
+                              {/* 상단: 이름 + 뱃지 */}
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="min-w-0 flex-1">
+                                  <h4 className="text-[15px] font-extrabold text-[#191f28] truncate group-hover:text-[#3182f6] transition-colors">{apt.name}</h4>
+                                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                    {apt.householdCount && <span className="text-[11px] text-[#8b95a1]">{apt.householdCount.toLocaleString()}세대</span>}
+                                    {apt.yearBuilt && <span className="text-[11px] text-[#8b95a1]">· {apt.yearBuilt}년</span>}
+                                    {apt.brand && <span className="text-[11px] text-[#8b95a1]">· {apt.brand}</span>}
+                                  </div>
                                 </div>
+                                {report && (
+                                  <span className="text-[10px] font-bold bg-[#e8f3ff] text-[#3182f6] px-2 py-0.5 rounded-md shrink-0 ml-2">📝 리포트</span>
+                                )}
+                              </div>
+
+                              {/* 실거래가 요약 */}
+                              {txLoading ? (
+                                <div className="h-8 bg-[#f2f4f6] rounded animate-pulse mt-2" />
+                              ) : latestTx ? (
+                                <div className="bg-[#f9fafb] rounded-xl px-3 py-2 mt-2">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[11px] text-[#8b95a1]">최근</span>
+                                      <span className="text-[14px] font-extrabold text-[#191f28]">{latestTx.priceEok}</span>
+                                      {(() => {
+                                        const norm = normalizeAptName(latestTx.aptName);
+                                        const t = typeMap[norm]?.[String(latestTx.area)];
+                                        return <span className="text-[11px] font-bold text-[#3182f6]">{t || `${latestTx.areaPyeong}평`}</span>;
+                                      })()}
+                                    </div>
+                                    <span className="text-[10px] text-[#8b95a1]">{txs.length}건</span>
+                                  </div>
+                                  {txs.length >= 2 && (() => {
+                                    const prices = txs.map(t => t.price);
+                                    const maxP = Math.max(...prices);
+                                    const minP = Math.min(...prices);
+                                    const formatE = (p: number) => {
+                                      const e = Math.floor(p / 10000);
+                                      const r = Math.round((p % 10000) / 1000) * 1000;
+                                      return e > 0 ? (r > 0 ? `${e}.${Math.round(r/1000)}억` : `${e}억`) : `${p.toLocaleString()}만`;
+                                    };
+                                    return (
+                                      <div className="flex items-center gap-3 mt-1.5 text-[10px]">
+                                        <span className="text-[#f04452] font-bold">▲ {formatE(maxP)}</span>
+                                        <span className="text-[#3182f6] font-bold">▼ {formatE(minP)}</span>
+                                      </div>
+                                    );
+                                  })()}
+                                </div>
+                              ) : (
+                                <div className="text-[11px] text-[#d1d6db] mt-2">거래 내역 없음</div>
                               )}
                             </div>
                           );
-                        })()}
+                        })}
                       </div>
                     </div>
-                  </div>
                   );
                 })}
               </div>
-            </div>
-          ) : selectedDong && (
-            <div className="bg-white rounded-2xl border border-[#e5e8eb] p-12 text-center">
-              <MapPin size={40} className="mx-auto mb-4 text-[#d1d6db]" />
-              <p className="text-[15px] font-bold text-[#4e5968]">해당 동에 임장 리포트가 없습니다</p>
-              <p className="text-[13px] text-[#8b95a1] mt-1">첫 번째 리포트를 작성해보세요!</p>
-            </div>
-          )}
-
-          {/* 권역별 탐색 */}
-          <div className="mt-10">
-            <h3 className="text-[18px] font-extrabold text-[#191f28] mb-4 flex items-center gap-2">
-              <MapPin size={18} className="text-[#3182f6]" />
-              권역별 탐색
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
-              {ZONES.map(zone => {
-                const count = zoneReportCounts[zone.id] || 0;
-                return (
-                  <div
-                    key={zone.id}
-                    onClick={() => router.push(`/zone/${zone.id}`)}
-                    className="bg-white rounded-2xl border border-[#e5e8eb] p-3 cursor-pointer hover:shadow-lg hover:border-transparent hover:-translate-y-0.5 transition-all duration-200 group"
-                  >
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: zone.color }} />
-                      <h4 className="text-[12px] font-extrabold text-[#191f28] truncate">{zone.name}</h4>
-                    </div>
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded inline-block mb-1.5" style={{ backgroundColor: zone.color + '18', color: zone.color }}>{zone.dongLabel}</span>
-                    <p className="text-[10px] text-[#8b95a1] leading-relaxed line-clamp-2 mb-2">{zone.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-[#4e5968]">{count}개 단지</span>
-                      <span className="text-[10px] font-bold transition-opacity" style={{ color: zone.color }}>보기 →</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+            );
+          })()}
 
           {/* ── 동네 리뷰 ── */}
           <div className="mt-12">
