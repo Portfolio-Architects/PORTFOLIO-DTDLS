@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "sync-apartments": "node scripts/sync-apartments.js"
+    "sync-apartments": "node scripts/sync-apartments.js",
+    "sync-transactions": "node scripts/sync-transactions.js",
+    "sync-all": "node scripts/sync-apartments.js && node scripts/sync-transactions.js"
   },
   "dependencies": {
     "@vis.gl/react-google-maps": "^1.7.1",

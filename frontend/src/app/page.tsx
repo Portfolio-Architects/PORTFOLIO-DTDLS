@@ -22,6 +22,8 @@ import WriteReviewModal from '@/components/WriteReviewModal';
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
 import { APARTMENTS_BY_DONG, TOTAL_APARTMENTS } from '@/lib/apartment-data';
 import type { StaticApartment } from '@/lib/apartment-data';
+import { TX_SUMMARY } from '@/lib/transaction-summary';
+import type { AptTxSummary } from '@/lib/transaction-summary';
 import { isSameApartment, normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -1067,9 +1069,7 @@ export default function Dashboard() {
   // Apartment data — static import, no API call needed
   const sheetApartments = APARTMENTS_BY_DONG;
 
-  // Transaction data
-  const [allTransactions, setAllTransactions] = useState<TransactionRecord[]>([]);
-  const [txLoading, setTxLoading] = useState(true);
+  // Transaction data — static import, no API call needed
   const [typeMap, setTypeMap] = useState<Record<string, Record<string, string>>>({});
 
   // Auth & Profile State
@@ -1095,13 +1095,9 @@ export default function Dashboard() {
     return () => unsubscribe();
   }, []);
 
-  // Fetch transaction + type map data in parallel
+  // Fetch type map data only (lightweight)
   useEffect(() => {
-    Promise.all([
-      fetch('/api/transactions').then(r => r.json()),
-      fetch('/api/type-map').then(r => r.json()),
-    ]).then(([txData, tmData]) => {
-      if (txData.records) setAllTransactions(txData.records);
+    fetch('/api/type-map').then(r => r.json()).then(tmData => {
       if (tmData.entries) {
         const map: Record<string, Record<string, string>> = {};
         for (const e of tmData.entries) {
@@ -1111,7 +1107,7 @@ export default function Dashboard() {
         }
         setTypeMap(map);
       }
-    }).catch(err => console.warn('데이터 로딩 실패:', err)).finally(() => setTxLoading(false));
+    }).catch(err => console.warn('타입맵 로딩 실패:', err));
   }, []);
 
   const handleLogin = async () => {
@@ -1361,9 +1357,8 @@ export default function Dashboard() {
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {(selectedDong ? apts : apts.slice(0, 6)).map(apt => {
                           const normName = normalizeAptName(apt.name);
-                          const txs = transactionsByApt[normName] || [];
+                          const txSummary = TX_SUMMARY[normName];
                           const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name));
-                          const latestTx = txs[0];
 
                           return (
                             <div
@@ -1388,39 +1383,23 @@ export default function Dashboard() {
                                 )}
                               </div>
 
-                              {/* 실거래가 요약 */}
-                              {txLoading ? (
-                                <div className="h-8 bg-[#f2f4f6] rounded animate-pulse mt-2" />
-                              ) : latestTx ? (
+                              {/* 실거래가 요약 (정적 데이터) */}
+                              {txSummary ? (
                                 <div className="bg-[#f9fafb] rounded-xl px-3 py-2 mt-2">
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                       <span className="text-[11px] text-[#8b95a1]">최근</span>
-                                      <span className="text-[14px] font-extrabold text-[#191f28]">{latestTx.priceEok}</span>
-                                      {(() => {
-                                        const norm = normalizeAptName(latestTx.aptName);
-                                        const t = typeMap[norm]?.[String(latestTx.area)];
-                                        return <span className="text-[11px] font-bold text-[#3182f6]">{t || `${latestTx.areaPyeong}평`}</span>;
-                                      })()}
+                                      <span className="text-[14px] font-extrabold text-[#191f28]">{txSummary.latestPriceEok}</span>
+                                      <span className="text-[11px] font-bold text-[#3182f6]">{txSummary.latestArea}평</span>
                                     </div>
-                                    <span className="text-[10px] text-[#8b95a1]">{txs.length}건</span>
+                                    <span className="text-[10px] text-[#8b95a1]">{txSummary.txCount}건</span>
                                   </div>
-                                  {txs.length >= 2 && (() => {
-                                    const prices = txs.map(t => t.price);
-                                    const maxP = Math.max(...prices);
-                                    const minP = Math.min(...prices);
-                                    const formatE = (p: number) => {
-                                      const e = Math.floor(p / 10000);
-                                      const r = Math.round((p % 10000) / 1000) * 1000;
-                                      return e > 0 ? (r > 0 ? `${e}.${Math.round(r/1000)}억` : `${e}억`) : `${p.toLocaleString()}만`;
-                                    };
-                                    return (
-                                      <div className="flex items-center gap-3 mt-1.5 text-[10px]">
-                                        <span className="text-[#f04452] font-bold">▲ {formatE(maxP)}</span>
-                                        <span className="text-[#3182f6] font-bold">▼ {formatE(minP)}</span>
-                                      </div>
-                                    );
-                                  })()}
+                                  {txSummary.txCount >= 2 && (
+                                    <div className="flex items-center gap-3 mt-1.5 text-[10px]">
+                                      <span className="text-[#f04452] font-bold">▲ {txSummary.maxPriceEok}</span>
+                                      <span className="text-[#3182f6] font-bold">▼ {txSummary.minPriceEok}</span>
+                                    </div>
+                                  )}
                                 </div>
                               ) : (
                                 <div className="text-[11px] text-[#d1d6db] mt-2">거래 내역 없음</div>
