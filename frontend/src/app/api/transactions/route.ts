@@ -8,7 +8,9 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebaseConfig';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 
-export const dynamic = 'force-dynamic';
+// ISR: Vercel edge serves cached JSON, revalidates every 5 minutes in background.
+// Previously `force-dynamic` caused every request to hit a cold serverless function.
+export const revalidate = 300;
 
 export interface TransactionRecord {
   no: number;
@@ -100,9 +102,10 @@ async function getAllRecords(): Promise<TransactionRecord[]> {
   return fetchFromFirestore();
 }
 
-// Lazy warmup — data loaded on first GET request instead of module load
-// (reduces cold-start CPU + avoids unnecessary Firestore connections)
-
+// Eager warmup: populates in-memory cache on first module load.
+// With ISR, most requests are served from edge cache, so this only
+// runs once when the serverless function cold-starts for revalidation.
+fetchFromFirestore().catch(() => {});
 
 export async function GET(request: Request) {
   try {
