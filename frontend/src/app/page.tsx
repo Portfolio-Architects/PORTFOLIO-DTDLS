@@ -1122,18 +1122,28 @@ export default function Dashboard() {
     }).catch(err => console.warn('타입맵 로딩 실패:', err));
   }, []);
 
-  // Lazy-fetch transactions when modal opens
+  // Lazy-load transactions from static data (no API call, instant)
   const [modalTransactions, setModalTransactions] = useState<TransactionRecord[]>([]);
   const [isTxLoading, setIsTxLoading] = useState(false);
   useEffect(() => {
     if (!selectedReport) { setModalTransactions([]); return; }
     setIsTxLoading(true);
-    const aptParam = encodeURIComponent(normalizeAptName(selectedReport.apartmentName));
-    fetch(`/api/transactions?apt=${aptParam}`).then(r => r.json()).then(data => {
-      if (data.records) {
-        const filtered = data.records.filter((tx: TransactionRecord) => isSameApartment(selectedReport.apartmentName, tx.aptName));
-        setModalTransactions(filtered);
-      }
+    const key = normalizeAptName(selectedReport.apartmentName);
+    import('@/lib/transaction-records').then(({ TX_RECORDS }) => {
+      const records = TX_RECORDS[key] || [];
+      // Map TxRecord to TransactionRecord shape
+      const mapped: TransactionRecord[] = records.map((r, i) => ({
+        no: i + 1,
+        sigungu: '', dong: '', aptName: r.aptName,
+        area: r.area, areaPyeong: r.areaPyeong,
+        contractYm: r.contractYm, contractDay: r.contractDay,
+        price: r.price, priceEok: r.priceEok,
+        floor: r.floor, buyer: '', seller: '',
+        buildYear: 0, roadName: '', cancelDate: '-',
+        dealType: r.dealType, agentLocation: '',
+        registrationDate: '-', housingType: '',
+      }));
+      setModalTransactions(mapped);
     }).catch(err => console.warn('거래내역 로딩 실패:', err))
     .finally(() => setIsTxLoading(false));
   }, [selectedReport]);
