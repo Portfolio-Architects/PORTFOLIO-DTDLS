@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Scatter, Bar, ReferenceDot } from 'recharts';
+import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Scatter, Bar, ReferenceDot, Legend } from 'recharts';
 
 // Lazy-loaded heavy chart components (reduces initial bundle ~40KB)
 const MainChart = dynamic(() => import('@/components/MainChart'), { ssr: false });
@@ -311,6 +311,11 @@ export function FieldReportModal({
                  // 최고/최저 마커 겹침 방지: 가격 차이가 작으면 최저 마커를 아래로 더 밀기
                  const markersTooClose = maxPoint && minPoint && Math.abs(maxPoint.price - minPoint.price) < priceDiff * 0.15;
 
+                 // Snap scatter timestamps to nearest monthlyData timestamp for ReferenceDot
+                 const snapToMonthly = (ts: number) => monthlyData.reduce((prev, curr) => Math.abs(curr.ts - ts) < Math.abs(prev.ts - ts) ? curr : prev).ts;
+                 const maxPointMonthTs = maxPoint ? snapToMonthly(maxPoint.ts) : 0;
+                 const minPointMonthTs = minPoint ? snapToMonthly(minPoint.ts) : 0;
+
                  return (
                    <div className="mt-4 bg-white rounded-2xl p-5 ring-1 ring-black/5 flex-1">
                      {/* Header + Timeframe — 버튼 크기 확대 */}
@@ -372,7 +377,8 @@ export function FieldReportModal({
                                <stop offset="95%" stopColor="#4A6CF7" stopOpacity={0.02}/>
                              </linearGradient>
                            </defs>
-                           <CartesianGrid strokeDasharray="3 3" stroke="#e5e8eb" vertical={false} />
+                           <Legend wrapperStyle={{ display: "none" }} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e8eb" vertical={false} />
                            <XAxis
                              dataKey="ts"
                              type="number"
@@ -465,7 +471,7 @@ export function FieldReportModal({
                            {/* 최고가 핀 마커 */}
                            {maxPoint && (
                              <ReferenceDot
-                               x={maxPoint.ts}
+                               x={maxPointMonthTs}
                                y={maxPoint.price}
                                yAxisId="price"
                                r={5}
@@ -473,8 +479,11 @@ export function FieldReportModal({
                                stroke="#fff"
                                strokeWidth={2}
                                label={({ viewBox }: any) => {
-                                 const { cx, cy } = viewBox;
+                                 const cx = viewBox?.cx ?? viewBox?.x;
+                                 const cy = viewBox?.cy ?? viewBox?.y;
+                                 if (cx == null || cy == null || !Number.isFinite(cx) || !Number.isFinite(cy)) return <g/>;
                                  const labelW = 66;
+                                 if (!Number.isFinite(cx) || !Number.isFinite(cy)) return <g/>;
                                  return (
                                    <g>
                                      <rect x={cx - labelW/2} y={cy - 30} width={labelW} height={20} fill="#EF4444" rx={6} />
@@ -488,7 +497,7 @@ export function FieldReportModal({
                            {/* 최저가 핀 마커 — 겹침 방지 */}
                            {minPoint && minPoint !== maxPoint && (
                              <ReferenceDot
-                               x={minPoint.ts}
+                               x={minPointMonthTs}
                                y={minPoint.price}
                                yAxisId="price"
                                r={5}
@@ -496,7 +505,9 @@ export function FieldReportModal({
                                stroke="#fff"
                                strokeWidth={2}
                                label={({ viewBox }: any) => {
-                                 const { cx, cy } = viewBox;
+                                 const cx = viewBox?.cx ?? viewBox?.x;
+                                 const cy = viewBox?.cy ?? viewBox?.y;
+                                 if (cx == null || cy == null || !Number.isFinite(cx) || !Number.isFinite(cy)) return <g/>;
                                  const labelW = 66;
                                  const yOff = markersTooClose ? 20 : 12;
                                  return (
