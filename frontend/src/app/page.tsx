@@ -1345,7 +1345,13 @@ export default function Dashboard() {
 
                       {/* 아파트 카드 그리드 */}
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {(selectedDong ? apts : apts.slice(0, 6)).map(apt => {
+                        {(() => {
+                          const sorted = [...apts].sort((a, b) => {
+                            const aHas = fieldReports.some(r => isSameApartment(r.apartmentName, a.name)) ? 0 : 1;
+                            const bHas = fieldReports.some(r => isSameApartment(r.apartmentName, b.name)) ? 0 : 1;
+                            return aHas - bHas;
+                          });
+                          return (selectedDong ? sorted : sorted.slice(0, 6)).map(apt => {
                           const normName = normalizeAptName(apt.name);
                           const txSummary = TX_SUMMARY[normName];
                           const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name));
@@ -1396,7 +1402,8 @@ export default function Dashboard() {
                               )}
                             </div>
                           );
-                        })}
+                        });
+                        })()}
                       </div>
                     </div>
                   );
