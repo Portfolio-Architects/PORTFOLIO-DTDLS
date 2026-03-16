@@ -36,6 +36,15 @@ function formatPriceEok(priceMan) {
   return `${eok}억${remainder.toLocaleString()}`;
 }
 
+/** page.tsx와 동일한 정규화 — 공백·괄호·[동이름] 제거 */
+function normalizeAptName(name) {
+  return name
+    .replace(/\[.*?\]\s*/g, '')
+    .replace(/\s+/g, '')
+    .replace(/[()（）]/g, '')
+    .trim();
+}
+
 async function main() {
   console.log('📡 Firestore에서 실거래가 데이터 읽는 중...');
   
@@ -48,7 +57,7 @@ async function main() {
 
   console.log(`📋 총 ${snapshot.size}건 로드 완료`);
 
-  // 아파트별 그룹핑
+  // 아파트별 그룹핑 (정규화된 키 사용)
   const byApt = {};
 
   snapshot.forEach((docSnap) => {
@@ -56,8 +65,9 @@ async function main() {
     const aptName = d.aptName || '';
     if (!aptName) return;
 
-    if (!byApt[aptName]) byApt[aptName] = [];
-    byApt[aptName].push({
+    const key = normalizeAptName(aptName);
+    if (!byApt[key]) byApt[key] = [];    
+    byApt[key].push({
       contractYm: d.contractYm || '',
       contractDay: d.contractDay || '',
       price: d.price || 0,

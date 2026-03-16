@@ -240,7 +240,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "레이크힐 반도유보라 아이비파크 10.2": {
+  "레이크힐반도유보라아이비파크10.2": {
     "latestPrice": 50000,
     "latestPriceEok": "5억",
     "latestArea": 29.3,
@@ -324,7 +324,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄역 신미주": {
+  "동탄역신미주": {
     "latestPrice": 56000,
     "latestPriceEok": "5억6,000",
     "latestArea": 25.7,
@@ -366,7 +366,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄숲속마을자연앤경남아너스빌(1124-0)": {
+  "동탄숲속마을자연앤경남아너스빌1124-0": {
     "latestPrice": 54400,
     "latestPriceEok": "5억4,400",
     "latestArea": 23.1,
@@ -975,7 +975,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "그린힐 반도유보라 아이비파크 10(1단지)": {
+  "그린힐반도유보라아이비파크101단지": {
     "latestPrice": 41600,
     "latestPriceEok": "4억1,600",
     "latestArea": 18.1,
@@ -1143,7 +1143,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "롯데캐슬 알바트로스": {
+  "롯데캐슬알바트로스": {
     "latestPrice": 95500,
     "latestPriceEok": "9억5,500",
     "latestArea": 30.9,
@@ -1353,7 +1353,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄역 시범한화 꿈에그린 프레스티지": {
+  "동탄역시범한화꿈에그린프레스티지": {
     "latestPrice": 158500,
     "latestPriceEok": "15억8,500",
     "latestArea": 30.7,
@@ -1857,7 +1857,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄역 시범우남퍼스트빌아파트": {
+  "동탄역시범우남퍼스트빌아파트": {
     "latestPrice": 123000,
     "latestPriceEok": "12억3,000",
     "latestArea": 18.1,
@@ -1941,7 +1941,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "호수공원역 센트럴시티": {
+  "호수공원역센트럴시티": {
     "latestPrice": 88000,
     "latestPriceEok": "8억8,000",
     "latestArea": 25.6,
@@ -2445,7 +2445,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄역 반도유보라 아이비파크5.0": {
+  "동탄역반도유보라아이비파크5.0": {
     "latestPrice": 96700,
     "latestPriceEok": "9억6,700",
     "latestArea": 18.1,
@@ -2487,7 +2487,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄역 더 힐": {
+  "동탄역더힐": {
     "latestPrice": 62000,
     "latestPriceEok": "6억2,000",
     "latestArea": 25.6,
@@ -2529,7 +2529,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄숲속마을 모아미래도1단지": {
+  "동탄숲속마을모아미래도1단지": {
     "latestPrice": 65000,
     "latestPriceEok": "6억5,000",
     "latestArea": 25.7,
@@ -2655,7 +2655,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄2신도시 베라체": {
+  "동탄2신도시베라체": {
     "latestPrice": 51000,
     "latestPriceEok": "5억1,000",
     "latestArea": 18.1,
@@ -2697,7 +2697,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄 더샵 레이크에듀타운": {
+  "동탄더샵레이크에듀타운": {
     "latestPrice": 97000,
     "latestPriceEok": "9억7,000",
     "latestArea": 25.7,
@@ -2739,7 +2739,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄 더 레이크 팰리스": {
+  "동탄더레이크팰리스": {
     "latestPrice": 103800,
     "latestPriceEok": "10억3,800",
     "latestArea": 25.6,
@@ -2949,7 +2949,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄역 반도유보라 아이비파크6.0": {
+  "동탄역반도유보라아이비파크6.0": {
     "latestPrice": 114000,
     "latestPriceEok": "11억4,000",
     "latestArea": 25.7,
@@ -3075,7 +3075,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "서해더블루(90-2)": {
+  "서해더블루90-2": {
     "latestPrice": 57500,
     "latestPriceEok": "5억7,500",
     "latestArea": 32.7,
@@ -3495,7 +3495,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄숲속마을자연앤경남아너스빌(1115-0)": {
+  "동탄숲속마을자연앤경남아너스빌1115-0": {
     "latestPrice": 62000,
     "latestPriceEok": "6억2,000",
     "latestArea": 25.6,
@@ -3789,7 +3789,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "한화 포레나 동탄호수": {
+  "한화포레나동탄호수": {
     "latestPrice": 80000,
     "latestPriceEok": "8억",
     "latestArea": 25.4,
@@ -4041,7 +4041,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄역 반도유보라 아이비파크 8.0": {
+  "동탄역반도유보라아이비파크8.0": {
     "latestPrice": 127500,
     "latestPriceEok": "12억7,500",
     "latestArea": 26.1,
@@ -4083,7 +4083,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄시범다은마을 메타역 롯데캐슬": {
+  "동탄시범다은마을메타역롯데캐슬": {
     "latestPrice": 73000,
     "latestPriceEok": "7억3,000",
     "latestArea": 25.5,
@@ -4125,7 +4125,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄숲속마을 광명메이루즈": {
+  "동탄숲속마을광명메이루즈": {
     "latestPrice": 61000,
     "latestPriceEok": "6억1,000",
     "latestArea": 25.5,
@@ -4167,7 +4167,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄2엘에이치26단지아파트(에이65블록)": {
+  "동탄2엘에이치26단지아파트에이65블록": {
     "latestPrice": 65300,
     "latestPriceEok": "6억5,300",
     "latestArea": 22.6,
@@ -4461,7 +4461,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄역센트럴자이(A-10)": {
+  "동탄역센트럴자이A-10": {
     "latestPrice": 105000,
     "latestPriceEok": "10억5,000",
     "latestArea": 25.7,
@@ -4545,7 +4545,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄숲속마을 능동역 리체 더 포레스트": {
+  "동탄숲속마을능동역리체더포레스트": {
     "latestPrice": 53500,
     "latestPriceEok": "5억3,500",
     "latestArea": 27.2,
@@ -4755,7 +4755,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄역 호반 써밋": {
+  "동탄역호반써밋": {
     "latestPrice": 76300,
     "latestPriceEok": "7억6,300",
     "latestArea": 18.1,
@@ -4881,7 +4881,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "동탄시범다은마을 월드메르디앙 반도유보라": {
+  "동탄시범다은마을월드메르디앙반도유보라": {
     "latestPrice": 93000,
     "latestPriceEok": "9억3,000",
     "latestArea": 25.6,
@@ -5742,7 +5742,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "서해더블루(93-8)": {
+  "서해더블루93-8": {
     "latestPrice": 59000,
     "latestPriceEok": "5억9,000",
     "latestArea": 40.6,
@@ -5868,7 +5868,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
       }
     ]
   },
-  "서해더블루(106-7)": {
+  "서해더블루106-7": {
     "latestPrice": 63000,
     "latestPriceEok": "6억3,000",
     "latestArea": 32.7,
