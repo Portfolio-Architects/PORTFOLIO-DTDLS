@@ -232,7 +232,7 @@ export function FieldReportModal({
                {/* 매매가 추이 차트 (시계열 선택 + 스캐터) */}
                {transactions.length > 0 && (() => {
                  // 만원 → 억 변환
-                 const rawData = [...transactions].reverse().map((tx, idx) => {
+                 const rawData = transactions.map((tx, idx) => {
                    let priceEokNum = tx.price / 10000;
                    if (priceEokNum > 100) priceEokNum = tx.price / 100000000;
                    const ym = tx.contractYm; // e.g. '202511'
@@ -294,9 +294,9 @@ export function FieldReportModal({
                    .sort((a, b) => a.ts - b.ts);
 
                  const prices = scatterData.map(d => d.price);
-                 const minP = Math.min(...prices);
-                 const maxP = Math.max(...prices);
-                 const avgP = prices.reduce((a, b) => a + b, 0) / prices.length;
+                 let minP = Infinity, maxP = -Infinity, sumP = 0;
+                 for (const p of prices) { if (p < minP) minP = p; if (p > maxP) maxP = p; sumP += p; }
+                 const avgP = prices.length > 0 ? sumP / prices.length : 0;
                  const domainMin = Math.floor(minP * 10) / 10 - 0.3;
                  const domainMax = Math.ceil(maxP * 10) / 10 + 0.5;
                  const priceDiff = maxP - minP;
@@ -305,8 +305,8 @@ export function FieldReportModal({
                  const changePercent = firstPrice > 0 ? ((latestPrice - firstPrice) / firstPrice * 100) : 0;
 
                  // 최고/최저가 식별
-                 const maxPoint = [...scatterData].sort((a,b) => b.price === a.price ? b.ts - a.ts : b.price - a.price)[0];
-                 const minPoint = [...scatterData].sort((a,b) => a.price === b.price ? b.ts - a.ts : a.price - b.price)[0];
+                 const maxPoint = scatterData.reduce((best, d) => !best || d.price > best.price || (d.price === best.price && d.ts > best.ts) ? d : best, null as typeof scatterData[0] | null);
+                 const minPoint = scatterData.reduce((best, d) => !best || d.price < best.price || (d.price === best.price && d.ts > best.ts) ? d : best, null as typeof scatterData[0] | null);
 
                  // 최고/최저 마커 겹침 방지: 가격 차이가 작으면 최저 마커를 아래로 더 밀기
                  const markersTooClose = maxPoint && minPoint && Math.abs(maxPoint.price - minPoint.price) < priceDiff * 0.15;
