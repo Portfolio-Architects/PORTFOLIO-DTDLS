@@ -1695,8 +1695,6 @@ export default function Dashboard() {
             <p className="text-[15px] text-[#8b95a1] font-medium">동탄 맞춤 아파트 추천 & 분석</p>
           </div>
           <div className="flex flex-col gap-6">
-            {/* 3D Architecture Mindmap */}
-            <ArchitectureMindmap />
             <div className="w-full h-[200px] bg-gradient-to-br from-[#3182f6] to-[#2b72d6] rounded-3xl p-8 flex flex-col justify-end text-white relative overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 group-hover:bg-white/20 transition-colors"></div>
               <h3 className="text-[24px] font-extrabold mb-1 relative z-10">우리 아파트 탈탈 털어드림!</h3>
@@ -1712,6 +1710,9 @@ export default function Dashboard() {
                 {kpi.subValue && <p className="text-[12px] text-[#8b95a1] font-medium mt-1">{kpi.subValue}</p>}
               </div>
             ))}
+
+            {/* 동탄 부동산 마인드맵 — 맨 아래 배치 */}
+            <ArchitectureMindmap />
 
             {/* Ad Banner */}
             <div className="w-full bg-[#f2f4f6] border border-[#e5e8eb] rounded-3xl p-8 flex flex-col items-center justify-center text-center">
