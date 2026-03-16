@@ -1,0 +1,160 @@
+#!/usr/bin/env node
+/**
+ * 🔄 Google Sheet → apartment-data.ts 동기화 스크립트
+ * 
+ * 사용법: npm run sync-apartments
+ * 
+ * Google Sheet의 'apartments' 탭에서 데이터를 읽어
+ * frontend/src/lib/apartment-data.ts 파일을 자동 생성합니다.
+ * 
+ * Sheet 컬럼: 아파트명 | 좌표 | 세대수 | 사용승인 | 용적률 | 건폐율 | 주차대수 | 시공사 | Dong
+ */
+
+const fs = require('fs');
+const path = require('path');
+const https = require('https');
+
+const SHEET_ID = '1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1AGnY7XXE7pCEE';
+const SHEET_TAB = 'apartments';
+const OUTPUT_PATH = path.resolve(__dirname, '../src/lib/apartment-data.ts');
+
+function fetchCSV(sheetId, tab) {
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`;
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        // Follow redirect
+        https.get(res.headers.location, (res2) => {
+          let data = '';
+          res2.on('data', chunk => data += chunk);
+          res2.on('end', () => resolve(data));
+        }).on('error', reject);
+        return;
+      }
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve(data));
+    }).on('error', reject);
+  });
+}
+
+function parseCsvLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') {
+      inQuotes = !inQuotes;
+    } else if (c === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += c;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
+async function main() {
+  console.log('📡 Google Sheet에서 데이터 읽는 중...');
+  
+  const csvText = await fetchCSV(SHEET_ID, SHEET_TAB);
+  const lines = csvText.split('\n').filter(l => l.trim());
+  const rows = lines.map(l => parseCsvLine(l));
+
+  // 헤더에서 dong 컬럼 찾기
+  const header = rows[0].map(h => h.toLowerCase().trim());
+  let dongIdx = header.findIndex(h => h === 'dong' || h === '동');
+  if (dongIdx === -1) dongIdx = 8;
+
+  console.log(`📋 헤더: ${rows[0].join(' | ')}`);
+  console.log(`📍 Dong 컬럼 인덱스: ${dongIdx}`);
+
+  // 파싱
+  const byDong = {};
+  let total = 0;
+
+  for (let i = 1; i < rows.length; i++) {
+    const cols = rows[i];
+    const name = cols[0]?.trim();
+    const dong = cols[dongIdx]?.trim();
+    if (!name || !dong) continue;
+
+    if (!byDong[dong]) byDong[dong] = [];
+
+    const apt = { name, dong };
+    
+    // 선택적 필드 (있으면 추가)
+    const households = cols[2] ? parseInt(cols[2]) : NaN;
+    if (!isNaN(households) && households > 0) apt.householdCount = households;
+    
+    const yearRaw = cols[3]?.trim();
+    if (yearRaw) {
+      // "200810" → "2008" 또는 "2020" → "2020"
+      const year = yearRaw.length >= 4 ? yearRaw.slice(0, 4) : yearRaw;
+      apt.yearBuilt = year;
+    }
+    
+    const brand = cols[7]?.trim();
+    if (brand) {
+      // 시공사 이름 간소화: "(주)" 등 제거
+      apt.brand = brand.replace(/\(주\)/g, '').replace(/주식회사/g, '').trim();
+    }
+
+    byDong[dong].push(apt);
+    total++;
+  }
+
+  // 동 내 이름순 정렬
+  Object.values(byDong).forEach(list => list.sort((a, b) => a.name.localeCompare(b.name, 'ko')));
+
+  const dongNames = Object.keys(byDong).sort((a, b) => a.localeCompare(b, 'ko'));
+  
+  console.log(`\n✅ 파싱 완료: ${dongNames.length}개 동, ${total}개 아파트`);
+  dongNames.forEach(d => console.log(`   ${d}: ${byDong[d].length}개`));
+
+  // TypeScript 파일 생성
+  let ts = `/**
+ * 정적 아파트 데이터 — 빌드 타임에 포함되어 API 호출 없이 즉시 사용 가능
+ * 
+ * ⚠️ 이 파일은 자동 생성됩니다. 직접 수정하지 마세요!
+ * 동기화: npm run sync-apartments
+ * 마지막 동기화: ${new Date().toISOString().slice(0, 10)}
+ */
+
+export interface StaticApartment {
+  name: string;
+  dong: string;
+  householdCount?: number;
+  yearBuilt?: string;
+  brand?: string;
+}
+
+/** 동별 아파트 데이터 (정렬됨) */
+export const APARTMENTS_BY_DONG: Record<string, StaticApartment[]> = {\n`;
+
+  for (const dong of dongNames) {
+    ts += `  '${dong}': [\n`;
+    for (const apt of byDong[dong]) {
+      const fields = [`name: '${apt.name.replace(/'/g, "\\'")}', dong: '${dong}'`];
+      if (apt.householdCount) fields.push(`householdCount: ${apt.householdCount}`);
+      if (apt.yearBuilt) fields.push(`yearBuilt: '${apt.yearBuilt}'`);
+      if (apt.brand) fields.push(`brand: '${apt.brand.replace(/'/g, "\\'")}'`);
+      ts += `    { ${fields.join(', ')} },\n`;
+    }
+    ts += `  ],\n`;
+  }
+
+  ts += `};\n\n/** 전체 아파트 수 */\nexport const TOTAL_APARTMENTS = Object.values(APARTMENTS_BY_DONG).flat().length;\n`;
+
+  fs.writeFileSync(OUTPUT_PATH, ts, 'utf-8');
+  console.log(`\n📁 파일 생성: ${OUTPUT_PATH}`);
+  console.log(`🎉 동기화 완료! git add + commit + push 하세요.`);
+}
+
+main().catch(err => {
+  console.error('❌ 동기화 실패:', err.message);
+  process.exit(1);
+});
