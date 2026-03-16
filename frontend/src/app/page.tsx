@@ -447,16 +447,17 @@ export function FieldReportModal({
                              dataKey="price"
                              yAxisId="price"
                              fill="#4A6CF7"
+                             legendType="none"
                              shape={(props: any) => {
                                const { cx, cy } = props;
                                if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
                                return (
                                  <circle 
-                                   cx={cx} cy={cy} r={4.5} 
+                                   cx={cx} cy={cy} r={3} 
                                    fill="#4A6CF7" 
                                    stroke="#fff" 
-                                   strokeWidth={2} 
-                                   style={{ filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.1))' }}
+                                   strokeWidth={1.5} 
+                                   style={{ filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.08))' }}
                                  />
                                );
                              }}
@@ -1112,14 +1113,18 @@ export default function Dashboard() {
 
   // Lazy-fetch transactions when modal opens
   const [modalTransactions, setModalTransactions] = useState<TransactionRecord[]>([]);
+  const [isTxLoading, setIsTxLoading] = useState(false);
   useEffect(() => {
     if (!selectedReport) { setModalTransactions([]); return; }
-    fetch('/api/transactions').then(r => r.json()).then(data => {
+    setIsTxLoading(true);
+    const aptParam = encodeURIComponent(normalizeAptName(selectedReport.apartmentName));
+    fetch(`/api/transactions?apt=${aptParam}`).then(r => r.json()).then(data => {
       if (data.records) {
         const filtered = data.records.filter((tx: TransactionRecord) => isSameApartment(selectedReport.apartmentName, tx.aptName));
         setModalTransactions(filtered);
       }
-    }).catch(err => console.warn('거래내역 로딩 실패:', err));
+    }).catch(err => console.warn('거래내역 로딩 실패:', err))
+    .finally(() => setIsTxLoading(false));
   }, [selectedReport]);
 
   const handleLogin = async () => {
