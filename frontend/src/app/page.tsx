@@ -166,18 +166,18 @@ export function FieldReportModal({
             <X size={20} />
           </button>
 
-          {/* Hero Section */}
+          {/* Hero Section — Layout: 40% table / 60% chart */}
           <div className="bg-white w-full flex flex-col md:flex-row p-6 md:p-10 gap-6 md:gap-8 rounded-t-3xl shrink-0 pt-4 md:pt-8 border-b border-[#e5e8eb]">
             
-            {/* Left: 실거래가 전체 리스트 — mobile: 2번째, desktop: 1번째 */}
-            <div className="w-full md:w-[50%] shrink-0 order-2 md:order-1">
+            {/* Left: 실거래가 전체 리스트 — mobile: 2번째, desktop: 1번째 (40%) */}
+            <div className="w-full md:w-[40%] shrink-0 order-2 md:order-1">
               {transactions.length > 0 ? (
                 <div className="bg-[#f9fafb] rounded-2xl p-4 ring-1 ring-black/5">
                   <h4 className="text-[13px] font-bold text-[#8b95a1] mb-3 flex items-center gap-1.5">
                     <TrendingUp size={13} className="text-[#03c75a]" />
                     실거래가 내역 <span className="text-[11px] ml-1">{transactions.length}건</span>
                   </h4>
-                  <div className="overflow-y-auto max-h-[360px] custom-scrollbar">
+                  <div className="overflow-y-auto max-h-[420px] custom-scrollbar">
                     <table className="w-full text-[12px]">
                       <thead className="sticky top-0 bg-[#f9fafb]">
                         <tr className="border-b border-[#e5e8eb] text-[#8b95a1]">
@@ -190,10 +190,13 @@ export function FieldReportModal({
                       </thead>
                       <tbody>
                         {transactions.map((tx, idx) => (
-                          <tr key={idx} className="border-b border-[#f2f4f6] hover:bg-white/60 transition-colors">
-                            <td className="py-2 text-[#4e5968]">{tx.contractYm.slice(0,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}</td>
-                            <td className="py-2 text-right font-extrabold text-[#191f28]">{tx.priceEok}</td>
-                            <td className="py-2 text-right text-[#4e5968]">{(() => { const norm = normalizeAptName(tx.aptName); const t = typeMap[norm]?.[String(tx.area)]; return t ? <span className="font-bold text-[#3182f6]">{t}</span> : `${tx.areaPyeong}평`; })()}</td>
+                          <tr key={idx} className={`border-b border-[#f2f4f6] hover:bg-white/60 transition-colors ${idx < 3 ? 'bg-[#f0f7ff]' : ''}`}>
+                            <td className={`py-2 ${idx < 3 ? 'text-[#191f28] font-bold' : 'text-[#4e5968]'}`}>
+                              {idx < 3 && <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3182f6] mr-1.5 mb-[1px]" />}
+                              {tx.contractYm.slice(0,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}
+                            </td>
+                            <td className={`py-2 text-right font-extrabold ${idx < 3 ? 'text-[#3182f6]' : 'text-[#191f28]'}`}>{tx.priceEok}</td>
+                            <td className="py-2 text-right text-[#4e5968]">{(() => { const norm = normalizeAptName(tx.aptName); const t = typeMap[norm]?.[String(tx.area)]; return t ? <span className="font-bold text-[#3182f6] bg-[#e8f3ff] px-1.5 py-0.5 rounded text-[10px]">{t}</span> : `${tx.areaPyeong}평`; })()}</td>
                             <td className="py-2 text-right text-[#4e5968]">{tx.floor}층</td>
                             <td className="py-2 text-right text-[#8b95a1]">{tx.dealType}</td>
                           </tr>
@@ -209,8 +212,8 @@ export function FieldReportModal({
               )}
             </div>
 
-            {/* Right: Title + Chart — mobile: 1번째, desktop: 2번째 */}
-            <div className="w-full md:w-[50%] flex flex-col order-1 md:order-2">
+            {/* Right: Title + Chart — mobile: 1번째, desktop: 2번째 (60%) */}
+            <div className="w-full md:w-[60%] flex flex-col order-1 md:order-2">
                <div className="flex items-center gap-2 mb-3">
                  <span className="bg-[#3182f6] text-white text-[13px] font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
                </div>
@@ -279,7 +282,7 @@ export function FieldReportModal({
                      const year = Math.floor(ym / 100);
                      const month = ym % 100;
                      return {
-                       ts: new Date(year, month - 1, 15).getTime(), // 매월 15일 중앙값
+                       ts: new Date(year, month - 1, 15).getTime(),
                        monthAvg: Math.round(getAvg(prices) * 1000) / 1000,
                        volume: prices.length,
                      };
@@ -292,27 +295,34 @@ export function FieldReportModal({
                  const avgP = prices.reduce((a, b) => a + b, 0) / prices.length;
                  const domainMin = Math.floor(minP * 10) / 10 - 0.3;
                  const domainMax = Math.ceil(maxP * 10) / 10 + 0.5;
+                 const priceDiff = maxP - minP;
+                 const latestPrice = scatterData[scatterData.length - 1]?.price || avgP;
+                 const firstPrice = scatterData[0]?.price || avgP;
+                 const changePercent = firstPrice > 0 ? ((latestPrice - firstPrice) / firstPrice * 100) : 0;
 
                  // 최고/최저가 식별
                  const maxPoint = [...scatterData].sort((a,b) => b.price === a.price ? b.ts - a.ts : b.price - a.price)[0];
                  const minPoint = [...scatterData].sort((a,b) => a.price === b.price ? b.ts - a.ts : a.price - b.price)[0];
 
+                 // 최고/최저 마커 겹침 방지: 가격 차이가 작으면 최저 마커를 아래로 더 밀기
+                 const markersTooClose = maxPoint && minPoint && Math.abs(maxPoint.price - minPoint.price) < priceDiff * 0.15;
+
                  return (
-                   <div className="mt-4 bg-white rounded-2xl p-4 ring-1 ring-black/5 flex-1">
-                     {/* Header + Timeframe */}
-                     <div className="flex items-center justify-between mb-3">
-                       <h4 className="text-[12px] font-bold text-[#4e5968] flex items-center gap-1.5">
-                         <TrendingUp size={13} className="text-[#3182f6]" />
+                   <div className="mt-4 bg-white rounded-2xl p-5 ring-1 ring-black/5 flex-1">
+                     {/* Header + Timeframe — 버튼 크기 확대 */}
+                     <div className="flex items-center justify-between mb-4">
+                       <h4 className="text-[14px] font-bold text-[#191f28] flex items-center gap-1.5">
+                         <TrendingUp size={15} className="text-[#3182f6]" />
                          매매가 추이
                        </h4>
-                       <div className="flex items-center gap-1">
+                       <div className="flex items-center gap-1.5">
                          {(['6M','1Y','3Y','ALL'] as const).map(tf => (
                            <button
                              key={tf}
                              onClick={() => setChartTimeframe(tf)}
-                             className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${
+                             className={`px-3 py-1 rounded-lg text-[12px] font-bold transition-all ${
                                chartTimeframe === tf
-                                 ? 'bg-[#3182f6] text-white'
+                                 ? 'bg-[#3182f6] text-white shadow-sm'
                                  : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb]'
                              }`}
                            >
@@ -321,21 +331,41 @@ export function FieldReportModal({
                          ))}
                        </div>
                      </div>
-                     {/* Stats */}
-                     <div className="flex items-center gap-3 text-[10px] mb-2">
-                       <span className="text-[#3182f6] font-bold">최고 {maxP.toFixed(1)}억</span>
-                       <span className="text-[#FBBF24] font-bold">평균 {avgP.toFixed(1)}억</span>
-                       <span className="text-[#8b95a1]">최저 {minP.toFixed(1)}억</span>
-                       <span className="ml-auto text-[#8b95a1]">{scatterData.length}건</span>
+
+                     {/* 통계 카드 — 가독성 대폭 개선 */}
+                     <div className="grid grid-cols-3 gap-2 mb-4">
+                       <div className="bg-[#fff5f5] rounded-xl p-3 text-center border border-red-100">
+                         <div className="text-[10px] font-bold text-[#EF4444] mb-0.5">▲ 최고</div>
+                         <div className="text-[18px] font-extrabold text-[#EF4444]">{maxP.toFixed(1)}<span className="text-[12px] font-bold ml-0.5">억</span></div>
+                       </div>
+                       <div className="bg-[#FFFBEB] rounded-xl p-3 text-center border border-amber-100">
+                         <div className="text-[10px] font-bold text-[#F59E0B] mb-0.5">평균</div>
+                         <div className="text-[18px] font-extrabold text-[#F59E0B]">{avgP.toFixed(1)}<span className="text-[12px] font-bold ml-0.5">억</span></div>
+                       </div>
+                       <div className="bg-[#EFF6FF] rounded-xl p-3 text-center border border-blue-100">
+                         <div className="text-[10px] font-bold text-[#3B82F6] mb-0.5">▼ 최저</div>
+                         <div className="text-[18px] font-extrabold text-[#3B82F6]">{minP.toFixed(1)}<span className="text-[12px] font-bold ml-0.5">억</span></div>
+                       </div>
                      </div>
-                     {/* Chart */}
-                     <div className="h-[210px] mt-2">
+
+                     {/* 거래 건수 + 변동률 */}
+                     <div className="flex items-center gap-2 text-[11px] mb-2">
+                       <span className="text-[#8b95a1] font-bold">{scatterData.length}건 거래</span>
+                       {changePercent !== 0 && (
+                         <span className={`font-bold px-1.5 py-0.5 rounded ${changePercent > 0 ? 'text-[#EF4444] bg-red-50' : 'text-[#3B82F6] bg-blue-50'}`}>
+                           {changePercent > 0 ? '▲' : '▼'} {Math.abs(changePercent).toFixed(1)}%
+                         </span>
+                       )}
+                     </div>
+
+                     {/* Chart — 높이 300px로 증가 */}
+                     <div className="h-[300px] mt-2">
                        <ResponsiveContainer width="100%" height="100%">
-                         <ComposedChart data={monthlyData} margin={{ top: 40, right: 10, left: 0, bottom: 5 }} style={{ overflow: 'visible' }}>
+                         <ComposedChart data={monthlyData} margin={{ top: 30, right: 10, left: 0, bottom: 5 }} style={{ overflow: 'visible' }}>
                            <defs>
                              <linearGradient id="priceGradModal" x1="0" y1="0" x2="0" y2="1">
-                               <stop offset="5%" stopColor="#4A6CF7" stopOpacity={0.12}/>
-                               <stop offset="95%" stopColor="#4A6CF7" stopOpacity={0.01}/>
+                               <stop offset="5%" stopColor="#4A6CF7" stopOpacity={0.15}/>
+                               <stop offset="95%" stopColor="#4A6CF7" stopOpacity={0.02}/>
                              </linearGradient>
                            </defs>
                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e8eb" vertical={false} />
@@ -349,7 +379,7 @@ export function FieldReportModal({
                              tickLine={false}
                              tickFormatter={(ts: number) => {
                                const d = new Date(ts);
-                               return `${String(d.getFullYear())}.${String(d.getMonth() + 1).padStart(2, '0')}`;
+                               return `${String(d.getFullYear()).slice(2)}.${String(d.getMonth() + 1).padStart(2, '0')}`;
                              }}
                              allowDuplicatedCategory={false}
                              tickMargin={8}
@@ -361,20 +391,20 @@ export function FieldReportModal({
                              tick={{ fill: '#8b95a1', fontSize: 11, fontWeight: 600 }}
                              axisLine={false}
                              tickLine={false}
-                             width={40}
-                             tickFormatter={(v: number) => `${v.toFixed(0)}억`}
+                             width={42}
+                             tickFormatter={(v: number) => `${v.toFixed(1)}억`}
                              dx={-5}
                            />
                            <YAxis
                              yAxisId="volume"
                              orientation="right"
-                             domain={[0, 'dataMax * 4']} // 바 차트 높이를 아래 25% 정도로 제한
-                             hide={true} // 축 숫자는 숨김
+                             domain={[0, 'dataMax * 4']}
+                             hide={true}
                            />
                            <RechartsTooltip
-                             contentStyle={{ backgroundColor: '#215cbb', borderRadius: '4px', border: 'none', fontSize: '13px', fontWeight: 'bold', color: '#fff', padding: '6px 12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                             contentStyle={{ backgroundColor: '#1e293b', borderRadius: '10px', border: 'none', fontSize: '13px', fontWeight: 'bold', color: '#fff', padding: '8px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)' }}
                              itemStyle={{ color: '#fff', padding: 0 }}
-                             labelStyle={{ color: 'rgba(255,255,255,0.8)', marginBottom: '4px', fontSize: '11px', fontWeight: 500 }}
+                             labelStyle={{ color: 'rgba(255,255,255,0.7)', marginBottom: '4px', fontSize: '11px', fontWeight: 500 }}
                              labelFormatter={(label: any, payload: any) => {
                                const item = payload?.[0]?.payload;
                                return item?.fullDate ? `${item.fullDate}` : `${new Date(label).getFullYear()}.${String(new Date(label).getMonth() + 1).padStart(2,'0')}월 평균`;
@@ -382,18 +412,18 @@ export function FieldReportModal({
                              formatter={(value: any, name: any, props: any) => {
                                const item = props?.payload;
                                if (name === 'volume') return [`${value}건`, '거래량'];
-                               if (name === 'monthAvg') return [`${value.toFixed(2)}억`, ''];
+                               if (name === 'monthAvg') return [`${value.toFixed(2)}억`, '월평균'];
                                return [`${item?.priceEok || value + '억'} (${item?.area || '-'}평 ${item?.floor || '-'}층)`, ''];
                              }}
                              cursor={{ stroke: '#8b95a1', strokeWidth: 1, strokeDasharray: '2 2' }}
                            />
-                           {/* 거래량 바 그래프 */}
+                           {/* 거래량 바 그래프 — 색상 개선 */}
                            <Bar
                              dataKey="volume"
                              yAxisId="volume"
-                             fill="#e5e8eb"
-                             barSize={12}
-                             radius={[2, 2, 0, 0]}
+                             fill="#c7d2fe"
+                             barSize={14}
+                             radius={[3, 3, 0, 0]}
                            />
                            {/* 월별 평균값 추세선 */}
                            <Area
@@ -407,7 +437,7 @@ export function FieldReportModal({
                              activeDot={false}
                              connectNulls
                            />
-                           {/* 개별 거래 점 (호갱노노 스타일) */}
+                           {/* 개별 거래 점 */}
                            <Scatter
                              data={scatterData}
                              dataKey="price"
@@ -433,39 +463,42 @@ export function FieldReportModal({
                                x={maxPoint.ts}
                                y={maxPoint.price}
                                yAxisId="price"
-                               r={4.5}
+                               r={5}
                                fill="#EF4444"
                                stroke="#fff"
                                strokeWidth={2}
                                label={({ viewBox }: any) => {
                                  const { cx, cy } = viewBox;
+                                 const labelW = 66;
                                  return (
                                    <g>
-                                     <rect x={cx - 30} y={cy - 28} width={60} height={18} fill="#EF4444" rx={4} />
+                                     <rect x={cx - labelW/2} y={cy - 30} width={labelW} height={20} fill="#EF4444" rx={6} />
                                      <polygon points={`${cx - 4},${cy - 10} ${cx + 4},${cy - 10} ${cx},${cy - 4}`} fill="#EF4444" />
-                                     <text x={cx} y={cy - 15} fill="#fff" fontSize="9" fontWeight="bold" textAnchor="middle">최고 {maxPoint.price}억</text>
+                                     <text x={cx} y={cy - 16} fill="#fff" fontSize="10" fontWeight="bold" textAnchor="middle">최고 {maxPoint.price.toFixed(1)}억</text>
                                    </g>
                                  );
                                }}
                              />
                            )}
-                           {/* 최저가 핀 마커 */}
+                           {/* 최저가 핀 마커 — 겹침 방지 */}
                            {minPoint && minPoint !== maxPoint && (
                              <ReferenceDot
                                x={minPoint.ts}
                                y={minPoint.price}
                                yAxisId="price"
-                               r={4.5}
+                               r={5}
                                fill="#3B82F6"
                                stroke="#fff"
                                strokeWidth={2}
                                label={({ viewBox }: any) => {
                                  const { cx, cy } = viewBox;
+                                 const labelW = 66;
+                                 const yOff = markersTooClose ? 20 : 12;
                                  return (
                                    <g>
-                                     <rect x={cx - 30} y={cy + 10} width={60} height={18} fill="#3B82F6" rx={4} />
-                                     <polygon points={`${cx - 4},${cy + 10} ${cx + 4},${cy + 10} ${cx},${cy + 4}`} fill="#3B82F6" />
-                                     <text x={cx} y={cy + 23} fill="#fff" fontSize="9" fontWeight="bold" textAnchor="middle">최저 {minPoint.price}억</text>
+                                     <polygon points={`${cx - 4},${cy + yOff} ${cx + 4},${cy + yOff} ${cx},${cy + 4}`} fill="#3B82F6" />
+                                     <rect x={cx - labelW/2} y={cy + yOff} width={labelW} height={20} fill="#3B82F6" rx={6} />
+                                     <text x={cx} y={cy + yOff + 14} fill="#fff" fontSize="10" fontWeight="bold" textAnchor="middle">최저 {minPoint.price.toFixed(1)}억</text>
                                    </g>
                                  );
                                }}
