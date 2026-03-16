@@ -20,7 +20,8 @@ const ArchitectureMindmap = dynamic(() => import('@/components/admin/Architectur
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
 import WriteReviewModal from '@/components/WriteReviewModal';
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
-import type { SheetApartment } from '@/app/api/apartments-by-dong/route';
+import { APARTMENTS_BY_DONG, TOTAL_APARTMENTS } from '@/lib/apartment-data';
+import type { StaticApartment } from '@/lib/apartment-data';
 import { isSameApartment, normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -1063,9 +1064,8 @@ export default function Dashboard() {
   // Dong filter state
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
 
-  // Apartment data from Google Sheet (by dong)
-  const [sheetApartments, setSheetApartments] = useState<Record<string, SheetApartment[]>>({});
-  const [aptLoading, setAptLoading] = useState(true);
+  // Apartment data — static import, no API call needed
+  const sheetApartments = APARTMENTS_BY_DONG;
 
   // Transaction data
   const [allTransactions, setAllTransactions] = useState<TransactionRecord[]>([]);
@@ -1100,8 +1100,7 @@ export default function Dashboard() {
     Promise.all([
       fetch('/api/transactions').then(r => r.json()),
       fetch('/api/type-map').then(r => r.json()),
-      fetch('/api/apartments-by-dong').then(r => r.json()),
-    ]).then(([txData, tmData, aptData]) => {
+    ]).then(([txData, tmData]) => {
       if (txData.records) setAllTransactions(txData.records);
       if (tmData.entries) {
         const map: Record<string, Record<string, string>> = {};
@@ -1112,8 +1111,7 @@ export default function Dashboard() {
         }
         setTypeMap(map);
       }
-      if (aptData.byDong) setSheetApartments(aptData.byDong);
-    }).catch(err => console.warn('데이터 로딩 실패:', err)).finally(() => { setTxLoading(false); setAptLoading(false); });
+    }).catch(err => console.warn('데이터 로딩 실패:', err)).finally(() => setTxLoading(false));
   }, []);
 
   const handleLogin = async () => {
@@ -1330,20 +1328,7 @@ export default function Dashboard() {
           })()}
 
           {/* ── 아파트 카드 그리드 ── */}
-          {aptLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[1,2,3,4,5,6].map(i => (
-                <div key={i} className="bg-white rounded-2xl border border-[#e5e8eb] p-5 animate-pulse">
-                  <div className="h-4 bg-[#e5e8eb] rounded w-3/4 mb-3" />
-                  <div className="h-3 bg-[#f2f4f6] rounded w-1/2 mb-4" />
-                  <div className="flex gap-2">
-                    <div className="h-8 bg-[#f2f4f6] rounded flex-1" />
-                    <div className="h-8 bg-[#f2f4f6] rounded flex-1" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (() => {
+          {(() => {
             // 선택된 동 또는 전체 아파트 리스트
             const dongList = selectedDong 
               ? [selectedDong] 
