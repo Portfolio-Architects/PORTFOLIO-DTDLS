@@ -408,32 +408,59 @@ export function FieldReportModal({
                            <YAxis
                              yAxisId="volume"
                              orientation="right"
-                             domain={[0, 'dataMax * 4']}
+                             domain={[0, 'dataMax * 6']}
                              hide={true}
                            />
                            <RechartsTooltip
-                             contentStyle={{ backgroundColor: '#1e293b', borderRadius: '10px', border: 'none', fontSize: '13px', fontWeight: 'bold', color: '#fff', padding: '8px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)' }}
-                             itemStyle={{ color: '#fff', padding: 0 }}
-                             labelStyle={{ color: 'rgba(255,255,255,0.7)', marginBottom: '4px', fontSize: '11px', fontWeight: 500 }}
-                             labelFormatter={(label: any, payload: any) => {
-                               const item = payload?.[0]?.payload;
-                               return item?.fullDate ? `${item.fullDate}` : `${new Date(label).getFullYear()}.${String(new Date(label).getMonth() + 1).padStart(2,'0')}월 평균`;
-                             }}
-                             formatter={(value: any, name: any, props: any) => {
-                               const item = props?.payload;
-                               if (name === 'volume') return [`${value}건`, '거래량'];
-                               if (name === 'monthAvg') return [`${value.toFixed(2)}억`, '월평균'];
-                               return [`${item?.priceEok || value + '억'} (${item?.area || '-'}평 ${item?.floor || '-'}층)`, ''];
+                             content={({ active, payload }) => {
+                               if (!active || !payload?.length) return null;
+                               const item = payload[0]?.payload;
+                               // Scatter 점 hover
+                               if (item?.fullDate) {
+                                 return (
+                                   <div style={{
+                                     background: '#1e293b', borderRadius: 10, padding: '10px 14px',
+                                     boxShadow: '0 8px 24px rgba(0,0,0,0.2)', border: 'none',
+                                     minWidth: 120,
+                                   }}>
+                                     <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: 500, marginBottom: 4 }}>
+                                       {item.fullDate}
+                                     </div>
+                                     <div style={{ color: '#fff', fontSize: 16, fontWeight: 800, marginBottom: 2 }}>
+                                       {item.priceEok || `${item.price.toFixed(2)}억`}
+                                     </div>
+                                     <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: 500 }}>
+                                       {item.area}평 · {item.floor}층
+                                     </div>
+                                   </div>
+                                 );
+                               }
+                               // 월별 평균 / 거래량 hover
+                               const vol = item?.volume;
+                               const avg = item?.monthAvg;
+                               return (
+                                 <div style={{
+                                   background: '#1e293b', borderRadius: 10, padding: '8px 12px',
+                                   boxShadow: '0 8px 24px rgba(0,0,0,0.15)', border: 'none',
+                                 }}>
+                                   <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: 500, marginBottom: 4 }}>
+                                     {new Date(item?.ts).getFullYear()}.{String(new Date(item?.ts).getMonth() + 1).padStart(2, '0')}월
+                                   </div>
+                                   {avg && <div style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>평균 {avg.toFixed(2)}억</div>}
+                                   {vol != null && <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>{vol}건 거래</div>}
+                                 </div>
+                               );
                              }}
                              cursor={{ stroke: '#8b95a1', strokeWidth: 1, strokeDasharray: '2 2' }}
                            />
-                           {/* 거래량 바 그래프 — 색상 개선 */}
+                           {/* 거래량 바 그래프 — 슬림하게 */}
                            <Bar
                              dataKey="volume"
                              yAxisId="volume"
-                             fill="#c7d2fe"
-                             barSize={14}
-                             radius={[3, 3, 0, 0]}
+                             fill="#e0e7ff"
+                             barSize={6}
+                             radius={[2, 2, 0, 0]}
+                             opacity={0.6}
                            />
                            {/* 월별 평균값 추세선 */}
                            <Area
@@ -441,13 +468,13 @@ export function FieldReportModal({
                              dataKey="monthAvg"
                              yAxisId="price"
                              stroke="#4A6CF7"
-                             strokeWidth={3}
+                             strokeWidth={2.5}
                              fill="url(#priceGradModal)"
                              dot={false}
                              activeDot={false}
                              connectNulls
                            />
-                           {/* 개별 거래 점 */}
+                           {/* 개별 거래 점 — hover 시 확대 */}
                            <Scatter
                              data={scatterData}
                              dataKey="price"
@@ -459,11 +486,24 @@ export function FieldReportModal({
                                if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
                                return (
                                  <circle 
-                                   cx={cx} cy={cy} r={3} 
+                                   cx={cx} cy={cy} r={3.5} 
                                    fill="#4A6CF7" 
                                    stroke="#fff" 
                                    strokeWidth={1.5} 
-                                   style={{ filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.08))' }}
+                                   style={{ filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.08))', cursor: 'pointer', transition: 'r 0.15s' }}
+                                 />
+                               );
+                             }}
+                             activeShape={(props: any) => {
+                               const { cx, cy } = props;
+                               if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
+                               return (
+                                 <circle 
+                                   cx={cx} cy={cy} r={6} 
+                                   fill="#4A6CF7" 
+                                   stroke="#fbbf24" 
+                                   strokeWidth={2.5} 
+                                   style={{ filter: 'drop-shadow(0px 2px 6px rgba(74,108,247,0.4))', cursor: 'pointer' }}
                                  />
                                );
                              }}
