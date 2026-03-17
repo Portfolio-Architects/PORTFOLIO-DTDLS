@@ -3,7 +3,7 @@
  * 
  * ⚠️ 이 파일은 자동 생성됩니다. 직접 수정하지 마세요!
  * 동기화: npm run sync-transactions
- * 마지막 동기화: 2026-03-16
+ * 마지막 동기화: 2026-03-17
  */
 
 export interface RecentTx {

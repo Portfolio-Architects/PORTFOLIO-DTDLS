@@ -24,7 +24,7 @@ import { APARTMENTS_BY_DONG, TOTAL_APARTMENTS } from '@/lib/apartment-data';
 import type { StaticApartment } from '@/lib/apartment-data';
 import { TX_SUMMARY } from '@/lib/transaction-summary';
 import type { AptTxSummary } from '@/lib/transaction-summary';
-import { isSameApartment, normalizeAptName } from '@/lib/utils/apartmentMapping';
+import { isSameApartment, normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
@@ -162,7 +162,7 @@ export function FieldReportModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-12 animate-in fade-in duration-200">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 md:p-12 animate-in fade-in duration-200">
         <div className="absolute inset-0 bg-[#191f28]/60 backdrop-blur-sm" onClick={onClose} />
         
         <div ref={modalRef} className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] max-h-[90vh] rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden shadow-2xl transition-all duration-300 ring-1 ring-black/5`}>
@@ -171,7 +171,7 @@ export function FieldReportModal({
           </button>
 
           {/* Hero Section — Layout: 40% table / 60% chart */}
-          <div className="bg-white w-full flex flex-col md:flex-row p-6 md:p-10 gap-6 md:gap-8 rounded-t-3xl shrink-0 pt-4 md:pt-8 border-b border-[#e5e8eb]">
+          <div className="bg-white w-full flex flex-col md:flex-row p-4 md:p-10 gap-4 md:gap-8 rounded-t-3xl shrink-0 pt-4 md:pt-8 border-b border-[#e5e8eb]">
             
             {/* Left: 실거래가 전체 리스트 — mobile: 2번째, desktop: 1번째 (40%) */}
             <div className="w-full md:w-[40%] shrink-0 order-2 md:order-1">
@@ -221,7 +221,7 @@ export function FieldReportModal({
                <div className="flex items-center gap-2 mb-3">
                  <span className="bg-[#3182f6] text-white text-[13px] font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
                </div>
-               <h1 className="text-[28px] md:text-[36px] font-extrabold leading-tight tracking-tight mb-4 text-[#191f28]">{report.apartmentName}</h1>
+               <h1 className="text-[22px] sm:text-[28px] md:text-[36px] font-extrabold leading-tight tracking-tight mb-4 text-[#191f28]">{report.apartmentName}</h1>
                
                <div className="flex items-center gap-3 pb-4 border-b border-[#e5e8eb] text-[#4e5968]">
                  <span className="text-[14px] font-bold">by 임장크루</span>
@@ -1122,30 +1122,45 @@ export default function Dashboard() {
     }).catch(err => console.warn('타입맵 로딩 실패:', err));
   }, []);
 
-  // Lazy-load transactions from static data (no API call, instant)
+  // Fetch transactions from per-apartment JSON chunks (not 16MB import)
   const [modalTransactions, setModalTransactions] = useState<TransactionRecord[]>([]);
   const [isTxLoading, setIsTxLoading] = useState(false);
+
+  // 가격 포맷팅 (JSON에서 priceEok 제거했으므로 런타임 계산)
+  const formatPriceEok = (priceMan: number) => {
+    const eok = Math.floor(priceMan / 10000);
+    const remainder = priceMan % 10000;
+    if (eok === 0) return `${priceMan.toLocaleString()}만`;
+    if (remainder === 0) return `${eok}억`;
+    return `${eok}억${remainder.toLocaleString()}`;
+  };
+
   useEffect(() => {
     if (!selectedReport) { setModalTransactions([]); return; }
     setIsTxLoading(true);
-    const key = normalizeAptName(selectedReport.apartmentName);
-    import('@/lib/transaction-records').then(({ TX_RECORDS }) => {
-      const records = TX_RECORDS[key] || [];
-      // Map TxRecord to TransactionRecord shape
-      const mapped: TransactionRecord[] = records.map((r, i) => ({
-        no: i + 1,
-        sigungu: '', dong: '', aptName: r.aptName,
-        area: r.area, areaPyeong: r.areaPyeong,
-        contractYm: r.contractYm, contractDay: r.contractDay,
-        price: r.price, priceEok: r.priceEok,
-        floor: r.floor, buyer: '', seller: '',
-        buildYear: 0, roadName: '', cancelDate: '-',
-        dealType: r.dealType, agentLocation: '',
-        registrationDate: '-', housingType: '',
-      }));
-      setModalTransactions(mapped);
-    }).catch(err => console.warn('거래내역 로딩 실패:', err))
-    .finally(() => setIsTxLoading(false));
+
+    // findTxKey로 JSON 파일명 결정 (접두사 자동 strip)
+    const txKey = findTxKey(selectedReport.apartmentName, TX_SUMMARY);
+    const fileKey = txKey || normalizeAptName(selectedReport.apartmentName);
+
+    fetch(`/tx-data/${encodeURIComponent(fileKey)}.json`)
+      .then(res => res.ok ? res.json() : [])
+      .then((records: { contractYm: string; contractDay: string; price: number; area: number; areaPyeong: number; floor: number }[]) => {
+        const mapped: TransactionRecord[] = records.map((r, i) => ({
+          no: i + 1,
+          sigungu: '', dong: '', aptName: fileKey,
+          area: r.area, areaPyeong: r.areaPyeong,
+          contractYm: r.contractYm, contractDay: r.contractDay,
+          price: r.price, priceEok: formatPriceEok(r.price),
+          floor: r.floor, buyer: '', seller: '',
+          buildYear: 0, roadName: '', cancelDate: '-',
+          dealType: '', agentLocation: '',
+          registrationDate: '-', housingType: '',
+        }));
+        setModalTransactions(mapped);
+      })
+      .catch(err => console.warn('거래내역 로딩 실패:', err))
+      .finally(() => setIsTxLoading(false));
   }, [selectedReport]);
 
   const handleLogin = async () => {
@@ -1231,7 +1246,7 @@ export default function Dashboard() {
       
       {/* Top Navigation Bar */}
       <header className="bg-white/90 backdrop-blur-xl border-b border-[#e5e8eb] sticky top-0 z-40 transition-all duration-300">
-        <div className="w-full max-w-[2000px] mx-auto px-6 md:px-10 lg:px-16 h-16 flex justify-between items-center">
+        <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 h-14 sm:h-16 flex justify-between items-center">
           {/* Left: Pill Tabs + Branding */}
           <div className="flex items-center gap-3">
             <div className="inline-flex bg-[#f2f4f6] rounded-full p-1 gap-0.5">
@@ -1261,29 +1276,29 @@ export default function Dashboard() {
       </header>
 
       {/* Main Container */}
-      <main className="w-full max-w-[2000px] mx-auto px-6 md:px-10 lg:px-16 py-8 md:py-12 animate-in fade-in duration-500">
+      <main className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 py-5 sm:py-8 md:py-12 animate-in fade-in duration-500">
 
         {/* ═══ TAB 1: 임장기 ═══ */}
         {mounted && activeTab === 'imjang' && (
         <section>
           {/* 1. Section Header */}
           <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <h2 className="text-[28px] md:text-[36px] font-extrabold text-[#191f28] tracking-tight">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
+              <h2 className="text-[22px] sm:text-[28px] md:text-[36px] font-extrabold text-[#191f28] tracking-tight">
                 동탄 아파트 탐색
               </h2>
-              <span suppressHydrationWarning className="inline-flex items-center gap-1.5 bg-[#e8f3ff] text-[#3182f6] text-[13px] font-bold px-3 py-1 rounded-full shrink-0">
+              <span suppressHydrationWarning className="inline-flex items-center gap-1.5 bg-[#e8f3ff] text-[#3182f6] text-[12px] sm:text-[13px] font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
                 <Building size={13} />
                 {Object.values(sheetApartments).flat().length}개 단지
               </span>
               {fieldReports.length > 0 && (
-                <span className="inline-flex items-center gap-1.5 bg-[#fff8e1] text-[#f59e0b] text-[13px] font-bold px-3 py-1 rounded-full shrink-0">
+                <span className="inline-flex items-center gap-1.5 bg-[#fff8e1] text-[#f59e0b] text-[12px] sm:text-[13px] font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
                   <FileText size={13} />
                   {fieldReports.length}개 리포트
                 </span>
               )}
             </div>
-            <p className="text-[15px] text-[#8b95a1] font-medium">
+            <p className="text-[13px] sm:text-[15px] text-[#8b95a1] font-medium">
               11개 법정동 · 아파트별 인프라·실거래가·임장 리포트를 한눈에
             </p>
           </div>
@@ -1332,18 +1347,18 @@ export default function Dashboard() {
             const dongInfo = getDongByName(selectedDong);
             if (!dongInfo) return null;
             return (
-              <div className="mb-6 bg-white rounded-2xl border border-[#e5e8eb] p-5 flex items-center gap-4">
-                <div>
-                  <h3 className="text-[18px] font-extrabold text-[#191f28]">{dongInfo.name}</h3>
-                  <p className="text-[13px] text-[#8b95a1] mt-0.5">{dongInfo.description}</p>
+              <div className="mb-6 bg-white rounded-2xl border border-[#e5e8eb] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[16px] sm:text-[18px] font-extrabold text-[#191f28]">{dongInfo.name}</h3>
+                  <p className="text-[12px] sm:text-[13px] text-[#8b95a1] mt-0.5 line-clamp-2">{dongInfo.description}</p>
                 </div>
-                <div className="ml-auto flex items-center gap-3 shrink-0">
+                <div className="flex items-center gap-3 shrink-0">
                   <div className="text-center">
-                    <div className="text-[18px] font-extrabold text-[#191f28]">{dongAptCounts[selectedDong] || 0}</div>
+                    <div className="text-[16px] sm:text-[18px] font-extrabold text-[#191f28]">{dongAptCounts[selectedDong] || 0}</div>
                     <div className="text-[10px] text-[#8b95a1] font-bold">아파트</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-[18px] font-extrabold text-[#3182f6]">{dongReportCounts[selectedDong] || 0}</div>
+                    <div className="text-[16px] sm:text-[18px] font-extrabold text-[#3182f6]">{dongReportCounts[selectedDong] || 0}</div>
                     <div className="text-[10px] text-[#8b95a1] font-bold">리포트</div>
                   </div>
                 </div>
@@ -1390,8 +1405,8 @@ export default function Dashboard() {
                             return aHas - bHas;
                           });
                           return (selectedDong ? sorted : sorted.slice(0, 6)).map(apt => {
-                          const normName = normalizeAptName(apt.name);
-                          const txSummary = TX_SUMMARY[normName];
+                          const txKey = findTxKey(apt.name, TX_SUMMARY);
+                          const txSummary = txKey ? TX_SUMMARY[txKey] : undefined;
                           const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name));
 
                           return (
@@ -1451,11 +1466,11 @@ export default function Dashboard() {
           })()}
 
           {/* ── 동탄 커뮤니티 ── */}
-          <div className="mt-12">
-            <div className="flex justify-between items-center mb-6">
+          <div className="mt-8 sm:mt-12">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-5 sm:mb-6">
               <div>
-                <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] mb-1">동탄 커뮤니티</h2>
-                <p className="text-[15px] text-[#8b95a1] font-medium">주민들의 이야기 · 리뷰 · 소식</p>
+                <h2 className="text-[22px] sm:text-[28px] font-extrabold tracking-tight text-[#191f28] mb-0.5 sm:mb-1">동탄 커뮤니티</h2>
+                <p className="text-[13px] sm:text-[15px] text-[#8b95a1] font-medium">주민들의 이야기 · 리뷰 · 소식</p>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -1766,11 +1781,11 @@ export default function Dashboard() {
             <p className="text-[15px] text-[#8b95a1] font-medium">동탄 맞춤 아파트 추천 & 분석</p>
           </div>
           <div className="flex flex-col gap-6">
-            <div className="w-full h-[200px] bg-gradient-to-br from-[#3182f6] to-[#2b72d6] rounded-3xl p-8 flex flex-col justify-end text-white relative overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+            <div className="w-full h-[180px] sm:h-[200px] bg-gradient-to-br from-[#3182f6] to-[#2b72d6] rounded-3xl p-5 sm:p-8 flex flex-col justify-end text-white relative overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 group-hover:bg-white/20 transition-colors"></div>
-              <h3 className="text-[24px] font-extrabold mb-1 relative z-10">우리 아파트 탈탈 털어드림!</h3>
-              <p className="text-white/80 text-[14px] relative z-10">장점부터 숨기고 싶은 단점까지 속 시원하게 분석 신청하기</p>
-              <div className="absolute top-8 right-8 bg-white text-[#3182f6] w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg shadow-black/10">&rarr;</div>
+              <h3 className="text-[18px] sm:text-[24px] font-extrabold mb-1 relative z-10">우리 아파트 탈탈 털어드림!</h3>
+              <p className="text-white/80 text-[12px] sm:text-[14px] relative z-10">장점부터 숨기고 싶은 단점까지 속 시원하게 분석 신청하기</p>
+              <div className="absolute top-6 right-6 sm:top-8 sm:right-8 bg-white text-[#3182f6] w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold shadow-lg shadow-black/10">&rarr;</div>
             </div>
 
             {/* KPI Cards */}

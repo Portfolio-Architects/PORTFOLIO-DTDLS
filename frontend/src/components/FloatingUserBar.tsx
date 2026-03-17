@@ -46,9 +46,9 @@ export default function FloatingUserBar() {
   return (
     <>
       {/* Floating User Bar */}
-      <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 duration-300">
+      <div className="fixed top-[13px] sm:top-4 right-2 sm:right-4 z-50 animate-in slide-in-from-top-2 duration-300">
         {user ? (
-          <div className="flex items-center gap-2 bg-white/90 backdrop-blur-xl rounded-full pl-3 pr-4 py-1.5 shadow-lg border border-[#e5e8eb]/50">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-white/90 backdrop-blur-xl rounded-full pl-2.5 sm:pl-3 pr-3 sm:pr-4 py-1 sm:py-1.5 shadow-lg border border-[#e5e8eb]/50">
             <button onClick={() => {
               setEditFrontName(anonProfile?.frontName || '동탄사는');
               setEditNickname(anonProfile?.nickname || '');
@@ -73,12 +73,12 @@ export default function FloatingUserBar() {
                 관리자
               </button>
             )}
-            <button onClick={handleLogout} className="ml-1 bg-[#ffebec] text-[#f04452] hover:bg-[#f04452] hover:text-white px-3 py-1 rounded-lg text-[12px] font-bold transition-colors">
+            <button onClick={handleLogout} className="ml-0.5 sm:ml-1 bg-[#ffebec] text-[#f04452] hover:bg-[#f04452] hover:text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-[12px] font-bold transition-colors">
               로그아웃
             </button>
           </div>
         ) : (
-          <button onClick={handleLogin} className="flex items-center gap-1.5 bg-white/90 backdrop-blur-xl hover:bg-white text-[#191f28] text-[13px] font-bold py-2 px-5 rounded-full shadow-lg border border-[#e5e8eb]/50 transition-colors">
+          <button onClick={handleLogin} className="flex items-center gap-1.5 bg-white/90 backdrop-blur-xl hover:bg-white text-[#191f28] text-[12px] sm:text-[13px] font-bold py-1.5 sm:py-2 px-3 sm:px-5 rounded-full shadow-lg border border-[#e5e8eb]/50 transition-colors">
             로그인
           </button>
         )}

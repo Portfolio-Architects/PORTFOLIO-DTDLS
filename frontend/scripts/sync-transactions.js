@@ -154,58 +154,57 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = `;
 
   fs.writeFileSync(OUTPUT_PATH, ts, 'utf-8');
   console.log(`📁 파일 생성: ${OUTPUT_PATH}`);
-  console.log(`🎉 동기화 완료! git add + commit + push 하세요.`);
+  console.log(`🎉 동기화 완료!`);
   
 
-  // ── 전체 거래 내역 정적 파일 생성 (transaction-records.ts) ──
-  const RECORDS_OUTPUT = path.resolve(__dirname, '../src/lib/transaction-records.ts');
+  // ── 아파트별 JSON 청크 생성 (public/tx-data/*.json) ──
+  // 기존 16MB 단일 .ts 파일 대신 아파트별 개별 JSON 파일로 분할
+  // → 모달에서 해당 아파트만 fetch('/tx-data/{aptKey}.json')로 로딩 (~100KB)
+  const TX_DATA_DIR = path.resolve(__dirname, '../public/tx-data');
   
-  let recordsTs = `/**
- * 실거래가 전체 레코드 — 빌드 타임에 포함, API 호출 0
- * 
- * ⚠️ 이 파일은 자동 생성됩니다. 직접 수정하지 마세요!
- * 동기화: npm run sync-transactions
- * 마지막 동기화: ${new Date().toISOString().slice(0, 10)}
- */
+  // 디렉토리 초기화
+  if (fs.existsSync(TX_DATA_DIR)) {
+    fs.rmSync(TX_DATA_DIR, { recursive: true });
+  }
+  fs.mkdirSync(TX_DATA_DIR, { recursive: true });
 
-export interface TxRecord {
-  contractYm: string;
-  contractDay: string;
-  price: number;
-  priceEok: string;
-  area: number;
-  areaPyeong: number;
-  floor: number;
-  dealType: string;
-  aptName: string;
-}
+  let totalRecords = 0;
+  let totalSizeKB = 0;
+  let chunkCount = 0;
 
-/** 아파트명(정규화) → 전체 거래 내역 (최신순) */
-export const TX_RECORDS: Record<string, TxRecord[]> = `;
-
-  // byApt already has full records from the grouping above
-  const fullRecords = {};
   for (const [aptName, txs] of Object.entries(byApt)) {
-    fullRecords[aptName] = txs.map(t => ({
+    const records = txs.map(t => ({
       contractYm: t.contractYm,
       contractDay: t.contractDay,
       price: t.price,
-      priceEok: t.priceEok,
       area: t.area,
       areaPyeong: t.areaPyeong,
       floor: t.floor,
-      dealType: '',
-      aptName: aptName,
     }));
+
+    // 파일명: 정규화된 아파트명 (URL-safe)
+    const filename = `${aptName}.json`;
+    const filepath = path.join(TX_DATA_DIR, filename);
+    const json = JSON.stringify(records);
+    
+    fs.writeFileSync(filepath, json, 'utf-8');
+    
+    totalRecords += records.length;
+    totalSizeKB += json.length / 1024;
+    chunkCount++;
   }
-  
-  recordsTs += JSON.stringify(fullRecords, null, 2) + ';\n';
-  
-  fs.writeFileSync(RECORDS_OUTPUT, recordsTs, 'utf-8');
-  
-  const totalRecords = Object.values(fullRecords).reduce((sum, arr) => sum + arr.length, 0);
-  const fileSizeKB = Math.round(fs.statSync(RECORDS_OUTPUT).size / 1024);
-  console.log(`📁 전체 레코드 파일: ${RECORDS_OUTPUT} (${totalRecords}건, ${fileSizeKB}KB)`);
+
+  // 인덱스 파일 생성 (어떤 아파트들이 있는지 목록)
+  const index = Object.keys(byApt);
+  fs.writeFileSync(
+    path.join(TX_DATA_DIR, '_index.json'),
+    JSON.stringify(index),
+    'utf-8'
+  );
+
+  console.log(`📁 JSON 청크: ${TX_DATA_DIR}`);
+  console.log(`   ${chunkCount}개 아파트, ${totalRecords}건, 총 ${Math.round(totalSizeKB)}KB`);
+  console.log(`   (기존 16MB .ts → ${Math.round(totalSizeKB)}KB 분할)`);
 
   process.exit(0);
 }

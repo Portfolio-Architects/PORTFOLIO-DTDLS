@@ -31,6 +31,53 @@ export function isSameApartment(reportName: string, txName: string): boolean {
 }
 
 /**
+ * 위치 접두사 제거: 국토교통부 실거래 DB와 앱 이름 간의 접두사 차이 해소
+ * "동탄역롯데캐슬알바트로스" → "롯데캐슬알바트로스"
+ * "동탄2신도시금강펜테리움" → "금강펜테리움"
+ */
+const LOCATION_PREFIXES = [
+  '동탄역시범', '동탄시범다은마을', '동탄시범한빛마을', '동탄시범나루마을',
+  '동탄2신도시', '동탄신도시', '동탄숲속마을', '동탄푸른마을', '동탄나루마을',
+  '동탄호수공원', '동탄호수', '동탄역',
+  '동탄2', '동탄',
+];
+
+function stripLocationPrefix(normalized: string): string {
+  for (const prefix of LOCATION_PREFIXES) {
+    if (normalized.startsWith(prefix) && normalized.length > prefix.length) {
+      return normalized.slice(prefix.length);
+    }
+  }
+  return normalized;
+}
+
+/**
+ * 2단계 캐스케이딩 매칭으로 TX_SUMMARY / TX_RECORDS 키를 찾는 함수
+ * 
+ * 1단계: 정규화 후 정확 매칭  
+ * 2단계: 양쪽 모두 위치 접두사 제거 후 정확 매칭
+ * 
+ * @returns 매칭된 키 (없으면 null)
+ */
+export function findTxKey<T>(aptName: string, txMap: Record<string, T>): string | null {
+  const norm = normalizeAptName(aptName);
+
+  // 1단계: 정확 매칭
+  if (norm in txMap) return norm;
+
+  // 2단계: 접두사 제거 후 매칭
+  const stripped = stripLocationPrefix(norm);
+  if (stripped !== norm && stripped in txMap) return stripped;
+
+  // 반대 방향: txMap의 키에서 접두사 제거하여 비교
+  for (const key of Object.keys(txMap)) {
+    if (stripLocationPrefix(key) === stripped) return key;
+  }
+
+  return null;
+}
+
+/**
  * 전용면적 → 타입 변환 매핑
  * 아파트별 전용면적을 타입 코드로 변환
  */

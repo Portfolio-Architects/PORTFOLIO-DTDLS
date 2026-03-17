@@ -86,7 +86,7 @@ export default function ZoneDetailPage() {
     <div className="min-h-screen bg-[#f9fafb] font-sans">
       {/* Header */}
       <header className="bg-white/90 backdrop-blur-xl border-b border-[#e5e8eb] sticky top-0 z-40">
-        <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 h-16 flex items-center gap-4">
+        <div className="w-full max-w-[1400px] mx-auto px-3 sm:px-6 md:px-12 h-14 sm:h-16 flex items-center gap-3 sm:gap-4">
           <button 
             onClick={() => router.push('/')}
             className="flex items-center gap-2 text-[#4e5968] hover:text-[#191f28] transition-colors font-bold text-[14px]"
@@ -100,7 +100,7 @@ export default function ZoneDetailPage() {
       </header>
 
       {/* Zone Hero Banner */}
-      <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 pt-8 pb-4">
+      <div className="w-full max-w-[1400px] mx-auto px-3 sm:px-6 md:px-12 pt-6 sm:pt-8 pb-4">
         <div className="bg-white rounded-3xl border border-[#e5e8eb] p-6 md:p-8 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center gap-4">
             <div className="flex-1">
@@ -116,7 +116,7 @@ export default function ZoneDetailPage() {
       </div>
 
       {/* Apartment Grid */}
-      <div className="w-full max-w-[1400px] mx-auto px-6 md:px-12 py-6">
+      <div className="w-full max-w-[1400px] mx-auto px-3 sm:px-6 md:px-12 py-6">
         {zoneReports.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {zoneReports.map((report) => {
