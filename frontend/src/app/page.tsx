@@ -16,6 +16,7 @@ const EduBubbleChart = dynamic(() => import('@/components/EduBubbleChart'), { ss
 const LifestyleRadarChart = dynamic(() => import('@/components/LifestyleRadarChart'), { ssr: false });
 const PropertyScoreChart = dynamic(() => import('@/components/consumer/PropertyScoreChart'), { ssr: false });
 const ArchitectureMindmap = dynamic(() => import('@/components/admin/ArchitectureMindmap'), { ssr: false });
+const PaymentButton = dynamic(() => import('@/components/PaymentButton'), { ssr: false });
 
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
 import WriteReviewModal from '@/components/WriteReviewModal';
@@ -25,6 +26,7 @@ import type { StaticApartment } from '@/lib/apartment-data';
 import { TX_SUMMARY } from '@/lib/transaction-summary';
 import type { AptTxSummary } from '@/lib/transaction-summary';
 import { isSameApartment, normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
+import * as PurchaseRepo from '@/lib/repositories/purchase.repository';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
@@ -129,7 +131,10 @@ export function FieldReportModal({
   user,
   transactions,
   typeMap,
-  isLoadingDetail
+  isLoadingDetail,
+  isPurchased,
+  isAdmin,
+  onPurchaseComplete
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -141,10 +146,14 @@ export function FieldReportModal({
   transactions: TransactionRecord[];
   typeMap: Record<string, Record<string, string>>;
   isLoadingDetail?: boolean;
+  isPurchased?: boolean;
+  isAdmin?: boolean;
+  onPurchaseComplete?: () => void;
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [chartTimeframe, setChartTimeframe] = useState<'6M'|'1Y'|'3Y'|'ALL'>('ALL');
+  const isUnlocked = isPurchased || isAdmin;
   const modalRef = useRef<HTMLDivElement>(null);
   const scrollToSection = (id: string) => {
     if (id === 'sec-summary' && modalRef.current) {
@@ -591,32 +600,87 @@ export function FieldReportModal({
           {/* Magazine Content Wrapper */}
           <div className="px-2 py-6 md:px-3 md:py-8 flex flex-col gap-8 w-full">
 
-            {/* 요약 브리프 (맨 위 배치 — 항상 렌더링) */}
+            {/* 요약 브리프 (맨 위 배치 — 항상 렌더링, 하지만 본문은 유료) */}
               <div id="sec-summary" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-16">
                 <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Text size={20} className="text-[#3182f6]"/> 요약 브리프</h2>
                 {s?.assessment ? (
-                <div className="flex flex-col gap-4">
-                  <div className="flex gap-0 rounded-2xl overflow-hidden border border-[#bbf7d0]">
-                    <div className="w-1.5 bg-[#03c75a] shrink-0" />
-                    <div className="bg-[#f0fdf4] p-5 flex-1">
-                      <h3 className="text-[15px] font-extrabold text-[#03c75a] mb-2 flex items-center gap-1.5"><CheckCircle2 size={18}/> 이 단지의 핵심 장점</h3>
-                      <p className="text-[15px] text-[#191f28] leading-relaxed whitespace-pre-wrap">{s.assessment.alphaDriver || '내용 없음'}</p>
+                <div className="relative">
+                  <div className={`flex flex-col gap-4 ${!isUnlocked ? 'max-h-[120px] overflow-hidden' : ''}`}>
+                    <div className="flex gap-0 rounded-2xl overflow-hidden border border-[#bbf7d0]">
+                      <div className="w-1.5 bg-[#03c75a] shrink-0" />
+                      <div className="bg-[#f0fdf4] p-5 flex-1">
+                        <h3 className="text-[15px] font-extrabold text-[#03c75a] mb-2 flex items-center gap-1.5"><CheckCircle2 size={18}/> 이 단지의 핵심 장점</h3>
+                        <p className="text-[15px] text-[#191f28] leading-relaxed whitespace-pre-wrap">{s.assessment.alphaDriver || '내용 없음'}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-0 rounded-2xl overflow-hidden border border-[#ffebec]">
+                      <div className="w-1.5 bg-[#f04452] shrink-0" />
+                      <div className="bg-[#fff5f5] p-5 flex-1">
+                        <h3 className="text-[15px] font-extrabold text-[#f04452] mb-2 flex items-center gap-1.5"><AlertCircle size={18}/> 주의할 단점</h3>
+                        <p className="text-[15px] text-[#191f28] leading-relaxed whitespace-pre-wrap">{s.assessment.systemicRisk || '내용 없음'}</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex gap-0 rounded-2xl overflow-hidden border border-[#ffebec]">
-                    <div className="w-1.5 bg-[#f04452] shrink-0" />
-                    <div className="bg-[#fff5f5] p-5 flex-1">
-                      <h3 className="text-[15px] font-extrabold text-[#f04452] mb-2 flex items-center gap-1.5"><AlertCircle size={18}/> 주의할 단점</h3>
-                      <p className="text-[15px] text-[#191f28] leading-relaxed whitespace-pre-wrap">{s.assessment.systemicRisk || '내용 없음'}</p>
-                    </div>
-                  </div>
+                  {/* Paywall blur overlay on summary */}
+                  {!isUnlocked && (
+                    <div className="absolute bottom-0 left-0 right-0 h-[100px] bg-gradient-to-t from-white via-white/95 to-transparent" />
+                  )}
                 </div>
                 ) : (
                   <p className="text-[14px] text-[#8b95a1] text-center py-8">요약 정보가 아직 작성되지 않았습니다.</p>
                 )}
               </div>
 
-            {/* 0. Premium Score Analysis (If Available, outside of legacy toggle) */}
+            {/* ── PAYWALL GATE ── Premium content below this line */}
+            {!isUnlocked && (
+              <div className="relative bg-white rounded-3xl p-8 md:p-10 shadow-sm text-center">
+                <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-gradient-to-br from-[#3182f6]/10 to-[#4A6CF7]/20 flex items-center justify-center">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3182f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </div>
+                <h3 className="text-[20px] font-extrabold text-[#191f28] mb-2">프리미엄 리포트</h3>
+                <p className="text-[14px] text-[#4e5968] mb-1">프리미엄 분석, 상세 인프라 데이터, 현장 사진 갤러리,</p>
+                <p className="text-[14px] text-[#4e5968] mb-6">단지 명세, 종합 평가를 확인하세요</p>
+                
+                <div className="flex flex-wrap justify-center gap-2 mb-8">
+                  {['프리미엄 분석', '사진 갤러리', '상세 인프라', '단지 명세', '종합 결론'].map(tag => (
+                    <span key={tag} className="bg-[#e8f3ff] text-[#3182f6] text-[12px] font-bold px-3 py-1 rounded-full">{tag}</span>
+                  ))}
+                </div>
+
+                {user ? (
+                  <PaymentButton
+                    reportId={report.id}
+                    reportName={report.apartmentName}
+                    userId={user.uid}
+                    userEmail={user.email || undefined}
+                    onPaymentComplete={onPurchaseComplete || (() => {})}
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-3">
+                    <p className="text-[13px] text-[#8b95a1]">결제하려면 먼저 로그인해주세요</p>
+                    <button
+                      onClick={() => signInWithPopup(auth, googleProvider)}
+                      className="bg-[#191f28] text-white font-bold px-6 py-3 rounded-xl hover:bg-[#333d4b] transition-colors flex items-center gap-2"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                      </svg>
+                      Google로 로그인
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 0. Premium Score Analysis — Gated behind paywall */}
+            {isUnlocked && (
+            <>
             {isLoadingDetail ? (
               <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm animate-pulse">
                 <div className="h-6 bg-[#e5e8eb] rounded-lg w-48 mb-6" />
@@ -1058,6 +1122,8 @@ export function FieldReportModal({
                 </div>
               </div>
             </div>
+            </>
+            )}
 
           </div>
         </div>
@@ -1127,6 +1193,7 @@ export default function Dashboard() {
   // Auth & Profile State
   const [user, setUser] = useState<User | null>(null);
   const [anonProfile, setAnonProfile] = useState<{nickname: string; frontName?: string; photoURL?: string} | null>(null);
+  const [purchasedReportIds, setPurchasedReportIds] = useState<string[]>([]);
 
   // (Optional) Image State - For when storage is unpaused
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -1139,9 +1206,13 @@ export default function Dashboard() {
         setAnonProfile(profile);
         const up = await UserRepo.getOrCreateProfile(currentUser.uid);
         setUserProfile(up);
+        // Load purchased report IDs for paywall
+        const purchased = await PurchaseRepo.getUserPurchasedReportIds(currentUser.uid);
+        setPurchasedReportIds(purchased);
       } else {
         setAnonProfile(null);
         setUserProfile(null);
+        setPurchasedReportIds([]);
       }
     });
     return () => unsubscribe();
@@ -1865,6 +1936,13 @@ export default function Dashboard() {
           transactions={modalTransactions}
           typeMap={typeMap}
           isLoadingDetail={isLoadingDetail}
+          isPurchased={purchasedReportIds.includes(selectedReport.id)}
+          isAdmin={dashboardFacade.isAdmin(user?.email)}
+          onPurchaseComplete={() => {
+            if (user) {
+              PurchaseRepo.getUserPurchasedReportIds(user.uid).then(setPurchasedReportIds);
+            }
+          }}
         />
       )}
 

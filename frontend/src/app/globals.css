@@ -116,6 +116,17 @@
   .tag-edu { background: #e8f5e9; color: var(--toss-green); }
   .tag-culture { background: #fff3e0; color: #ff9800; }
 
+  /* Remove black outline on chart click/tap (Recharts SVG focus) */
+  .recharts-wrapper,
+  .recharts-wrapper *,
+  .recharts-surface,
+  .recharts-surface *,
+  svg:focus,
+  svg *:focus {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
   /* Custom Scrollbar specifically for Modals to hide it or style it beautifully */
   /* We will hide the scrollbar completely to preserve the clean UI on Windows */
   .custom-scrollbar::-webkit-scrollbar {

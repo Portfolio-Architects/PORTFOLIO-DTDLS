@@ -12,6 +12,7 @@
     "sync-all": "node scripts/sync-apartments.js && node scripts/sync-transactions.js"
   },
   "dependencies": {
+    "@tosspayments/tosspayments-sdk": "^2.6.0",
     "@vis.gl/react-google-maps": "^1.7.1",
     "browser-image-compression": "^2.0.2",
     "clsx": "^2.1.1",
