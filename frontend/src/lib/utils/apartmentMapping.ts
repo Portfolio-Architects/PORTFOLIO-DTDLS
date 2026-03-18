@@ -92,6 +92,9 @@ function deepNormalize(name: string): string {
   result = result.replace(/(\d+)번지/g, '$1');
   // ".0" 제거 (3.0 → 3, but keep 10.0 → 10)
   result = result.replace(/\.0(?=$|[^0-9])/g, '');
+  // 명칭 통일 (앱 ↔ 실거래DB 표기 차이)
+  result = result.replace(/스위콈/g, '스위첸');
+  result = result.replace(/케이씨씨/g, 'KCC');
   return result;
 }
 
