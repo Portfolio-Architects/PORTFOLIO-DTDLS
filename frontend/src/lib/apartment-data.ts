@@ -52,7 +52,7 @@ export const APARTMENTS_BY_DONG: Record<string, StaticApartment[]> = {
     { name: '동탄시범다은마을 메타역세권', dong: '반송동' },
     { name: '동탄시범다은마을 센트럴힐', dong: '반송동' },
     { name: '동탄시범다은마을 월드메르디앙', dong: '반송동' },
-    { name: '동탄시범한빛마을 KCC스위콈', dong: '반송동' },
+    { name: '동탄시범한빛마을 KCC스위첸아파트', dong: '반송동' },
     { name: '동탄우림필유 타운하우스', dong: '반송동' },
     { name: '동탄위버폴리스', dong: '반송동' },
     { name: '동탄파라곤', dong: '반송동' },
@@ -211,7 +211,7 @@ export const APARTMENTS_BY_DONG: Record<string, StaticApartment[]> = {
     { name: '동탄역 신안인스빌리베라 1차', dong: '청계동' },
     { name: '동탄역 신안인스빌리베라 2차', dong: '청계동' },
     { name: '동탄역 호반써밋', dong: '청계동' },
-    { name: '동탄역 KCC스위콈', dong: '청계동' },
+    { name: '동탄역 KCC스위첸아파트', dong: '청계동' },
   ],
 };
 

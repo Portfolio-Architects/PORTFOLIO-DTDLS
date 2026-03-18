@@ -154,6 +154,7 @@ export function FieldReportModal({
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [chartTimeframe, setChartTimeframe] = useState<'6M'|'1Y'|'3Y'|'ALL'>('ALL');
   const isUnlocked = isPurchased || isAdmin;
+  const isStub = report.id.startsWith('stub-');
   const modalRef = useRef<HTMLDivElement>(null);
   const scrollToSection = (id: string) => {
     if (id === 'sec-summary' && modalRef.current) {
@@ -232,11 +233,13 @@ export function FieldReportModal({
                </div>
                <h1 className="text-[22px] sm:text-[28px] md:text-[36px] font-extrabold leading-tight tracking-tight mb-4 text-[#191f28]">{report.apartmentName}</h1>
                
+               {!isStub && (
                <div className="flex items-center gap-3 pb-4 border-b border-[#e5e8eb] text-[#4e5968]">
                  <span className="text-[14px] font-bold">by 임장크루</span>
                  <span className="text-[13px] opacity-60">·</span>
                  <span className="text-[13px]">{report.createdAt}</span>
                </div>
+               )}
 
                {/* 매매가 추이 차트 (시계열 선택 + 스캐터) */}
                {transactions.length > 0 && (() => {
@@ -579,7 +582,8 @@ export function FieldReportModal({
 
           </div>
 
-          {/* Sticky Section Nav */}
+          {/* Sticky Section Nav — stub이면 숨김 */}
+          {!isStub && (
           <nav className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] px-4 py-2.5">
             <div className="flex gap-1.5 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-w-[1000px] mx-auto">
               {['요약', '프리미엄', '사진', '명세', '인프라', '생태', '결론', '댓글'].map((label, idx) => {
@@ -596,8 +600,10 @@ export function FieldReportModal({
               })}
             </div>
           </nav>
+          )}
 
-          {/* Magazine Content Wrapper */}
+          {/* Magazine Content Wrapper — stub이면 숨김 */}
+          {!isStub && (
           <div className="px-2 py-6 md:px-3 md:py-8 flex flex-col gap-8 w-full">
 
             {/* 요약 브리프 (맨 위 배치 — 항상 렌더링, 하지만 본문은 유료) */}
@@ -1126,6 +1132,7 @@ export function FieldReportModal({
             )}
 
           </div>
+          )}
         </div>
       </div>
       {/* Fullscreen Image Overlay */}
@@ -1300,8 +1307,10 @@ export default function Dashboard() {
   };
 
   // Fetch full report detail data when modal opens (lazy loading)
+  // stub 리포트 (id가 'stub-'로 시작)는 Firestore 조회 스킵
+  const isStubReport = selectedReport?.id?.startsWith('stub-') ?? false;
   useEffect(() => {
-    if (selectedReport) {
+    if (selectedReport && !isStubReport) {
       setIsLoadingDetail(true);
       setFullReportData(null);
       dashboardFacade.getFullReport(selectedReport.id).then((data) => {
@@ -1312,12 +1321,13 @@ export default function Dashboard() {
       });
     } else {
       setFullReportData(null);
+      setIsLoadingDetail(false);
     }
   }, [selectedReport]);
 
-  // Fetch comments automatically when a report modal is opened
+  // Fetch comments automatically when a report modal is opened (stub은 스킵)
   useEffect(() => {
-    if (selectedReport && !commentsData[selectedReport.id]) {
+    if (selectedReport && !isStubReport && !commentsData[selectedReport.id]) {
       const unsubscribe = dashboardFacade.listenToComments(selectedReport.id, (comments) => {
         setCommentsData(prev => ({ ...prev, [selectedReport.id]: comments }));
       });
@@ -1523,9 +1533,24 @@ export default function Dashboard() {
                           return (
                             <div
                               key={apt.name}
-                              onClick={() => report ? setSelectedReport(report) : undefined}
-                              className={`bg-white rounded-2xl border border-[#e5e8eb] p-5 transition-all duration-200 group ${
-                                report ? 'cursor-pointer hover:shadow-lg hover:-translate-y-0.5 hover:border-[#3182f6]/30' : 'opacity-90'
+                              onClick={() => {
+                                if (report) {
+                                  setSelectedReport(report);
+                                } else {
+                                  // 임장기 없는 아파트: 실거래가/차트만 보여주는 스텁 리포트 생성
+                                  setSelectedReport({
+                                    id: `stub-${normalizeAptName(apt.name)}`,
+                                    apartmentName: apt.name,
+                                    dong: apt.dong,
+                                    author: '',
+                                    likes: 0,
+                                    commentCount: 0,
+                                    createdAt: null,
+                                  });
+                                }
+                              }}
+                              className={`bg-white rounded-2xl border border-[#e5e8eb] p-5 transition-all duration-200 group cursor-pointer hover:shadow-lg hover:-translate-y-0.5 hover:border-[#3182f6]/30 ${
+                                !report && !txSummary ? 'opacity-70' : ''
                               }`}
                             >
                               {/* 상단: 이름 + 뱃지 */}
