@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Scatter, Bar, ReferenceDot, Legend } from 'recharts';
+import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Scatter, Bar, ReferenceDot, Legend, Customized } from 'recharts';
 
 // Lazy-loaded heavy chart components (reduces initial bundle ~40KB)
 const MainChart = dynamic(() => import('@/components/MainChart'), { ssr: false });
@@ -153,6 +153,8 @@ export function FieldReportModal({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [chartTimeframe, setChartTimeframe] = useState<'6M'|'1Y'|'3Y'|'ALL'>('ALL');
+  const [isTxExpanded, setIsTxExpanded] = useState(false);
+  const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: any } | null>(null);
   const isUnlocked = isPurchased || isAdmin;
   const isStub = report.id.startsWith('stub-');
   const modalRef = useRef<HTMLDivElement>(null);
@@ -191,32 +193,40 @@ export function FieldReportModal({
                     <TrendingUp size={13} className="text-[#03c75a]" />
                     실거래가 내역 <span className="text-[11px] ml-1">{transactions.length}건</span>
                   </h4>
-                  <div className="overflow-y-auto max-h-[600px] flex-1 custom-scrollbar">
+                  <div className="flex-1">
                     <table className="w-full text-[13px]">
                       <thead className="sticky top-0 bg-[#f9fafb]">
                         <tr className="border-b border-[#e5e8eb] text-[#8b95a1]">
-                          <th className="py-2 text-left font-bold">거래일</th>
-                          <th className="py-2 text-right font-bold">금액</th>
-                          <th className="py-2 text-right font-bold">면적</th>
-                          <th className="py-2 text-right font-bold">층</th>
-                          <th className="py-2 text-right font-bold">유형</th>
+                          <th className="py-3 text-left font-bold">거래일</th>
+                          <th className="py-3 text-right font-bold">금액</th>
+                          <th className="py-3 text-right font-bold">면적</th>
+                          <th className="py-3 text-right font-bold">층</th>
+                          <th className="py-3 text-right font-bold">유형</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {transactions.map((tx, idx) => (
+                        {(isTxExpanded ? transactions : transactions.slice(0, 10)).map((tx, idx) => (
                           <tr key={idx} className={`border-b border-[#f2f4f6] hover:bg-white/60 transition-colors ${idx < 3 ? 'bg-[#f0f7ff]' : ''}`}>
-                            <td className={`py-2 ${idx < 3 ? 'text-[#191f28] font-bold' : 'text-[#4e5968]'}`}>
+                            <td className={`py-3 ${idx < 3 ? 'text-[#191f28] font-bold' : 'text-[#4e5968]'}`}>
                               {idx < 3 && <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3182f6] mr-1.5 mb-[1px]" />}
                               {tx.contractYm.slice(0,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}
                             </td>
-                            <td className={`py-2 text-right font-extrabold ${idx < 3 ? 'text-[#3182f6]' : 'text-[#191f28]'}`}>{tx.priceEok}</td>
-                            <td className="py-2 text-right text-[#4e5968]">{(() => { const norm = normalizeAptName(tx.aptName); const t = typeMap[norm]?.[String(tx.area)]; return t ? <span className="font-bold text-[#3182f6] bg-[#e8f3ff] px-1.5 py-0.5 rounded text-[10px]">{t}</span> : `${tx.areaPyeong}평`; })()}</td>
-                            <td className="py-2 text-right text-[#4e5968]">{tx.floor}층</td>
-                            <td className="py-2 text-right text-[#8b95a1]">{tx.dealType}</td>
+                            <td className={`py-3 text-right font-extrabold ${idx < 3 ? 'text-[#3182f6]' : 'text-[#191f28]'}`}>{tx.priceEok}</td>
+                            <td className="py-3 text-right text-[#4e5968]">{(() => { const norm = normalizeAptName(tx.aptName); const t = typeMap[norm]?.[String(tx.area)]; return t ? <span className="font-bold text-[#3182f6] bg-[#e8f3ff] px-1.5 py-0.5 rounded text-[10px]">{t}</span> : `${tx.areaPyeong}평`; })()}</td>
+                            <td className="py-3 text-right text-[#4e5968]">{tx.floor}층</td>
+                            <td className="py-3 text-right text-[#8b95a1]">{tx.dealType}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
+                    {transactions.length > 10 && (
+                      <button
+                        onClick={() => setIsTxExpanded(!isTxExpanded)}
+                        className="w-full mt-2 py-2 text-[12px] font-bold text-[#3182f6] hover:bg-[#e8f3ff] rounded-lg transition-colors"
+                      >
+                        {isTxExpanded ? '접기 ▲' : `나머지 ${transactions.length - 10}건 더보기 ▼`}
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -241,339 +251,188 @@ export function FieldReportModal({
                </div>
                )}
 
-               {/* 매매가 추이 차트 (시계열 선택 + 스캐터) */}
+               {/* 매매가 추이 차트 (평균선 + 연한 개별 거래 점) */}
                {transactions.length > 0 && (() => {
-                 // 만원 → 억 변환
-                 const rawData = transactions.map((tx, idx) => {
+                 const rawData = transactions.map((tx) => {
                    let priceEokNum = tx.price / 10000;
                    if (priceEokNum > 100) priceEokNum = tx.price / 100000000;
-                   const ym = tx.contractYm; // e.g. '202511'
+                   const ym = tx.contractYm;
                    const year = parseInt(ym.slice(0, 4));
                    const month = parseInt(ym.slice(4));
                    const day = parseInt(tx.contractDay) || 15;
-                   const ts = new Date(year, month - 1, day).getTime();
                    return {
-                     ts,
-                     date: `${ym.slice(2,4)}.${ym.slice(4)}`,
-                     fullDate: `${year}.${String(month).padStart(2,'0')}.${String(day).padStart(2,'0')}`,
+                     ts: new Date(year, month - 1, day).getTime(),
                      yearMonth: parseInt(ym),
                      price: Math.round(priceEokNum * 1000) / 1000,
-                     area: tx.areaPyeong,
-                     floor: tx.floor,
-                     priceEok: tx.priceEok,
-                     idx,
+                     area: tx.areaPyeong, rawArea: tx.area,
+                     floor: tx.floor, priceEok: tx.priceEok, dealType: tx.dealType,
+                     fullDate: `${year}.${String(month).padStart(2,'0')}.${String(day).padStart(2,'0')}`,
                    };
                  });
 
-                 // 시계열 필터
                  const now = new Date();
-                 const cutoffMap: Record<string, number> = {
-                   '6M': 6, '1Y': 12, '3Y': 36, 'ALL': 9999,
-                 };
-                 const months = cutoffMap[chartTimeframe];
-                 const cutoffDate = new Date(now.getFullYear(), now.getMonth() - months, 1);
+                 const cutoffMap: Record<string, number> = { '6M': 6, '1Y': 12, '3Y': 36, 'ALL': 9999 };
+                 const monthsCut = cutoffMap[chartTimeframe];
+                 const cutoffDate = new Date(now.getFullYear(), now.getMonth() - monthsCut, 1);
                  const cutoffYm = cutoffDate.getFullYear() * 100 + (cutoffDate.getMonth() + 1);
                  const timeFiltered = rawData.filter(d => d.yearMonth >= cutoffYm);
 
                  // IQR 이상치 필터
-                 const sorted = [...timeFiltered].sort((a, b) => a.price - b.price);
-                 const q1 = sorted[Math.floor(sorted.length * 0.1)]?.price || 0;
-                 const q3 = sorted[Math.floor(sorted.length * 0.9)]?.price || 10;
+                 const sortedPrices = [...timeFiltered].sort((a, b) => a.price - b.price);
+                 const q1 = sortedPrices[Math.floor(sortedPrices.length * 0.1)]?.price || 0;
+                 const q3 = sortedPrices[Math.floor(sortedPrices.length * 0.9)]?.price || 10;
                  const iqr = q3 - q1;
-                 const lower = Math.max(0, q1 - iqr * 2);
-                 const upper = q3 + iqr * 2;
-                 const scatterData = timeFiltered;
-
+                 const scatterData = timeFiltered.filter(d => d.price >= q1 - iqr * 2 && d.price <= q3 + iqr * 2);
                  if (scatterData.length === 0) return null;
 
-                 // 월별 평균값 계산 (정확히 매월 15일 기준 하나의 포인트만 생성)
+                 // 월별 평균
                  const byMonth = new Map<number, number[]>();
                  scatterData.forEach(d => {
                    if (!byMonth.has(d.yearMonth)) byMonth.set(d.yearMonth, []);
                    byMonth.get(d.yearMonth)!.push(d.price);
                  });
-                 const getAvg = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
                  const monthlyData = Array.from(byMonth.entries())
-                   .map(([ym, prices]) => {
-                     const year = Math.floor(ym / 100);
-                     const month = ym % 100;
-                     return {
-                       ts: new Date(year, month - 1, 15).getTime(),
-                       monthAvg: Math.round(getAvg(prices) * 1000) / 1000,
-                       volume: prices.length,
-                     };
-                   })
+                   .map(([ym, prices]) => ({
+                     ts: new Date(Math.floor(ym / 100), (ym % 100) - 1, 15).getTime(),
+                     monthAvg: Math.round((prices.reduce((a, b) => a + b, 0) / prices.length) * 1000) / 1000,
+                     volume: prices.length, ym,
+                   }))
                    .sort((a, b) => a.ts - b.ts);
 
                  const prices = scatterData.map(d => d.price);
                  let minP = Infinity, maxP = -Infinity, sumP = 0;
                  for (const p of prices) { if (p < minP) minP = p; if (p > maxP) maxP = p; sumP += p; }
-                 const avgP = prices.length > 0 ? sumP / prices.length : 0;
                  const domainMin = Math.floor(minP * 10) / 10 - 0.3;
                  const domainMax = Math.ceil(maxP * 10) / 10 + 0.5;
-                 const priceDiff = maxP - minP;
-                 const latestPrice = scatterData[scatterData.length - 1]?.price || avgP;
-                 const firstPrice = scatterData[0]?.price || avgP;
-                 const changePercent = firstPrice > 0 ? ((latestPrice - firstPrice) / firstPrice * 100) : 0;
-
-                 // 최고/최저가 식별
-                 const maxPoint = scatterData.reduce((best, d) => !best || d.price > best.price || (d.price === best.price && d.ts > best.ts) ? d : best, null as typeof scatterData[0] | null);
-                 const minPoint = scatterData.reduce((best, d) => !best || d.price < best.price || (d.price === best.price && d.ts > best.ts) ? d : best, null as typeof scatterData[0] | null);
-
-                 // 최고/최저 마커 겹침 방지: 가격 차이가 작으면 최저 마커를 아래로 더 밀기
-                 const markersTooClose = maxPoint && minPoint && Math.abs(maxPoint.price - minPoint.price) < priceDiff * 0.15;
-
-                 // Snap scatter timestamps to nearest monthlyData timestamp for ReferenceDot
-                 const snapToMonthly = (ts: number) => monthlyData.reduce((prev, curr) => Math.abs(curr.ts - ts) < Math.abs(prev.ts - ts) ? curr : prev).ts;
-                 const maxPointMonthTs = maxPoint ? snapToMonthly(maxPoint.ts) : 0;
-                 const minPointMonthTs = minPoint ? snapToMonthly(minPoint.ts) : 0;
+                 const latestAvg = monthlyData[monthlyData.length - 1]?.monthAvg || (prices.length > 0 ? sumP / prices.length : 0);
+                 const firstAvg = monthlyData[0]?.monthAvg || latestAvg;
+                 const changePercent = firstAvg > 0 ? ((latestAvg - firstAvg) / firstAvg * 100) : 0;
 
                  return (
                    <div className="mt-4 bg-white rounded-2xl p-5 ring-1 ring-black/5 flex-1">
-                     {/* Header + Timeframe — 버튼 크기 확대 */}
-                     <div className="flex items-center justify-between mb-4">
+                     <div className="flex items-center justify-between mb-3">
                        <h4 className="text-[14px] font-bold text-[#191f28] flex items-center gap-1.5">
-                         <TrendingUp size={15} className="text-[#3182f6]" />
-                         매매가 추이
+                         <TrendingUp size={15} className="text-[#3182f6]" /> 매매가 추이
                        </h4>
-                       <div className="flex items-center gap-1.5">
+                       <div className="flex items-center gap-1">
                          {(['6M','1Y','3Y','ALL'] as const).map(tf => (
-                           <button
-                             key={tf}
-                             onClick={() => setChartTimeframe(tf)}
-                             className={`px-3 py-1 rounded-lg text-[12px] font-bold transition-all ${
-                               chartTimeframe === tf
-                                 ? 'bg-[#3182f6] text-white shadow-sm'
-                                 : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb]'
-                             }`}
-                           >
-                             {tf}
-                           </button>
+                           <button key={tf} onClick={() => setChartTimeframe(tf)}
+                             className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                               chartTimeframe === tf ? 'bg-[#191f28] text-white' : 'text-[#8b95a1] hover:bg-[#f2f4f6]'
+                             }`}>{tf}</button>
                          ))}
                        </div>
                      </div>
-
-                     {/* 통계 카드 — 가독성 대폭 개선 */}
-                     <div className="grid grid-cols-3 gap-2 mb-4">
-                       <div className="bg-[#fff5f5] rounded-xl p-3 text-center border border-red-100">
-                         <div className="text-[10px] font-bold text-[#EF4444] mb-0.5">▲ 최고</div>
-                         <div className="text-[18px] font-extrabold text-[#EF4444]">{maxP.toFixed(1)}<span className="text-[12px] font-bold ml-0.5">억</span></div>
-                       </div>
-                       <div className="bg-[#FFFBEB] rounded-xl p-3 text-center border border-amber-100">
-                         <div className="text-[10px] font-bold text-[#F59E0B] mb-0.5">평균</div>
-                         <div className="text-[18px] font-extrabold text-[#F59E0B]">{avgP.toFixed(1)}<span className="text-[12px] font-bold ml-0.5">억</span></div>
-                       </div>
-                       <div className="bg-[#EFF6FF] rounded-xl p-3 text-center border border-blue-100">
-                         <div className="text-[10px] font-bold text-[#3B82F6] mb-0.5">▼ 최저</div>
-                         <div className="text-[18px] font-extrabold text-[#3B82F6]">{minP.toFixed(1)}<span className="text-[12px] font-bold ml-0.5">억</span></div>
-                       </div>
-                     </div>
-
-                     {/* 거래 건수 + 변동률 */}
-                     <div className="flex items-center gap-2 text-[11px] mb-2">
-                       <span className="text-[#8b95a1] font-bold">{scatterData.length}건 거래</span>
+                     <div className="flex items-baseline gap-3 mb-4">
+                       <span className="text-[24px] font-extrabold text-[#191f28]">
+                         {latestAvg >= 1 ? `${Math.floor(latestAvg)}억` : ''}{(() => { const rem = Math.round((latestAvg % 1) * 10000); return rem > 0 ? rem.toLocaleString() : ''; })()}
+                       </span>
                        {changePercent !== 0 && (
-                         <span className={`font-bold px-1.5 py-0.5 rounded ${changePercent > 0 ? 'text-[#EF4444] bg-red-50' : 'text-[#3B82F6] bg-blue-50'}`}>
+                         <span className={`text-[13px] font-bold px-2 py-0.5 rounded-md ${changePercent > 0 ? 'text-[#EF4444] bg-red-50' : 'text-[#3182f6] bg-blue-50'}`}>
                            {changePercent > 0 ? '▲' : '▼'} {Math.abs(changePercent).toFixed(1)}%
                          </span>
                        )}
+                       <span className="text-[12px] text-[#8b95a1] font-medium">{scatterData.length}건 · 최고 {maxP.toFixed(1)}억 · 최저 {minP.toFixed(1)}억</span>
                      </div>
-
-                     {/* Chart — 높이 300px로 증가 */}
-                     <div className="h-[300px] mt-2">
+                     <div className="h-[280px] relative">
                        <ResponsiveContainer width="100%" height="100%">
-                         <ComposedChart data={monthlyData} margin={{ top: 30, right: 10, left: 0, bottom: 5 }} style={{ overflow: 'visible' }}>
+                         <ComposedChart data={monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
                            <defs>
-                             <linearGradient id="priceGradModal" x1="0" y1="0" x2="0" y2="1">
-                               <stop offset="5%" stopColor="#4A6CF7" stopOpacity={0.15}/>
-                               <stop offset="95%" stopColor="#4A6CF7" stopOpacity={0.02}/>
+                             <linearGradient id="avgGrad" x1="0" y1="0" x2="0" y2="1">
+                               <stop offset="5%" stopColor="#3182f6" stopOpacity={0.12}/>
+                               <stop offset="95%" stopColor="#3182f6" stopOpacity={0.01}/>
                              </linearGradient>
                            </defs>
-                           <Legend wrapperStyle={{ display: "none" }} />
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e8eb" vertical={false} />
-                           <XAxis
-                             dataKey="ts"
-                             type="number"
-                             scale="time"
-                             domain={['dataMin', 'dataMax']}
-                             tick={{ fill: '#8b95a1', fontSize: 10, fontWeight: 600 }}
-                             axisLine={{ stroke: '#e5e8eb' }}
-                             tickLine={false}
-                             tickFormatter={(ts: number) => {
-                               const d = new Date(ts);
-                               return `${String(d.getFullYear()).slice(2)}.${String(d.getMonth() + 1).padStart(2, '0')}`;
-                             }}
-                             allowDuplicatedCategory={false}
-                             tickMargin={8}
+                           <CartesianGrid strokeDasharray="3 3" stroke="#f2f4f6" vertical={false} />
+                           <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']}
+                             tick={{ fill: '#8b95a1', fontSize: 10, fontWeight: 600 }} axisLine={{ stroke: '#e5e8eb' }}
+                             tickLine={false} tickMargin={6}
+                             tickFormatter={(ts: number) => { const d = new Date(ts); return `${String(d.getFullYear()).slice(2)}.${String(d.getMonth()+1).padStart(2,'0')}`; }}
                            />
-                           <YAxis
-                             yAxisId="price"
-                             orientation="left"
-                             domain={[Math.max(0, domainMin), domainMax]}
-                             tick={{ fill: '#8b95a1', fontSize: 11, fontWeight: 600 }}
-                             axisLine={false}
-                             tickLine={false}
-                             width={50}
+                           <YAxis yAxisId="price" orientation="left" domain={[Math.max(0, domainMin), domainMax]}
+                             tick={{ fill: '#8b95a1', fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false}
+                             width={48} dx={-3}
                              tickFormatter={(v: number) => v >= 1 ? `${v.toFixed(1)}억` : `${Math.round(v * 10000)}만`}
-                             dx={-5}
-                           />
-                           <YAxis
-                             yAxisId="volume"
-                             orientation="right"
-                             domain={[0, 'dataMax * 6']}
-                             hide={true}
                            />
                            <RechartsTooltip
                              content={({ active, payload }) => {
                                if (!active || !payload?.length) return null;
                                const item = payload[0]?.payload;
-                               // Scatter 점 hover
-                               if (item?.fullDate) {
-                                 return (
-                                   <div style={{
-                                     background: '#1e293b', borderRadius: 10, padding: '10px 14px',
-                                     boxShadow: '0 8px 24px rgba(0,0,0,0.2)', border: 'none',
-                                     minWidth: 120,
-                                   }}>
-                                     <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: 500, marginBottom: 4 }}>
-                                       {item.fullDate}
-                                     </div>
-                                     <div style={{ color: '#fff', fontSize: 16, fontWeight: 800, marginBottom: 2 }}>
-                                       {item.priceEok || `${item.price.toFixed(2)}억`}
-                                     </div>
-                                     <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: 500 }}>
-                                       {item.area}평 · {item.floor}층
-                                     </div>
-                                   </div>
-                                 );
-                               }
-                               // 월별 평균 / 거래량 hover
-                               const vol = item?.volume;
                                const avg = item?.monthAvg;
+                               const vol = item?.volume;
                                return (
-                                 <div style={{
-                                   background: '#1e293b', borderRadius: 10, padding: '8px 12px',
-                                   boxShadow: '0 8px 24px rgba(0,0,0,0.15)', border: 'none',
-                                 }}>
-                                   <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, fontWeight: 500, marginBottom: 4 }}>
-                                     {new Date(item?.ts).getFullYear()}.{String(new Date(item?.ts).getMonth() + 1).padStart(2, '0')}월
+                                 <div style={{ background: '#1e293b', borderRadius: 10, padding: '8px 12px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', border: 'none' }}>
+                                   <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>
+                                     {new Date(item?.ts).getFullYear()}.{String(new Date(item?.ts).getMonth()+1).padStart(2,'0')}월
                                    </div>
-                                   {avg && <div style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>평균 {avg.toFixed(2)}억</div>}
-                                   {vol != null && <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>{vol}건 거래</div>}
+                                   {avg && <div style={{ color: '#fff', fontSize: 14, fontWeight: 700 }}>평균 {avg.toFixed(2)}억</div>}
+                                   {vol != null && <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2 }}>{vol}건 거래</div>}
                                  </div>
                                );
                              }}
-                             cursor={{ stroke: '#8b95a1', strokeWidth: 1, strokeDasharray: '2 2' }}
+                             cursor={{ stroke: '#d1d6db', strokeWidth: 1, strokeDasharray: '3 3' }}
                            />
-                           {/* 거래량 바 그래프 — 슬림하게 */}
-                           <Bar
-                             dataKey="volume"
-                             yAxisId="volume"
-                             fill="#e0e7ff"
-                             barSize={6}
-                             radius={[2, 2, 0, 0]}
-                             opacity={0.6}
+                           <Area type="monotone" dataKey="monthAvg" yAxisId="price"
+                             stroke="#3182f6" strokeWidth={2.5} fill="url(#avgGrad)"
+                             dot={false} activeDot={false} connectNulls
                            />
-                           {/* 월별 평균값 추세선 */}
-                           <Area
-                             type="monotone"
-                             dataKey="monthAvg"
-                             yAxisId="price"
-                             stroke="#4A6CF7"
-                             strokeWidth={2.5}
-                             fill="url(#priceGradModal)"
-                             dot={false}
-                             activeDot={false}
-                             connectNulls
-                           />
-                           {/* 개별 거래 점 — hover 시 확대 */}
-                           <Scatter
-                             data={scatterData}
-                             dataKey="price"
-                             yAxisId="price"
-                             fill="#4A6CF7"
-                             legendType="none"
-                             shape={(props: any) => {
-                               const { cx, cy } = props;
-                               if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
+                           <Customized
+                             component={(rechartProps: any) => {
+                               const { xAxisMap, yAxisMap } = rechartProps;
+                               if (!xAxisMap || !yAxisMap) return null;
+                               const xAx = Object.values(xAxisMap)[0] as any;
+                               const yAx = Object.values(yAxisMap)[0] as any;
+                               if (!xAx?.scale || !yAx?.scale) return null;
                                return (
-                                 <circle 
-                                   cx={cx} cy={cy} r={3.5} 
-                                   fill="#4A6CF7" 
-                                   stroke="#fff" 
-                                   strokeWidth={1.5} 
-                                   style={{ filter: 'drop-shadow(0px 1px 2px rgba(0,0,0,0.08))', cursor: 'pointer', transition: 'r 0.15s' }}
-                                 />
-                               );
-                             }}
-                             activeShape={(props: any) => {
-                               const { cx, cy } = props;
-                               if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
-                               return (
-                                 <circle 
-                                   cx={cx} cy={cy} r={6} 
-                                   fill="#4A6CF7" 
-                                   stroke="#fbbf24" 
-                                   strokeWidth={2.5} 
-                                   style={{ filter: 'drop-shadow(0px 2px 6px rgba(74,108,247,0.4))', cursor: 'pointer' }}
-                                 />
+                                 <g>
+                                   {scatterData.map((d, i) => {
+                                     const cx = xAx.scale(d.ts);
+                                     const cy = yAx.scale(d.price);
+                                     if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
+                                     const isHov = hoveredDot?.data === d;
+                                     return (
+                                       <circle key={i} cx={cx} cy={cy}
+                                         r={isHov ? 5 : 3} fill="#3182f6"
+                                         opacity={isHov ? 1 : 0.2}
+                                         stroke={isHov ? '#fbbf24' : 'none'}
+                                         strokeWidth={isHov ? 2 : 0}
+                                         style={{ cursor: 'pointer', transition: 'r 0.15s, opacity 0.15s' }}
+                                         onMouseEnter={() => setHoveredDot({ x: cx, y: cy, data: d })}
+                                         onMouseLeave={() => setHoveredDot(null)}
+                                       />
+                                     );
+                                   })}
+                                 </g>
                                );
                              }}
                            />
-                           {/* 최고가 핀 마커 */}
-                           {maxPoint && (
-                             <ReferenceDot
-                               x={maxPointMonthTs}
-                               y={maxPoint.price}
-                               yAxisId="price"
-                               r={5}
-                               fill="#EF4444"
-                               stroke="#fff"
-                               strokeWidth={2}
-                               label={({ viewBox }: any) => {
-                                 const cx = viewBox?.cx ?? viewBox?.x;
-                                 const cy = viewBox?.cy ?? viewBox?.y;
-                                 if (cx == null || cy == null || !Number.isFinite(cx) || !Number.isFinite(cy)) return <g/>;
-                                 const labelW = 66;
-                                 if (!Number.isFinite(cx) || !Number.isFinite(cy)) return <g/>;
-                                 return (
-                                   <g>
-                                     <rect x={cx - labelW/2} y={cy - 30} width={labelW} height={20} fill="#EF4444" rx={6} />
-                                     <polygon points={`${cx - 4},${cy - 10} ${cx + 4},${cy - 10} ${cx},${cy - 4}`} fill="#EF4444" />
-                                     <text x={cx} y={cy - 16} fill="#fff" fontSize="10" fontWeight="bold" textAnchor="middle">최고 {maxPoint.price.toFixed(1)}억</text>
-                                   </g>
-                                 );
-                               }}
-                             />
-                           )}
-                           {/* 최저가 핀 마커 — 겹침 방지 */}
-                           {minPoint && minPoint !== maxPoint && (
-                             <ReferenceDot
-                               x={minPointMonthTs}
-                               y={minPoint.price}
-                               yAxisId="price"
-                               r={5}
-                               fill="#3B82F6"
-                               stroke="#fff"
-                               strokeWidth={2}
-                               label={({ viewBox }: any) => {
-                                 const cx = viewBox?.cx ?? viewBox?.x;
-                                 const cy = viewBox?.cy ?? viewBox?.y;
-                                 if (cx == null || cy == null || !Number.isFinite(cx) || !Number.isFinite(cy)) return <g/>;
-                                 const labelW = 66;
-                                 const yOff = markersTooClose ? 20 : 12;
-                                 return (
-                                   <g>
-                                     <polygon points={`${cx - 4},${cy + yOff} ${cx + 4},${cy + yOff} ${cx},${cy + 4}`} fill="#3B82F6" />
-                                     <rect x={cx - labelW/2} y={cy + yOff} width={labelW} height={20} fill="#3B82F6" rx={6} />
-                                     <text x={cx} y={cy + yOff + 14} fill="#fff" fontSize="10" fontWeight="bold" textAnchor="middle">최저 {minPoint.price.toFixed(1)}억</text>
-                                   </g>
-                                 );
-                               }}
-                             />
-                           )}
+                           <Legend wrapperStyle={{ display: 'none' }} />
                          </ComposedChart>
                        </ResponsiveContainer>
+                       {hoveredDot && (() => {
+                         const d = hoveredDot.data;
+                         const aptKey = normalizeAptName(report.apartmentName);
+                         const typeName = typeMap[aptKey]?.[String(d.rawArea)];
+                         return (
+                           <div style={{
+                             position: 'absolute', left: hoveredDot.x + 48, top: hoveredDot.y + 10,
+                             transform: 'translate(-50%, -100%) translateY(-12px)',
+                             background: '#1e293b', borderRadius: 10, padding: '10px 14px',
+                             boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+                             pointerEvents: 'none', zIndex: 10, whiteSpace: 'nowrap',
+                           }}>
+                             <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>{d.fullDate}</div>
+                             <div style={{ color: '#fff', fontSize: 16, fontWeight: 800, marginBottom: 3 }}>
+                               {d.priceEok || `${d.price.toFixed(2)}억`}
+                             </div>
+                             <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, display: 'flex', gap: 6, alignItems: 'center' }}>
+                               {typeName ? <span style={{ color: '#93c5fd', fontWeight: 600 }}>{typeName}</span> : <span>{d.area}평</span>}
+                               <span>·</span><span>{d.floor}층</span>
+                               {d.dealType && <><span>·</span><span>{d.dealType}</span></>}
+                             </div>
+                           </div>
+                         );
+                       })()}
                      </div>
                    </div>
                  );
