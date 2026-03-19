@@ -328,10 +328,13 @@ export function FieldReportModal({
                  const firstAvg = monthlyData[0]?.monthAvg || latestAvg;
                  const changePercent = firstAvg > 0 ? ((latestAvg - firstAvg) / firstAvg * 100) : 0;
 
-                 // 층수별 색상
+                 // 층수별 색상 — 해당 아파트 최고층 대비 비율로 동적 분류
+                 const maxFloor = Math.max(...scatterData.map(d => d.floor), 1);
+                 const lowCut = Math.ceil(maxFloor / 3);
+                 const midCut = Math.ceil((maxFloor * 2) / 3);
                  const getFloorColor = (floor: number) => {
-                   if (floor >= 20) return '#EF4444'; // 고층 = 빨강
-                   if (floor >= 10) return '#3182f6'; // 중층 = 파랑
+                   if (floor >= midCut) return '#EF4444'; // 고층 = 빨강
+                   if (floor >= lowCut) return '#3182f6'; // 중층 = 파랑
                    return '#03c75a'; // 저층 = 초록
                  };
 
