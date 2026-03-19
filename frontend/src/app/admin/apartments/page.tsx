@@ -153,12 +153,21 @@ export default function ApartmentManagementPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await setDoc(doc(db, FIRESTORE_DOC), meta);
+      // Firestore는 undefined를 허용하지 않으므로 제거
+      const clean: Record<string, Record<string, unknown>> = {};
+      for (const [name, m] of Object.entries(meta)) {
+        const entry: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(m)) {
+          if (v !== undefined && v !== null && v !== '') entry[k] = v;
+        }
+        if (entry.dong) clean[name] = entry;
+      }
+      await setDoc(doc(db, FIRESTORE_DOC), clean);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
       console.error('Save failed:', e);
-      alert('저장에 실패했습니다.');
+      alert('저장에 실패했습니다: ' + (e as Error).message);
     }
     setSaving(false);
   };
@@ -261,13 +270,6 @@ export default function ApartmentManagementPage() {
           <button onClick={() => setShowAddForm(!showAddForm)}
             className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#3182f6] bg-[#e8f3ff] hover:bg-[#3182f6] hover:text-white transition-all text-[13px]">
             <Plus size={16}/> 아파트 추가
-          </button>
-          <button onClick={handleSave} disabled={saving}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold transition-all shadow-sm shrink-0 ${
-              saved ? 'bg-[#03c75a] text-white' : 'bg-[#3182f6] hover:bg-[#2b72d6] text-white'
-            } disabled:opacity-60`}>
-            <Save size={18}/>
-            {saving ? '저장 중...' : saved ? '저장 완료!' : '저장하기'}
           </button>
         </div>
       </div>
@@ -460,6 +462,21 @@ export default function ApartmentManagementPage() {
           })()}
         </div>
       </div>
+
+      {/* Floating Save Bar */}
+      <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-40 bg-white/90 backdrop-blur-lg border-t border-[#e5e8eb] px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+        <span className="text-[13px] text-[#8b95a1] font-medium">{stats.total}개 아파트 · {stats.mapped} 매핑됨</span>
+        <button onClick={handleSave} disabled={saving}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all text-[14px] ${
+            saved ? 'bg-[#03c75a] text-white shadow-lg shadow-[#03c75a]/20' : 'bg-[#3182f6] hover:bg-[#2b72d6] text-white shadow-lg shadow-[#3182f6]/20'
+          } disabled:opacity-60`}>
+          <Save size={16}/>
+          {saving ? '저장 중...' : saved ? '저장 완료!' : '저장하기'}
+        </button>
+      </div>
+
+      {/* Bottom padding for floating bar */}
+      <div className="h-20" />
     </div>
   );
 }
