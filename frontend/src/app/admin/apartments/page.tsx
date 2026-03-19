@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Building, Save, Search, Check, X, AlertTriangle, ChevronDown, ChevronRight, Home, Link2, FileText, Plus, Trash2, MapPin } from 'lucide-react';
-import { doc, getDoc, setDoc, collection, query, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, onSnapshot, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import { APARTMENTS_BY_DONG } from '@/lib/apartment-data';
 import type { StaticApartment } from '@/lib/apartment-data';
@@ -191,10 +191,11 @@ export default function ApartmentManagementPage() {
     });
   }, []);
 
-  const renameApt = useCallback((oldName: string, newName: string) => {
+  const renameApt = useCallback(async (oldName: string, newName: string) => {
     const trimmed = newName.trim();
     if (!trimmed || trimmed === oldName) { setEditingName(null); return; }
     if (meta[trimmed]) { alert('이미 존재하는 아파트 이름입니다.'); return; }
+    // Update local state
     setMeta(prev => {
       const next = { ...prev };
       next[trimmed] = { ...next[oldName] };
@@ -202,6 +203,18 @@ export default function ApartmentManagementPage() {
       return next;
     });
     setEditingName(null);
+    // Cascade: update scoutingReports
+    try {
+      const q = query(collection(db, 'scoutingReports'), where('apartmentName', '==', oldName));
+      const snap = await getDocs(q);
+      const updates = snap.docs.map(d => updateDoc(d.ref, { apartmentName: trimmed }));
+      if (updates.length > 0) {
+        await Promise.all(updates);
+        console.log(`Renamed ${updates.length} scouting report(s): ${oldName} → ${trimmed}`);
+      }
+    } catch (e) {
+      console.error('Failed to update scouting reports:', e);
+    }
   }, [meta]);
 
   const addApartment = useCallback(() => {
