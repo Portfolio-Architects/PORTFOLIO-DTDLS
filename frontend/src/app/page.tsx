@@ -520,8 +520,8 @@ export function FieldReportModal({
           {!isStub && (
           <nav className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] px-4 py-2.5">
             <div className="flex gap-1.5 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-w-[1000px] mx-auto">
-              {['요약', '프리미엄', '사진', '명세', '인프라', '생태', '결론', '댓글'].map((label, idx) => {
-                const ids = ['sec-summary', 'sec-premium', 'sec-photos', 'sec-specs', 'sec-infra', 'sec-eco', 'sec-conclusion', 'sec-comments'];
+              {['사진', '명세', '인프라', '생태', '결론', '댓글'].map((label, idx) => {
+                const ids = ['sec-photos', 'sec-specs', 'sec-infra', 'sec-eco', 'sec-conclusion', 'sec-comments'];
                 return (
                   <button
                     key={ids[idx]}
@@ -540,36 +540,7 @@ export function FieldReportModal({
           {!isStub && (
           <div className="px-2 py-6 md:px-3 md:py-8 flex flex-col gap-8 w-full">
 
-            {/* 요약 브리프 (맨 위 배치 — 항상 렌더링, 하지만 본문은 유료) */}
-              <div id="sec-summary" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-16">
-                <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Text size={20} className="text-[#3182f6]"/> 요약 브리프</h2>
-                {s?.assessment ? (
-                <div className="relative">
-                  <div className={`flex flex-col gap-4 ${!isUnlocked ? 'max-h-[120px] overflow-hidden' : ''}`}>
-                    <div className="flex gap-0 rounded-2xl overflow-hidden border border-[#bbf7d0]">
-                      <div className="w-1.5 bg-[#03c75a] shrink-0" />
-                      <div className="bg-[#f0fdf4] p-5 flex-1">
-                        <h3 className="text-[15px] font-extrabold text-[#03c75a] mb-2 flex items-center gap-1.5"><CheckCircle2 size={18}/> 이 단지의 핵심 장점</h3>
-                        <p className="text-[15px] text-[#191f28] leading-relaxed whitespace-pre-wrap">{s.assessment.alphaDriver || '내용 없음'}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-0 rounded-2xl overflow-hidden border border-[#ffebec]">
-                      <div className="w-1.5 bg-[#f04452] shrink-0" />
-                      <div className="bg-[#fff5f5] p-5 flex-1">
-                        <h3 className="text-[15px] font-extrabold text-[#f04452] mb-2 flex items-center gap-1.5"><AlertCircle size={18}/> 주의할 단점</h3>
-                        <p className="text-[15px] text-[#191f28] leading-relaxed whitespace-pre-wrap">{s.assessment.systemicRisk || '내용 없음'}</p>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Paywall blur overlay on summary */}
-                  {!isUnlocked && (
-                    <div className="absolute bottom-0 left-0 right-0 h-[100px] bg-gradient-to-t from-white via-white/95 to-transparent" />
-                  )}
-                </div>
-                ) : (
-                  <p className="text-[14px] text-[#8b95a1] text-center py-8">요약 정보가 아직 작성되지 않았습니다.</p>
-                )}
-              </div>
+
 
             {/* ── PAYWALL GATE ── Premium content below this line */}
             {!isUnlocked && (
@@ -581,11 +552,11 @@ export function FieldReportModal({
                   </svg>
                 </div>
                 <h3 className="text-[20px] font-extrabold text-[#191f28] mb-2">프리미엄 리포트</h3>
-                <p className="text-[14px] text-[#4e5968] mb-1">프리미엄 분석, 상세 인프라 데이터, 현장 사진 갤러리,</p>
+                <p className="text-[14px] text-[#4e5968] mb-1">밸류에이션 분석, 상세 인프라 데이터, 현장 사진 갤러리,</p>
                 <p className="text-[14px] text-[#4e5968] mb-6">단지 명세, 종합 평가를 확인하세요</p>
                 
                 <div className="flex flex-wrap justify-center gap-2 mb-8">
-                  {['프리미엄 분석', '사진 갤러리', '상세 인프라', '단지 명세', '종합 결론'].map(tag => (
+                  {['밸류에이션', '사진 갤러리', '상세 인프라', '단지 명세', '종합 결론'].map(tag => (
                     <span key={tag} className="bg-[#e8f3ff] text-[#3182f6] text-[12px] font-bold px-3 py-1 rounded-full">{tag}</span>
                   ))}
                 </div>
@@ -636,7 +607,6 @@ export function FieldReportModal({
             <>
             {report.premiumScores && (
               <div id="sec-premium" className="mb-2 scroll-mt-14">
-                 <PropertyScoreChart scores={report.premiumScores} />
               </div>
             )}
 
