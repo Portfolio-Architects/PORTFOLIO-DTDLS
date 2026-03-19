@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
-import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
+import { GoogleSpreadsheet } from 'google-spreadsheet';
+import { JWT } from 'google-auth-library';
+import { SHEET_ID, SHEET_TABS } from '@/lib/constants';
 
-export const revalidate = 3600; // ISR 1시간
+export const revalidate = 0; // Disable static caching since data changes often
 
 function parseCoordString(s: string): { lat: number; lng: number } | null {
   if (!s) return null;
@@ -27,72 +29,79 @@ export interface SheetApartment {
   isPublicRental?: boolean;
 }
 
-/**
- * GET /api/apartments-by-dong
- * 
- * Google Sheet의 apartments 탭에서 동별로 그룹핑된 아파트 데이터를 반환
- * 모든 컬럼은 헤더 기반으로 자동 감지 — 컬럼 순서 변경에 영향받지 않음
- */
 export async function GET() {
   try {
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TABS.APARTMENTS)}`;
-    const res = await fetch(csvUrl, { next: { revalidate: 3600 } });
-    if (!res.ok) {
-      return NextResponse.json({ error: 'Failed to fetch sheet' }, { status: 500 });
+    const { GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY } = process.env;
+    if (!GOOGLE_SERVICE_ACCOUNT_EMAIL || !GOOGLE_PRIVATE_KEY) {
+      return NextResponse.json({ error: 'Server is missing Google Service Account credentials' }, { status: 500 });
     }
-    const csvText = await res.text();
-    const lines = csvText.split('\n').filter(l => l.trim());
-    const rows = lines.map(l => parseCsvLine(l));
 
-    // 헤더에서 컬럼 인덱스 찾기 (전부 헤더 기반 — 컬럼 순서 무관)
-    const header = rows[0]?.map(h => h.toLowerCase().trim()) || [];
-    const col = (names: string[], fallback: number) => {
-      const idx = header.findIndex(h => names.includes(h));
-      return idx !== -1 ? idx : fallback;
-    };
+    const formattedKey = GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/"/g, '');
+    const serviceAccountAuth = new JWT({
+      email: GOOGLE_SERVICE_ACCOUNT_EMAIL,
+      key: formattedKey,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+    });
 
-    const nameIdx    = col(['아파트명', 'name', '이름'], 0);
-    const coordIdx   = col(['좌표', 'coordinates', 'coord'], 1);
-    const hhIdx      = col(['세대수', 'householdcount', 'households'], 2);
-    const yearIdx    = col(['시공&준공인', '준공연도', 'yearbuilt', '준공'], 3);
-    const farIdx     = col(['용적률', 'far'], 4);
-    const bcrIdx     = col(['건폐율', 'bcr'], 5);
-    const parkIdx    = col(['주차대수', 'parkingcount', '주차'], 6);
-    const brandIdx   = col(['시공사', 'brand', '브랜드'], 7);
-    const dongIdx    = col(['dong', '동'], 8);
-    const floorIdx   = col(['최고층', 'maxfloor', 'floors', '층수', '층'], 9);
-    const txKeyIdx   = col(['txkey', '실거래키'], 10);
-    const rentalIdx  = col(['공공임대', 'public', 'rental', 'ispublicrental'], 11);
-    const tickerIdx  = col(['ticker', '티커'], 12);
+    const doc = new GoogleSpreadsheet(SHEET_ID, serviceAccountAuth);
+    await doc.loadInfo();
+    const sheet = doc.sheetsByTitle[SHEET_TABS.APARTMENTS];
+    if (!sheet) return NextResponse.json({ error: `Sheet tab '${SHEET_TABS.APARTMENTS}' not found` }, { status: 500 });
 
+    const rows = await sheet.getRows();
     const apartments: SheetApartment[] = [];
 
-    for (let i = 1; i < rows.length; i++) {
-      const c = rows[i];
-      const name = c[nameIdx]?.trim();
-      const dong = c[dongIdx]?.trim();
+    // Helper to safely extract properties matching header variations
+    const getVal = (row: any, keys: string[]) => {
+      for (const k of keys) {
+        // Case-insensitive exactly
+        const exact = sheet.headerValues.find(h => h.toLowerCase().trim() === k.toLowerCase().trim());
+        if (exact) {
+          const v = row.get(exact);
+          if (v !== undefined && v !== null && v !== '') return String(v).trim();
+        }
+      }
+      return undefined;
+    };
+
+    for (const r of rows) {
+      const name = getVal(r, ['아파트명', 'name', '이름']);
+      const dong = getVal(r, ['dong', '동']);
       if (!name || !dong) continue;
 
-      const coord = parseCoordString(c[coordIdx]);
-      const householdCount = c[hhIdx] ? parseInt(c[hhIdx]) : undefined;
-      const parkingCount = c[parkIdx] ? parseInt(c[parkIdx]) : undefined;
-      const maxFloor = c[floorIdx] ? parseInt(c[floorIdx]) : undefined;
+      const coordStr = getVal(r, ['좌표', 'coordinates', 'coord']);
+      const coord = coordStr ? parseCoordString(coordStr) : null;
+      
+      const hh = getVal(r, ['세대수', 'householdcount', 'households']);
+      const year = getVal(r, ['시공&준공인', '사용승인', '준공연도', 'yearbuilt', '준공']);
+      const farStr = getVal(r, ['용적률', 'far']);
+      const bcrStr = getVal(r, ['건폐율', 'bcr']);
+      const parkStr = getVal(r, ['주차대수', 'parkingcount', '주차']);
+      const brand = getVal(r, ['시공사', 'brand', '브랜드']);
+      const floorStr = getVal(r, ['최고층', 'maxfloor', 'floors', '층수', '층']);
+      const txKey = getVal(r, ['txkey', '실거래키']);
+      const rentalStr = getVal(r, ['공공임대', 'public', 'rental', 'ispublicrental']);
+      const ticker = getVal(r, ['ticker', '티커']);
+
+      const householdCount = hh ? parseInt(hh.replace(/,/g, '')) : undefined;
+      const parkingCount = parkStr ? parseInt(parkStr.replace(/,/g, '')) : undefined;
+      const maxFloor = floorStr ? parseInt(floorStr.replace(/,/g, '')) : undefined;
 
       apartments.push({
-        ticker: c[tickerIdx]?.trim() || undefined,
+        ticker,
         name,
         dong,
         lat: coord?.lat || 0,
         lng: coord?.lng || 0,
         householdCount: isNaN(householdCount as number) ? undefined : householdCount,
-        yearBuilt: c[yearIdx]?.trim() || undefined,
-        far: c[farIdx] ? parseFloat(c[farIdx]) || undefined : undefined,
-        bcr: c[bcrIdx] ? parseFloat(c[bcrIdx]) || undefined : undefined,
+        yearBuilt: year,
+        far: farStr ? parseFloat(farStr) || undefined : undefined,
+        bcr: bcrStr ? parseFloat(bcrStr) || undefined : undefined,
         parkingCount: isNaN(parkingCount as number) ? undefined : parkingCount,
-        brand: c[brandIdx]?.trim() || undefined,
+        brand,
         maxFloor: isNaN(maxFloor as number) ? undefined : maxFloor,
-        txKey: c[txKeyIdx]?.trim() || undefined,
-        isPublicRental: ['y', 'yes', 'true', 'o', '공공'].includes((c[rentalIdx] || '').trim().toLowerCase()),
+        txKey,
+        isPublicRental: ['y', 'yes', 'true', 'o', '공공'].includes((rentalStr || '').toLowerCase()),
       });
     }
 
