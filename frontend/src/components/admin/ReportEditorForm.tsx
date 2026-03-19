@@ -104,18 +104,19 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
   const [isLoadingApts, setIsLoadingApts] = useState(true);
   const router = useRouter();
 
-  // Fetch apartment list from MOLIT API on mount
+  // Fetch apartment list from Google Sheets on mount
   useEffect(() => {
     const fetchApartments = async () => {
       try {
-        const res = await fetch('/api/apartments');
+        const res = await fetch('/api/apartments-by-dong');
         if (res.ok) {
-          const data = await res.json();
-          if (Object.keys(data).length > 1) {
-            // 동이름 가나다순 정렬
+          const result = await res.json();
+          const byDong: Record<string, { name: string }[]> = result.byDong || {};
+          if (Object.keys(byDong).length > 1) {
+            // Convert SheetApartment[] to string[] and sort
             const sorted: Record<string, string[]> = {};
-            Object.keys(data).sort((a, b) => a.localeCompare(b, 'ko')).forEach(k => {
-              sorted[k] = (data[k] as string[]).sort((a: string, b: string) => a.localeCompare(b, 'ko'));
+            Object.keys(byDong).sort((a, b) => a.localeCompare(b, 'ko')).forEach(k => {
+              sorted[k] = byDong[k].map(a => a.name).sort((a, b) => a.localeCompare(b, 'ko'));
             });
             setDongData(sorted);
           }

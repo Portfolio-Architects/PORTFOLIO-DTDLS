@@ -19,7 +19,7 @@ const LifestyleRadarChart = dynamic(() => import('@/components/LifestyleRadarCha
 const PropertyScoreChart = dynamic(() => import('@/components/consumer/PropertyScoreChart'), { ssr: false });
 const ValuationWaterfall = dynamic(() => import('@/components/consumer/ValuationWaterfall'), { ssr: false });
 const DynamicSimulator = dynamic(() => import('@/components/consumer/DynamicSimulator'), { ssr: false });
-const ArchitectureMindmap = dynamic(() => import('@/components/admin/ArchitectureMindmap'), { ssr: false });
+
 const PaymentButton = dynamic(() => import('@/components/PaymentButton'), { ssr: false });
 
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
@@ -1922,8 +1922,7 @@ export default function Dashboard() {
               </div>
             ))}
 
-            {/* 동탄 부동산 마인드맵 — 맨 아래 배치 */}
-            <ArchitectureMindmap />
+
 
             {/* Ad Banner */}
             <div className="w-full bg-[#f2f4f6] border border-[#e5e8eb] rounded-3xl p-8 flex flex-col items-center justify-center text-center">
