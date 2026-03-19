@@ -25,9 +25,9 @@ const PaymentButton = dynamic(() => import('@/components/PaymentButton'), { ssr:
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
 import WriteReviewModal from '@/components/WriteReviewModal';
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
-import { APARTMENTS_BY_DONG, TOTAL_APARTMENTS } from '@/lib/apartment-data';
-import type { StaticApartment } from '@/lib/apartment-data';
 import { TX_SUMMARY } from '@/lib/transaction-summary';
+
+interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }
 import type { AptTxSummary } from '@/lib/transaction-summary';
 import { isSameApartment, normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import * as PurchaseRepo from '@/lib/repositories/purchase.repository';
@@ -1119,8 +1119,8 @@ export default function Dashboard() {
   // Dong filter state
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
 
-  // Apartment data — Firestore 기준, 정적 데이터 fallback
-  const [sheetApartments, setSheetApartments] = useState<Record<string, StaticApartment[]>>(APARTMENTS_BY_DONG);
+  // Apartment data — Firestore 기준
+  const [sheetApartments, setSheetApartments] = useState<Record<string, StaticApartment[]>>({});
 
   // Transaction data — static import, no API call needed
   const [typeMap, setTypeMap] = useState<Record<string, Record<string, string>>>({});
@@ -1156,12 +1156,8 @@ export default function Dashboard() {
         setNameMapping(mapping);
         setPublicRentalSet(rentals);
       } else {
-        // Fallback: static data + try old nameMapping doc
-        setSheetApartments(APARTMENTS_BY_DONG);
-        getDoc(doc(db, 'settings/nameMapping')).then(s2 => {
-          if (s2.exists()) setNameMapping(s2.data() as Record<string, string>);
-          else setNameMapping({});
-        }).catch(() => setNameMapping({}));
+        // Firestore에 데이터 없으면 빈 상태
+        setNameMapping({});
       }
     }).catch(() => setNameMapping({}));
   }, []);

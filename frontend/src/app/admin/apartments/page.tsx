@@ -4,8 +4,6 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Building, Save, Search, Check, X, AlertTriangle, ChevronDown, ChevronRight, Home, Link2, FileText, Plus, Trash2, MapPin } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, onSnapshot, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
-import { APARTMENTS_BY_DONG } from '@/lib/apartment-data';
-import type { StaticApartment } from '@/lib/apartment-data';
 import { TX_SUMMARY } from '@/lib/transaction-summary';
 import { DONGS } from '@/lib/dongs';
 
@@ -103,48 +101,9 @@ export default function ApartmentManagementPage() {
       try {
         const snap = await getDoc(doc(db, FIRESTORE_DOC));
         if (snap.exists()) {
-          const data = snap.data() as MetaMap;
-          // Merge: ensure static apartments not yet in Firestore are added
-          const merged = { ...data };
-          for (const [dong, apts] of Object.entries(APARTMENTS_BY_DONG)) {
-            for (const apt of apts) {
-              if (!merged[apt.name]) {
-                merged[apt.name] = {
-                  dong,
-                  householdCount: apt.householdCount,
-                  yearBuilt: apt.yearBuilt,
-                  brand: apt.brand,
-                  txKey: autoSuggest(apt.name) || undefined,
-                };
-              }
-            }
-          }
-          setMeta(merged);
-          setLoaded(true);
-          return;
+          setMeta(snap.data() as MetaMap);
         }
-        // First time: seed from static data + old separate docs
-        const initial: MetaMap = {};
-        const [mappingSnap, floorSnap] = await Promise.all([
-          getDoc(doc(db, 'settings/nameMapping')),
-          getDoc(doc(db, 'settings/apartmentFloors')),
-        ]);
-        const oldMapping = mappingSnap.exists() ? mappingSnap.data() as Record<string,string> : {};
-        const oldFloors = floorSnap.exists() ? floorSnap.data() as Record<string,number> : {};
-
-        for (const [dong, apts] of Object.entries(APARTMENTS_BY_DONG)) {
-          for (const apt of apts) {
-            initial[apt.name] = {
-              dong,
-              householdCount: apt.householdCount,
-              yearBuilt: apt.yearBuilt,
-              brand: apt.brand,
-              txKey: oldMapping[apt.name] || autoSuggest(apt.name) || undefined,
-              maxFloor: oldFloors[apt.name] || undefined,
-            };
-          }
-        }
-        setMeta(initial);
+        // Firestore에 데이터가 없으면 빈 상태로 시작 (아파트 추가 버튼 사용)
         setLoaded(true);
       } catch (e) {
         console.error('Failed to load:', e);
