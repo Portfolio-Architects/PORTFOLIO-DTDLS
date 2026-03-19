@@ -21,6 +21,7 @@ export interface SheetApartment {
   bcr?: number;
   parkingCount?: number;
   brand?: string;
+  maxFloor?: number;
 }
 
 /**
@@ -40,10 +41,12 @@ export async function GET() {
     const lines = csvText.split('\n').filter(l => l.trim());
     const rows = lines.map(l => parseCsvLine(l));
 
-    // 헤더에서 dong 컬럼 인덱스 찾기 (유연하게)
+    // 헤더에서 컬럼 인덱스 찾기 (유연하게)
     const header = rows[0]?.map(h => h.toLowerCase().trim()) || [];
     let dongColIdx = header.findIndex(h => h === 'dong' || h === '동');
     if (dongColIdx === -1) dongColIdx = 8; // fallback: 9번째 컬럼
+    let floorColIdx = header.findIndex(h => ['최고층', 'maxfloor', 'floors', '층수', '층'].includes(h));
+    if (floorColIdx === -1) floorColIdx = 9; // fallback: 10번째 컬럼
 
     const apartments: SheetApartment[] = [];
 
@@ -58,6 +61,7 @@ export async function GET() {
       const coord = parseCoordString(coordStr);
       const householdCount = cols[2] ? parseInt(cols[2]) : undefined;
       const parkingCount = cols[6] ? parseInt(cols[6]) : undefined;
+      const maxFloor = cols[floorColIdx] ? parseInt(cols[floorColIdx]) : undefined;
 
       apartments.push({
         name,
@@ -70,6 +74,7 @@ export async function GET() {
         bcr: cols[5] ? parseFloat(cols[5]) || undefined : undefined,
         parkingCount: isNaN(parkingCount as number) ? undefined : parkingCount,
         brand: cols[7]?.trim() || undefined,
+        maxFloor: isNaN(maxFloor as number) ? undefined : maxFloor,
       });
     }
 
