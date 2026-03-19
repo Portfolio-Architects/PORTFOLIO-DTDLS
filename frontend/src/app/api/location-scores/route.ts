@@ -83,30 +83,46 @@ async function fetchSheetCSV(tabName: string): Promise<string[][]> {
   return lines.map(l => parseCsvLine(l));
 }
 
-/** apartments 시트: 아파트명 | 좌표 | 세대수 | 준공연도 | 용적률 | 건폐율 | 주차대수 | 시공사 */
+/** apartments 시트 — 헤더 기반 자동 감지 (컬럼 순서 무관) */
 async function loadApartments(): Promise<ApartmentPOI[]> {
   const rows = await fetchSheetCSV(SHEET_TABS.APARTMENTS);
+  if (rows.length < 2) return [];
+
+  const header = rows[0].map(h => h.toLowerCase().trim());
+  const col = (names: string[], fallback: number) => {
+    const idx = header.findIndex(h => names.includes(h));
+    return idx !== -1 ? idx : fallback;
+  };
+  const nameIdx  = col(['아파트명', 'name', '이름'], 0);
+  const coordIdx = col(['좌표', 'coordinates', 'coord'], 1);
+  const hhIdx    = col(['세대수', 'householdcount', 'households'], 2);
+  const yearIdx  = col(['시공&준공인', '준공연도', 'yearbuilt', '준공'], 3);
+  const farIdx   = col(['용적률', 'far'], 4);
+  const bcrIdx   = col(['건폐율', 'bcr'], 5);
+  const parkIdx  = col(['주차대수', 'parkingcount', '주차'], 6);
+  const brandIdx = col(['시공사', 'brand', '브랜드'], 7);
+
   const result: ApartmentPOI[] = [];
   for (let i = 1; i < rows.length; i++) {
-    const cols = rows[i];
-    const name = cols[0];
-    const coordStr = cols[1];
+    const c = rows[i];
+    const name = c[nameIdx];
+    const coordStr = c[coordIdx];
     if (!name || !coordStr) continue;
     const coord = parseCoordString(coordStr);
     if (!coord) continue;
 
-    const householdCount = cols[2] ? parseInt(cols[2]) : undefined;
-    const parkingCount = cols[6] ? parseInt(cols[6]) : undefined;
+    const householdCount = c[hhIdx] ? parseInt(c[hhIdx]) : undefined;
+    const parkingCount = c[parkIdx] ? parseInt(c[parkIdx]) : undefined;
 
     result.push({
       name: name.trim(),
       ...coord,
       householdCount: isNaN(householdCount as number) ? undefined : householdCount,
-      yearBuilt: cols[3]?.trim() || undefined,
-      far: cols[4] ? parseFloat(cols[4]) || undefined : undefined,
-      bcr: cols[5] ? parseFloat(cols[5]) || undefined : undefined,
+      yearBuilt: c[yearIdx]?.trim() || undefined,
+      far: c[farIdx] ? parseFloat(c[farIdx]) || undefined : undefined,
+      bcr: c[bcrIdx] ? parseFloat(c[bcrIdx]) || undefined : undefined,
       parkingCount: isNaN(parkingCount as number) ? undefined : parkingCount,
-      brand: cols[7]?.trim() || undefined,
+      brand: c[brandIdx]?.trim() || undefined,
     });
   }
   return result;

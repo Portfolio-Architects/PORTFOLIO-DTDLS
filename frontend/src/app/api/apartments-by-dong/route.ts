@@ -31,7 +31,7 @@ export interface SheetApartment {
  * GET /api/apartments-by-dong
  * 
  * Google Sheet의 apartments 탭에서 동별로 그룹핑된 아파트 데이터를 반환
- * Sheet 컬럼: 아파트명(A) | 좌표(B) | 세대수(C) | 준공연도(D) | 용적률(E) | 건폐율(F) | 주차대수(G) | 시공사(H) | Dong(I) | 최고층(J) | txKey(K) | 공공임대(L) | ticker(M)
+ * 모든 컬럼은 헤더 기반으로 자동 감지 — 컬럼 순서 변경에 영향받지 않음
  */
 export async function GET() {
   try {
@@ -44,49 +44,55 @@ export async function GET() {
     const lines = csvText.split('\n').filter(l => l.trim());
     const rows = lines.map(l => parseCsvLine(l));
 
-    // 헤더에서 컬럼 인덱스 찾기 (유연하게)
+    // 헤더에서 컬럼 인덱스 찾기 (전부 헤더 기반 — 컬럼 순서 무관)
     const header = rows[0]?.map(h => h.toLowerCase().trim()) || [];
-    let dongColIdx = header.findIndex(h => h === 'dong' || h === '동');
-    if (dongColIdx === -1) dongColIdx = 8; // fallback: 9번째 컬럼
-    let floorColIdx = header.findIndex(h => ['최고층', 'maxfloor', 'floors', '층수', '층'].includes(h));
-    if (floorColIdx === -1) floorColIdx = 9; // fallback: J열
-    let txKeyColIdx = header.findIndex(h => h === 'txkey' || h === '실거래키');
-    if (txKeyColIdx === -1) txKeyColIdx = 10; // fallback: K열
-    let rentalColIdx = header.findIndex(h => ['공공임대', 'public', 'rental', 'isPublicRental'].includes(h.toLowerCase()));
-    if (rentalColIdx === -1) rentalColIdx = 11; // fallback: L열
-    let tickerColIdx = header.findIndex(h => h === 'ticker' || h === '티커');
-    if (tickerColIdx === -1) tickerColIdx = 12; // fallback: M열
+    const col = (names: string[], fallback: number) => {
+      const idx = header.findIndex(h => names.includes(h));
+      return idx !== -1 ? idx : fallback;
+    };
+
+    const nameIdx    = col(['아파트명', 'name', '이름'], 0);
+    const coordIdx   = col(['좌표', 'coordinates', 'coord'], 1);
+    const hhIdx      = col(['세대수', 'householdcount', 'households'], 2);
+    const yearIdx    = col(['시공&준공인', '준공연도', 'yearbuilt', '준공'], 3);
+    const farIdx     = col(['용적률', 'far'], 4);
+    const bcrIdx     = col(['건폐율', 'bcr'], 5);
+    const parkIdx    = col(['주차대수', 'parkingcount', '주차'], 6);
+    const brandIdx   = col(['시공사', 'brand', '브랜드'], 7);
+    const dongIdx    = col(['dong', '동'], 8);
+    const floorIdx   = col(['최고층', 'maxfloor', 'floors', '층수', '층'], 9);
+    const txKeyIdx   = col(['txkey', '실거래키'], 10);
+    const rentalIdx  = col(['공공임대', 'public', 'rental', 'ispublicrental'], 11);
+    const tickerIdx  = col(['ticker', '티커'], 12);
 
     const apartments: SheetApartment[] = [];
 
     for (let i = 1; i < rows.length; i++) {
-      const cols = rows[i];
-      const name = cols[0]?.trim();
-      const coordStr = cols[1]?.trim();
-      const dong = cols[dongColIdx]?.trim();
-
+      const c = rows[i];
+      const name = c[nameIdx]?.trim();
+      const dong = c[dongIdx]?.trim();
       if (!name || !dong) continue;
 
-      const coord = parseCoordString(coordStr);
-      const householdCount = cols[2] ? parseInt(cols[2]) : undefined;
-      const parkingCount = cols[6] ? parseInt(cols[6]) : undefined;
-      const maxFloor = cols[floorColIdx] ? parseInt(cols[floorColIdx]) : undefined;
+      const coord = parseCoordString(c[coordIdx]);
+      const householdCount = c[hhIdx] ? parseInt(c[hhIdx]) : undefined;
+      const parkingCount = c[parkIdx] ? parseInt(c[parkIdx]) : undefined;
+      const maxFloor = c[floorIdx] ? parseInt(c[floorIdx]) : undefined;
 
       apartments.push({
-        ticker: cols[tickerColIdx]?.trim() || undefined,
+        ticker: c[tickerIdx]?.trim() || undefined,
         name,
         dong,
         lat: coord?.lat || 0,
         lng: coord?.lng || 0,
         householdCount: isNaN(householdCount as number) ? undefined : householdCount,
-        yearBuilt: cols[3]?.trim() || undefined,
-        far: cols[4] ? parseFloat(cols[4]) || undefined : undefined,
-        bcr: cols[5] ? parseFloat(cols[5]) || undefined : undefined,
+        yearBuilt: c[yearIdx]?.trim() || undefined,
+        far: c[farIdx] ? parseFloat(c[farIdx]) || undefined : undefined,
+        bcr: c[bcrIdx] ? parseFloat(c[bcrIdx]) || undefined : undefined,
         parkingCount: isNaN(parkingCount as number) ? undefined : parkingCount,
-        brand: cols[7]?.trim() || undefined,
+        brand: c[brandIdx]?.trim() || undefined,
         maxFloor: isNaN(maxFloor as number) ? undefined : maxFloor,
-        txKey: cols[txKeyColIdx]?.trim() || undefined,
-        isPublicRental: ['y', 'yes', 'true', 'o', '공공'].includes((cols[rentalColIdx] || '').trim().toLowerCase()),
+        txKey: c[txKeyIdx]?.trim() || undefined,
+        isPublicRental: ['y', 'yes', 'true', 'o', '공공'].includes((c[rentalIdx] || '').trim().toLowerCase()),
       });
     }
 
