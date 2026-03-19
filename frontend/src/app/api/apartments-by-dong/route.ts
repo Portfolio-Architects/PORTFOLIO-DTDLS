@@ -23,13 +23,15 @@ export interface SheetApartment {
   parkingCount?: number;
   brand?: string;
   maxFloor?: number;
+  txKey?: string;
+  isPublicRental?: boolean;
 }
 
 /**
  * GET /api/apartments-by-dong
  * 
  * Google Sheet의 apartments 탭에서 동별로 그룹핑된 아파트 데이터를 반환
- * Sheet 컬럼: 아파트명(0) | 좌표(1) | 세대수(2) | 준공연도(3) | 용적률(4) | 건폐율(5) | 주차대수(6) | 시공사(7) | 동(8) | 최고층(9) | ticker(10)
+ * Sheet 컬럼: 아파트명(A) | 좌표(B) | 세대수(C) | 준공연도(D) | 용적률(E) | 건폐율(F) | 주차대수(G) | 시공사(H) | Dong(I) | 최고층(J) | txKey(K) | 공공임대(L) | ticker(M)
  */
 export async function GET() {
   try {
@@ -47,9 +49,13 @@ export async function GET() {
     let dongColIdx = header.findIndex(h => h === 'dong' || h === '동');
     if (dongColIdx === -1) dongColIdx = 8; // fallback: 9번째 컬럼
     let floorColIdx = header.findIndex(h => ['최고층', 'maxfloor', 'floors', '층수', '층'].includes(h));
-    if (floorColIdx === -1) floorColIdx = 9; // fallback: 10번째 컬럼
+    if (floorColIdx === -1) floorColIdx = 9; // fallback: J열
+    let txKeyColIdx = header.findIndex(h => h === 'txkey' || h === '실거래키');
+    if (txKeyColIdx === -1) txKeyColIdx = 10; // fallback: K열
+    let rentalColIdx = header.findIndex(h => ['공공임대', 'public', 'rental', 'isPublicRental'].includes(h.toLowerCase()));
+    if (rentalColIdx === -1) rentalColIdx = 11; // fallback: L열
     let tickerColIdx = header.findIndex(h => h === 'ticker' || h === '티커');
-    if (tickerColIdx === -1) tickerColIdx = 10; // fallback: 11번째 컬럼
+    if (tickerColIdx === -1) tickerColIdx = 12; // fallback: M열
 
     const apartments: SheetApartment[] = [];
 
@@ -79,6 +85,8 @@ export async function GET() {
         parkingCount: isNaN(parkingCount as number) ? undefined : parkingCount,
         brand: cols[7]?.trim() || undefined,
         maxFloor: isNaN(maxFloor as number) ? undefined : maxFloor,
+        txKey: cols[txKeyColIdx]?.trim() || undefined,
+        isPublicRental: ['y', 'yes', 'true', 'o', '공공'].includes((cols[rentalColIdx] || '').trim().toLowerCase()),
       });
     }
 
