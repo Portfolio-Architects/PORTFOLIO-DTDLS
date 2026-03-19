@@ -26,6 +26,7 @@ import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserRe
 import WriteReviewModal from '@/components/WriteReviewModal';
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
 import { TX_SUMMARY } from '@/lib/transaction-summary';
+import { buildInitialApartments } from '@/lib/dong-apartments';
 
 interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }
 import type { AptTxSummary } from '@/lib/transaction-summary';
@@ -1119,47 +1120,40 @@ export default function Dashboard() {
   // Dong filter state
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
 
-  // Apartment data — Firestore 기준
-  const [sheetApartments, setSheetApartments] = useState<Record<string, StaticApartment[]>>({});
+  // Apartment data — 정적 import로 즉시 로드
+  const sheetApartments = buildInitialApartments();
 
   // Transaction data — static import, no API call needed
   const [typeMap, setTypeMap] = useState<Record<string, Record<string, string>>>({});
 
-  // Name mapping + public rental + dynamic apartment list — Firestore 통합 메타 로드
+  // Name mapping + public rental — Firestore 메타 보강
   const [nameMapping, setNameMapping] = useState<Record<string, string> | undefined>(undefined);
   const [publicRentalSet, setPublicRentalSet] = useState<Set<string>>(new Set());
   useEffect(() => {
+    const firestoreTimeout = setTimeout(() => {
+      setNameMapping(prev => prev === undefined ? {} : prev);
+    }, 5000);
+
     getDoc(doc(db, 'settings/apartmentMeta')).then(snap => {
+      clearTimeout(firestoreTimeout);
       if (snap.exists()) {
-        const data = snap.data() as Record<string, { dong: string; txKey?: string; maxFloor?: number; isPublicRental?: boolean; householdCount?: number; yearBuilt?: string; brand?: string }>;
+        const data = snap.data() as Record<string, any>;
         const mapping: Record<string, string> = {};
         const rentals = new Set<string>();
-        const byDong: Record<string, StaticApartment[]> = {};
         for (const [name, meta] of Object.entries(data)) {
+          if (!meta || typeof meta !== 'object' || !meta.dong) continue;
           if (meta.txKey) mapping[name] = meta.txKey;
           if (meta.isPublicRental) rentals.add(name);
-          const dong = meta.dong || '미분류';
-          if (!byDong[dong]) byDong[dong] = [];
-          byDong[dong].push({
-            name,
-            dong,
-            householdCount: meta.householdCount,
-            yearBuilt: meta.yearBuilt,
-            brand: meta.brand,
-          });
         }
-        // Sort apartments within each dong
-        for (const dong of Object.keys(byDong)) {
-          byDong[dong].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
-        }
-        setSheetApartments(byDong);
         setNameMapping(mapping);
         setPublicRentalSet(rentals);
       } else {
-        // Firestore에 데이터 없으면 빈 상태
         setNameMapping({});
       }
-    }).catch(() => setNameMapping({}));
+    }).catch(() => {
+      clearTimeout(firestoreTimeout);
+      setNameMapping({});
+    });
   }, []);
 
   // Auth & Profile State
