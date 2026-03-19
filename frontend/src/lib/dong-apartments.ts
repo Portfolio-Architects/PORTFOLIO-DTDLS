@@ -87,9 +87,18 @@ export const FULL_DONG_DATA: Record<string, string[]> = {
   ].sort(),
 };
 
+/** 아파트 기본 타입 */
+export interface DongApartment {
+  name: string;
+  dong: string;
+  householdCount?: number;
+  yearBuilt?: string;
+  brand?: string;
+}
+
 /** 데이터를 byDong 형식으로 변환 */
-export function buildInitialApartments(): Record<string, { name: string; dong: string }[]> {
-  const byDong: Record<string, { name: string; dong: string }[]> = {};
+export function buildInitialApartments(): Record<string, DongApartment[]> {
+  const byDong: Record<string, DongApartment[]> = {};
   for (const [dong, apts] of Object.entries(FULL_DONG_DATA)) {
     byDong[dong] = apts.map(name => ({ name, dong }));
   }
