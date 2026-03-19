@@ -76,7 +76,7 @@ export default function FloorSettingsPage() {
 
   return (
     <div className="animate-in fade-in duration-300">
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-[#191f28] tracking-tight mb-2">
             아파트 최고 층수 관리
@@ -152,7 +152,7 @@ export default function FloorSettingsPage() {
             <div key={dong} className="bg-white rounded-2xl border border-[#e5e8eb] shadow-sm overflow-hidden">
               <button
                 onClick={() => toggleDong(dong)}
-                className="w-full px-6 py-4 flex items-center justify-between hover:bg-[#f9fafb] transition-colors"
+                className="w-full px-4 sm:px-6 py-4 flex items-center justify-between hover:bg-[#f9fafb] transition-colors"
               >
                 <div className="flex items-center gap-3">
                   {isExpanded ? <ChevronDown size={18} className="text-[#8b95a1]" /> : <ChevronRight size={18} className="text-[#8b95a1]" />}
@@ -175,7 +175,7 @@ export default function FloorSettingsPage() {
               {isExpanded && (
                 <div className="border-t border-[#e5e8eb] divide-y divide-[#f2f4f6]">
                   {apts.map(apt => (
-                    <div key={apt.name} className="px-6 py-3 flex items-center justify-between gap-4">
+                    <div key={apt.name} className="px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <span className="text-[14px] font-bold text-[#191f28] truncate block">{apt.name}</span>
                         <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[#8b95a1]">

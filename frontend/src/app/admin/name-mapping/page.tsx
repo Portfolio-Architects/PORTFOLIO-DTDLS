@@ -137,7 +137,7 @@ export default function NameMappingPage() {
 
   return (
     <div className="animate-in fade-in duration-300">
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-[#191f28] tracking-tight mb-2">
             아파트 이름 매핑
@@ -190,7 +190,7 @@ export default function NameMappingPage() {
       </div>
 
       {/* Search + Filter */}
-      <div className="flex gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="flex-1 relative">
           <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8b95a1]" />
           <input
@@ -201,7 +201,7 @@ export default function NameMappingPage() {
             className="w-full pl-11 pr-4 py-3.5 bg-white border border-[#e5e8eb] rounded-xl text-[14px] outline-none focus:border-[#3182f6] focus:ring-4 focus:ring-[#3182f6]/10 transition-all"
           />
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5 overflow-x-auto">
           {(['all', 'unmatched', 'matched'] as const).map(f => (
             <button
               key={f}
@@ -228,7 +228,7 @@ export default function NameMappingPage() {
             <div key={dong} className="bg-white rounded-2xl border border-[#e5e8eb] shadow-sm overflow-hidden">
               <button
                 onClick={() => toggleDong(dong)}
-                className="w-full px-6 py-4 flex items-center justify-between hover:bg-[#f9fafb] transition-colors"
+                className="w-full px-4 sm:px-6 py-4 flex items-center justify-between hover:bg-[#f9fafb] transition-colors"
               >
                 <div className="flex items-center gap-3">
                   {isExpanded ? <ChevronDown size={18} className="text-[#8b95a1]" /> : <ChevronRight size={18} className="text-[#8b95a1]" />}
@@ -252,7 +252,7 @@ export default function NameMappingPage() {
                     const suggested = autoSuggest(apt.name);
 
                     return (
-                      <div key={apt.name} className={`px-6 py-4 flex flex-col md:flex-row md:items-center gap-3 ${!currentKey ? 'bg-[#fffbf5]' : ''}`}>
+                      <div key={apt.name} className={`px-4 sm:px-6 py-3 sm:py-4 flex flex-col gap-2 ${!currentKey ? 'bg-[#fffbf5]' : ''}`}>
                         {/* Left: apartment name */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
@@ -269,7 +269,7 @@ export default function NameMappingPage() {
                         </div>
 
                         {/* Right: TX key selector */}
-                        <div className="flex items-center gap-2 shrink-0 md:w-[400px]">
+                        <div className="flex items-center gap-2 w-full sm:w-auto sm:min-w-[300px] md:min-w-[400px]">
                           <span className="text-[12px] text-[#8b95a1]">→</span>
                           <div className="relative flex-1">
                             <input
