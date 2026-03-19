@@ -8,13 +8,17 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Scatter, Bar, ReferenceDot, Legend, Customized } from 'recharts';
+import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Scatter, Bar, ReferenceDot, Legend, Customized, Line } from 'recharts';
+import Sparkline from '@/components/Sparkline';
+import { normalize84Price } from '@/lib/utils/valuation';
 
 // Lazy-loaded heavy chart components (reduces initial bundle ~40KB)
 const MainChart = dynamic(() => import('@/components/MainChart'), { ssr: false });
 const EduBubbleChart = dynamic(() => import('@/components/EduBubbleChart'), { ssr: false });
 const LifestyleRadarChart = dynamic(() => import('@/components/LifestyleRadarChart'), { ssr: false });
 const PropertyScoreChart = dynamic(() => import('@/components/consumer/PropertyScoreChart'), { ssr: false });
+const ValuationWaterfall = dynamic(() => import('@/components/consumer/ValuationWaterfall'), { ssr: false });
+const DynamicSimulator = dynamic(() => import('@/components/consumer/DynamicSimulator'), { ssr: false });
 const ArchitectureMindmap = dynamic(() => import('@/components/admin/ArchitectureMindmap'), { ssr: false });
 const PaymentButton = dynamic(() => import('@/components/PaymentButton'), { ssr: false });
 
@@ -251,7 +255,7 @@ export function FieldReportModal({
                </div>
                )}
 
-               {/* 매매가 추이 차트 (평균선 + 연한 개별 거래 점) */}
+               {/* 매매가 추이 차트 — 산점도(층수별) + 거래량 막대 + 이동평균선 */}
                {transactions.length > 0 && (() => {
                  const rawData = transactions.map((tx) => {
                    let priceEokNum = tx.price / 10000;
@@ -277,15 +281,20 @@ export function FieldReportModal({
                  const cutoffYm = cutoffDate.getFullYear() * 100 + (cutoffDate.getMonth() + 1);
                  const timeFiltered = rawData.filter(d => d.yearMonth >= cutoffYm);
 
-                 // IQR 이상치 필터
+                 // IQR 이상치 필터 (P5~P95)
                  const sortedPrices = [...timeFiltered].sort((a, b) => a.price - b.price);
-                 const q1 = sortedPrices[Math.floor(sortedPrices.length * 0.1)]?.price || 0;
-                 const q3 = sortedPrices[Math.floor(sortedPrices.length * 0.9)]?.price || 10;
+                 const q1 = sortedPrices[Math.floor(sortedPrices.length * 0.05)]?.price || 0;
+                 const q3 = sortedPrices[Math.floor(sortedPrices.length * 0.95)]?.price || 10;
                  const iqr = q3 - q1;
-                 const scatterData = timeFiltered.filter(d => d.price >= q1 - iqr * 2 && d.price <= q3 + iqr * 2);
+                 const bandLow = q1;
+                 const bandHigh = q3;
+                 const scatterData = timeFiltered.map(d => ({
+                   ...d,
+                   isOutlier: d.price < q1 - iqr * 2 || d.price > q3 + iqr * 2,
+                 })).filter(d => d.price >= q1 - iqr * 3 && d.price <= q3 + iqr * 3);
                  if (scatterData.length === 0) return null;
 
-                 // 월별 평균
+                 // 월별 평균 + 거래량
                  const byMonth = new Map<number, number[]>();
                  scatterData.forEach(d => {
                    if (!byMonth.has(d.yearMonth)) byMonth.set(d.yearMonth, []);
@@ -296,22 +305,45 @@ export function FieldReportModal({
                      ts: new Date(Math.floor(ym / 100), (ym % 100) - 1, 15).getTime(),
                      monthAvg: Math.round((prices.reduce((a, b) => a + b, 0) / prices.length) * 1000) / 1000,
                      volume: prices.length, ym,
+                     bandHigh, bandLow,
+                     ma3: 0, ma6: 0,
                    }))
                    .sort((a, b) => a.ts - b.ts);
+
+                 // 3개월·6개월 이동평균 계산
+                 monthlyData.forEach((d, i) => {
+                   const slice3 = monthlyData.slice(Math.max(0, i - 2), i + 1);
+                   d.ma3 = Math.round((slice3.reduce((s, x) => s + x.monthAvg, 0) / slice3.length) * 1000) / 1000;
+                   const slice6 = monthlyData.slice(Math.max(0, i - 5), i + 1);
+                   d.ma6 = Math.round((slice6.reduce((s, x) => s + x.monthAvg, 0) / slice6.length) * 1000) / 1000;
+                 });
 
                  const prices = scatterData.map(d => d.price);
                  let minP = Infinity, maxP = -Infinity, sumP = 0;
                  for (const p of prices) { if (p < minP) minP = p; if (p > maxP) maxP = p; sumP += p; }
                  const domainMin = Math.floor(minP * 10) / 10 - 0.3;
                  const domainMax = Math.ceil(maxP * 10) / 10 + 0.5;
+                 const maxVol = Math.max(...monthlyData.map(d => d.volume), 1);
                  const latestAvg = monthlyData[monthlyData.length - 1]?.monthAvg || (prices.length > 0 ? sumP / prices.length : 0);
                  const firstAvg = monthlyData[0]?.monthAvg || latestAvg;
                  const changePercent = firstAvg > 0 ? ((latestAvg - firstAvg) / firstAvg * 100) : 0;
 
+                 // 층수별 색상
+                 const getFloorColor = (floor: number) => {
+                   if (floor >= 20) return '#EF4444'; // 고층 = 빨강
+                   if (floor >= 10) return '#3182f6'; // 중층 = 파랑
+                   return '#03c75a'; // 저층 = 초록
+                 };
+
+                 // 상승률 기준점 텍스트
+                 const yearAgoYm = (now.getFullYear() - 1) * 100 + (now.getMonth() + 1);
+                 const yearAgoEntry = monthlyData.find(d => d.ym >= yearAgoYm);
+                 const yoyChange = yearAgoEntry ? ((latestAvg - yearAgoEntry.monthAvg) / yearAgoEntry.monthAvg * 100) : null;
+
                  return (
                    <div className="mt-4 bg-white rounded-2xl p-5 ring-1 ring-black/5 flex-1">
                      <div className="flex items-center justify-between mb-3">
-                       <h4 className="text-[14px] font-bold text-[#191f28] flex items-center gap-1.5">
+                       <h4 className="text-[14px] font-extrabold text-[#191f28] flex items-center gap-1.5">
                          <TrendingUp size={15} className="text-[#3182f6]" /> 매매가 추이
                        </h4>
                        <div className="flex items-center gap-1">
@@ -323,24 +355,41 @@ export function FieldReportModal({
                          ))}
                        </div>
                      </div>
-                     <div className="flex items-baseline gap-3 mb-4">
+                     <div className="flex items-baseline gap-3 mb-2">
                        <span className="text-[24px] font-extrabold text-[#191f28]">
                          {latestAvg >= 1 ? `${Math.floor(latestAvg)}억` : ''}{(() => { const rem = Math.round((latestAvg % 1) * 10000); return rem > 0 ? rem.toLocaleString() : ''; })()}
                        </span>
                        {changePercent !== 0 && (
                          <span className={`text-[13px] font-bold px-2 py-0.5 rounded-md ${changePercent > 0 ? 'text-[#EF4444] bg-red-50' : 'text-[#3182f6] bg-blue-50'}`}>
-                           {changePercent > 0 ? '▲' : '▼'} {Math.abs(changePercent).toFixed(1)}%
+                           {changePercent > 0 ? '+' : ''}{changePercent.toFixed(1)}%
                          </span>
                        )}
                        <span className="text-[12px] text-[#8b95a1] font-medium">{scatterData.length}건 · 최고 {maxP.toFixed(1)}억 · 최저 {minP.toFixed(1)}억</span>
                      </div>
-                     <div className="h-[280px] relative">
+                     {/* 상승률 기준점 + 범례 */}
+                     <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                       {yoyChange !== null && (
+                         <span className="text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-1 rounded-lg">
+                           전년 대비 {yoyChange > 0 ? '+' : ''}{yoyChange.toFixed(1)}%
+                         </span>
+                       )}
+                       <div className="flex items-center gap-3 text-[10px] font-bold text-[#8b95a1]">
+                         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#03c75a]"/>저층</span>
+                         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#3182f6]"/>중층</span>
+                         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#EF4444]"/>고층</span>
+                       </div>
+                     </div>
+                     <div className="h-[320px] relative">
                        <ResponsiveContainer width="100%" height="100%">
                          <ComposedChart data={monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
                            <defs>
                              <linearGradient id="avgGrad" x1="0" y1="0" x2="0" y2="1">
-                               <stop offset="5%" stopColor="#3182f6" stopOpacity={0.12}/>
+                               <stop offset="5%" stopColor="#3182f6" stopOpacity={0.08}/>
                                <stop offset="95%" stopColor="#3182f6" stopOpacity={0.01}/>
+                             </linearGradient>
+                             <linearGradient id="bandGrad" x1="0" y1="0" x2="0" y2="1">
+                               <stop offset="0%" stopColor="#e5e8eb" stopOpacity={0.3}/>
+                               <stop offset="100%" stopColor="#e5e8eb" stopOpacity={0.05}/>
                              </linearGradient>
                            </defs>
                            <CartesianGrid strokeDasharray="3 3" stroke="#f2f4f6" vertical={false} />
@@ -354,28 +403,43 @@ export function FieldReportModal({
                              width={48} dx={-3}
                              tickFormatter={(v: number) => v >= 1 ? `${v.toFixed(1)}억` : `${Math.round(v * 10000)}만`}
                            />
+                           <YAxis yAxisId="volume" orientation="right" domain={[0, maxVol * 4]}
+                             tick={false} axisLine={false} tickLine={false} width={0}
+                           />
                            <RechartsTooltip
                              content={({ active, payload }) => {
                                if (!active || !payload?.length) return null;
                                const item = payload[0]?.payload;
                                const avg = item?.monthAvg;
                                const vol = item?.volume;
+                               const ma3 = item?.ma3;
                                return (
                                  <div style={{ background: '#1e293b', borderRadius: 10, padding: '8px 12px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', border: 'none' }}>
                                    <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>
                                      {new Date(item?.ts).getFullYear()}.{String(new Date(item?.ts).getMonth()+1).padStart(2,'0')}월
                                    </div>
                                    {avg && <div style={{ color: '#fff', fontSize: 14, fontWeight: 700 }}>평균 {avg.toFixed(2)}억</div>}
-                                   {vol != null && <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2 }}>{vol}건 거래</div>}
+                                   {ma3 && <div style={{ color: '#f59e0b', fontSize: 11, marginTop: 2 }}>3M이평 {ma3.toFixed(2)}억</div>}
+                                   {vol != null && <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2 }}>거래 {vol}건</div>}
                                  </div>
                                );
                              }}
                              cursor={{ stroke: '#d1d6db', strokeWidth: 1, strokeDasharray: '3 3' }}
                            />
+                           {/* 가격 밴드 (P5~P95) */}
+                           <Area type="monotone" dataKey="bandHigh" yAxisId="price" stroke="none" fill="url(#bandGrad)" fillOpacity={1} dot={false} activeDot={false} />
+                           {/* 거래량 막대그래프 */}
+                           <Bar dataKey="volume" yAxisId="volume" fill="#e5e8eb" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.6} />
+                           {/* 월별 평균선 */}
                            <Area type="monotone" dataKey="monthAvg" yAxisId="price"
                              stroke="#3182f6" strokeWidth={2.5} fill="url(#avgGrad)"
                              dot={false} activeDot={false} connectNulls
                            />
+                           {/* 3개월 이동평균 */}
+                           <Line type="monotone" dataKey="ma3" yAxisId="price" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4 4" dot={false} activeDot={false} connectNulls />
+                           {/* 6개월 이동평균 */}
+                           <Line type="monotone" dataKey="ma6" yAxisId="price" stroke="#8b5cf6" strokeWidth={1.5} strokeDasharray="6 3" dot={false} activeDot={false} connectNulls />
+                           {/* 산점도 — 층수별 색상 */}
                            <Customized
                              component={(rechartProps: any) => {
                                const { xAxisMap, yAxisMap } = rechartProps;
@@ -390,10 +454,11 @@ export function FieldReportModal({
                                      const cy = yAx.scale(d.price);
                                      if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
                                      const isHov = hoveredDot?.data === d;
+                                     const floorColor = getFloorColor(d.floor);
                                      return (
                                        <circle key={i} cx={cx} cy={cy}
-                                         r={isHov ? 5 : 3} fill="#3182f6"
-                                         opacity={isHov ? 1 : 0.2}
+                                         r={isHov ? 5 : 3} fill={floorColor}
+                                         opacity={d.isOutlier ? 0.1 : (isHov ? 1 : 0.35)}
                                          stroke={isHov ? '#fbbf24' : 'none'}
                                          strokeWidth={isHov ? 2 : 0}
                                          style={{ cursor: 'pointer', transition: 'r 0.15s, opacity 0.15s' }}
@@ -427,12 +492,19 @@ export function FieldReportModal({
                              </div>
                              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, display: 'flex', gap: 6, alignItems: 'center' }}>
                                {typeName ? <span style={{ color: '#93c5fd', fontWeight: 600 }}>{typeName}</span> : <span>{d.area}평</span>}
-                               <span>·</span><span>{d.floor}층</span>
+                               <span>·</span><span style={{ color: getFloorColor(d.floor) }}>{d.floor}층</span>
                                {d.dealType && <><span>·</span><span>{d.dealType}</span></>}
                              </div>
                            </div>
                          );
                        })()}
+                     </div>
+                     {/* 이동평균 범례 */}
+                     <div className="flex items-center gap-4 mt-2 px-1 text-[10px] font-bold text-[#8b95a1]">
+                       <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-[#3182f6] rounded"/>월평균</span>
+                       <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-[#f59e0b] rounded" style={{borderTop:'1px dashed #f59e0b'}}/>3M이평</span>
+                       <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-[#8b5cf6] rounded" style={{borderTop:'1px dashed #8b5cf6'}}/>6M이평</span>
+                       <span className="flex items-center gap-1"><span className="w-3 h-3 bg-[#e5e8eb] rounded-sm"/>거래량</span>
                      </div>
                    </div>
                  );
@@ -564,6 +636,29 @@ export function FieldReportModal({
                  <PropertyScoreChart scores={report.premiumScores} />
               </div>
             )}
+
+            {/* 밸류에이션 폭포수 차트 — 무료 티어 개방 */}
+            {report.premiumScores && transactions.length > 0 && (() => {
+              // 84㎡ 기준 가격 산출
+              const tx84 = transactions.find(t => t.area >= 80 && t.area <= 88) || transactions[0];
+              const price84 = tx84 ? normalize84Price(tx84.price, tx84.area) : 0;
+              return price84 > 0 ? (
+                <div className="mb-2">
+                  <ValuationWaterfall scores={report.premiumScores} price84Man={price84} />
+                </div>
+              ) : null;
+            })()}
+
+            {/* 동적 시뮬레이터 — 유료 페이월 */}
+            {isUnlocked && report.premiumScores && transactions.length > 0 && (() => {
+              const tx84 = transactions.find(t => t.area >= 80 && t.area <= 88) || transactions[0];
+              const price84 = tx84 ? normalize84Price(tx84.price, tx84.area) : 0;
+              return price84 > 0 ? (
+                <div className="mb-2">
+                  <DynamicSimulator scores={report.premiumScores} price84Man={price84} />
+                </div>
+              ) : null;
+            })()}
 
             {/* Location Infrastructure Info — Enhanced with categories + raw data */}
             {report.metrics && (report.metrics.distanceToElementary || report.metrics.distanceToSubway || report.metrics.academyDensity) && (
@@ -1423,11 +1518,14 @@ export default function Dashboard() {
                                   </div>
                                 </div>
                                 {report && (
-                                  <span className="text-[10px] font-bold bg-[#e8f3ff] text-[#3182f6] px-2 py-0.5 rounded-md shrink-0 ml-2">📝 리포트</span>
+                                  <div className="flex items-center gap-1 shrink-0 ml-2">
+                                    <span className="text-[10px] font-bold bg-[#e8f3ff] text-[#3182f6] px-2 py-0.5 rounded-md">📝 리포트</span>
+                                    <span className="text-[10px] font-bold bg-[#f0fdf4] text-[#03c75a] px-2 py-0.5 rounded-md">✅ 현장검증</span>
+                                  </div>
                                 )}
                               </div>
 
-                              {/* 실거래가 요약 (정적 데이터) */}
+                              {/* 실거래가 요약 (정적 데이터) + 스파크라인 */}
                               {txSummary ? (
                                 <div className="bg-[#f9fafb] rounded-xl px-3 py-2 mt-2">
                                   <div className="flex items-center justify-between">
@@ -1436,12 +1534,34 @@ export default function Dashboard() {
                                       <span className="text-[14px] font-extrabold text-[#191f28]">{txSummary.latestPriceEok}</span>
                                       <span className="text-[11px] font-bold text-[#3182f6]">{txSummary.latestArea}평</span>
                                     </div>
-                                    <span className="text-[10px] text-[#8b95a1]">{txSummary.txCount}건</span>
+                                    <div className="flex items-center gap-1.5">
+                                      {txSummary.recent && txSummary.recent.length >= 2 && (
+                                        <Sparkline data={[...txSummary.recent].reverse().map(r => {
+                                          const match = r.priceEok.match(/(\d+)억([\d,]*)/);
+                                          if (!match) return 0;
+                                          return parseInt(match[1]) * 10000 + parseInt((match[2] || '0').replace(/,/g, ''));
+                                        })} width={48} height={16} />
+                                      )}
+                                      <span className="text-[10px] text-[#8b95a1]">{txSummary.txCount}건</span>
+                                    </div>
                                   </div>
                                   {txSummary.txCount >= 2 && (
                                     <div className="flex items-center gap-3 mt-1.5 text-[10px]">
-                                      <span className="text-[#f04452] font-bold">▲ {txSummary.maxPriceEok}</span>
-                                      <span className="text-[#3182f6] font-bold">▼ {txSummary.minPriceEok}</span>
+                                      <span className="text-[#8b95a1] font-bold">최고 <span className="text-[#191f28]">{txSummary.maxPriceEok}</span></span>
+                                      <span className="text-[#8b95a1] font-bold">최저 <span className="text-[#191f28]">{txSummary.minPriceEok}</span></span>
+                                      {/* 84㎡ 기준 정규화 가격 */}
+                                      {txSummary.recent?.[0] && (() => {
+                                        const r = txSummary.recent[0];
+                                        const priceMatch = r.priceEok.match(/(\d+)억([\d,]*)/);
+                                        if (!priceMatch) return null;
+                                        const priceMan = parseInt(priceMatch[1]) * 10000 + parseInt((priceMatch[2] || '0').replace(/,/g, ''));
+                                        const norm84 = normalize84Price(priceMan, r.area);
+                                        const norm84Eok = Math.floor(norm84 / 10000);
+                                        const norm84Rem = norm84 % 10000;
+                                        return (
+                                          <span className="text-[#8b5cf6] font-bold ml-auto">84㎡ {norm84Eok > 0 ? `${norm84Eok}억` : ''}{norm84Rem > 0 ? `${norm84Rem.toLocaleString()}` : ''}</span>
+                                        );
+                                      })()}
                                     </div>
                                   )}
                                 </div>
