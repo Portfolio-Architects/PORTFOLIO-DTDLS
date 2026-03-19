@@ -65,6 +65,9 @@ export default function ApartmentManagementPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newAptName, setNewAptName] = useState('');
   const [newAptDong, setNewAptDong] = useState(dongNames[0]);
+  // Rename
+  const [editingName, setEditingName] = useState<string | null>(null);
+  const [editNameValue, setEditNameValue] = useState('');
 
   const txKeys = useMemo(() => Object.keys(TX_SUMMARY).sort(), []);
 
@@ -187,6 +190,19 @@ export default function ApartmentManagementPage() {
       return next;
     });
   }, []);
+
+  const renameApt = useCallback((oldName: string, newName: string) => {
+    const trimmed = newName.trim();
+    if (!trimmed || trimmed === oldName) { setEditingName(null); return; }
+    if (meta[trimmed]) { alert('이미 존재하는 아파트 이름입니다.'); return; }
+    setMeta(prev => {
+      const next = { ...prev };
+      next[trimmed] = { ...next[oldName] };
+      delete next[oldName];
+      return next;
+    });
+    setEditingName(null);
+  }, [meta]);
 
   const addApartment = useCallback(() => {
     const name = newAptName.trim();
@@ -366,7 +382,17 @@ export default function ApartmentManagementPage() {
                         {/* Row 1: Name + badges */}
                         <div className="flex items-center gap-2 flex-wrap">
                           {hasValidTx ? <Check size={14} className="text-[#03c75a] shrink-0"/> : <AlertTriangle size={14} className="text-[#f04452] shrink-0"/>}
-                          <span className="text-[13px] sm:text-[14px] font-bold text-[#191f28]">{name}</span>
+                          {editingName === name ? (
+                            <input type="text" autoFocus value={editNameValue}
+                              onChange={e => setEditNameValue(e.target.value)}
+                              onBlur={() => renameApt(name, editNameValue)}
+                              onKeyDown={e => { if (e.key === 'Enter') renameApt(name, editNameValue); if (e.key === 'Escape') setEditingName(null); }}
+                              className="text-[13px] sm:text-[14px] font-bold text-[#191f28] px-2 py-0.5 border border-[#3182f6] rounded-lg outline-none bg-[#e8f3ff] min-w-[150px]" />
+                          ) : (
+                            <span onClick={() => { setEditingName(name); setEditNameValue(name); }}
+                              className="text-[13px] sm:text-[14px] font-bold text-[#191f28] cursor-pointer hover:text-[#3182f6] hover:underline underline-offset-2 transition-colors"
+                              title="클릭하여 이름 수정">{name}</span>
+                          )}
                           {m.isPublicRental && <span className="text-[10px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-2 py-0.5 rounded-full">🏠 공공임대</span>}
                           {reportedApts.has(name) && <span className="text-[10px] font-bold bg-[#fff4e6] text-[#ff8a3d] px-2 py-0.5 rounded-full">📝 임장완료</span>}
                           {m.householdCount && <span className="text-[10px] text-[#8b95a1]">{m.householdCount}세대</span>}
