@@ -52,12 +52,14 @@ export interface AptMeta {
   householdCount?: number;
   yearBuilt?: string;
   brand?: string;
+  ticker?: string; // Ticker from Google Sheets
 }
 type MetaMap = Record<string, AptMeta>;
 
 export default function AdminDashboard() {
   // ── State ──
   const [meta, setMeta] = useState<MetaMap>({});
+  const [initialMeta, setInitialMeta] = useState<MetaMap>({}); // To track changes for sync
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [search, setSearch] = useState('');
@@ -77,7 +79,8 @@ export default function AdminDashboard() {
   // Rename
   const [editingName, setEditingName] = useState<string | null>(null);
   const [editNameValue, setEditNameValue] = useState('');
-
+  // Deletes tracking for sync
+  const [deletedApts, setDeletedApts] = useState<Set<string>>(new Set());
 
   const txKeys = useMemo(() => Object.keys(TX_SUMMARY).sort(), []);
 
@@ -97,34 +100,37 @@ export default function AdminDashboard() {
     return () => unsub();
   }, []);
 
-  // ── Load or seed apartment meta ──
+  // ── Load from Google Sheets (Single Source of Truth) ──
   useEffect(() => {
     (async () => {
       try {
-        const snap = await getDoc(doc(db, FIRESTORE_DOC));
-        if (snap.exists() && Object.keys(snap.data()).length > 0) {
-          setMeta(snap.data() as MetaMap);
-        } else {
-          // Seed from static data
-          const seed: MetaMap = {};
-          for (const [dong, apts] of Object.entries(FULL_DONG_DATA)) {
-            for (const name of apts) {
-              seed[name] = { dong, txKey: autoSuggest(name) || undefined };
-            }
+        const res = await fetch('/api/apartments-by-dong');
+        if (!res.ok) throw new Error('Failed to fetch from sheets');
+        const data = await res.json();
+        const sheetMap: MetaMap = {};
+        
+        // Parse the grouped byDong data
+        if (data.byDong) {
+          for (const [dong, apts] of Object.entries(data.byDong)) {
+            (apts as any[]).forEach(apt => {
+              sheetMap[apt.name] = {
+                dong: apt.dong,
+                txKey: apt.txKey || autoSuggest(apt.name) || undefined,
+                maxFloor: apt.maxFloor || 0,
+                isPublicRental: apt.isPublicRental || false,
+                householdCount: apt.householdCount,
+                yearBuilt: apt.yearBuilt,
+                brand: apt.brand,
+                ticker: apt.ticker, // Crucial for Write API
+              };
+            });
           }
-          setMeta(seed);
         }
+        setMeta(sheetMap);
+        setInitialMeta(JSON.parse(JSON.stringify(sheetMap))); // Deep copy for diffing
         setLoaded(true);
       } catch (e) {
-        console.error('Failed to load:', e);
-        // Fallback: seed from static
-        const seed: MetaMap = {};
-        for (const [dong, apts] of Object.entries(FULL_DONG_DATA)) {
-          for (const name of apts) {
-            seed[name] = { dong, txKey: autoSuggest(name) || undefined };
-          }
-        }
-        setMeta(seed);
+        console.error('Failed to load sheets:', e);
         setLoaded(true);
       }
     })();
@@ -134,6 +140,111 @@ export default function AdminDashboard() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      // 1. Calculate diffs for Google Sheets
+      const syncPayload: { updates: any[], adds: any[], deletes: string[] } = {
+        updates: [],
+        adds: [],
+        deletes: Array.from(deletedApts)
+      };
+
+      for (const [name, currentM] of Object.entries(meta)) {
+        const initialM = initialMeta[name];
+        if (!initialM) {
+          // This is a new apartment (added)
+          syncPayload.adds.push({
+            name,
+            dong: currentM.dong,
+            txKey: currentM.txKey,
+          });
+        } else {
+          // Compare fields for updates
+          const updates: Record<string, string|number|boolean> = {};
+          if (currentM.dong !== initialM.dong) updates['동'] = currentM.dong;
+          if (currentM.txKey !== initialM.txKey) updates['txKey'] = currentM.txKey || '';
+          if (currentM.maxFloor !== initialM.maxFloor) updates['최고층'] = currentM.maxFloor || '';
+          if (currentM.isPublicRental !== initialM.isPublicRental) updates['공공임대'] = currentM.isPublicRental ? 'Y' : 'N';
+          // NOTE: renamed apartment checking via old name (since exact name match fails if renamed)
+          // Actually, if we rename, the key changes. Wait, `name` is the key. 
+          // Re-evaluate: rename function deletes old name and creates new name.
+          // The old name will NOT be in `meta`, so it's not checked here. It was caught by initialMeta diff? No, the code below handles it.
+          // Wait, if it's renamed, `targetRow` won't find it if it searches by name. BUT we have `ticker`!
+          // Since `currentM.ticker` matches `initialM.ticker`, let's just use ticker.
+          
+          if (Object.keys(updates).length > 0) {
+            syncPayload.updates.push({
+              ticker: currentM.ticker,
+              name: name,
+              updates
+            });
+          }
+        }
+      }
+
+      // Check for renames (apartments that exist in meta but the name key doesn't match initialMeta, AND they have a ticker)
+      // Wait, the loop above already covered them as "adds" if the key (newName) isn't in initialMeta!
+      // But if it's a rename, it's NOT an "add". It should be an "update" on the '아파트명' column identified by `ticker`.
+      
+      // Let's refine the diffing logic explicitly for renames:
+      // Loop over current meta to find renames (where current `ticker` matches an initial, but `name` differs)
+      const currentTickers = new Map<string, string>(); // ticker -> newName
+      for (const [newName, m] of Object.entries(meta)) {
+        if (m.ticker) currentTickers.set(m.ticker, newName);
+      }
+
+      // Re-build diffs perfectly using ticker as ID
+      syncPayload.updates = [];
+      syncPayload.adds = [];
+      syncPayload.deletes = [];
+
+      // Detect deletions and updates for existing items
+      for (const [oldName, initialM] of Object.entries(initialMeta)) {
+        if (initialM.ticker) {
+          const newName = currentTickers.get(initialM.ticker);
+          if (!newName) {
+            // Deleted entirely
+            syncPayload.deletes.push(oldName);
+          } else {
+            // Updated
+            const currentM = meta[newName];
+            const updates: Record<string, string|number|boolean> = {};
+            if (newName !== oldName) updates['아파트명'] = newName;
+            if (currentM.dong !== initialM.dong) updates['동'] = currentM.dong;
+            if (currentM.txKey !== initialM.txKey) updates['txKey'] = currentM.txKey || '';
+            if (currentM.maxFloor !== initialM.maxFloor) updates['최고층'] = currentM.maxFloor || '';
+            if (currentM.isPublicRental !== initialM.isPublicRental) updates['공공임대'] = currentM.isPublicRental ? 'Y' : 'N';
+
+            if (Object.keys(updates).length > 0) {
+              syncPayload.updates.push({ ticker: initialM.ticker, updates });
+            }
+          }
+        }
+      }
+
+      // Detect pure Adds (no ticker)
+      for (const [newName, currentM] of Object.entries(meta)) {
+        if (!currentM.ticker) {
+          syncPayload.adds.push({
+            name: newName,
+            dong: currentM.dong,
+            txKey: currentM.txKey || ''
+          });
+        }
+      }
+
+      // 2. Send to Google Sheets API
+      if (syncPayload.updates.length > 0 || syncPayload.adds.length > 0 || syncPayload.deletes.length > 0) {
+        const syncRes = await fetch('/api/apartments-sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(syncPayload)
+        });
+        if (!syncRes.ok) {
+          const errData = await syncRes.json();
+          throw new Error('Google Sheets Sync Failed: ' + errData.error);
+        }
+      }
+
+      // 3. Keep Firestore caching for fast dashboard loading? Yes.
       const clean: Record<string, Record<string, unknown>> = {};
       for (const [name, m] of Object.entries(meta)) {
         const entry: Record<string, unknown> = {};
@@ -143,11 +254,15 @@ export default function AdminDashboard() {
         if (entry.dong) clean[name] = entry;
       }
       await setDoc(doc(db, FIRESTORE_DOC), clean);
+
+      // Re-sync initial state to current state
+      setInitialMeta(JSON.parse(JSON.stringify(meta)));
+      setDeletedApts(new Set());
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    } catch (e) {
+    } catch (e: any) {
       console.error('Save failed:', e);
-      alert('저장에 실패했습니다: ' + (e as Error).message);
+      alert('저장에 실패했습니다: ' + e.message);
     }
     setSaving(false);
   };
@@ -161,6 +276,7 @@ export default function AdminDashboard() {
 
   const deleteApt = useCallback((aptName: string) => {
     if (!confirm(`"${aptName}" 아파트를 삭제하시겠습니까?`)) return;
+    setDeletedApts(prev => { const next = new Set(prev); next.add(aptName); return next; });
     setMeta(prev => { const next = { ...prev }; delete next[aptName]; return next; });
   }, []);
 
