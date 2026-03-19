@@ -1119,29 +1119,45 @@ export default function Dashboard() {
   // Dong filter state
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
 
-  // Apartment data — static import, no API call needed
-  const sheetApartments = APARTMENTS_BY_DONG;
+  // Apartment data — Firestore 기준, 정적 데이터 fallback
+  const [sheetApartments, setSheetApartments] = useState<Record<string, StaticApartment[]>>(APARTMENTS_BY_DONG);
 
   // Transaction data — static import, no API call needed
   const [typeMap, setTypeMap] = useState<Record<string, Record<string, string>>>({});
 
-  // Name mapping + public rental — Firestore 통합 메타 로드
+  // Name mapping + public rental + dynamic apartment list — Firestore 통합 메타 로드
   const [nameMapping, setNameMapping] = useState<Record<string, string> | undefined>(undefined);
   const [publicRentalSet, setPublicRentalSet] = useState<Set<string>>(new Set());
   useEffect(() => {
     getDoc(doc(db, 'settings/apartmentMeta')).then(snap => {
       if (snap.exists()) {
-        const data = snap.data() as Record<string, { txKey?: string; maxFloor?: number; isPublicRental?: boolean }>;
+        const data = snap.data() as Record<string, { dong: string; txKey?: string; maxFloor?: number; isPublicRental?: boolean; householdCount?: number; yearBuilt?: string; brand?: string }>;
         const mapping: Record<string, string> = {};
         const rentals = new Set<string>();
+        const byDong: Record<string, StaticApartment[]> = {};
         for (const [name, meta] of Object.entries(data)) {
           if (meta.txKey) mapping[name] = meta.txKey;
           if (meta.isPublicRental) rentals.add(name);
+          const dong = meta.dong || '미분류';
+          if (!byDong[dong]) byDong[dong] = [];
+          byDong[dong].push({
+            name,
+            dong,
+            householdCount: meta.householdCount,
+            yearBuilt: meta.yearBuilt,
+            brand: meta.brand,
+          });
         }
+        // Sort apartments within each dong
+        for (const dong of Object.keys(byDong)) {
+          byDong[dong].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+        }
+        setSheetApartments(byDong);
         setNameMapping(mapping);
         setPublicRentalSet(rentals);
       } else {
-        // Fallback: try old nameMapping doc
+        // Fallback: static data + try old nameMapping doc
+        setSheetApartments(APARTMENTS_BY_DONG);
         getDoc(doc(db, 'settings/nameMapping')).then(s2 => {
           if (s2.exists()) setNameMapping(s2.data() as Record<string, string>);
           else setNameMapping({});
