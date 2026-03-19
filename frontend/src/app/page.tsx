@@ -33,7 +33,8 @@ import { isSameApartment, normalizeAptName, findTxKey } from '@/lib/utils/apartm
 import * as PurchaseRepo from '@/lib/repositories/purchase.repository';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth, googleProvider } from '@/lib/firebaseConfig';
+import { auth, googleProvider, db } from '@/lib/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
 import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import type { UserProfile } from '@/lib/types/user.types';
@@ -1124,6 +1125,15 @@ export default function Dashboard() {
   // Transaction data — static import, no API call needed
   const [typeMap, setTypeMap] = useState<Record<string, Record<string, string>>>({});
 
+  // Name mapping — Firestore에서 관리자 수동 매핑 로드
+  const [nameMapping, setNameMapping] = useState<Record<string, string> | undefined>(undefined);
+  useEffect(() => {
+    getDoc(doc(db, 'settings/nameMapping')).then(snap => {
+      if (snap.exists()) setNameMapping(snap.data() as Record<string, string>);
+      else setNameMapping({});
+    }).catch(() => setNameMapping({}));
+  }, []);
+
   // Auth & Profile State
   const [user, setUser] = useState<User | null>(null);
   const [anonProfile, setAnonProfile] = useState<{nickname: string; frontName?: string; photoURL?: string} | null>(null);
@@ -1185,7 +1195,7 @@ export default function Dashboard() {
     setIsTxLoading(true);
 
     // findTxKey로 JSON 파일명 결정 (접두사 자동 strip)
-    const txKey = findTxKey(selectedReport.apartmentName, TX_SUMMARY);
+    const txKey = findTxKey(selectedReport.apartmentName, TX_SUMMARY, nameMapping);
     const fileKey = txKey || normalizeAptName(selectedReport.apartmentName);
 
     fetch(`/tx-data/${encodeURIComponent(fileKey)}.json`)
@@ -1453,7 +1463,7 @@ export default function Dashboard() {
                             return aHas - bHas;
                           });
                           return (selectedDong ? sorted : sorted.slice(0, 6)).map(apt => {
-                          const txKey = findTxKey(apt.name, TX_SUMMARY);
+                          const txKey = findTxKey(apt.name, TX_SUMMARY, nameMapping);
                           const txSummary = txKey ? TX_SUMMARY[txKey] : undefined;
                           const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name));
 

@@ -37,6 +37,10 @@ export default function AdminLayout({
               <Settings size={18} />
               <span className="text-[14px]">층수 관리</span>
             </Link>
+            <Link href="/admin/name-mapping" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#4e5968] hover:bg-[#f2f4f6] font-medium transition-colors">
+              <Settings size={18} />
+              <span className="text-[14px]">이름 매핑</span>
+            </Link>
 
             <div className="mt-8 mb-2 border-t border-[#f2f4f6]"></div>
             

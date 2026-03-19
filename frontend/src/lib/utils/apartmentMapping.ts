@@ -99,15 +99,22 @@ function deepNormalize(name: string): string {
 }
 
 /**
- * 3단계 캐스케이딩 매칭으로 TX_SUMMARY / TX_RECORDS 키를 찾는 함수
+ * 4단계 캐스케이딩 매칭으로 TX_SUMMARY / TX_RECORDS 키를 찾는 함수
  * 
+ * 0단계: 수동 매핑 테이블 (관리자가 Firestore에서 설정)
  * 1단계: 정규화 후 정확 매칭  
  * 2단계: 양쪽 모두 위치 접두사 제거 후 정확 매칭
  * 3단계: 심층 정규화 (로마숫자, 차, 아파트, 번지, 콤마접두사 등) 후 매칭
  * 
  * @returns 매칭된 키 (없으면 null)
  */
-export function findTxKey<T>(aptName: string, txMap: Record<string, T>): string | null {
+export function findTxKey<T>(aptName: string, txMap: Record<string, T>, manualMapping?: Record<string, string>): string | null {
+  // 0단계: 수동 매핑 (최우선)
+  if (manualMapping) {
+    const mapped = manualMapping[aptName];
+    if (mapped && mapped in txMap) return mapped;
+  }
+
   const norm = normalizeAptName(aptName);
 
   // 1단계: 정확 매칭
