@@ -11,6 +11,7 @@ function parseCoordString(s: string): { lat: number; lng: number } | null {
 }
 
 export interface SheetApartment {
+  ticker?: string;
   name: string;
   dong: string;
   lat: number;
@@ -28,7 +29,7 @@ export interface SheetApartment {
  * GET /api/apartments-by-dong
  * 
  * Google Sheet의 apartments 탭에서 동별로 그룹핑된 아파트 데이터를 반환
- * Sheet 컬럼: 아파트명(0) | 좌표(1) | 세대수(2) | 준공연도(3) | 용적률(4) | 건폐율(5) | 주차대수(6) | 시공사(7) | 동(8)
+ * Sheet 컬럼: 아파트명(0) | 좌표(1) | 세대수(2) | 준공연도(3) | 용적률(4) | 건폐율(5) | 주차대수(6) | 시공사(7) | 동(8) | 최고층(9) | ticker(10)
  */
 export async function GET() {
   try {
@@ -47,6 +48,8 @@ export async function GET() {
     if (dongColIdx === -1) dongColIdx = 8; // fallback: 9번째 컬럼
     let floorColIdx = header.findIndex(h => ['최고층', 'maxfloor', 'floors', '층수', '층'].includes(h));
     if (floorColIdx === -1) floorColIdx = 9; // fallback: 10번째 컬럼
+    let tickerColIdx = header.findIndex(h => h === 'ticker' || h === '티커');
+    if (tickerColIdx === -1) tickerColIdx = 10; // fallback: 11번째 컬럼
 
     const apartments: SheetApartment[] = [];
 
@@ -64,6 +67,7 @@ export async function GET() {
       const maxFloor = cols[floorColIdx] ? parseInt(cols[floorColIdx]) : undefined;
 
       apartments.push({
+        ticker: cols[tickerColIdx]?.trim() || undefined,
         name,
         dong,
         lat: coord?.lat || 0,
