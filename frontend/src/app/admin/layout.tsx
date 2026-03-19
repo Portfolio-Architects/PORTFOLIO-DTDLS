@@ -17,8 +17,7 @@ export default function AdminLayout({
   const navLinks = [
     { href: '/admin', label: '대시보드 홈', icon: LayoutDashboard, section: 'Reports' },
     { href: '/admin/write-report', label: '임장기 작성', icon: FileText, section: 'Reports' },
-    { href: '/admin/floor-settings', label: '층수 관리', icon: Settings, section: 'Reports' },
-    { href: '/admin/name-mapping', label: '이름 매핑', icon: Settings, section: 'Reports' },
+    { href: '/admin/apartments', label: '아파트 관리', icon: Settings, section: 'Reports' },
     { href: '/admin/settings', label: '설정 (준비중)', icon: Settings, section: 'System' },
   ];
 

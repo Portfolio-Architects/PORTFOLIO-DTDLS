@@ -1125,12 +1125,28 @@ export default function Dashboard() {
   // Transaction data — static import, no API call needed
   const [typeMap, setTypeMap] = useState<Record<string, Record<string, string>>>({});
 
-  // Name mapping — Firestore에서 관리자 수동 매핑 로드
+  // Name mapping + public rental — Firestore 통합 메타 로드
   const [nameMapping, setNameMapping] = useState<Record<string, string> | undefined>(undefined);
+  const [publicRentalSet, setPublicRentalSet] = useState<Set<string>>(new Set());
   useEffect(() => {
-    getDoc(doc(db, 'settings/nameMapping')).then(snap => {
-      if (snap.exists()) setNameMapping(snap.data() as Record<string, string>);
-      else setNameMapping({});
+    getDoc(doc(db, 'settings/apartmentMeta')).then(snap => {
+      if (snap.exists()) {
+        const data = snap.data() as Record<string, { txKey?: string; maxFloor?: number; isPublicRental?: boolean }>;
+        const mapping: Record<string, string> = {};
+        const rentals = new Set<string>();
+        for (const [name, meta] of Object.entries(data)) {
+          if (meta.txKey) mapping[name] = meta.txKey;
+          if (meta.isPublicRental) rentals.add(name);
+        }
+        setNameMapping(mapping);
+        setPublicRentalSet(rentals);
+      } else {
+        // Fallback: try old nameMapping doc
+        getDoc(doc(db, 'settings/nameMapping')).then(s2 => {
+          if (s2.exists()) setNameMapping(s2.data() as Record<string, string>);
+          else setNameMapping({});
+        }).catch(() => setNameMapping({}));
+      }
     }).catch(() => setNameMapping({}));
   }, []);
 
@@ -1504,6 +1520,11 @@ export default function Dashboard() {
                                   <div className="flex items-center gap-1 shrink-0 ml-2">
                                     <span className="text-[10px] font-bold bg-[#e8f3ff] text-[#3182f6] px-2 py-0.5 rounded-md">📝 리포트</span>
                                     <span className="text-[10px] font-bold bg-[#f0fdf4] text-[#03c75a] px-2 py-0.5 rounded-md">✅ 현장검증</span>
+                                  </div>
+                                )}
+                                {!report && publicRentalSet.has(apt.name) && (
+                                  <div className="shrink-0 ml-2">
+                                    <span className="text-[10px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-2 py-0.5 rounded-md">🏠 공공임대</span>
                                   </div>
                                 )}
                               </div>
