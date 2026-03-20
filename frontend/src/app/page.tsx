@@ -366,11 +366,6 @@ export function FieldReportModal({
                        <span className="text-[24px] font-extrabold text-[#191f28]">
                          {latestAvg >= 1 ? `${Math.floor(latestAvg)}억` : ''}{(() => { const rem = Math.round((latestAvg % 1) * 10000); return rem > 0 ? rem.toLocaleString() : ''; })()}
                        </span>
-                       {changePercent !== 0 && (
-                         <span className={`text-[13px] font-bold px-2 py-0.5 rounded-md ${changePercent > 0 ? 'text-[#EF4444] bg-red-50' : 'text-[#3182f6] bg-blue-50'}`}>
-                           {changePercent > 0 ? '+' : ''}{changePercent.toFixed(1)}%
-                         </span>
-                       )}
                        <span className="text-[12px] text-[#8b95a1] font-medium">{scatterData.length}건 · 최고 {maxP.toFixed(1)}억 · 최저 {minP.toFixed(1)}억</span>
                      </div>
                      {/* 상승률 기준점 + 범례 */}
@@ -436,12 +431,12 @@ export function FieldReportModal({
                            <Area type="monotone" dataKey="bandHigh" yAxisId="price" stroke="none" fill="url(#bandGrad)" fillOpacity={1} dot={false} activeDot={false} />
                            {/* 거래량 막대그래프 */}
                            <Bar dataKey="volume" yAxisId="volume" fill="#e5e8eb" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.6} />
-                           {/* 저층 월별 평균선 */}
-                           <Line type="monotone" dataKey="lowAvg" yAxisId="price" stroke="#03c75a" strokeWidth={2} dot={false} activeDot={false} connectNulls />
-                           {/* 중층 월별 평균선 */}
-                           <Line type="monotone" dataKey="midAvg" yAxisId="price" stroke="#3182f6" strokeWidth={2} dot={false} activeDot={false} connectNulls />
-                           {/* 고층 월별 평균선 */}
-                           <Line type="monotone" dataKey="highAvg" yAxisId="price" stroke="#EF4444" strokeWidth={2} dot={false} activeDot={false} connectNulls />
+                           {/* 저층 월별 평균선 — 실선 */}
+                           <Line type="monotone" dataKey="lowAvg" yAxisId="price" stroke="#03c75a" strokeWidth={2.5} dot={false} activeDot={false} connectNulls />
+                           {/* 중층 월별 평균선 — 점선 */}
+                           <Line type="monotone" dataKey="midAvg" yAxisId="price" stroke="#3182f6" strokeWidth={2.5} strokeDasharray="6 3" dot={false} activeDot={false} connectNulls />
+                           {/* 고층 월별 평균선 — 점점선 */}
+                           <Line type="monotone" dataKey="highAvg" yAxisId="price" stroke="#EF4444" strokeWidth={2.5} strokeDasharray="2 3" dot={false} activeDot={false} connectNulls />
                            {/* 산점도 — 층수별 색상 */}
                            <Customized
                              component={(rechartProps: any) => {
@@ -504,9 +499,9 @@ export function FieldReportModal({
                      </div>
                      {/* 범례 */}
                      <div className="flex items-center gap-4 mt-2 px-1 text-[10px] font-bold text-[#8b95a1]">
-                       <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-[#03c75a] rounded"/>저층 (1~{lowCut - 1}F)</span>
-                       <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-[#3182f6] rounded"/>중층 ({lowCut}~{midCut - 1}F)</span>
-                       <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-[#EF4444] rounded"/>고층 ({midCut}F~)</span>
+                       <span className="flex items-center gap-1"><span className="w-5 h-0.5 bg-[#03c75a] rounded"/>저층 (1~{lowCut - 1}F)</span>
+                       <span className="flex items-center gap-1"><span className="w-5 border-t-2 border-dashed border-[#3182f6]"/>중층 ({lowCut}~{midCut - 1}F)</span>
+                       <span className="flex items-center gap-1"><span className="w-5 border-t-2 border-dotted border-[#EF4444]"/>고층 ({midCut}F~)</span>
                        <span className="flex items-center gap-1"><span className="w-3 h-3 bg-[#e5e8eb] rounded-sm"/>거래량</span>
                      </div>
                    </div>
