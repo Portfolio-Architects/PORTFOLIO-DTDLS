@@ -522,8 +522,8 @@ export function FieldReportModal({
           {!isStub && (
           <nav className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] px-4 py-2.5">
             <div className="flex gap-1.5 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-w-[1000px] mx-auto">
-              {['사진', '명세', '인프라', '생태', '결론', '댓글'].map((label, idx) => {
-                const ids = ['sec-photos', 'sec-specs', 'sec-infra', 'sec-eco', 'sec-conclusion', 'sec-comments'];
+              {['밸류에이션', '동적 시뮬레이터', '현장 사진', '이웃들의 이야기'].map((label, idx) => {
+                const ids = ['sec-premium', 'sec-simulator', 'sec-photos', 'sec-comments'];
                 return (
                   <button
                     key={ids[idx]}
@@ -540,7 +540,7 @@ export function FieldReportModal({
 
           {/* Magazine Content Wrapper — stub이면 숨김 */}
           {!isStub && (
-          <div className="px-2 py-6 md:px-3 md:py-8 flex flex-col gap-8 w-full">
+          <div className="px-2 py-2 md:px-3 md:py-3 flex flex-col gap-8 w-full">
 
 
 
@@ -629,7 +629,7 @@ export function FieldReportModal({
               const tx84 = transactions.find(t => t.area >= 80 && t.area <= 88) || transactions[0];
               const price84 = tx84 ? normalize84Price(tx84.price, tx84.area) : 0;
               return price84 > 0 ? (
-                <div className="mb-2">
+                <div id="sec-simulator" className="mb-2 scroll-mt-14">
                   <DynamicSimulator scores={report.premiumScores} price84Man={price84} />
                 </div>
               ) : null;
