@@ -354,26 +354,18 @@ export function FieldReportModal({
                          ))}
                        </div>
                      </div>
-                     <div className="flex items-baseline gap-3 mb-2">
+                     <div className="flex items-center gap-3 mb-4">
                        <span className="text-[24px] font-extrabold text-[#191f28]">
                          {latestAvg >= 1 ? `${Math.floor(latestAvg)}억` : ''}{(() => { const rem = Math.round((latestAvg % 1) * 10000); return rem > 0 ? rem.toLocaleString() : ''; })()}
                        </span>
-                       <span className="text-[12px] text-[#8b95a1] font-medium">{scatterData.length}건 · 최고 {maxP.toFixed(1)}억 · 최저 {minP.toFixed(1)}억</span>
-                     </div>
-                     {/* 상승률 기준점 + 범례 */}
-                     <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                        {yoyChange !== null && (
                          <span className="text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-1 rounded-lg">
                            전년 대비 {yoyChange > 0 ? '+' : ''}{yoyChange.toFixed(1)}%
                          </span>
                        )}
-                       <div className="flex items-center gap-3 text-[10px] font-bold text-[#8b95a1]">
-                         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#03c75a]"/>저층</span>
-                         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#3182f6]"/>중층</span>
-                         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#EF4444]"/>고층</span>
-                       </div>
+                       <span className="text-[12px] text-[#8b95a1] font-medium">{scatterData.length}건 · 최고 {maxP.toFixed(1)}억 · 최저 {minP.toFixed(1)}억</span>
                      </div>
-                     <div className="h-[320px] relative">
+                     <div className="h-[380px] relative">
                        <ResponsiveContainer width="100%" height="100%">
                          <ComposedChart data={monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
                            <defs>
