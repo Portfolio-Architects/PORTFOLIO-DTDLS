@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FileText, Settings, Menu, X } from 'lucide-react';
+import { LayoutDashboard, FileText, Settings, Menu, X, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import AdminGuard from '@/components/auth/AdminGuard';
 
@@ -50,6 +50,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
         ))}
       </nav>
+      <div className="mt-auto pt-6 border-t border-[#f2f4f6]">
+        <Link href="/" className="flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-semibold text-[#8b95a1] hover:bg-[#f2f4f6] hover:text-[#3182f6] transition-all">
+          <ExternalLink size={16} /> 소비자 화면 보기
+        </Link>
+      </div>
     </>
   );
 
