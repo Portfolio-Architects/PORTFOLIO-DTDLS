@@ -192,10 +192,10 @@ export function FieldReportModal({
           <div className="bg-white w-full flex flex-col md:flex-row p-4 md:p-10 gap-4 md:gap-8 rounded-t-3xl shrink-0 pt-4 md:pt-8 border-b border-[#e5e8eb]">
             
             {/* Left: 실거래가 전체 리스트 — mobile: 2번째, desktop: 1번째 (40%) */}
-            <div className="w-full md:w-[40%] shrink-0 order-2 md:order-1">
+            <div className="w-full md:w-[40%] shrink-0 order-2 md:order-1 flex flex-col">
               {transactions.length > 0 ? (
-                <div className="bg-[#f9fafb] rounded-2xl p-4 ring-1 ring-black/5">
-                  <h4 className="text-[13px] font-bold text-[#8b95a1] mb-3 flex items-center gap-1.5">
+                <div className="bg-[#f9fafb] rounded-2xl p-4 ring-1 ring-black/5 h-full flex flex-col">
+                  <h4 className="text-[13px] font-bold text-[#8b95a1] mb-3 flex items-center gap-1.5 shrink-0">
                     <TrendingUp size={13} className="text-[#03c75a]" />
                     실거래가 내역 <span className="text-[11px] ml-1">{transactions.length}건</span>
                   </h4>
@@ -236,7 +236,7 @@ export function FieldReportModal({
                   </div>
                 </div>
               ) : (
-                <div className="bg-[#f9fafb] rounded-2xl p-8 flex items-center justify-center ring-1 ring-black/5 h-[200px]">
+                <div className="bg-[#f9fafb] rounded-2xl p-8 flex items-center justify-center ring-1 ring-black/5 h-full min-h-[200px]">
                   <span className="text-[#8b95a1] text-[13px] font-bold">매매 기록이 없습니다</span>
                 </div>
               )}
