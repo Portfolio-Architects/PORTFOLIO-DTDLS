@@ -2,18 +2,109 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { doc, setDoc, query, collection, onSnapshot, where, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, query, collection, onSnapshot, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import { TX_SUMMARY } from '@/lib/transaction-summary';
 import { DONGS } from '@/lib/dongs';
-import { Building, Save, Home, Link2, FileText, ChevronLeft, MapPin, Edit, Trash2, PlusCircle } from 'lucide-react';
+import { Building, Save, Home, Link2, ChevronLeft, MapPin } from 'lucide-react';
 import { ScoutingReport } from '@/lib/types/scoutingReport';
-import Link from 'next/link';
 import ReportEditorForm from '@/components/admin/ReportEditorForm';
 
 const FIRESTORE_DOC = 'settings/apartmentMeta';
 const dongNames = DONGS.map(d => d.name).sort((a, b) => a.localeCompare(b, 'ko'));
 const txKeys = Object.keys(TX_SUMMARY).sort();
+
+function normalizeAptName(name: string): string {
+  return name.replace(/\[.*?\]\s*/g, '').replace(/\s+/g, '').replace(/[()（）]/g, '').trim();
+}
+
+const LOCATION_PREFIXES = [
+  '숲속마을동탄','푸른마을동탄','나루마을동탄',
+  '동탄역시범','동탄시범다은마을','동탄시범한빛마을','동탄시범나루마을',
+  '시범다은마을','시범한빛마을','시범나루마을','시범',
+  '반탄솔빛마을','솔빛마을','예당마을','새강마을',
+  '동탄2신도시','동탄신도시','동탄숲속마을','동탄푸른마을','동탄나루마을',
+  '동탄호수공원역','동탄호수공원','동탄호수','동탄역',
+  '화성동탄2','능동역','호수공원역','동탄2','동탄',
+];
+
+// 단지명 끝에 붙는 접미사 — 실거래 DB와 단지명이 다를 때 제거하여 비교
+const NAME_SUFFIXES = ['역', '2단지', '1단지', '3단지', '4단지', '5단지', '단지'];
+
+function stripPrefix(n: string) {
+  for (const p of LOCATION_PREFIXES) if (n.startsWith(p) && n.length > p.length) return n.slice(p.length);
+  return n;
+}
+
+function stripSuffix(n: string) {
+  for (const s of NAME_SUFFIXES) if (n.endsWith(s) && n.length > s.length) return n.slice(0, -s.length);
+  return n;
+}
+
+/** 레벤슈타인 편집 거리 (간단 구현) */
+function editDistance(a: string, b: string): number {
+  const m = a.length, n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+  return dp[m][n];
+}
+
+function autoSuggest(aptName: string): string | null {
+  const norm = normalizeAptName(aptName);
+  const keys = Object.keys(TX_SUMMARY);
+  if (!norm || norm.length < 2) return null;
+
+  // 1. 정확 일치
+  if (keys.includes(norm)) return norm;
+
+  // 2. 접두사 제거 후 정확 일치
+  const stripped = stripPrefix(norm);
+  if (stripped !== norm && keys.includes(stripped)) return stripped;
+  for (const k of keys) if (stripPrefix(k) === stripped) return k;
+
+  // 3. 접미사 제거 후 매칭 (힐스테이트동탄역 → 힐스테이트동탄)
+  const suffixStripped = stripSuffix(norm);
+  if (suffixStripped !== norm && keys.includes(suffixStripped)) return suffixStripped;
+  // TX키에서도 접미사를 제거하여 비교
+  for (const k of keys) if (stripSuffix(k) === suffixStripped) return k;
+  // 양쪽 모두 접두사+접미사 제거
+  const bothStripped = stripSuffix(stripped);
+  if (bothStripped !== stripped) {
+    for (const k of keys) if (stripSuffix(stripPrefix(k)) === bothStripped) return k;
+  }
+
+  // 4. 부분 문자열 포함 (norm이 TX키를 포함하거나, TX키가 norm을 포함)
+  const containMatches = keys.filter(k => norm.includes(k) || k.includes(norm));
+  if (containMatches.length === 1) return containMatches[0];
+  if (containMatches.length > 1) {
+    // 길이가 가장 가까운 것 선택
+    containMatches.sort((a, b) => Math.abs(a.length - norm.length) - Math.abs(b.length - norm.length));
+    return containMatches[0];
+  }
+
+  // 5. 편집 거리가 충분히 가까운 후보 (이름의 20% 이내 차이)
+  const threshold = Math.max(2, Math.floor(norm.length * 0.25));
+  let bestKey: string | null = null;
+  let bestDist = Infinity;
+  for (const k of keys) {
+    const dist = editDistance(norm, k);
+    if (dist < bestDist && dist <= threshold) {
+      bestDist = dist;
+      bestKey = k;
+    }
+  }
+  return bestKey;
+}
 
 interface AptMeta {
   dong: string;
@@ -39,7 +130,10 @@ export default function ApartmentInfoPage() {
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [isWriting, setIsWriting] = useState(false);
+
+  const suggestedTxKey = useMemo(() => {
+    return !meta?.txKey ? autoSuggest(originalName) : null;
+  }, [meta?.txKey, originalName]);
 
   // Load from Sheets
   useEffect(() => {
@@ -212,17 +306,6 @@ export default function ApartmentInfoPage() {
     setSaving(false);
   };
 
-  const handleDeleteReport = async (id: string, name: string) => {
-    if (window.confirm(`정말로 '${name}' 임장기를 삭제하시겠습니까?`)) {
-      try {
-        await deleteDoc(doc(db, 'scoutingReports', id));
-      } catch (error) {
-        console.error('Error deleting report:', error);
-        alert('삭제 중 오류가 발생했습니다.');
-      }
-    }
-  };
-
   if (!loaded) return (
     <div className="flex justify-center items-center py-32">
       <div className="w-8 h-8 border-4 border-[#3182f6] border-t-transparent rounded-full animate-spin" />
@@ -261,7 +344,17 @@ export default function ApartmentInfoPage() {
             </div>
 
             <div>
-              <label className="text-[13px] font-bold text-[#4e5968] mb-1.5 flex items-center gap-1"><Link2 size={14}/> TX 키 (실거래가 연동)</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[13px] font-bold text-[#4e5968] flex items-center gap-1">
+                  <Link2 size={14}/> TX 키 (실거래가 연동)
+                </label>
+                {suggestedTxKey && !meta?.txKey && (
+                  <button onClick={() => setMeta({ ...meta, txKey: suggestedTxKey })}
+                    className="px-2 py-0.5 bg-[#e8f3ff] text-[#3182f6] hover:bg-[#3182f6] hover:text-white rounded text-[11px] font-bold transition-colors">
+                    자동 추천: {suggestedTxKey}
+                  </button>
+                )}
+              </div>
               <input type="text" value={meta.txKey || ''} onChange={e => setMeta({ ...meta, txKey: e.target.value })}
                 list="tx-keys" placeholder="예: 동탄역호반써밋"
                 className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none focus:border-[#3182f6] focus:bg-white font-mono" />
@@ -300,78 +393,24 @@ export default function ApartmentInfoPage() {
         </div>
       )}
 
-      {/* Reports Section */}
+      {/* Report Editor Section */}
       <div className="bg-white rounded-2xl border border-[#e5e8eb] shadow-sm p-5 md:p-8">
-        <div className="flex items-center justify-between mb-5 border-b border-[#f2f4f6] pb-3">
-          <h2 className="text-[16px] font-bold text-[#191f28] flex items-center gap-2">
-            임장기 데이터 
-            <span className="bg-[#f2f4f6] text-[#8b95a1] px-2 py-0.5 rounded-full text-[12px]">{reports.length}</span>
-          </h2>
-          {!isWriting && (
-            <button onClick={() => setIsWriting(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#e8f3ff] text-[#3182f6] hover:bg-[#3182f6] hover:text-white rounded-lg text-[12px] font-bold transition-colors">
-              <PlusCircle size={14}/> 새 임장기 작성
-            </button>
-          )}
+        <div className="mb-5 border-b border-[#f2f4f6] pb-3">
+          <h2 className="text-[16px] font-bold text-[#191f28]">임장기 상세 기록</h2>
+          <p className="text-[13px] text-[#8b95a1] font-medium mt-1">이 단지의 세부 지표 및 현장 사진을 작성하고 관리합니다.</p>
         </div>
 
-        {isWriting ? (
-          <div className="-mx-5 md:-mx-8">
-            <ReportEditorForm 
-              lockedMeta={{ dong: meta?.dong || '미지정', apartmentName: originalName }} 
-              onCancel={() => setIsWriting(false)} 
-            />
-          </div>
-        ) : reports.length > 0 ? (
-          <div className="space-y-3">
-            {reports.map(report => (
-              <div key={report.id} className="flex items-center gap-4 p-4 bg-[#f9fafb] rounded-xl border border-[#e5e8eb] hover:shadow-sm transition-all hover:bg-white group cursor-default">
-                {(report.thumbnailUrl || report.images?.[0]?.url) ? (
-                  <img src={report.thumbnailUrl || report.images?.[0]?.url || ''} alt=""
-                    className="w-[80px] h-[60px] object-cover rounded-lg border border-[#e5e8eb] shrink-0" />
-                ) : (
-                  <div className="w-[80px] h-[60px] bg-[#f2f4f6] rounded-lg border border-[#e5e8eb] flex items-center justify-center shrink-0 text-[#d1d6db]">
-                    <FileText size={20}/>
-                  </div>
-                )}
-                
-                <div className="flex-1 min-w-0">
-                  {report.premiumScores && (
-                    <p className="text-[13px] text-[#3182f6] font-bold flex items-center gap-1 mb-1">
-                      프리미엄 지수: <span className="text-[15px] font-extrabold">{report.premiumScores.totalPremiumScore}</span>점
-                    </p>
-                  )}
-                  <div className="text-[11px] text-[#8b95a1] flex items-center gap-2 font-medium">
-                    <span>{new Date(report.createdAt).toLocaleDateString()}</span>
-                    <span>·</span>
-                    <span>시공사: {report.metrics?.brand || '-'}</span>
-                    <span>·</span>
-                    <span>총 {Object.keys(report.metrics).length}개 지표 확보</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Link href={`/admin/edit-report/${report.id}`}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-white border border-[#e5e8eb] text-[#4e5968] hover:border-[#3182f6] hover:text-[#3182f6] rounded-lg text-[12px] font-bold shadow-sm transition-all">
-                    <Edit size={14}/> 지표 및 사진 수정
-                  </Link>
-                  <button onClick={() => handleDeleteReport(report.id!, report.apartmentName)}
-                    className="flex items-center justify-center w-9 h-9 bg-white border border-[#e5e8eb] text-[#8b95a1] hover:bg-[#ffebec] hover:text-[#f04452] hover:border-[#ffebec] rounded-lg shadow-sm transition-all">
-                    <Trash2 size={16}/>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="py-8 text-center bg-[#f9fafb] rounded-xl border border-dashed border-[#e5e8eb]">
-            <p className="text-[14px] text-[#8b95a1] font-medium mb-3">등록된 임장기가 없습니다.</p>
-            <button onClick={() => setIsWriting(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-[#e5e8eb] rounded-xl text-[13px] font-bold text-[#4e5968] hover:border-[#3182f6] hover:text-[#3182f6] shadow-sm transition-all">
-              <PlusCircle size={16}/> 첫 임장기 등록하기
-            </button>
-          </div>
-        )}
+        <div className="-mx-5 md:-mx-8">
+          <ReportEditorForm 
+            key={reports.length > 0 ? reports[0].id : 'new'}
+            initialData={reports.length > 0 ? (reports[0] as any) : null}
+            reportId={reports.length > 0 ? reports[0].id : undefined}
+            lockedMeta={{ dong: meta?.dong || '미지정', apartmentName: originalName }} 
+            onSuccess={() => {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        </div>
       </div>
     </div>
   );

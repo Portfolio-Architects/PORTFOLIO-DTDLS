@@ -90,9 +90,10 @@ interface ReportEditorFormProps {
   reportId?: string;
   lockedMeta?: { dong: string; apartmentName: string };
   onCancel?: () => void;
+  onSuccess?: () => void;
 }
 
-export default function ReportEditorForm({ initialData = null, reportId, lockedMeta, onCancel }: ReportEditorFormProps) {
+export default function ReportEditorForm({ initialData = null, reportId, lockedMeta, onCancel, onSuccess }: ReportEditorFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   const [apiCategories, setApiCategories] = useState<{
@@ -415,7 +416,9 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
         alert("데이터가 성공적으로 발행 및 저장되었습니다!");
       }
       
-      if (onCancel) {
+      if (onSuccess) {
+        onSuccess();
+      } else if (onCancel) {
         onCancel();
         window.location.reload(); // Refresh to show new report inline
       } else {
