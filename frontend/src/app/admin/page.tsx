@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
-  Building, Save, Search, Check, X, AlertTriangle, ChevronDown, ChevronRight,
+  Building, Save, Search, Check, AlertTriangle, ChevronDown, ChevronRight,
   Home, Link2, FileText, Plus, Trash2, MapPin, PlusCircle, Edit
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, onSnapshot, where, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
@@ -57,6 +58,7 @@ export interface AptMeta {
 type MetaMap = Record<string, AptMeta>;
 
 export default function AdminDashboard() {
+  const router = useRouter();
   // ── State ──
   const [meta, setMeta] = useState<MetaMap>({});
   const [initialMeta, setInitialMeta] = useState<MetaMap>({}); // To track changes for sync
@@ -76,9 +78,6 @@ export default function AdminDashboard() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newAptName, setNewAptName] = useState('');
   const [newAptDong, setNewAptDong] = useState(dongNames[0]);
-  // Rename
-  const [editingName, setEditingName] = useState<string | null>(null);
-  const [editNameValue, setEditNameValue] = useState('');
   // Deletes tracking for sync
   const [deletedApts, setDeletedApts] = useState<Set<string>>(new Set());
 
@@ -280,38 +279,6 @@ export default function AdminDashboard() {
     setMeta(prev => { const next = { ...prev }; delete next[aptName]; return next; });
   }, []);
 
-  const handleDeleteReport = async (id: string, name: string) => {
-    if (window.confirm(`정말로 '${name}' 임장기를 삭제하시겠습니까?`)) {
-      try {
-        await deleteDoc(doc(db, 'scoutingReports', id));
-      } catch (error) {
-        console.error('Error deleting report:', error);
-        alert('삭제 중 오류가 발생했습니다.');
-      }
-    }
-  };
-
-  const renameApt = useCallback(async (oldName: string, newName: string) => {
-    const trimmed = newName.trim();
-    if (!trimmed || trimmed === oldName) { setEditingName(null); return; }
-    if (meta[trimmed]) { alert('이미 존재하는 아파트 이름입니다.'); return; }
-    setMeta(prev => {
-      const next = { ...prev };
-      next[trimmed] = { ...next[oldName] };
-      delete next[oldName];
-      return next;
-    });
-    setEditingName(null);
-    try {
-      const q = query(collection(db, 'scoutingReports'), where('apartmentName', '==', oldName));
-      const snap = await getDocs(q);
-      const updates = snap.docs.map(d => updateDoc(d.ref, { apartmentName: trimmed }));
-      if (updates.length > 0) await Promise.all(updates);
-    } catch (e) {
-      console.error('Failed to update scouting reports:', e);
-    }
-  }, [meta]);
-
   const addApartment = useCallback(() => {
     const name = newAptName.trim();
     if (!name) return alert('아파트 이름을 입력하세요.');
@@ -327,12 +294,6 @@ export default function AdminDashboard() {
   const toggleDong = useCallback((dong: string) => {
     setExpandedDongs(prev => {
       const next = new Set(prev); next.has(dong) ? next.delete(dong) : next.add(dong); return next;
-    });
-  }, []);
-
-  const toggleApt = useCallback((apt: string) => {
-    setExpandedApts(prev => {
-      const next = new Set(prev); next.has(apt) ? next.delete(apt) : next.add(apt); return next;
     });
   }, []);
 
@@ -396,18 +357,14 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-[#191f28] tracking-tight mb-2">아파트 · 임장기 관리</h1>
-          <p className="text-[#4e5968] text-[14px]">단지 기본정보 · 실거래 매핑 · 프리미엄 임장기 통합 관리</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-[#191f28] tracking-tight mb-2">아파트 대시보드</h1>
+          <p className="text-[#4e5968] text-[14px]">단지 기본정보 및 프리미엄 임장기 통합 관리</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => setShowAddForm(!showAddForm)}
             className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#3182f6] bg-[#e8f3ff] hover:bg-[#3182f6] hover:text-white transition-all text-[13px]">
             <Plus size={16}/> 아파트 추가
           </button>
-          <Link href="/admin/write-report"
-            className="flex items-center gap-2 bg-[#3182f6] hover:bg-[#2b72d6] text-white px-5 py-3 rounded-xl font-bold transition-colors shadow-sm text-[13px]">
-            <PlusCircle size={16} /> 임장기 작성
-          </Link>
         </div>
       </div>
 
@@ -506,148 +463,29 @@ export default function AdminDashboard() {
                     return (
                       <div key={name} className={`${m.isPublicRental ? 'bg-[#f9fafb]' : !hasValidTx ? 'bg-[#fffbf5]' : ''}`}>
                         {/* Apartment Unit Header */}
-                        <div className="px-4 sm:px-6 py-3 cursor-pointer hover:bg-[#f6f8fa] transition-colors"
-                          onClick={() => toggleApt(name)}>
+                        <Link href={`/admin/apartments/${encodeURIComponent(name)}`} className="block px-4 sm:px-6 py-4 hover:bg-[#f6f8fa] transition-colors border-b border-[#f2f4f6] last:border-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             {hasValidTx ? <Check size={14} className="text-[#03c75a] shrink-0"/> : <AlertTriangle size={14} className="text-[#f04452] shrink-0"/>}
                             
-                            {editingName === name ? (
-                              <input type="text" autoFocus value={editNameValue}
-                                onClick={e => e.stopPropagation()}
-                                onChange={e => setEditNameValue(e.target.value)}
-                                onBlur={() => renameApt(name, editNameValue)}
-                                onKeyDown={e => { if (e.key === 'Enter') renameApt(name, editNameValue); if (e.key === 'Escape') setEditingName(null); }}
-                                className="text-[13px] sm:text-[14px] font-bold text-[#191f28] px-2 py-0.5 border border-[#3182f6] rounded-lg outline-none bg-[#e8f3ff] min-w-[150px]" />
-                            ) : (
-                              <span className="text-[13px] sm:text-[14px] font-bold text-[#191f28] hover:underline decoration-dotted decoration-[#8b95a1] cursor-text"
-                                onDoubleClick={e => { e.stopPropagation(); setEditingName(name); setEditNameValue(name); }}>{name}</span>
-                            )}
+                            <span className="text-[13px] sm:text-[14px] font-bold text-[#191f28]">{name}</span>
 
-                            {m.isPublicRental && <span className="text-[10px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-2 py-0.5 rounded-full">🏠 공공임대</span>}
-                            {m.householdCount && <span className="text-[10px] text-[#8b95a1]">{m.householdCount}세대</span>}
+                            {m.isPublicRental && <span className="text-[10px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-2 py-0.5 rounded-full mt-0.5">🏠 공공임대</span>}
+                            {m.householdCount && <span className="text-[10px] text-[#8b95a1]">· {m.householdCount}세대</span>}
                             {m.yearBuilt && <span className="text-[10px] text-[#8b95a1]">· {m.yearBuilt}년</span>}
                             
                             {/* Report badge */}
                             {aptReports.length > 0 && (
-                              <span className="text-[10px] font-bold bg-[#fff4e6] text-[#ff8a3d] px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <span className="text-[10px] font-bold bg-[#fff4e6] text-[#ff8a3d] px-2 py-0.5 rounded-full flex items-center gap-1 mt-0.5">
                                 📝 임장기 {aptReports.length}건
                               </span>
                             )}
 
-                            <span className="ml-auto text-[#8b95a1] shrink-0">
-                              {isAptExpanded ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
+                            <span className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e5e8eb] rounded-lg text-[12px] font-bold text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28] transition-colors shadow-sm">
+                              상세보기
+                              <ChevronRight size={14}/>
                             </span>
                           </div>
-                        </div>
-
-                        {/* Apartment Expanded Content */}
-                        {isAptExpanded && (
-                          <div className="px-4 sm:px-6 pb-4 space-y-3 border-t border-[#f2f4f6] bg-[#fafbfc]">
-                            {/* Controls row — always visible */}
-                              <div className="flex flex-col sm:flex-row gap-2 sm:items-center pt-3">
-                                {/* Dong Selector */}
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                  <MapPin size={13} className="text-[#8b95a1]"/>
-                                  <select value={m.dong} onChange={e => updateMeta(name, { dong: e.target.value })}
-                                    className="px-2 py-1.5 border border-[#e5e8eb] rounded-lg text-[12px] font-bold outline-none focus:border-[#3182f6] bg-white text-[#191f28]">
-                                    {dongNames.map(d => <option key={d} value={d}>{d}</option>)}
-                                  </select>
-                                </div>
-                                {/* TX Key */}
-                                <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                                  <Link2 size={13} className="text-[#8b95a1] shrink-0"/>
-                                  <input type="text" value={m.txKey || ''} onChange={e => updateMeta(name, { txKey: e.target.value })}
-                                    placeholder="TX 키" list={`tx-${name}`}
-                                    className={`flex-1 min-w-0 px-2.5 py-1.5 border rounded-lg text-[12px] font-mono outline-none transition-all focus:border-[#3182f6] ${
-                                      hasValidTx ? 'border-[#03c75a] bg-[#f0fdf4]' : m.txKey ? 'border-[#f04452] bg-[#ffebec]' : 'border-[#e5e8eb]'
-                                    }`} />
-                                  <datalist id={`tx-${name}`}>{txKeys.slice(0,30).map(k => <option key={k} value={k}/>)}</datalist>
-                                  {suggested && !m.txKey && (
-                                    <button onClick={() => updateMeta(name, { txKey: suggested })}
-                                      className="shrink-0 px-2 py-1 bg-[#e8f3ff] text-[#3182f6] rounded text-[10px] font-bold hover:bg-[#3182f6] hover:text-white transition-colors">자동</button>
-                                  )}
-                                </div>
-                                {/* Max Floor */}
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                  <Building size={13} className="text-[#8b95a1]"/>
-                                  <input type="number" min={0} max={99} value={m.maxFloor || ''}
-                                    onChange={e => updateMeta(name, { maxFloor: parseInt(e.target.value) || 0 })}
-                                    placeholder="—" className={`w-[56px] text-center px-2 py-1.5 border rounded-lg text-[12px] font-bold outline-none transition-all focus:border-[#3182f6] ${
-                                      (m.maxFloor || 0) > 0 ? 'border-[#03c75a] bg-[#f0fdf4] text-[#03c75a]' : 'border-[#e5e8eb]'
-                                    }`} />
-                                  <span className="text-[11px] text-[#8b95a1]">층</span>
-                                </div>
-                                {/* Public Rental Toggle */}
-                                <button onClick={() => updateMeta(name, { isPublicRental: !m.isPublicRental })}
-                                  className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
-                                    m.isPublicRental ? 'bg-[#191f28] text-white' : 'bg-white border border-[#e5e8eb] text-[#8b95a1] hover:bg-[#f2f4f6]'
-                                  }`}>
-                                  <Home size={12}/> 공공임대
-                                </button>
-                                {/* Rename + Delete */}
-                                <button onClick={(e) => { e.stopPropagation(); setEditingName(name); setEditNameValue(name); }}
-                                  className="shrink-0 p-1.5 text-[#8b95a1] hover:text-[#3182f6] transition-colors" title="이름 수정">
-                                  <Edit size={14}/>
-                                </button>
-                                <button onClick={() => deleteApt(name)}
-                                  className="shrink-0 p-1.5 text-[#8b95a1] hover:text-[#f04452] transition-colors" title="삭제">
-                                  <Trash2 size={14}/>
-                                </button>
-                              </div>
-
-                            {/* Scouting Reports for this apartment */}
-                            {aptReports.length > 0 ? (
-                              <div className="space-y-2 pt-2">
-                                <p className="text-[11px] font-bold text-[#8b95a1] uppercase tracking-wider">임장기</p>
-                                {aptReports.map(report => (
-                                  <div key={report.id} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-[#e5e8eb] hover:shadow-sm transition-all">
-                                    {(report.thumbnailUrl || report.images?.[0]?.url) && (
-                                      <img src={report.thumbnailUrl || report.images?.[0]?.url || ''} alt=""
-                                        className="report-thumb-wrap" />
-                                    )}
-                                    {!(report.thumbnailUrl || report.images?.[0]?.url) && (
-                                      <div className="report-thumb-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d1d6db' }}>
-                                        <FileText size={18}/>
-                                      </div>
-                                    )}
-                                    <div className="flex-1 min-w-0">
-                                      {report.premiumScores && (
-                                        <p className="text-[12px] text-[#3182f6] font-semibold flex items-center gap-1">
-                                          프리미엄 지수: <span className="text-[14px] font-bold">{report.premiumScores.totalPremiumScore}</span>점
-                                        </p>
-                                      )}
-                                      <div className="text-[11px] text-[#8b95a1] flex items-center gap-2">
-                                        <span>{new Date(report.createdAt).toLocaleDateString()}</span>
-                                        <span>·</span>
-                                        <span>지표 {Object.keys(report.metrics).length}개</span>
-                                      </div>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 shrink-0">
-                                      <Link href={`/admin/edit-report/${report.id}`}
-                                        className="px-2.5 py-1.5 bg-white border border-[#e5e8eb] hover:bg-[#f2f4f6] text-[#8b95a1] hover:text-[#191f28] rounded-lg text-[11px] font-bold transition-colors flex items-center gap-1">
-                                        <Edit size={12}/> 수정
-                                      </Link>
-                                      <button onClick={() => handleDeleteReport(report.id!, report.apartmentName)}
-                                        className="px-2.5 py-1.5 bg-white border border-[#e5e8eb] hover:bg-[#ffebec] hover:border-[#ffebec] hover:text-[#f04452] text-[#8b95a1] rounded-lg text-[11px] font-bold transition-colors flex items-center gap-1">
-                                        <Trash2 size={12}/> 삭제
-                                      </button>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="pt-2">
-                                <div className="flex items-center justify-between p-3 bg-[#f9fafb] rounded-xl border border-dashed border-[#e5e8eb]">
-                                  <span className="text-[12px] text-[#8b95a1]">아직 작성된 임장기가 없습니다</span>
-                                  <Link href={`/admin/write-report?apt=${encodeURIComponent(name)}&dong=${encodeURIComponent(m.dong)}`}
-                                    className="text-[11px] font-bold text-[#3182f6] hover:underline flex items-center gap-1">
-                                    <PlusCircle size={12}/> 임장기 작성
-                                  </Link>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        </Link>
                       </div>
                     );
                   })}

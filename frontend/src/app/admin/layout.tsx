@@ -11,8 +11,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
 
   const navLinks = [
-    { href: '/admin', label: '아파트 · 임장기', icon: LayoutDashboard, section: 'Reports' },
-    { href: '/admin/write-report', label: '임장기 작성', icon: FileText, section: 'Reports' },
+    { href: '/admin', label: '아파트 대시보드', icon: LayoutDashboard, section: 'Reports' },
     { href: '/admin/settings', label: '설정 (준비중)', icon: Settings, section: 'System' },
   ];
 

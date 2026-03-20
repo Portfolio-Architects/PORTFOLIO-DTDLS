@@ -88,9 +88,11 @@ const CAPTION_TEMPLATES: Record<string, string[]> = {
 interface ReportEditorFormProps {
   initialData?: FormValues | null;
   reportId?: string;
+  lockedMeta?: { dong: string; apartmentName: string };
+  onCancel?: () => void;
 }
 
-export default function ReportEditorForm({ initialData = null, reportId }: ReportEditorFormProps) {
+export default function ReportEditorForm({ initialData = null, reportId, lockedMeta, onCancel }: ReportEditorFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   const [apiCategories, setApiCategories] = useState<{
@@ -133,8 +135,8 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
   // Initialize React Hook Form
   const { register, control, handleSubmit, reset, setValue, getValues, formState: { errors } } = useForm<FormValues>({
     defaultValues: initialData || {
-      dong: '',
-      apartmentName: '',
+      dong: lockedMeta?.dong || '',
+      apartmentName: lockedMeta?.apartmentName || '',
       metrics: {
         brand: '',
         householdCount: '',
@@ -413,7 +415,12 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         alert("데이터가 성공적으로 발행 및 저장되었습니다!");
       }
       
-      router.push('/admin'); // Redirect to dashboard
+      if (onCancel) {
+        onCancel();
+        window.location.reload(); // Refresh to show new report inline
+      } else {
+        router.push('/admin'); // Redirect to dashboard
+      }
     } catch (error: any) {
       console.error(error);
       alert(`오류가 발생했습니다: ${error.message}`);
@@ -462,31 +469,42 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <label className="block text-[14px] font-bold text-[#4e5968] mb-2">법정동 선택 <span className="text-[#f04452]">*</span></label>
-            <SelectInput 
-              name="dong" 
-              label="" 
-              options={isLoadingApts ? ['불러오는 중...'] : Object.keys(dongData)} 
-            />
-          </div>
-          <div>
-            <label className="block text-[14px] font-bold text-[#4e5968] mb-2">물건(아파트) 이름 <span className="text-[#f04452]">*</span></label>
-            {selectedDong === '기타' ? (
-              <input 
-                {...register('apartmentName', { required: true })}
-                className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-all placeholder-[#b0b8c1]"
-                placeholder="직접 단지명을 입력하세요"
-              />
-            ) : (
-              <SelectInput 
-                name="apartmentName" 
-                label="" 
-                options={availableApartments} 
-              />
-            )}
-            <p className="text-[12px] text-[#8b95a1] font-medium mt-2">* 동을 먼저 선택하면 해당 지역의 주요 아파트 목록이 연동됩니다.</p>
-          </div>
+          {lockedMeta ? (
+            <div className="col-span-2 p-4 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl flex gap-3 items-center">
+              <span className="text-[13px] font-bold text-[#8b95a1] bg-white border border-[#e5e8eb] px-2 py-1 rounded shadow-sm">단지 고정됨</span>
+              <span className="text-[14px] font-bold text-[#4e5968]">{lockedMeta.dong}</span>
+              <span className="text-[14px] text-[#d1d6db]">/</span>
+              <span className="text-[15px] font-extrabold text-[#3182f6]">{lockedMeta.apartmentName}</span>
+            </div>
+          ) : (
+            <>
+              <div>
+                <label className="block text-[14px] font-bold text-[#4e5968] mb-2">법정동 선택 <span className="text-[#f04452]">*</span></label>
+                <SelectInput 
+                  name="dong" 
+                  label="" 
+                  options={isLoadingApts ? ['불러오는 중...'] : Object.keys(dongData)} 
+                />
+              </div>
+              <div>
+                <label className="block text-[14px] font-bold text-[#4e5968] mb-2">물건(아파트) 이름 <span className="text-[#f04452]">*</span></label>
+                {selectedDong === '기타' ? (
+                  <input 
+                    {...register('apartmentName', { required: true })}
+                    className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-all placeholder-[#b0b8c1]"
+                    placeholder="직접 단지명을 입력하세요"
+                  />
+                ) : (
+                  <SelectInput 
+                    name="apartmentName" 
+                    label="" 
+                    options={availableApartments} 
+                  />
+                )}
+                <p className="text-[12px] text-[#8b95a1] font-medium mt-2">* 동을 먼저 선택하면 해당 지역의 주요 아파트 목록이 연동됩니다.</p>
+              </div>
+            </>
+          )}
         </div>
       </section>
 
@@ -930,6 +948,15 @@ export default function ReportEditorForm({ initialData = null, reportId }: Repor
 
       {/* 4. Publishing & Save */}
       <div className="fixed bottom-0 left-0 right-0 md:left-[240px] bg-white/90 backdrop-blur-md p-4 border-t border-[#e5e8eb] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] flex justify-end gap-3 z-50">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-6 py-3 font-bold text-[#8b95a1] bg-white border border-[#e5e8eb] hover:bg-[#f2f4f6] rounded-xl transition-colors"
+          >
+            취소
+          </button>
+        )}
         <button
           type="button"
           onClick={() => {
