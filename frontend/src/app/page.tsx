@@ -296,29 +296,41 @@ export function FieldReportModal({
                  })).filter(d => d.price >= q1 - iqr * 3 && d.price <= q3 + iqr * 3);
                  if (scatterData.length === 0) return null;
 
-                 // 월별 평균 + 거래량
-                 const byMonth = new Map<number, number[]>();
+                 // 층수별 색상 — 해당 아파트 최고층 대비 비율로 동적 분류
+                 const maxFloor = Math.max(...scatterData.map(d => d.floor), 1);
+                 const lowCut = Math.ceil(maxFloor / 3);
+                 const midCut = Math.ceil((maxFloor * 2) / 3);
+                 const getFloorColor = (floor: number) => {
+                   if (floor >= midCut) return '#EF4444'; // 고층 = 빨강
+                   if (floor >= lowCut) return '#3182f6'; // 중층 = 파랑
+                   return '#03c75a'; // 저층 = 초록
+                 };
+                 const getFloorTier = (floor: number): 'low' | 'mid' | 'high' => {
+                   if (floor >= midCut) return 'high';
+                   if (floor >= lowCut) return 'mid';
+                   return 'low';
+                 };
+
+                 // 월별 층별 평균 + 거래량
+                 const byMonthTier = new Map<number, { low: number[]; mid: number[]; high: number[]; all: number[] }>();
                  scatterData.forEach(d => {
-                   if (!byMonth.has(d.yearMonth)) byMonth.set(d.yearMonth, []);
-                   byMonth.get(d.yearMonth)!.push(d.price);
+                   if (!byMonthTier.has(d.yearMonth)) byMonthTier.set(d.yearMonth, { low: [], mid: [], high: [], all: [] });
+                   const bucket = byMonthTier.get(d.yearMonth)!;
+                   bucket[getFloorTier(d.floor)].push(d.price);
+                   bucket.all.push(d.price);
                  });
-                 const monthlyData = Array.from(byMonth.entries())
-                   .map(([ym, prices]) => ({
+                 const avg = (arr: number[]) => arr.length > 0 ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 1000) / 1000 : undefined;
+                 const monthlyData = Array.from(byMonthTier.entries())
+                   .map(([ym, buckets]) => ({
                      ts: new Date(Math.floor(ym / 100), (ym % 100) - 1, 15).getTime(),
-                     monthAvg: Math.round((prices.reduce((a, b) => a + b, 0) / prices.length) * 1000) / 1000,
-                     volume: prices.length, ym,
+                     monthAvg: avg(buckets.all)!,
+                     lowAvg: avg(buckets.low),
+                     midAvg: avg(buckets.mid),
+                     highAvg: avg(buckets.high),
+                     volume: buckets.all.length, ym,
                      bandHigh, bandLow,
-                     ma3: 0, ma6: 0,
                    }))
                    .sort((a, b) => a.ts - b.ts);
-
-                 // 3개월·6개월 이동평균 계산
-                 monthlyData.forEach((d, i) => {
-                   const slice3 = monthlyData.slice(Math.max(0, i - 2), i + 1);
-                   d.ma3 = Math.round((slice3.reduce((s, x) => s + x.monthAvg, 0) / slice3.length) * 1000) / 1000;
-                   const slice6 = monthlyData.slice(Math.max(0, i - 5), i + 1);
-                   d.ma6 = Math.round((slice6.reduce((s, x) => s + x.monthAvg, 0) / slice6.length) * 1000) / 1000;
-                 });
 
                  const prices = scatterData.map(d => d.price);
                  let minP = Infinity, maxP = -Infinity, sumP = 0;
@@ -329,16 +341,6 @@ export function FieldReportModal({
                  const latestAvg = monthlyData[monthlyData.length - 1]?.monthAvg || (prices.length > 0 ? sumP / prices.length : 0);
                  const firstAvg = monthlyData[0]?.monthAvg || latestAvg;
                  const changePercent = firstAvg > 0 ? ((latestAvg - firstAvg) / firstAvg * 100) : 0;
-
-                 // 층수별 색상 — 해당 아파트 최고층 대비 비율로 동적 분류
-                 const maxFloor = Math.max(...scatterData.map(d => d.floor), 1);
-                 const lowCut = Math.ceil(maxFloor / 3);
-                 const midCut = Math.ceil((maxFloor * 2) / 3);
-                 const getFloorColor = (floor: number) => {
-                   if (floor >= midCut) return '#EF4444'; // 고층 = 빨강
-                   if (floor >= lowCut) return '#3182f6'; // 중층 = 파랑
-                   return '#03c75a'; // 저층 = 초록
-                 };
 
                  // 상승률 기준점 텍스트
                  const yearAgoYm = (now.getFullYear() - 1) * 100 + (now.getMonth() + 1);
@@ -415,16 +417,15 @@ export function FieldReportModal({
                              content={({ active, payload }) => {
                                if (!active || !payload?.length) return null;
                                const item = payload[0]?.payload;
-                               const avg = item?.monthAvg;
                                const vol = item?.volume;
-                               const ma3 = item?.ma3;
                                return (
                                  <div style={{ background: '#1e293b', borderRadius: 10, padding: '8px 12px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', border: 'none' }}>
                                    <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>
                                      {new Date(item?.ts).getFullYear()}.{String(new Date(item?.ts).getMonth()+1).padStart(2,'0')}월
                                    </div>
-                                   {avg && <div style={{ color: '#fff', fontSize: 14, fontWeight: 700 }}>평균 {avg.toFixed(2)}억</div>}
-                                   {ma3 && <div style={{ color: '#f59e0b', fontSize: 11, marginTop: 2 }}>3M이평 {ma3.toFixed(2)}억</div>}
+                                   {item?.highAvg && <div style={{ color: '#EF4444', fontSize: 12, fontWeight: 700 }}>고층 {item.highAvg.toFixed(2)}억</div>}
+                                   {item?.midAvg && <div style={{ color: '#3182f6', fontSize: 12, fontWeight: 700 }}>중층 {item.midAvg.toFixed(2)}억</div>}
+                                   {item?.lowAvg && <div style={{ color: '#03c75a', fontSize: 12, fontWeight: 700 }}>저층 {item.lowAvg.toFixed(2)}억</div>}
                                    {vol != null && <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2 }}>거래 {vol}건</div>}
                                  </div>
                                );
@@ -435,15 +436,12 @@ export function FieldReportModal({
                            <Area type="monotone" dataKey="bandHigh" yAxisId="price" stroke="none" fill="url(#bandGrad)" fillOpacity={1} dot={false} activeDot={false} />
                            {/* 거래량 막대그래프 */}
                            <Bar dataKey="volume" yAxisId="volume" fill="#e5e8eb" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.6} />
-                           {/* 월별 평균선 */}
-                           <Area type="monotone" dataKey="monthAvg" yAxisId="price"
-                             stroke="#3182f6" strokeWidth={2.5} fill="url(#avgGrad)"
-                             dot={false} activeDot={false} connectNulls
-                           />
-                           {/* 3개월 이동평균 */}
-                           <Line type="monotone" dataKey="ma3" yAxisId="price" stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4 4" dot={false} activeDot={false} connectNulls />
-                           {/* 6개월 이동평균 */}
-                           <Line type="monotone" dataKey="ma6" yAxisId="price" stroke="#8b5cf6" strokeWidth={1.5} strokeDasharray="6 3" dot={false} activeDot={false} connectNulls />
+                           {/* 저층 월별 평균선 */}
+                           <Line type="monotone" dataKey="lowAvg" yAxisId="price" stroke="#03c75a" strokeWidth={2} dot={false} activeDot={false} connectNulls />
+                           {/* 중층 월별 평균선 */}
+                           <Line type="monotone" dataKey="midAvg" yAxisId="price" stroke="#3182f6" strokeWidth={2} dot={false} activeDot={false} connectNulls />
+                           {/* 고층 월별 평균선 */}
+                           <Line type="monotone" dataKey="highAvg" yAxisId="price" stroke="#EF4444" strokeWidth={2} dot={false} activeDot={false} connectNulls />
                            {/* 산점도 — 층수별 색상 */}
                            <Customized
                              component={(rechartProps: any) => {
@@ -504,11 +502,11 @@ export function FieldReportModal({
                          );
                        })()}
                      </div>
-                     {/* 이동평균 범례 */}
+                     {/* 범례 */}
                      <div className="flex items-center gap-4 mt-2 px-1 text-[10px] font-bold text-[#8b95a1]">
-                       <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-[#3182f6] rounded"/>월평균</span>
-                       <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-[#f59e0b] rounded" style={{borderTop:'1px dashed #f59e0b'}}/>3M이평</span>
-                       <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-[#8b5cf6] rounded" style={{borderTop:'1px dashed #8b5cf6'}}/>6M이평</span>
+                       <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-[#03c75a] rounded"/>저층 (1~{lowCut - 1}F)</span>
+                       <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-[#3182f6] rounded"/>중층 ({lowCut}~{midCut - 1}F)</span>
+                       <span className="flex items-center gap-1"><span className="w-4 h-0.5 bg-[#EF4444] rounded"/>고층 ({midCut}F~)</span>
                        <span className="flex items-center gap-1"><span className="w-3 h-3 bg-[#e5e8eb] rounded-sm"/>거래량</span>
                      </div>
                    </div>
