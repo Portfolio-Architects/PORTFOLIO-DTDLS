@@ -247,15 +247,7 @@ export function FieldReportModal({
                <div className="flex items-center gap-2 mb-3">
                  <span className="bg-[#3182f6] text-white text-[13px] font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
                </div>
-               <h1 className="text-[22px] sm:text-[28px] md:text-[36px] font-extrabold leading-tight tracking-tight mb-4 text-[#191f28]">{report.apartmentName}</h1>
-               
-               {!isStub && (
-               <div className="flex items-center gap-3 pb-4 border-b border-[#e5e8eb] text-[#4e5968]">
-                 <span className="text-[14px] font-bold">by 임장크루</span>
-                 <span className="text-[13px] opacity-60">·</span>
-                 <span className="text-[13px]">{report.createdAt}</span>
-               </div>
-               )}
+               <h1 className="text-[22px] sm:text-[28px] md:text-[36px] font-extrabold leading-tight tracking-tight mb-2 text-[#191f28]">{report.apartmentName}</h1>
 
                {/* 매매가 추이 차트 — 산점도(층수별) + 거래량 막대 + 이동평균선 */}
                {transactions.length > 0 && (() => {
@@ -431,12 +423,12 @@ export function FieldReportModal({
                            <Area type="monotone" dataKey="bandHigh" yAxisId="price" stroke="none" fill="url(#bandGrad)" fillOpacity={1} dot={false} activeDot={false} />
                            {/* 거래량 막대그래프 */}
                            <Bar dataKey="volume" yAxisId="volume" fill="#e5e8eb" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.6} />
-                           {/* 저층 월별 평균선 — 실선 */}
-                           <Line type="monotone" dataKey="lowAvg" yAxisId="price" stroke="#03c75a" strokeWidth={2.5} dot={false} activeDot={false} connectNulls />
+                           {/* 저층 월별 평균선 — 점점선 */}
+                           <Line type="monotone" dataKey="lowAvg" yAxisId="price" stroke="#03c75a" strokeWidth={2.5} strokeDasharray="2 3" dot={false} activeDot={false} connectNulls />
                            {/* 중층 월별 평균선 — 점선 */}
                            <Line type="monotone" dataKey="midAvg" yAxisId="price" stroke="#3182f6" strokeWidth={2.5} strokeDasharray="6 3" dot={false} activeDot={false} connectNulls />
-                           {/* 고층 월별 평균선 — 점점선 */}
-                           <Line type="monotone" dataKey="highAvg" yAxisId="price" stroke="#EF4444" strokeWidth={2.5} strokeDasharray="2 3" dot={false} activeDot={false} connectNulls />
+                           {/* 고층 월별 평균선 — 실선 */}
+                           <Line type="monotone" dataKey="highAvg" yAxisId="price" stroke="#EF4444" strokeWidth={2.5} dot={false} activeDot={false} connectNulls />
                            {/* 산점도 — 층수별 색상 */}
                            <Customized
                              component={(rechartProps: any) => {
@@ -499,9 +491,9 @@ export function FieldReportModal({
                      </div>
                      {/* 범례 */}
                      <div className="flex items-center gap-4 mt-2 px-1 text-[10px] font-bold text-[#8b95a1]">
-                       <span className="flex items-center gap-1"><span className="w-5 h-0.5 bg-[#03c75a] rounded"/>저층 (1~{lowCut - 1}F)</span>
+                       <span className="flex items-center gap-1"><span className="w-5 border-t-2 border-dotted border-[#03c75a]"/>저층 (1~{lowCut - 1}F)</span>
                        <span className="flex items-center gap-1"><span className="w-5 border-t-2 border-dashed border-[#3182f6]"/>중층 ({lowCut}~{midCut - 1}F)</span>
-                       <span className="flex items-center gap-1"><span className="w-5 border-t-2 border-dotted border-[#EF4444]"/>고층 ({midCut}F~)</span>
+                       <span className="flex items-center gap-1"><span className="w-5 h-0.5 bg-[#EF4444] rounded"/>고층 ({midCut}F~)</span>
                        <span className="flex items-center gap-1"><span className="w-3 h-3 bg-[#e5e8eb] rounded-sm"/>거래량</span>
                      </div>
                    </div>
