@@ -234,6 +234,108 @@ export function FieldReportModal({
                       </button>
                     )}
                   </div>
+
+                  {/* ── 거래 요약 통계 ── */}
+                  {(() => {
+                    const now = new Date();
+                    const aptNorm = normalizeAptName(report.apartmentName);
+
+                    // 1) 평형별 최근 거래가 그룹핑
+                    const byArea = new Map<string, { label: string; price: string; count: number; latestYm: number }>();
+                    transactions.forEach(tx => {
+                      const key = String(tx.area);
+                      const typeName = typeMap[aptNorm]?.[key];
+                      const label = typeName || `${tx.areaPyeong}평`;
+                      const ym = parseInt(tx.contractYm);
+                      const existing = byArea.get(key);
+                      if (!existing || ym > existing.latestYm) {
+                        byArea.set(key, { label, price: tx.priceEok, count: (existing?.count || 0) + 1, latestYm: ym });
+                      } else {
+                        existing.count++;
+                      }
+                    });
+                    const areaCards = Array.from(byArea.values())
+                      .sort((a, b) => b.count - a.count)
+                      .slice(0, 4);
+
+                    // 2) 최근 3개월 vs 이전 3개월 트렌드
+                    const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+                    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+                    const ymThree = threeMonthsAgo.getFullYear() * 100 + (threeMonthsAgo.getMonth() + 1);
+                    const ymSix = sixMonthsAgo.getFullYear() * 100 + (sixMonthsAgo.getMonth() + 1);
+                    const recent3 = transactions.filter(tx => parseInt(tx.contractYm) >= ymThree);
+                    const prev3 = transactions.filter(tx => { const ym = parseInt(tx.contractYm); return ym >= ymSix && ym < ymThree; });
+                    const avg3 = recent3.length > 0 ? recent3.reduce((s, t) => s + t.price, 0) / recent3.length : 0;
+                    const avgPrev3 = prev3.length > 0 ? prev3.reduce((s, t) => s + t.price, 0) / prev3.length : 0;
+                    const trendPct = avgPrev3 > 0 ? ((avg3 - avgPrev3) / avgPrev3 * 100) : null;
+                    const avg3Eok = avg3 >= 10000
+                      ? `${Math.floor(avg3 / 10000)}억${(avg3 % 10000) > 0 ? (avg3 % 10000).toLocaleString() : ''}`
+                      : `${avg3.toLocaleString()}만`;
+
+                    // 3) 거래 활성도 (1/3/6개월)
+                    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    const ymOne = oneMonthAgo.getFullYear() * 100 + (oneMonthAgo.getMonth() + 1);
+                    const cnt1 = transactions.filter(tx => parseInt(tx.contractYm) >= ymOne).length;
+                    const cnt3 = recent3.length;
+                    const cnt6 = transactions.filter(tx => parseInt(tx.contractYm) >= ymSix).length;
+                    const maxCnt = Math.max(cnt1, cnt3, cnt6, 1);
+
+                    return (
+                      <div className="mt-3 space-y-3">
+                        {/* 평형별 최근가 */}
+                        <div>
+                          <h5 className="text-[11px] font-bold text-[#8b95a1] mb-2">평형별 최근 거래가</h5>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {areaCards.map((c, i) => (
+                              <div key={i} className="bg-white rounded-lg px-2.5 py-2 ring-1 ring-black/5">
+                                <div className="text-[10px] font-bold text-[#3182f6] bg-[#e8f3ff] inline-block px-1.5 py-0.5 rounded mb-1">{c.label}</div>
+                                <div className="text-[13px] font-extrabold text-[#191f28] leading-tight">{c.price}</div>
+                                <div className="text-[10px] text-[#8b95a1]">{c.count}건</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 거래 트렌드 */}
+                        {recent3.length > 0 && (
+                          <div className="bg-white rounded-lg px-3 py-2.5 ring-1 ring-black/5">
+                            <div className="text-[11px] font-bold text-[#8b95a1] mb-1">최근 3개월 평균</div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[15px] font-extrabold text-[#191f28]">{avg3Eok}</span>
+                              {trendPct !== null && (
+                                <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-md ${trendPct >= 0 ? 'text-[#EF4444] bg-[#fef2f2]' : 'text-[#3182f6] bg-[#e8f3ff]'}`}>
+                                  전분기 대비 {trendPct > 0 ? '+' : ''}{trendPct.toFixed(1)}%
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 거래 활성도 */}
+                        <div className="bg-white rounded-lg px-3 py-2.5 ring-1 ring-black/5">
+                          <div className="text-[11px] font-bold text-[#8b95a1] mb-2">거래 활성도</div>
+                          <div className="space-y-1.5">
+                            {[
+                              { label: '1개월', count: cnt1 },
+                              { label: '3개월', count: cnt3 },
+                              { label: '6개월', count: cnt6 },
+                            ].map(({ label, count }) => (
+                              <div key={label} className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-[#4e5968] w-[36px] shrink-0">{label}</span>
+                                <div className="flex-1 bg-[#f2f4f6] rounded-full h-[6px] overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full bg-gradient-to-r from-[#3182f6] to-[#6dd5fa] transition-all duration-500"
+                                    style={{ width: `${Math.max((count / maxCnt) * 100, count > 0 ? 8 : 0)}%` }}
+                                  />
+                                </div>
+                                <span className="text-[10px] font-extrabold text-[#191f28] w-[28px] text-right shrink-0">{count}건</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               ) : (
                 <div className="bg-[#f9fafb] rounded-2xl p-8 flex items-center justify-center ring-1 ring-black/5 h-full min-h-[200px]">
