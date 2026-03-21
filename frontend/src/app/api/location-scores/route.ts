@@ -9,8 +9,8 @@ export const revalidate = 86400; // ISR: 24 hours (coordinate data rarely change
 interface POI extends Coord { name: string; }
 interface SchoolPOI extends POI { type: string; }
 interface StationPOI extends POI { line: string; }
-interface AcademyPOI extends Coord { category: string; }
-interface RestaurantPOI extends Coord { category: string; }
+interface AcademyPOI extends POI { category: string; }
+interface RestaurantPOI extends POI { category: string; }
 interface ApartmentPOI extends POI {
   householdCount?: number;
   yearBuilt?: string;
@@ -163,8 +163,8 @@ async function loadAcademies(): Promise<AcademyPOI[]> {
     if (cols.length < 3) continue;
     const lat = parseFloat(cols[1]);
     const lng = parseFloat(cols[2]);
-    if (!isNaN(lat) && !isNaN(lng) && lat > 0 && lng > 0) {
-      result.push({ lat, lng, category: (cols[3] || '기타').trim() });
+    if (!isNaN(lat) && !isNaN(lng) && lat > 0 && lng > 0 && cols[0]) {
+      result.push({ lat, lng, name: cols[0].trim(), category: (cols[3] || '기타').trim() });
     }
   }
   return result;
@@ -179,8 +179,8 @@ async function loadRestaurants(): Promise<RestaurantPOI[]> {
     if (cols.length < 3) continue;
     const lat = parseFloat(cols[1]);
     const lng = parseFloat(cols[2]);
-    if (!isNaN(lat) && !isNaN(lng) && lat > 0 && lng > 0) {
-      result.push({ lat, lng, category: (cols[3] || '기타').trim() });
+    if (!isNaN(lat) && !isNaN(lng) && lat > 0 && lng > 0 && cols[0]) {
+      result.push({ lat, lng, name: cols[0].trim(), category: (cols[3] || '기타').trim() });
     }
   }
   return result;
@@ -286,6 +286,18 @@ export async function GET(request: NextRequest) {
       restaurantCategories[r.category] = (restaurantCategories[r.category] || 0) + 1;
     }
 
+    // Anchor Tenants Distance calculations (Search from ALL restaurants/academies, not just 500m)
+    const findAnchor = (keywords: string[]) => {
+      const matches = restaurants.filter(r => keywords.some(k => r.name.includes(k)));
+      return matches.length > 0 ? findNearest(aptCoord, matches) : null;
+    };
+    
+    const nearestStarbucks = findAnchor(['스타벅스']);
+    const nearestMcDonalds = findAnchor(['맥도날드']);
+    const nearestOliveYoung = findAnchor(['올리브영']);
+    const nearestDaiso = findAnchor(['다이소']);
+    const nearestSupermarket = findAnchor(['이마트', '홈플러스', '롯데마트', '노브랜드']);
+
     // Parking per household
     const parkingPerHousehold = (apt.householdCount && apt.parkingCount)
       ? Math.round((apt.parkingCount / apt.householdCount) * 100) / 100
@@ -304,6 +316,14 @@ export async function GET(request: NextRequest) {
       academyCategories,
       restaurantDensity,
       restaurantCategories,
+      
+      // Anchor Tenants Distances
+      distanceToStarbucks: nearestStarbucks?.distance ?? null,
+      distanceToMcDonalds: nearestMcDonalds?.distance ?? null,
+      distanceToOliveYoung: nearestOliveYoung?.distance ?? null,
+      distanceToDaiso: nearestDaiso?.distance ?? null,
+      distanceToSupermarket: nearestSupermarket?.distance ?? null,
+
       // Building info from sheet
       buildingInfo: {
         householdCount: apt.householdCount ?? null,

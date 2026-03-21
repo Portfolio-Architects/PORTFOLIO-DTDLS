@@ -22,6 +22,11 @@ export interface ObjectiveMetrics {
   restaurantCategories?: Record<string, number>; // 카테고리별 (한식, 카페 등)
   distanceToIndeokwon?: number; // 동탄인덕원선 거리 (m)
   distanceToTram?: number; // 동탄트램 거리 (m)
+  distanceToStarbucks?: number;
+  distanceToMcDonalds?: number;
+  distanceToOliveYoung?: number;
+  distanceToDaiso?: number;
+  distanceToSupermarket?: number;
   nearestSchoolNames?: {
     elementary?: string;
     middle?: string;

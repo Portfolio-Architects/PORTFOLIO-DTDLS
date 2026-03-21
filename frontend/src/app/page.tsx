@@ -916,6 +916,38 @@ export function FieldReportModal({
                                   ))}
                               </div>
                             )}
+
+                            {/* 앵커 테넌트 */}
+                            <div className="mt-4 pt-3 border-t border-[#f2f4f6]">
+                              <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">🎯 핵심 앵커 테넌트 (최단거리)</h4>
+                              <div className="flex flex-wrap gap-2">
+                                {report.metrics.distanceToStarbucks != null && (
+                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#4e5968] flex items-center gap-1">
+                                    ☕ 스타벅스 <span className="text-[#03c75a] font-bold">{report.metrics.distanceToStarbucks}m</span>
+                                  </div>
+                                )}
+                                {report.metrics.distanceToOliveYoung != null && (
+                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#4e5968] flex items-center gap-1">
+                                    💄 올리브영 <span className="text-[#03c75a] font-bold">{report.metrics.distanceToOliveYoung}m</span>
+                                  </div>
+                                )}
+                                {report.metrics.distanceToDaiso != null && (
+                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#4e5968] flex items-center gap-1">
+                                    🛍️ 다이소 <span className="text-[#03c75a] font-bold">{report.metrics.distanceToDaiso}m</span>
+                                  </div>
+                                )}
+                                {report.metrics.distanceToSupermarket != null && (
+                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#4e5968] flex items-center gap-1">
+                                    🛒 대형마트 <span className="text-[#03c75a] font-bold">{report.metrics.distanceToSupermarket}m</span>
+                                  </div>
+                                )}
+                                {report.metrics.distanceToMcDonalds != null && (
+                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#4e5968] flex items-center gap-1">
+                                    🍔 맥도날드 <span className="text-[#03c75a] font-bold">{report.metrics.distanceToMcDonalds}m</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>

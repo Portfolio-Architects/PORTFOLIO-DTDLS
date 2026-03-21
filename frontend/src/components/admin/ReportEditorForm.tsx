@@ -27,6 +27,11 @@ type FormValues = {
     distanceToSubway: string;
     distanceToIndeokwon: string;
     distanceToTram: string;
+    distanceToStarbucks: string;
+    distanceToMcDonalds: string;
+    distanceToOliveYoung: string;
+    distanceToDaiso: string;
+    distanceToSupermarket: string;
     academyDensity: string;
     restaurantDensity: string;
   };
@@ -379,6 +384,11 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
         distanceToSubway: Number(data.metrics.distanceToSubway),
         distanceToIndeokwon: Number(data.metrics.distanceToIndeokwon),
         distanceToTram: Number(data.metrics.distanceToTram),
+        distanceToStarbucks: Number(data.metrics.distanceToStarbucks),
+        distanceToMcDonalds: Number(data.metrics.distanceToMcDonalds),
+        distanceToOliveYoung: Number(data.metrics.distanceToOliveYoung),
+        distanceToDaiso: Number(data.metrics.distanceToDaiso),
+        distanceToSupermarket: Number(data.metrics.distanceToSupermarket),
         academyDensity: Number(data.metrics.academyDensity),
         ...(apiCategories.academyCategories ? { academyCategories: apiCategories.academyCategories } : {}),
         ...(Number(data.metrics.restaurantDensity) || apiCategories.restaurantDensity ? { restaurantDensity: Number(data.metrics.restaurantDensity) || apiCategories.restaurantDensity } : {}),
@@ -630,6 +640,13 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                   if (loc.distanceToIndeokwon != null) setValue('metrics.distanceToIndeokwon', String(loc.distanceToIndeokwon));
                   if (loc.distanceToTram != null) setValue('metrics.distanceToTram', String(loc.distanceToTram));
 
+                  // 앵커 테넌트 (스타벅스 등)
+                  if (loc.distanceToStarbucks != null) setValue('metrics.distanceToStarbucks', String(loc.distanceToStarbucks));
+                  if (loc.distanceToMcDonalds != null) setValue('metrics.distanceToMcDonalds', String(loc.distanceToMcDonalds));
+                  if (loc.distanceToOliveYoung != null) setValue('metrics.distanceToOliveYoung', String(loc.distanceToOliveYoung));
+                  if (loc.distanceToDaiso != null) setValue('metrics.distanceToDaiso', String(loc.distanceToDaiso));
+                  if (loc.distanceToSupermarket != null) setValue('metrics.distanceToSupermarket', String(loc.distanceToSupermarket));
+
                   const bldMsg = bld?.householdCount
                     ? `\n\n🏢 건물\n시공사: ${bld.brand ?? '-'}\n세대수: ${bld.householdCount}\n준공: ${bld.yearBuilt ?? '-'}\n용적률: ${bld.far ?? '-'}%\n건폐율: ${bld.bcr ?? '-'}%\n주차: ${bld.parkingPerHousehold ?? '-'}대/세대`
                     : '\n\n⚠️ 건물 정보 없음 (시트 C~H열 입력 필요)';
@@ -638,7 +655,8 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                   const restEntries = Object.entries(loc.restaurantCategories || {}).sort(([,a], [,b]) => (b as number) - (a as number));
                   const restMsg = restEntries.length > 0 ? `\n\n🍽️ 음식점·카페 ${loc.restaurantDensity}개 (500m)\n${restEntries.map(([c, n]) => `  ${c}: ${n}개`).join('\n')}` : '';
                   const transitMsg = `\n\n🚇 교통\nGTX-A/SRT: ${loc.nearestStation?.name || '-'} (${loc.distanceToSubway ?? '-'}m)${loc.distanceToIndeokwon != null ? `\n인덕원선: ${loc.nearestIndeokwon?.name || '-'} (${loc.distanceToIndeokwon}m)` : ''}${loc.distanceToTram != null ? `\n트램: ${loc.nearestTram?.name || '-'} (${loc.distanceToTram}m)` : ''}`;
-                  alert(`✅ 자동 출력 완료!\n📍 학교\n초등: ${loc.nearestSchools?.elementary?.name || '-'} (${loc.distanceToElementary ?? '-'}m)\n중학: ${loc.nearestSchools?.middle?.name || '-'} (${loc.distanceToMiddle ?? '-'}m)\n고등: ${loc.nearestSchools?.high?.name || '-'} (${loc.distanceToHigh ?? '-'}m)${transitMsg}${catMsg}${restMsg}${bldMsg}`);
+                  const anchorMsg = `\n\n🎯 앵커 테넌트\n스타벅스: ${loc.distanceToStarbucks ?? '-'}\n올리브영: ${loc.distanceToOliveYoung ?? '-'}\n다이소: ${loc.distanceToDaiso ?? '-'}\n이마트/노브랜드: ${loc.distanceToSupermarket ?? '-'}\n맥도날드: ${loc.distanceToMcDonalds ?? '-'}`;
+                  alert(`✅ 자동 출력 완료!\n📍 학교\n초등: ${loc.nearestSchools?.elementary?.name || '-'} (${loc.distanceToElementary ?? '-'}m)\n중학: ${loc.nearestSchools?.middle?.name || '-'} (${loc.distanceToMiddle ?? '-'}m)\n고등: ${loc.nearestSchools?.high?.name || '-'} (${loc.distanceToHigh ?? '-'}m)${transitMsg}${catMsg}${restMsg}${bldMsg}${anchorMsg}`);
               } catch (e) {
                 alert('자동 출력 중 오류가 발생했습니다.');
                 console.error(e);
@@ -686,6 +704,14 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
           <NumberInput name="metrics.distanceToSubway" label="GTX-A/SRT 거리" placeholder="예: 500" unit="m" />
           <NumberInput name="metrics.distanceToIndeokwon" label="동탄인덕원선 거리" placeholder="예: 800" unit="m" />
           <NumberInput name="metrics.distanceToTram" label="동탄트램 거리" placeholder="예: 300" unit="m" />
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2 mb-4">
+          <NumberInput name="metrics.distanceToStarbucks" label="스타벅스 거리" placeholder="예: 250" unit="m" />
+          <NumberInput name="metrics.distanceToOliveYoung" label="올리브영 거리" placeholder="예: 300" unit="m" />
+          <NumberInput name="metrics.distanceToDaiso" label="다이소 거리" placeholder="예: 400" unit="m" />
+          <NumberInput name="metrics.distanceToSupermarket" label="대형마트(이마트/노브랜드)" placeholder="예: 500" unit="m" />
+          <NumberInput name="metrics.distanceToMcDonalds" label="맥도날드 거리" placeholder="예: 600" unit="m" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
