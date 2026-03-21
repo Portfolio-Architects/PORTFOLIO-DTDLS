@@ -220,19 +220,31 @@ function resolveApartment(name: string, apartments: ApartmentPOI[]): ApartmentPO
 
 export async function GET(request: NextRequest) {
   const apartment = request.nextUrl.searchParams.get('apartment');
+  const forceRefresh = request.nextUrl.searchParams.get('refresh') === '1';
 
   if (!apartment) {
     return NextResponse.json({ error: 'apartment parameter is required' }, { status: 400 });
   }
 
   try {
+    // Force cache invalidation when admin requests fresh data
+    if (forceRefresh) {
+      _cache = null;
+      _cacheTimestamp = 0;
+      console.log('[LOCATION_SCORES] Cache forcefully invalidated by refresh param');
+    }
+
     // Load from cache (or fetch & cache if stale/empty)
     const { apartments, schools, stations, academies, restaurants } = await loadAllCached();
 
     const apt = resolveApartment(apartment, apartments);
     if (!apt) {
       return NextResponse.json(
-        { error: `Unknown apartment: ${apartment}`, availableApartments: apartments.map(a => a.name) },
+        {
+          error: `Unknown apartment: ${apartment}`,
+          hint: `총 ${apartments.length}개 아파트 중 좌표가 있는 항목만 로드됩니다. Google Sheets '좌표' 컬럼을 확인하세요.`,
+          availableApartments: apartments.map(a => a.name),
+        },
         { status: 404 }
       );
     }

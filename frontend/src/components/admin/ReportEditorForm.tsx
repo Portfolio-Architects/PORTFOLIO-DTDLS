@@ -585,9 +585,11 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
               if (!aptName) { alert('먼저 아파트를 선택해주세요.'); return; }
               setIsCalculating(true);
               try {
-                const res = await fetch(`/api/location-scores?apartment=${encodeURIComponent(aptName)}`);
+                const res = await fetch(`/api/location-scores?apartment=${encodeURIComponent(aptName)}&refresh=1`);
                 if (!res.ok) {
-                  alert('좌표 데이터를 찾을 수 없습니다.');
+                  const errData = await res.json().catch(() => ({}));
+                  const available = errData.availableApartments?.join(', ') || '없음';
+                  alert(`좌표 데이터를 찾을 수 없습니다.\n\n💡 ${errData.hint || ''}\n현재 좌표가 있는 아파트: ${available}`);
                   return;
                 }
                 const loc = await res.json();
