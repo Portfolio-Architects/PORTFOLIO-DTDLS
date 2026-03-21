@@ -772,7 +772,7 @@ export function FieldReportModal({
                   {/* Academy Density with Category Breakdown */}
                   {report.metrics.academyDensity > 0 && (
                     <div className="bg-[#f0fdf4] rounded-2xl p-4 text-center col-span-1">
-                      <div className="text-[13px] font-bold text-[#03c75a] mb-1">학원 (1km)</div>
+                      <div className="text-[13px] font-bold text-[#03c75a] mb-1">학원 (500m)</div>
                       <div className="text-[22px] font-extrabold text-[#03c75a]">{report.metrics.academyDensity}<span className="text-[13px] text-[#03c75a]/70 ml-0.5">개</span></div>
                       {report.metrics.academyCategories && Object.keys(report.metrics.academyCategories).length > 0 && (
                         <div className="mt-2 pt-2 border-t border-[#bbf7d0]">
@@ -792,7 +792,7 @@ export function FieldReportModal({
                   {/* Restaurant/Cafe Density with Category Breakdown */}
                   {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
                     <div className="bg-[#fffbeb] rounded-2xl p-4 text-center col-span-1">
-                      <div className="text-[11px] font-bold text-[#f59e0b] mb-1">🍽️ 음식점·카페 (1km)</div>
+                      <div className="text-[11px] font-bold text-[#f59e0b] mb-1">🍽️ 음식점·카페 (500m)</div>
                       <div className="text-[22px] font-extrabold text-[#f59e0b]">{report.metrics.restaurantDensity}<span className="text-[13px] text-[#f59e0b]/70 ml-0.5">개</span></div>
                       {report.metrics.restaurantCategories && Object.keys(report.metrics.restaurantCategories).length > 0 && (
                         <div className="mt-2 pt-2 border-t border-[#fde68a]">
@@ -837,7 +837,7 @@ export function FieldReportModal({
                               <span className="font-bold text-[#191f28]">{report.metrics.distanceToHigh || '-'}m {report.metrics.nearestSchoolNames?.high ? `(${report.metrics.nearestSchoolNames.high})` : ''}</span>
                             </div>
                             <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
-                              <span className="text-[#4e5968]">학원 밀집도 (1km)</span>
+                              <span className="text-[#4e5968]">학원 밀집도 (500m)</span>
                               <span className="font-bold text-[#03c75a]">{report.metrics.academyDensity || '-'}개</span>
                             </div>
                           </div>
@@ -900,7 +900,7 @@ export function FieldReportModal({
                             <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">🍽️ 생활 인프라</h4>
                             <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[13px]">
                               <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
-                                <span className="text-[#4e5968]">음식점·카페 (1km)</span>
+                                <span className="text-[#4e5968]">음식점·카페 (500m)</span>
                                 <span className="font-bold text-[#f59e0b]">{report.metrics.restaurantDensity}개</span>
                               </div>
                             </div>

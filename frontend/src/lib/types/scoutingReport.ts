@@ -16,9 +16,9 @@ export interface ObjectiveMetrics {
   distanceToMiddle: number; // 중학교까지의 거리 (미터)
   distanceToHigh: number; // 고등학교까지의 거리 (미터)
   distanceToSubway: number; // GTX-A/SRT역까지의 거리 (미터)
-  academyDensity: number; // 반경 1km 내 학원 개수
+  academyDensity: number; // 반경 500m 내 학원 개수
   academyCategories?: Record<string, number>; // 카테고리별 학원 수
-  restaurantDensity?: number; // 반경 1km 내 음식점/카페 수
+  restaurantDensity?: number; // 반경 500m 내 음식점/카페 수
   restaurantCategories?: Record<string, number>; // 카테고리별 (한식, 카페 등)
   distanceToIndeokwon?: number; // 동탄인덕원선 거리 (m)
   distanceToTram?: number; // 동탄트램 거리 (m)

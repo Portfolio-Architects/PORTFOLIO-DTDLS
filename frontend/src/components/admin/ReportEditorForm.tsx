@@ -634,9 +634,9 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                     ? `\n\n🏢 건물\n시공사: ${bld.brand ?? '-'}\n세대수: ${bld.householdCount}\n준공: ${bld.yearBuilt ?? '-'}\n용적률: ${bld.far ?? '-'}%\n건폐율: ${bld.bcr ?? '-'}%\n주차: ${bld.parkingPerHousehold ?? '-'}대/세대`
                     : '\n\n⚠️ 건물 정보 없음 (시트 C~H열 입력 필요)';
                   const catEntries = Object.entries(loc.academyCategories || {}).sort(([,a], [,b]) => (b as number) - (a as number));
-                  const catMsg = catEntries.length > 0 ? `\n\n📚 학원 ${loc.academyDensity}개 (1km)\n${catEntries.map(([c, n]) => `  ${c}: ${n}개`).join('\n')}` : `\n\n📚 학원: ${loc.academyDensity}개`;
+                  const catMsg = catEntries.length > 0 ? `\n\n📚 학원 ${loc.academyDensity}개 (500m)\n${catEntries.map(([c, n]) => `  ${c}: ${n}개`).join('\n')}` : `\n\n📚 학원: ${loc.academyDensity}개`;
                   const restEntries = Object.entries(loc.restaurantCategories || {}).sort(([,a], [,b]) => (b as number) - (a as number));
-                  const restMsg = restEntries.length > 0 ? `\n\n🍽️ 음식점·카페 ${loc.restaurantDensity}개 (1km)\n${restEntries.map(([c, n]) => `  ${c}: ${n}개`).join('\n')}` : '';
+                  const restMsg = restEntries.length > 0 ? `\n\n🍽️ 음식점·카페 ${loc.restaurantDensity}개 (500m)\n${restEntries.map(([c, n]) => `  ${c}: ${n}개`).join('\n')}` : '';
                   const transitMsg = `\n\n🚇 교통\nGTX-A/SRT: ${loc.nearestStation?.name || '-'} (${loc.distanceToSubway ?? '-'}m)${loc.distanceToIndeokwon != null ? `\n인덕원선: ${loc.nearestIndeokwon?.name || '-'} (${loc.distanceToIndeokwon}m)` : ''}${loc.distanceToTram != null ? `\n트램: ${loc.nearestTram?.name || '-'} (${loc.distanceToTram}m)` : ''}`;
                   alert(`✅ 자동 출력 완료!\n📍 학교\n초등: ${loc.nearestSchools?.elementary?.name || '-'} (${loc.distanceToElementary ?? '-'}m)\n중학: ${loc.nearestSchools?.middle?.name || '-'} (${loc.distanceToMiddle ?? '-'}m)\n고등: ${loc.nearestSchools?.high?.name || '-'} (${loc.distanceToHigh ?? '-'}m)${transitMsg}${catMsg}${restMsg}${bldMsg}`);
               } catch (e) {
@@ -689,8 +689,8 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
-          <NumberInput name="metrics.academyDensity" label="반경 1km 이내 학원 개수 (학군 밀집도)" placeholder="예: 120" unit="개" />
-          <NumberInput name="metrics.restaurantDensity" label="반경 1km 이내 음식점·카페 개수" placeholder="예: 472" unit="개" />
+          <NumberInput name="metrics.academyDensity" label="반경 500m(도보권) 이내 학원 개수 (학군 밀집도)" placeholder="예: 120" unit="개" />
+          <NumberInput name="metrics.restaurantDensity" label="반경 500m(도보권) 이내 음식점·카페 개수" placeholder="예: 472" unit="개" />
         </div>
 
         {/* Category Breakdown Panels — always visible */}

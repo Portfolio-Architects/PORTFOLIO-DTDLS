@@ -268,18 +268,18 @@ export async function GET(request: NextRequest) {
     const nearestIndeokwon = indeokwonLine.length > 0 ? findNearest(aptCoord, indeokwonLine) : null;
     const nearestTram = tramLine.length > 0 ? findNearest(aptCoord, tramLine) : null;
 
-    // Academy density: bounding box pre-filter → haversine within 1km
+    // Academy density: bounding box pre-filter → haversine within 500m
     const candidateAcademies = filterByBBox(aptCoord, academies);
-    const nearbyAcademies = candidateAcademies.filter(a => haversineDistance(aptCoord, a) <= 1000);
+    const nearbyAcademies = candidateAcademies.filter(a => haversineDistance(aptCoord, a) <= 500);
     const academyDensity = nearbyAcademies.length;
     const academyCategories: Record<string, number> = {};
     for (const a of nearbyAcademies) {
       academyCategories[a.category] = (academyCategories[a.category] || 0) + 1;
     }
 
-    // Restaurant/cafe density: bounding box pre-filter → haversine within 1km
+    // Restaurant/cafe density: bounding box pre-filter → haversine within 500m
     const candidateRestaurants = filterByBBox(aptCoord, restaurants);
-    const nearbyRestaurants = candidateRestaurants.filter(r => haversineDistance(aptCoord, r) <= 1000);
+    const nearbyRestaurants = candidateRestaurants.filter(r => haversineDistance(aptCoord, r) <= 500);
     const restaurantDensity = nearbyRestaurants.length;
     const restaurantCategories: Record<string, number> = {};
     for (const r of nearbyRestaurants) {
