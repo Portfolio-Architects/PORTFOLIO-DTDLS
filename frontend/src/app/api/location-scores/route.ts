@@ -90,13 +90,13 @@ async function loadApartments(): Promise<ApartmentPOI[]> {
 
   const header = rows[0].map(h => h.toLowerCase().trim());
   const col = (names: string[], fallback: number) => {
-    const idx = header.findIndex(h => names.includes(h));
+    const idx = header.findIndex(h => names.some(n => h === n || h.startsWith(n)));
     return idx !== -1 ? idx : fallback;
   };
   const nameIdx  = col(['아파트명', 'name', '이름'], 0);
   const coordIdx = col(['좌표', 'coordinates', 'coord'], 1);
   const hhIdx    = col(['세대수', 'householdcount', 'households'], 2);
-  const yearIdx  = col(['시공&준공인', '준공연도', 'yearbuilt', '준공'], 3);
+  const yearIdx  = col(['사용승인', '시공&준공인', '준공연도', 'yearbuilt', '준공'], 3);
   const farIdx   = col(['용적률', 'far'], 4);
   const bcrIdx   = col(['건폐율', 'bcr'], 5);
   const parkIdx  = col(['주차대수', 'parkingcount', '주차'], 6);
