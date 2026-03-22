@@ -79,8 +79,8 @@ function GalleryGrid({ images, tags, tagLabels, onImageClick }: {
               onClick={() => setActiveTag(tag)}
               className={`shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-all border ${
                 activeTag === tag
-                  ? 'bg-[#EDF2F4] text-[#EDF2F4] border-[#EDF2F4]'
-                  : 'bg-[#1B2340] text-[#8D99AE] border-[#2A3558] hover:border-[#8D99AE] hover:text-[#8D99AE]'
+                  ? 'bg-[#191f28] text-[#191f28] border-[#191f28]'
+                  : 'bg-white text-[#3182f6] border-[#d1d6db] hover:border-[#3182f6] hover:text-[#3182f6]'
               }`}
             >
               {label} <span className="opacity-60 ml-0.5">{count}</span>
@@ -94,27 +94,27 @@ function GalleryGrid({ images, tags, tagLabels, onImageClick }: {
         {filtered.map((img, i) => (
           <div
             key={i}
-            className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group border border-[#1E2A45] shadow-sm"
+            className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group border border-[#e5e8eb] shadow-sm"
             onClick={() => onImageClick(img.url)}
           >
             <img
               src={img.url}
               alt={img.caption || img.locationTag || `Photo ${i + 1}`}
               loading="lazy"
-              className="w-full h-full object-cover bg-[#0E1730] group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover bg-[#f2f4f6] group-hover:scale-105 transition-transform duration-300"
             />
             {/* Hover overlay with caption + tag */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-2.5">
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-bold text-[#EDF2F4]/90 bg-[#1B2340]/20 backdrop-blur-sm px-2 py-0.5 rounded-md">
+                <span className="text-[10px] font-bold text-[#191f28]/90 bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-md">
                   {tagLabels[img.locationTag || ''] || img.locationTag || '기타'}
                 </span>
                 {img.isPremium && (
-                  <span className="text-[9px] font-bold bg-[#ffc107] text-[#EDF2F4] px-1.5 py-0.5 rounded-md">★ PRO</span>
+                  <span className="text-[9px] font-bold bg-[#ffc107] text-[#191f28] px-1.5 py-0.5 rounded-md">★ PRO</span>
                 )}
               </div>
               {img.caption && (
-                <p className="text-[11px] text-[#EDF2F4]/90 mt-1 line-clamp-2">{img.caption}</p>
+                <p className="text-[11px] text-[#191f28]/90 mt-1 line-clamp-2">{img.caption}</p>
               )}
             </div>
           </div>
@@ -122,7 +122,7 @@ function GalleryGrid({ images, tags, tagLabels, onImageClick }: {
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-8 text-[#6B7394] text-[13px]">이 카테고리에 등록된 사진이 없습니다.</div>
+        <div className="text-center py-8 text-[#8b95a1] text-[13px]">이 카테고리에 등록된 사진이 없습니다.</div>
       )}
     </>
   );
@@ -182,28 +182,28 @@ export function FieldReportModal({
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 md:p-12 animate-in fade-in duration-200">
-        <div className="absolute inset-0 bg-[#EDF2F4]/60 backdrop-blur-sm" onClick={onClose} />
+        <div className="absolute inset-0 bg-[#191f28]/60 backdrop-blur-sm" onClick={onClose} />
         
-        <div ref={modalRef} className={`relative bg-[#0E1730] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] max-h-[90vh] rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden shadow-2xl transition-all duration-300 ring-1 ring-black/5`}>
-          <button onClick={onClose} className="sticky top-4 z-20 ml-auto mr-4 mt-4 -mb-14 bg-[#EDF2F4]/80 hover:bg-[#EDF2F4] text-[#EDF2F4] w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0">
+        <div ref={modalRef} className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] max-h-[90vh] rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden shadow-2xl transition-all duration-300 ring-1 ring-black/5`}>
+          <button onClick={onClose} className="sticky top-4 z-20 ml-auto mr-4 mt-4 -mb-14 bg-[#191f28]/80 hover:bg-[#191f28] text-[#191f28] w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0">
             <X size={20} />
           </button>
 
           {/* Hero Section — Layout: 40% table / 60% chart */}
-          <div className="bg-[#1B2340] w-full flex flex-col md:flex-row p-4 md:p-10 gap-4 md:gap-8 rounded-t-3xl shrink-0 pt-4 md:pt-8 border-b border-[#1E2A45]">
+          <div className="bg-white w-full flex flex-col md:flex-row p-4 md:p-10 gap-4 md:gap-8 rounded-t-3xl shrink-0 pt-4 md:pt-8 border-b border-[#e5e8eb]">
             
             {/* Left: 실거래가 전체 리스트 — mobile: 2번째, desktop: 1번째 (40%) */}
             <div className="w-full md:w-[40%] shrink-0 order-2 md:order-1 flex flex-col">
               {transactions.length > 0 ? (
-                <div className="bg-[#141C33] rounded-2xl p-4 ring-1 ring-black/5 h-full flex flex-col">
-                  <h4 className="text-[13px] font-bold text-[#6B7394] mb-3 flex items-center gap-1.5 shrink-0">
+                <div className="bg-[#f9fafb] rounded-2xl p-4 ring-1 ring-black/5 h-full flex flex-col">
+                  <h4 className="text-[13px] font-bold text-[#8b95a1] mb-3 flex items-center gap-1.5 shrink-0">
                     <TrendingUp size={13} className="text-[#03c75a]" />
                     실거래가 내역 <span className="text-[11px] ml-1">{transactions.length}건</span>
                   </h4>
                   <div className="flex-1">
                     <table className="w-full text-[13px]">
-                      <thead className="sticky top-0 bg-[#141C33]">
-                        <tr className="border-b border-[#1E2A45] text-[#6B7394]">
+                      <thead className="sticky top-0 bg-[#f9fafb]">
+                        <tr className="border-b border-[#e5e8eb] text-[#8b95a1]">
                           <th className="py-3 text-left font-bold">거래일</th>
                           <th className="py-3 text-right font-bold">금액</th>
                           <th className="py-3 text-right font-bold">면적</th>
@@ -213,15 +213,15 @@ export function FieldReportModal({
                       </thead>
                       <tbody>
                         {(isTxExpanded ? transactions : transactions.slice(0, 10)).map((tx, idx) => (
-                          <tr key={idx} className={`border-b border-[#0E1730] hover:bg-[#1B2340]/60 transition-colors ${idx < 3 ? 'bg-[#f0f7ff]' : ''}`}>
-                            <td className={`py-3 ${idx < 3 ? 'text-[#EDF2F4] font-bold' : 'text-[#8D99AE]'}`}>
-                              {idx < 3 && <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#8D99AE] mr-1.5 mb-[1px]" />}
+                          <tr key={idx} className={`border-b border-[#f2f4f6] hover:bg-white/60 transition-colors ${idx < 3 ? 'bg-[#f0f7ff]' : ''}`}>
+                            <td className={`py-3 ${idx < 3 ? 'text-[#191f28] font-bold' : 'text-[#3182f6]'}`}>
+                              {idx < 3 && <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3182f6] mr-1.5 mb-[1px]" />}
                               {tx.contractYm.slice(0,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}
                             </td>
-                            <td className={`py-3 text-right font-extrabold ${idx < 3 ? 'text-[#8D99AE]' : 'text-[#EDF2F4]'}`}>{tx.priceEok}</td>
-                            <td className="py-3 text-right text-[#8D99AE]">{(() => { const norm = normalizeAptName(tx.aptName); const t = typeMap[norm]?.[String(tx.area)]; return t ? <span className="font-bold text-[#8D99AE] bg-[#141C33] px-1.5 py-0.5 rounded text-[10px]">{t}</span> : `${tx.areaPyeong}평`; })()}</td>
-                            <td className="py-3 text-right text-[#8D99AE]">{tx.floor}층</td>
-                            <td className="py-3 text-right text-[#6B7394]">{tx.dealType}</td>
+                            <td className={`py-3 text-right font-extrabold ${idx < 3 ? 'text-[#3182f6]' : 'text-[#191f28]'}`}>{tx.priceEok}</td>
+                            <td className="py-3 text-right text-[#3182f6]">{(() => { const norm = normalizeAptName(tx.aptName); const t = typeMap[norm]?.[String(tx.area)]; return t ? <span className="font-bold text-[#3182f6] bg-[#f9fafb] px-1.5 py-0.5 rounded text-[10px]">{t}</span> : `${tx.areaPyeong}평`; })()}</td>
+                            <td className="py-3 text-right text-[#3182f6]">{tx.floor}층</td>
+                            <td className="py-3 text-right text-[#8b95a1]">{tx.dealType}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -229,7 +229,7 @@ export function FieldReportModal({
                     {transactions.length > 10 && (
                       <button
                         onClick={() => setIsTxExpanded(!isTxExpanded)}
-                        className="w-full mt-2 py-2 text-[12px] font-bold text-[#8D99AE] hover:bg-[#141C33] rounded-lg transition-colors"
+                        className="w-full mt-2 py-2 text-[12px] font-bold text-[#3182f6] hover:bg-[#f9fafb] rounded-lg transition-colors"
                       >
                         {isTxExpanded ? '접기 ▲' : `나머지 ${transactions.length - 10}건 더보기 ▼`}
                       </button>
@@ -285,13 +285,13 @@ export function FieldReportModal({
                       <div className="mt-3 space-y-3">
                         {/* 평형별 최근가 */}
                         <div>
-                          <h5 className="text-[11px] font-bold text-[#6B7394] mb-2">평형별 최근 거래가</h5>
+                          <h5 className="text-[11px] font-bold text-[#8b95a1] mb-2">평형별 최근 거래가</h5>
                           <div className="grid grid-cols-2 gap-1.5">
                             {areaCards.map((c, i) => (
-                              <div key={i} className="bg-[#1B2340] rounded-lg px-2.5 py-2 ring-1 ring-black/5">
-                                <div className="text-[10px] font-bold text-[#8D99AE] bg-[#141C33] inline-block px-1.5 py-0.5 rounded mb-1">{c.label}</div>
-                                <div className="text-[13px] font-extrabold text-[#EDF2F4] leading-tight">{c.price}</div>
-                                <div className="text-[10px] text-[#6B7394]">{c.count}건</div>
+                              <div key={i} className="bg-white rounded-lg px-2.5 py-2 ring-1 ring-black/5">
+                                <div className="text-[10px] font-bold text-[#3182f6] bg-[#f9fafb] inline-block px-1.5 py-0.5 rounded mb-1">{c.label}</div>
+                                <div className="text-[13px] font-extrabold text-[#191f28] leading-tight">{c.price}</div>
+                                <div className="text-[10px] text-[#8b95a1]">{c.count}건</div>
                               </div>
                             ))}
                           </div>
@@ -299,12 +299,12 @@ export function FieldReportModal({
 
                         {/* 거래 트렌드 */}
                         {recent3.length > 0 && (
-                          <div className="bg-[#1B2340] rounded-lg px-3 py-2.5 ring-1 ring-black/5">
-                            <div className="text-[11px] font-bold text-[#6B7394] mb-1">최근 3개월 평균</div>
+                          <div className="bg-white rounded-lg px-3 py-2.5 ring-1 ring-black/5">
+                            <div className="text-[11px] font-bold text-[#8b95a1] mb-1">최근 3개월 평균</div>
                             <div className="flex items-center gap-2">
-                              <span className="text-[15px] font-extrabold text-[#EDF2F4]">{avg3Eok}</span>
+                              <span className="text-[15px] font-extrabold text-[#191f28]">{avg3Eok}</span>
                               {trendPct !== null && (
-                                <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-md ${trendPct >= 0 ? 'text-[#EF4444] bg-[#fef2f2]' : 'text-[#8D99AE] bg-[#141C33]'}`}>
+                                <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-md ${trendPct >= 0 ? 'text-[#EF4444] bg-[#fef2f2]' : 'text-[#3182f6] bg-[#f9fafb]'}`}>
                                   전분기 대비 {trendPct > 0 ? '+' : ''}{trendPct.toFixed(1)}%
                                 </span>
                               )}
@@ -313,8 +313,8 @@ export function FieldReportModal({
                         )}
 
                         {/* 거래 활성도 */}
-                        <div className="bg-[#1B2340] rounded-lg px-3 py-2.5 ring-1 ring-black/5">
-                          <div className="text-[11px] font-bold text-[#6B7394] mb-2">거래 활성도</div>
+                        <div className="bg-white rounded-lg px-3 py-2.5 ring-1 ring-black/5">
+                          <div className="text-[11px] font-bold text-[#8b95a1] mb-2">거래 활성도</div>
                           <div className="space-y-1.5">
                             {[
                               { label: '1개월', count: cnt1 },
@@ -322,14 +322,14 @@ export function FieldReportModal({
                               { label: '6개월', count: cnt6 },
                             ].map(({ label, count }) => (
                               <div key={label} className="flex items-center gap-2">
-                                <span className="text-[10px] font-bold text-[#8D99AE] w-[36px] shrink-0">{label}</span>
-                                <div className="flex-1 bg-[#0E1730] rounded-full h-[6px] overflow-hidden">
+                                <span className="text-[10px] font-bold text-[#3182f6] w-[36px] shrink-0">{label}</span>
+                                <div className="flex-1 bg-[#f2f4f6] rounded-full h-[6px] overflow-hidden">
                                   <div
-                                    className="h-full rounded-full bg-gradient-to-r from-[#8D99AE] to-[#6dd5fa] transition-all duration-500"
+                                    className="h-full rounded-full bg-gradient-to-r from-[#3182f6] to-[#6dd5fa] transition-all duration-500"
                                     style={{ width: `${Math.max((count / maxCnt) * 100, count > 0 ? 8 : 0)}%` }}
                                   />
                                 </div>
-                                <span className="text-[10px] font-extrabold text-[#EDF2F4] w-[28px] text-right shrink-0">{count}건</span>
+                                <span className="text-[10px] font-extrabold text-[#191f28] w-[28px] text-right shrink-0">{count}건</span>
                               </div>
                             ))}
                           </div>
@@ -339,8 +339,8 @@ export function FieldReportModal({
                   })()}
                 </div>
               ) : (
-                <div className="bg-[#141C33] rounded-2xl p-8 flex items-center justify-center ring-1 ring-black/5 h-full min-h-[200px]">
-                  <span className="text-[#6B7394] text-[13px] font-bold">매매 기록이 없습니다</span>
+                <div className="bg-[#f9fafb] rounded-2xl p-8 flex items-center justify-center ring-1 ring-black/5 h-full min-h-[200px]">
+                  <span className="text-[#8b95a1] text-[13px] font-bold">매매 기록이 없습니다</span>
                 </div>
               )}
             </div>
@@ -348,9 +348,9 @@ export function FieldReportModal({
             {/* Right: Title + Chart — mobile: 1번째, desktop: 2번째 (60%) */}
             <div className="w-full md:w-[60%] flex flex-col order-1 md:order-2">
                <div className="flex items-center gap-2 mb-3">
-                 <span className="bg-[#8D99AE] text-[#EDF2F4] text-[13px] font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
+                 <span className="bg-[#3182f6] text-[#191f28] text-[13px] font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
                </div>
-               <h1 className="text-[22px] sm:text-[28px] md:text-[36px] font-extrabold leading-tight tracking-tight mb-2 text-[#EDF2F4]">{report.apartmentName}</h1>
+               <h1 className="text-[22px] sm:text-[28px] md:text-[36px] font-extrabold leading-tight tracking-tight mb-2 text-[#191f28]">{report.apartmentName}</h1>
 
                {/* 매매가 추이 차트 — 산점도(층수별) + 거래량 막대 + 이동평균선 */}
                {transactions.length > 0 && (() => {
@@ -397,7 +397,7 @@ export function FieldReportModal({
                  const midCut = Math.ceil((maxFloor * 2) / 3);
                  const getFloorColor = (floor: number) => {
                    if (floor >= midCut) return '#EF4444'; // 고층 = 빨강
-                   if (floor >= lowCut) return '#8D99AE'; // 중층 = 파랑
+                   if (floor >= lowCut) return '#3182f6'; // 중층 = 파랑
                    return '#03c75a'; // 저층 = 초록
                  };
                  const getFloorTier = (floor: number): 'low' | 'mid' | 'high' => {
@@ -443,52 +443,52 @@ export function FieldReportModal({
                  const yoyChange = yearAgoEntry ? ((latestAvg - yearAgoEntry.monthAvg) / yearAgoEntry.monthAvg * 100) : null;
 
                  return (
-                   <div className="mt-4 bg-[#1B2340] rounded-2xl p-5 ring-1 ring-black/5 flex-1">
+                   <div className="mt-4 bg-white rounded-2xl p-5 ring-1 ring-black/5 flex-1">
                      <div className="flex items-center justify-between mb-3">
-                       <h4 className="text-[14px] font-extrabold text-[#EDF2F4] flex items-center gap-1.5">
-                         <TrendingUp size={15} className="text-[#8D99AE]" /> 매매가 추이
+                       <h4 className="text-[14px] font-extrabold text-[#191f28] flex items-center gap-1.5">
+                         <TrendingUp size={15} className="text-[#3182f6]" /> 매매가 추이
                        </h4>
                        <div className="flex items-center gap-1">
                          {(['6M','1Y','3Y','ALL'] as const).map(tf => (
                            <button key={tf} onClick={() => setChartTimeframe(tf)}
                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                               chartTimeframe === tf ? 'bg-[#EDF2F4] text-[#EDF2F4]' : 'text-[#6B7394] hover:bg-[#0E1730]'
+                               chartTimeframe === tf ? 'bg-[#191f28] text-[#191f28]' : 'text-[#8b95a1] hover:bg-[#f2f4f6]'
                              }`}>{tf}</button>
                          ))}
                        </div>
                      </div>
                      <div className="flex items-center gap-3 mb-4">
-                       <span className="text-[24px] font-extrabold text-[#EDF2F4]">
+                       <span className="text-[24px] font-extrabold text-[#191f28]">
                          {latestAvg >= 1 ? `${Math.floor(latestAvg)}억` : ''}{(() => { const rem = Math.round((latestAvg % 1) * 10000); return rem > 0 ? rem.toLocaleString() : ''; })()}
                        </span>
                        {yoyChange !== null && (
-                         <span className="text-[11px] font-bold text-[#6B7394] bg-[#0E1730] px-2 py-1 rounded-lg">
+                         <span className="text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-1 rounded-lg">
                            전년 대비 {yoyChange > 0 ? '+' : ''}{yoyChange.toFixed(1)}%
                          </span>
                        )}
-                       <span className="text-[12px] text-[#6B7394] font-medium">{scatterData.length}건 · 최고 {maxP.toFixed(1)}억 · 최저 {minP.toFixed(1)}억</span>
+                       <span className="text-[12px] text-[#8b95a1] font-medium">{scatterData.length}건 · 최고 {maxP.toFixed(1)}억 · 최저 {minP.toFixed(1)}억</span>
                      </div>
                      <div className="h-[300px] relative">
                        <ResponsiveContainer width="100%" height="100%">
                          <ComposedChart data={monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
                            <defs>
                              <linearGradient id="avgGrad" x1="0" y1="0" x2="0" y2="1">
-                               <stop offset="5%" stopColor="#8D99AE" stopOpacity={0.08}/>
-                               <stop offset="95%" stopColor="#8D99AE" stopOpacity={0.01}/>
+                               <stop offset="5%" stopColor="#3182f6" stopOpacity={0.08}/>
+                               <stop offset="95%" stopColor="#3182f6" stopOpacity={0.01}/>
                              </linearGradient>
                              <linearGradient id="bandGrad" x1="0" y1="0" x2="0" y2="1">
-                               <stop offset="0%" stopColor="#1E2A45" stopOpacity={0.3}/>
-                               <stop offset="100%" stopColor="#1E2A45" stopOpacity={0.05}/>
+                               <stop offset="0%" stopColor="#e5e8eb" stopOpacity={0.3}/>
+                               <stop offset="100%" stopColor="#e5e8eb" stopOpacity={0.05}/>
                              </linearGradient>
                            </defs>
-                           <CartesianGrid strokeDasharray="3 3" stroke="#0E1730" vertical={false} />
+                           <CartesianGrid strokeDasharray="3 3" stroke="#f2f4f6" vertical={false} />
                            <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']}
-                             tick={{ fill: '#6B7394', fontSize: 10, fontWeight: 600 }} axisLine={{ stroke: '#1E2A45' }}
+                             tick={{ fill: '#8b95a1', fontSize: 10, fontWeight: 600 }} axisLine={{ stroke: '#e5e8eb' }}
                              tickLine={false} tickMargin={6}
                              tickFormatter={(ts: number) => { const d = new Date(ts); return `${String(d.getFullYear()).slice(2)}.${String(d.getMonth()+1).padStart(2,'0')}`; }}
                            />
                            <YAxis yAxisId="price" orientation="left" domain={[Math.max(0, domainMin), domainMax]}
-                             tick={{ fill: '#6B7394', fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false}
+                             tick={{ fill: '#8b95a1', fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false}
                              width={48} dx={-3}
                              tickFormatter={(v: number) => v >= 1 ? `${v.toFixed(1)}억` : `${Math.round(v * 10000)}만`}
                            />
@@ -506,22 +506,22 @@ export function FieldReportModal({
                                      {new Date(item?.ts).getFullYear()}.{String(new Date(item?.ts).getMonth()+1).padStart(2,'0')}월
                                    </div>
                                    {item?.highAvg && <div style={{ color: '#EF4444', fontSize: 12, fontWeight: 700 }}>고층 {item.highAvg.toFixed(2)}억</div>}
-                                   {item?.midAvg && <div style={{ color: '#8D99AE', fontSize: 12, fontWeight: 700 }}>중층 {item.midAvg.toFixed(2)}억</div>}
+                                   {item?.midAvg && <div style={{ color: '#3182f6', fontSize: 12, fontWeight: 700 }}>중층 {item.midAvg.toFixed(2)}억</div>}
                                    {item?.lowAvg && <div style={{ color: '#03c75a', fontSize: 12, fontWeight: 700 }}>저층 {item.lowAvg.toFixed(2)}억</div>}
                                    {vol != null && <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2 }}>거래 {vol}건</div>}
                                  </div>
                                );
                              }}
-                             cursor={{ stroke: '#2A3558', strokeWidth: 1, strokeDasharray: '3 3' }}
+                             cursor={{ stroke: '#d1d6db', strokeWidth: 1, strokeDasharray: '3 3' }}
                            />
                            {/* 가격 밴드 (P5~P95) */}
                            <Area type="monotone" dataKey="bandHigh" yAxisId="price" stroke="none" fill="url(#bandGrad)" fillOpacity={1} dot={false} activeDot={false} />
                            {/* 거래량 막대그래프 */}
-                           <Bar dataKey="volume" yAxisId="volume" fill="#1E2A45" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.6} />
+                           <Bar dataKey="volume" yAxisId="volume" fill="#e5e8eb" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.6} />
                            {/* 저층 월별 평균선 — 점점선 */}
                            <Line type="monotone" dataKey="lowAvg" yAxisId="price" stroke="#03c75a" strokeWidth={2.5} strokeDasharray="2 3" dot={false} activeDot={false} connectNulls />
                            {/* 중층 월별 평균선 — 점선 */}
-                           <Line type="monotone" dataKey="midAvg" yAxisId="price" stroke="#8D99AE" strokeWidth={2.5} strokeDasharray="6 3" dot={false} activeDot={false} connectNulls />
+                           <Line type="monotone" dataKey="midAvg" yAxisId="price" stroke="#3182f6" strokeWidth={2.5} strokeDasharray="6 3" dot={false} activeDot={false} connectNulls />
                            {/* 고층 월별 평균선 — 실선 */}
                            <Line type="monotone" dataKey="highAvg" yAxisId="price" stroke="#EF4444" strokeWidth={2.5} dot={false} activeDot={false} connectNulls />
                            {/* 산점도 — 층수별 색상 */}
@@ -585,11 +585,11 @@ export function FieldReportModal({
                        })()}
                      </div>
                      {/* 범례 */}
-                     <div className="flex items-center gap-4 mt-2 px-1 text-[10px] font-bold text-[#6B7394]">
+                     <div className="flex items-center gap-4 mt-2 px-1 text-[10px] font-bold text-[#8b95a1]">
                        <span className="flex items-center gap-1"><span className="w-5 border-t-2 border-dotted border-[#03c75a]"/>저층 (1~{lowCut - 1}F)</span>
-                       <span className="flex items-center gap-1"><span className="w-5 border-t-2 border-dashed border-[#8D99AE]"/>중층 ({lowCut}~{midCut - 1}F)</span>
+                       <span className="flex items-center gap-1"><span className="w-5 border-t-2 border-dashed border-[#3182f6]"/>중층 ({lowCut}~{midCut - 1}F)</span>
                        <span className="flex items-center gap-1"><span className="w-5 h-0.5 bg-[#EF4444] rounded"/>고층 ({midCut}F~)</span>
-                       <span className="flex items-center gap-1"><span className="w-3 h-3 bg-[#1E2A45] rounded-sm"/>거래량</span>
+                       <span className="flex items-center gap-1"><span className="w-3 h-3 bg-[#e5e8eb] rounded-sm"/>거래량</span>
                      </div>
                    </div>
                  );
@@ -600,7 +600,7 @@ export function FieldReportModal({
 
           {/* Sticky Section Nav — stub이면 숨김 */}
           {!isStub && (
-          <nav className="sticky top-0 z-10 bg-[#1B2340]/95 backdrop-blur-md border-b border-[#1E2A45] px-4 py-2.5">
+          <nav className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] px-4 py-2.5">
             <div className="flex gap-1.5 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-w-[1000px] mx-auto">
               {['밸류에이션', '동적 시뮬레이터', '현장 사진', '이 아파트 이야기'].map((label, idx) => {
                 const ids = ['sec-premium', 'sec-simulator', 'sec-photos', 'sec-comments'];
@@ -608,7 +608,7 @@ export function FieldReportModal({
                   <button
                     key={ids[idx]}
                     onClick={() => scrollToSection(ids[idx])}
-                    className="shrink-0 px-3.5 py-1.5 rounded-lg border border-[#1E2A45] bg-[#141C33] text-[12px] font-bold text-[#8D99AE] hover:bg-[#EDF2F4] hover:text-[#EDF2F4] hover:border-[#EDF2F4] active:scale-95 transition-all duration-150"
+                    className="shrink-0 px-3.5 py-1.5 rounded-lg border border-[#e5e8eb] bg-[#f9fafb] text-[12px] font-bold text-[#3182f6] hover:bg-[#191f28] hover:text-[#191f28] hover:border-[#191f28] active:scale-95 transition-all duration-150"
                   >
                     {label}
                   </button>
@@ -626,20 +626,20 @@ export function FieldReportModal({
 
             {/* ── PAYWALL GATE ── Premium content below this line */}
             {!isUnlocked && (
-              <div className="relative bg-[#1B2340] rounded-3xl p-8 md:p-10 shadow-sm text-center">
-                <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-gradient-to-br from-[#8D99AE]/10 to-[#4A6CF7]/20 flex items-center justify-center">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8D99AE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="relative bg-white rounded-3xl p-8 md:p-10 shadow-sm text-center">
+                <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-gradient-to-br from-[#3182f6]/10 to-[#4A6CF7]/20 flex items-center justify-center">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3182f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                   </svg>
                 </div>
-                <h3 className="text-[20px] font-extrabold text-[#EDF2F4] mb-2">프리미엄 리포트</h3>
-                <p className="text-[14px] text-[#8D99AE] mb-1">밸류에이션 분석, 상세 인프라 데이터, 현장 사진 갤러리,</p>
-                <p className="text-[14px] text-[#8D99AE] mb-6">단지 명세, 종합 평가를 확인하세요</p>
+                <h3 className="text-[20px] font-extrabold text-[#191f28] mb-2">프리미엄 리포트</h3>
+                <p className="text-[14px] text-[#3182f6] mb-1">밸류에이션 분석, 상세 인프라 데이터, 현장 사진 갤러리,</p>
+                <p className="text-[14px] text-[#3182f6] mb-6">단지 명세, 종합 평가를 확인하세요</p>
                 
                 <div className="flex flex-wrap justify-center gap-2 mb-8">
                   {['밸류에이션', '사진 갤러리', '상세 인프라', '단지 명세', '종합 결론'].map(tag => (
-                    <span key={tag} className="bg-[#141C33] text-[#8D99AE] text-[12px] font-bold px-3 py-1 rounded-full">{tag}</span>
+                    <span key={tag} className="bg-[#f9fafb] text-[#3182f6] text-[12px] font-bold px-3 py-1 rounded-full">{tag}</span>
                   ))}
                 </div>
 
@@ -653,10 +653,10 @@ export function FieldReportModal({
                   />
                 ) : (
                   <div className="flex flex-col items-center gap-3">
-                    <p className="text-[13px] text-[#6B7394]">결제하려면 먼저 로그인해주세요</p>
+                    <p className="text-[13px] text-[#8b95a1]">결제하려면 먼저 로그인해주세요</p>
                     <button
                       onClick={() => signInWithPopup(auth, googleProvider)}
-                      className="bg-[#EDF2F4] text-[#EDF2F4] font-bold px-6 py-3 rounded-xl hover:bg-[#333d4b] transition-colors flex items-center gap-2"
+                      className="bg-[#191f28] text-[#191f28] font-bold px-6 py-3 rounded-xl hover:bg-[#333d4b] transition-colors flex items-center gap-2"
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -675,14 +675,14 @@ export function FieldReportModal({
             {isUnlocked && (
             <>
             {isLoadingDetail ? (
-              <div className="bg-[#1B2340] rounded-3xl p-6 md:p-8 shadow-sm animate-pulse">
-                <div className="h-6 bg-[#1E2A45] rounded-lg w-48 mb-6" />
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm animate-pulse">
+                <div className="h-6 bg-[#e5e8eb] rounded-lg w-48 mb-6" />
                 <div className="space-y-3">
-                  <div className="h-4 bg-[#0E1730] rounded w-full" />
-                  <div className="h-4 bg-[#0E1730] rounded w-5/6" />
-                  <div className="h-4 bg-[#0E1730] rounded w-4/6" />
-                  <div className="h-32 bg-[#0E1730] rounded-2xl mt-4" />
-                  <div className="h-32 bg-[#0E1730] rounded-2xl" />
+                  <div className="h-4 bg-[#f2f4f6] rounded w-full" />
+                  <div className="h-4 bg-[#f2f4f6] rounded w-5/6" />
+                  <div className="h-4 bg-[#f2f4f6] rounded w-4/6" />
+                  <div className="h-32 bg-[#f2f4f6] rounded-2xl mt-4" />
+                  <div className="h-32 bg-[#f2f4f6] rounded-2xl" />
                 </div>
               </div>
             ) : (
@@ -718,57 +718,57 @@ export function FieldReportModal({
 
             {/* Location Infrastructure Info — Enhanced with categories + raw data */}
             {report.metrics && (report.metrics.distanceToElementary || report.metrics.distanceToSubway || report.metrics.academyDensity) && (
-              <div className="bg-[#1B2340] rounded-3xl p-6 md:p-8 shadow-sm">
-                <h2 className="text-[18px] font-bold text-[#EDF2F4] flex items-center gap-2 mb-5 border-b border-[#1E2A45] pb-3">
-                  <MapPin size={18} className="text-[#8D99AE]"/> 학군·교통·생활 인프라
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+                <h2 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2 mb-5 border-b border-[#e5e8eb] pb-3">
+                  <MapPin size={18} className="text-[#3182f6]"/> 학군·교통·생활 인프라
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {report.metrics.distanceToElementary > 0 && (
-                    <div className="bg-[#141C33] rounded-2xl p-4 text-center">
-                      <div className="text-[13px] font-bold text-[#6B7394] mb-1">초등학교</div>
-                      <div className="text-[22px] font-extrabold text-[#EDF2F4]">{report.metrics.distanceToElementary}<span className="text-[13px] text-[#6B7394] ml-0.5">m</span></div>
+                    <div className="bg-[#f9fafb] rounded-2xl p-4 text-center">
+                      <div className="text-[13px] font-bold text-[#8b95a1] mb-1">초등학교</div>
+                      <div className="text-[22px] font-extrabold text-[#191f28]">{report.metrics.distanceToElementary}<span className="text-[13px] text-[#8b95a1] ml-0.5">m</span></div>
                       {report.metrics.nearestSchoolNames?.elementary && (
-                        <div className="text-[10px] text-[#8D99AE] mt-1 truncate">{report.metrics.nearestSchoolNames.elementary}</div>
+                        <div className="text-[10px] text-[#3182f6] mt-1 truncate">{report.metrics.nearestSchoolNames.elementary}</div>
                       )}
                     </div>
                   )}
                   {report.metrics.distanceToMiddle > 0 && (
-                    <div className="bg-[#141C33] rounded-2xl p-4 text-center">
-                      <div className="text-[13px] font-bold text-[#6B7394] mb-1">중학교</div>
-                      <div className="text-[22px] font-extrabold text-[#EDF2F4]">{report.metrics.distanceToMiddle}<span className="text-[13px] text-[#6B7394] ml-0.5">m</span></div>
+                    <div className="bg-[#f9fafb] rounded-2xl p-4 text-center">
+                      <div className="text-[13px] font-bold text-[#8b95a1] mb-1">중학교</div>
+                      <div className="text-[22px] font-extrabold text-[#191f28]">{report.metrics.distanceToMiddle}<span className="text-[13px] text-[#8b95a1] ml-0.5">m</span></div>
                       {report.metrics.nearestSchoolNames?.middle && (
-                        <div className="text-[10px] text-[#8D99AE] mt-1 truncate">{report.metrics.nearestSchoolNames.middle}</div>
+                        <div className="text-[10px] text-[#3182f6] mt-1 truncate">{report.metrics.nearestSchoolNames.middle}</div>
                       )}
                     </div>
                   )}
                   {report.metrics.distanceToHigh > 0 && (
-                    <div className="bg-[#141C33] rounded-2xl p-4 text-center">
-                      <div className="text-[13px] font-bold text-[#6B7394] mb-1">고등학교</div>
-                      <div className="text-[22px] font-extrabold text-[#EDF2F4]">{report.metrics.distanceToHigh}<span className="text-[13px] text-[#6B7394] ml-0.5">m</span></div>
+                    <div className="bg-[#f9fafb] rounded-2xl p-4 text-center">
+                      <div className="text-[13px] font-bold text-[#8b95a1] mb-1">고등학교</div>
+                      <div className="text-[22px] font-extrabold text-[#191f28]">{report.metrics.distanceToHigh}<span className="text-[13px] text-[#8b95a1] ml-0.5">m</span></div>
                       {report.metrics.nearestSchoolNames?.high && (
-                        <div className="text-[10px] text-[#8D99AE] mt-1 truncate">{report.metrics.nearestSchoolNames.high}</div>
+                        <div className="text-[10px] text-[#3182f6] mt-1 truncate">{report.metrics.nearestSchoolNames.high}</div>
                       )}
                     </div>
                   )}
                   {report.metrics.distanceToSubway > 0 && (
-                    <div className="bg-[#141C33] rounded-2xl p-4 text-center">
-                      <div className="text-[13px] font-bold text-[#8D99AE] mb-1">GTX-A/SRT</div>
-                      <div className="text-[22px] font-extrabold text-[#8D99AE]">{report.metrics.distanceToSubway}<span className="text-[13px] text-[#8D99AE]/70 ml-0.5">m</span></div>
+                    <div className="bg-[#f9fafb] rounded-2xl p-4 text-center">
+                      <div className="text-[13px] font-bold text-[#3182f6] mb-1">GTX-A/SRT</div>
+                      <div className="text-[22px] font-extrabold text-[#3182f6]">{report.metrics.distanceToSubway}<span className="text-[13px] text-[#3182f6]/70 ml-0.5">m</span></div>
                       {report.metrics.nearestStationName && (
-                        <div className="text-[10px] text-[#8D99AE]/80 mt-1 truncate">{report.metrics.nearestStationName}</div>
+                        <div className="text-[10px] text-[#3182f6]/80 mt-1 truncate">{report.metrics.nearestStationName}</div>
                       )}
                     </div>
                   )}
                   {report.metrics.distanceToIndeokwon != null && report.metrics.distanceToIndeokwon > 0 && (
-                    <div className="bg-[#141C33] rounded-2xl p-4 text-center">
-                      <div className="text-[13px] font-bold text-[#8D99AE] mb-1">인덕원선</div>
-                      <div className="text-[22px] font-extrabold text-[#8D99AE]">{report.metrics.distanceToIndeokwon}<span className="text-[13px] text-[#8D99AE]/70 ml-0.5">m</span></div>
+                    <div className="bg-[#f9fafb] rounded-2xl p-4 text-center">
+                      <div className="text-[13px] font-bold text-[#3182f6] mb-1">인덕원선</div>
+                      <div className="text-[22px] font-extrabold text-[#3182f6]">{report.metrics.distanceToIndeokwon}<span className="text-[13px] text-[#3182f6]/70 ml-0.5">m</span></div>
                     </div>
                   )}
                   {report.metrics.distanceToTram != null && report.metrics.distanceToTram > 0 && (
-                    <div className="bg-[#141C33] rounded-2xl p-4 text-center">
-                      <div className="text-[13px] font-bold text-[#8D99AE] mb-1">동탄트램</div>
-                      <div className="text-[22px] font-extrabold text-[#8D99AE]">{report.metrics.distanceToTram}<span className="text-[13px] text-[#8D99AE]/70 ml-0.5">m</span></div>
+                    <div className="bg-[#f9fafb] rounded-2xl p-4 text-center">
+                      <div className="text-[13px] font-bold text-[#3182f6] mb-1">동탄트램</div>
+                      <div className="text-[22px] font-extrabold text-[#3182f6]">{report.metrics.distanceToTram}<span className="text-[13px] text-[#3182f6]/70 ml-0.5">m</span></div>
                     </div>
                   )}
                   {/* Academy Density with Category Breakdown */}
@@ -783,7 +783,7 @@ export function FieldReportModal({
                             .slice(0, 5)
                             .map(([cat, cnt]) => (
                               <div key={cat} className="flex justify-between text-[10px] px-1 py-0.5">
-                                <span className="text-[#8D99AE] truncate mr-1">{cat}</span>
+                                <span className="text-[#3182f6] truncate mr-1">{cat}</span>
                                 <span className="font-bold text-[#03c75a] shrink-0">{cnt as number}개</span>
                               </div>
                             ))}
@@ -803,7 +803,7 @@ export function FieldReportModal({
                             .slice(0, 5)
                             .map(([cat, cnt]) => (
                               <div key={cat} className="flex justify-between text-[10px] px-1 py-0.5">
-                                <span className="text-[#8D99AE] truncate mr-1">{cat}</span>
+                                <span className="text-[#3182f6] truncate mr-1">{cat}</span>
                                 <span className="font-bold text-[#f59e0b] shrink-0">{cnt as number}개</span>
                               </div>
                             ))}
@@ -816,93 +816,93 @@ export function FieldReportModal({
                 {/* Raw Data Panel — Collapsible */}
                 {report.metrics && (
                   <details className="mt-5 group">
-                    <summary className="flex items-center gap-2 cursor-pointer text-[13px] font-bold text-[#6B7394] hover:text-[#8D99AE] transition-colors select-none py-2">
-                      <span className="w-5 h-5 rounded-full bg-[#0E1730] flex items-center justify-center text-[10px] group-open:rotate-90 transition-transform">▶</span>
+                    <summary className="flex items-center gap-2 cursor-pointer text-[13px] font-bold text-[#8b95a1] hover:text-[#3182f6] transition-colors select-none py-2">
+                      <span className="w-5 h-5 rounded-full bg-[#f2f4f6] flex items-center justify-center text-[10px] group-open:rotate-90 transition-transform">▶</span>
                       📊 상세 로우 데이터 보기
                     </summary>
-                    <div className="mt-3 bg-[#141C33] rounded-2xl p-5 border border-[#1E2A45] animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="mt-3 bg-[#f9fafb] rounded-2xl p-5 border border-[#e5e8eb] animate-in fade-in slide-in-from-top-2 duration-300">
                       <div className="space-y-4">
                         {/* 교육 */}
                         <div>
-                          <h4 className="text-[12px] font-bold text-[#6B7394] mb-2 flex items-center gap-1.5">🏫 교육</h4>
+                          <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">🏫 교육</h4>
                           <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[13px]">
-                            <div className="flex justify-between py-1.5 border-b border-[#0E1730]">
-                              <span className="text-[#8D99AE]">초등학교 거리</span>
-                              <span className="font-bold text-[#EDF2F4]">{report.metrics.distanceToElementary || '-'}m {report.metrics.nearestSchoolNames?.elementary ? `(${report.metrics.nearestSchoolNames.elementary})` : ''}</span>
+                            <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
+                              <span className="text-[#3182f6]">초등학교 거리</span>
+                              <span className="font-bold text-[#191f28]">{report.metrics.distanceToElementary || '-'}m {report.metrics.nearestSchoolNames?.elementary ? `(${report.metrics.nearestSchoolNames.elementary})` : ''}</span>
                             </div>
-                            <div className="flex justify-between py-1.5 border-b border-[#0E1730]">
-                              <span className="text-[#8D99AE]">중학교 거리</span>
-                              <span className="font-bold text-[#EDF2F4]">{report.metrics.distanceToMiddle || '-'}m {report.metrics.nearestSchoolNames?.middle ? `(${report.metrics.nearestSchoolNames.middle})` : ''}</span>
+                            <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
+                              <span className="text-[#3182f6]">중학교 거리</span>
+                              <span className="font-bold text-[#191f28]">{report.metrics.distanceToMiddle || '-'}m {report.metrics.nearestSchoolNames?.middle ? `(${report.metrics.nearestSchoolNames.middle})` : ''}</span>
                             </div>
-                            <div className="flex justify-between py-1.5 border-b border-[#0E1730]">
-                              <span className="text-[#8D99AE]">고등학교 거리</span>
-                              <span className="font-bold text-[#EDF2F4]">{report.metrics.distanceToHigh || '-'}m {report.metrics.nearestSchoolNames?.high ? `(${report.metrics.nearestSchoolNames.high})` : ''}</span>
+                            <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
+                              <span className="text-[#3182f6]">고등학교 거리</span>
+                              <span className="font-bold text-[#191f28]">{report.metrics.distanceToHigh || '-'}m {report.metrics.nearestSchoolNames?.high ? `(${report.metrics.nearestSchoolNames.high})` : ''}</span>
                             </div>
-                            <div className="flex justify-between py-1.5 border-b border-[#0E1730]">
-                              <span className="text-[#8D99AE]">학원 밀집도 (500m)</span>
+                            <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
+                              <span className="text-[#3182f6]">학원 밀집도 (500m)</span>
                               <span className="font-bold text-[#03c75a]">{report.metrics.academyDensity || '-'}개</span>
                             </div>
                           </div>
                         </div>
                         {/* 교통 */}
                         <div>
-                          <h4 className="text-[12px] font-bold text-[#6B7394] mb-2 flex items-center gap-1.5">🚇 교통</h4>
+                          <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">🚇 교통</h4>
                           <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[13px]">
-                            <div className="flex justify-between py-1.5 border-b border-[#0E1730]">
-                              <span className="text-[#8D99AE]">GTX-A/SRT역</span>
-                              <span className="font-bold text-[#EDF2F4]">{report.metrics.distanceToSubway || '-'}m {report.metrics.nearestStationName ? `(${report.metrics.nearestStationName})` : ''}</span>
+                            <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
+                              <span className="text-[#3182f6]">GTX-A/SRT역</span>
+                              <span className="font-bold text-[#191f28]">{report.metrics.distanceToSubway || '-'}m {report.metrics.nearestStationName ? `(${report.metrics.nearestStationName})` : ''}</span>
                             </div>
                             {report.metrics.distanceToIndeokwon != null && (
-                              <div className="flex justify-between py-1.5 border-b border-[#0E1730]">
-                                <span className="text-[#8D99AE]">인덕원선</span>
-                                <span className="font-bold text-[#EDF2F4]">{report.metrics.distanceToIndeokwon}m</span>
+                              <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
+                                <span className="text-[#3182f6]">인덕원선</span>
+                                <span className="font-bold text-[#191f28]">{report.metrics.distanceToIndeokwon}m</span>
                               </div>
                             )}
                             {report.metrics.distanceToTram != null && (
-                              <div className="flex justify-between py-1.5 border-b border-[#0E1730]">
-                                <span className="text-[#8D99AE]">동탄트램</span>
-                                <span className="font-bold text-[#EDF2F4]">{report.metrics.distanceToTram}m</span>
+                              <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
+                                <span className="text-[#3182f6]">동탄트램</span>
+                                <span className="font-bold text-[#191f28]">{report.metrics.distanceToTram}m</span>
                               </div>
                             )}
                           </div>
                         </div>
                         {/* 단지 정보 */}
                         <div>
-                          <h4 className="text-[12px] font-bold text-[#6B7394] mb-2 flex items-center gap-1.5">🏢 단지 정보</h4>
+                          <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">🏢 단지 정보</h4>
                           <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[13px]">
-                            <div className="flex justify-between py-1.5 border-b border-[#0E1730]">
-                              <span className="text-[#8D99AE]">시공사</span>
-                              <span className="font-bold text-[#EDF2F4]">{report.metrics.brand || '-'}</span>
+                            <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
+                              <span className="text-[#3182f6]">시공사</span>
+                              <span className="font-bold text-[#191f28]">{report.metrics.brand || '-'}</span>
                             </div>
-                            <div className="flex justify-between py-1.5 border-b border-[#0E1730]">
-                              <span className="text-[#8D99AE]">세대수</span>
-                              <span className="font-bold text-[#EDF2F4]">{report.metrics.householdCount?.toLocaleString() || '-'}세대</span>
+                            <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
+                              <span className="text-[#3182f6]">세대수</span>
+                              <span className="font-bold text-[#191f28]">{report.metrics.householdCount?.toLocaleString() || '-'}세대</span>
                             </div>
-                            <div className="flex justify-between py-1.5 border-b border-[#0E1730]">
-                              <span className="text-[#8D99AE]">준공연도</span>
-                              <span className="font-bold text-[#EDF2F4]">{report.metrics.yearBuilt || '-'}년</span>
+                            <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
+                              <span className="text-[#3182f6]">준공연도</span>
+                              <span className="font-bold text-[#191f28]">{report.metrics.yearBuilt || '-'}년</span>
                             </div>
-                            <div className="flex justify-between py-1.5 border-b border-[#0E1730]">
-                              <span className="text-[#8D99AE]">용적률</span>
-                              <span className="font-bold text-[#EDF2F4]">{report.metrics.far || '-'}%</span>
+                            <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
+                              <span className="text-[#3182f6]">용적률</span>
+                              <span className="font-bold text-[#191f28]">{report.metrics.far || '-'}%</span>
                             </div>
-                            <div className="flex justify-between py-1.5 border-b border-[#0E1730]">
-                              <span className="text-[#8D99AE]">건폐율</span>
-                              <span className="font-bold text-[#EDF2F4]">{report.metrics.bcr || '-'}%</span>
+                            <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
+                              <span className="text-[#3182f6]">건폐율</span>
+                              <span className="font-bold text-[#191f28]">{report.metrics.bcr || '-'}%</span>
                             </div>
-                            <div className="flex justify-between py-1.5 border-b border-[#0E1730]">
-                              <span className="text-[#8D99AE]">세대당 주차</span>
-                              <span className="font-bold text-[#EDF2F4]">{report.metrics.parkingPerHousehold || '-'}대</span>
+                            <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
+                              <span className="text-[#3182f6]">세대당 주차</span>
+                              <span className="font-bold text-[#191f28]">{report.metrics.parkingPerHousehold || '-'}대</span>
                             </div>
                           </div>
                         </div>
                         {/* 생활 인프라 */}
                         {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
                           <div>
-                            <h4 className="text-[12px] font-bold text-[#6B7394] mb-2 flex items-center gap-1.5">🍽️ 생활 인프라</h4>
+                            <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">🍽️ 생활 인프라</h4>
                             <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[13px]">
-                              <div className="flex justify-between py-1.5 border-b border-[#0E1730]">
-                                <span className="text-[#8D99AE]">음식점·카페 (500m)</span>
+                              <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
+                                <span className="text-[#3182f6]">음식점·카페 (500m)</span>
                                 <span className="font-bold text-[#f59e0b]">{report.metrics.restaurantDensity}개</span>
                               </div>
                             </div>
@@ -911,8 +911,8 @@ export function FieldReportModal({
                                 {Object.entries(report.metrics.restaurantCategories)
                                   .sort(([,a], [,b]) => (b as number) - (a as number))
                                   .map(([cat, cnt]) => (
-                                    <div key={cat} className="bg-[#1B2340] rounded-lg py-1.5 px-2 text-[11px] border border-[#1E2A45] flex justify-between">
-                                      <span className="text-[#8D99AE] truncate">{cat}</span>
+                                    <div key={cat} className="bg-white rounded-lg py-1.5 px-2 text-[11px] border border-[#e5e8eb] flex justify-between">
+                                      <span className="text-[#3182f6] truncate">{cat}</span>
                                       <span className="font-bold text-[#f59e0b] ml-1 shrink-0">{cnt as number}</span>
                                     </div>
                                   ))}
@@ -920,31 +920,31 @@ export function FieldReportModal({
                             )}
 
                             {/* 앵커 테넌트 */}
-                            <div className="mt-4 pt-3 border-t border-[#0E1730]">
-                              <h4 className="text-[12px] font-bold text-[#6B7394] mb-2 flex items-center gap-1.5">🎯 핵심 앵커 테넌트 (최단거리)</h4>
+                            <div className="mt-4 pt-3 border-t border-[#f2f4f6]">
+                              <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">🎯 핵심 앵커 테넌트 (최단거리)</h4>
                               <div className="flex flex-wrap gap-2">
                                 {report.metrics.distanceToStarbucks != null && (
-                                  <div className="bg-[#0E1730] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#8D99AE] flex items-center gap-1">
+                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#3182f6] flex items-center gap-1">
                                     ☕ 스타벅스 <span className="text-[#03c75a] font-bold">{report.metrics.distanceToStarbucks}m</span>
                                   </div>
                                 )}
                                 {report.metrics.distanceToOliveYoung != null && (
-                                  <div className="bg-[#0E1730] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#8D99AE] flex items-center gap-1">
+                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#3182f6] flex items-center gap-1">
                                     💄 올리브영 <span className="text-[#03c75a] font-bold">{report.metrics.distanceToOliveYoung}m</span>
                                   </div>
                                 )}
                                 {report.metrics.distanceToDaiso != null && (
-                                  <div className="bg-[#0E1730] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#8D99AE] flex items-center gap-1">
+                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#3182f6] flex items-center gap-1">
                                     🛍️ 다이소 <span className="text-[#03c75a] font-bold">{report.metrics.distanceToDaiso}m</span>
                                   </div>
                                 )}
                                 {report.metrics.distanceToSupermarket != null && (
-                                  <div className="bg-[#0E1730] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#8D99AE] flex items-center gap-1">
+                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#3182f6] flex items-center gap-1">
                                     🛒 대형마트 <span className="text-[#03c75a] font-bold">{report.metrics.distanceToSupermarket}m</span>
                                   </div>
                                 )}
                                 {report.metrics.distanceToMcDonalds != null && (
-                                  <div className="bg-[#0E1730] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#8D99AE] flex items-center gap-1">
+                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#3182f6] flex items-center gap-1">
                                     🍔 맥도날드 <span className="text-[#03c75a] font-bold">{report.metrics.distanceToMcDonalds}m</span>
                                   </div>
                                 )}
@@ -967,12 +967,12 @@ export function FieldReportModal({
               };
               const allTags = ['전체', ...Array.from(new Set(report.images.map(img => img.locationTag || '기타')))];
               return (
-                <div id="sec-photos" className="bg-[#1B2340] rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+                <div id="sec-photos" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
                   <details open>
-                    <summary className="text-[20px] font-bold text-[#EDF2F4] flex items-center gap-2 mb-5 border-b border-[#1E2A45] pb-3 cursor-pointer list-none">
-                      <Camera size={20} className="text-[#8D99AE]"/>
+                    <summary className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-5 border-b border-[#e5e8eb] pb-3 cursor-pointer list-none">
+                      <Camera size={20} className="text-[#3182f6]"/>
                       현장 사진 갤러리
-                      <span className="text-[13px] font-medium text-[#6B7394] ml-auto">{report.images.length}장</span>
+                      <span className="text-[13px] font-medium text-[#8b95a1] ml-auto">{report.images.length}장</span>
                     </summary>
 
                     {/* Category Filter Chips */}
@@ -984,16 +984,16 @@ export function FieldReportModal({
 
             {!s ? (
               // Legacy Template Render (Fallback if both schemas are empty)
-              <div className="bg-[#1B2340] rounded-3xl p-6 md:p-8 shadow-sm">
-                 <h2 className="text-[20px] font-bold text-[#EDF2F4] mb-6 border-b border-[#1E2A45] pb-3">단지 요약 정보</h2>
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+                 <h2 className="text-[20px] font-bold text-[#191f28] mb-6 border-b border-[#e5e8eb] pb-3">단지 요약 정보</h2>
                  <div className="flex flex-col gap-4">
                    {(report.pros || report.premiumContent) ? (
                      <div className="bg-[#f0fdf4] p-5 rounded-2xl border border-[#bbf7d0]">
                        <h3 className="text-[15px] font-extrabold text-[#03c75a] mb-2 flex items-center gap-1.5"><CheckCircle2 size={18}/> 주요 내용 및 총평</h3>
-                       <p className="text-[15px] text-[#EDF2F4] leading-relaxed whitespace-pre-wrap">{report.premiumContent || report.pros}</p>
+                       <p className="text-[15px] text-[#191f28] leading-relaxed whitespace-pre-wrap">{report.premiumContent || report.pros}</p>
                      </div>
                    ) : (
-                     <p className="text-[#6B7394] text-[15px]">데이터가 준비되지 않았습니다.</p>
+                     <p className="text-[#8b95a1] text-[15px]">데이터가 준비되지 않았습니다.</p>
                    )}
                  </div>
               </div>
@@ -1002,59 +1002,59 @@ export function FieldReportModal({
               <>
 
                 {/* 2. 단지 기본 명세 (Specs) */}
-                <div id="sec-specs" className="bg-[#1B2340] rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
-                   <h2 className="text-[20px] font-bold text-[#EDF2F4] flex items-center gap-2 mb-6 border-b border-[#1E2A45] pb-3"><Building size={20} className="text-[#8D99AE]"/> 단지 기본 명세</h2>
+                <div id="sec-specs" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+                   <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Building size={20} className="text-[#3182f6]"/> 단지 기본 명세</h2>
                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-[#141C33] p-4 rounded-xl border border-[#1E2A45]">
-                        <p className="text-[12px] text-[#6B7394] font-bold mb-1">준공 연월 / 연차</p>
-                        <p className="text-[15px] text-[#EDF2F4] font-medium">{s.specs.builtYear || '-'}</p>
+                      <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
+                        <p className="text-[12px] text-[#8b95a1] font-bold mb-1">준공 연월 / 연차</p>
+                        <p className="text-[15px] text-[#191f28] font-medium">{s.specs.builtYear || '-'}</p>
                       </div>
-                      <div className="bg-[#141C33] p-4 rounded-xl border border-[#1E2A45]">
-                        <p className="text-[12px] text-[#6B7394] font-bold mb-1">규모 (세대/동)</p>
-                        <p className="text-[15px] text-[#EDF2F4] font-medium">{s.specs.scale || '-'}</p>
+                      <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
+                        <p className="text-[12px] text-[#8b95a1] font-bold mb-1">규모 (세대/동)</p>
+                        <p className="text-[15px] text-[#191f28] font-medium">{s.specs.scale || '-'}</p>
                       </div>
-                      <div className="bg-[#141C33] p-4 rounded-xl border border-[#1E2A45]">
-                        <p className="text-[12px] text-[#6B7394] font-bold mb-1">용적률 / 건폐율</p>
-                        <p className="text-[15px] text-[#EDF2F4] font-medium">{s.specs.farBuild || '-'}</p>
+                      <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
+                        <p className="text-[12px] text-[#8b95a1] font-bold mb-1">용적률 / 건폐율</p>
+                        <p className="text-[15px] text-[#191f28] font-medium">{s.specs.farBuild || '-'}</p>
                       </div>
-                      <div className="bg-[#141C33] p-4 rounded-xl border border-[#1E2A45]">
-                        <p className="text-[12px] text-[#6B7394] font-bold mb-1">세대당 주차 (지하%)</p>
-                        <p className="text-[15px] text-[#EDF2F4] font-medium">{s.specs.parkingRatio || '-'}</p>
+                      <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
+                        <p className="text-[12px] text-[#8b95a1] font-bold mb-1">세대당 주차 (지하%)</p>
+                        <p className="text-[15px] text-[#191f28] font-medium">{s.specs.parkingRatio || '-'}</p>
                       </div>
                    </div>
                 </div>
 
                 {/* 3. 물리적 인프라 & 조경 */}
-                <div id="sec-infra" className="bg-[#1B2340] rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
-                   <h2 className="text-[20px] font-bold text-[#EDF2F4] flex items-center gap-2 mb-6 border-b border-[#1E2A45] pb-3"><Camera size={20} className="text-[#8D99AE]"/> 현장 인프라 둘러보기</h2>
+                <div id="sec-infra" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+                   <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Camera size={20} className="text-[#3182f6]"/> 현장 인프라 둘러보기</h2>
                    <div className="flex flex-col gap-8">
                       {/* Gate */}
                       {(s.infra.gateText || s.infra.gateImg) && (
                         <div className="flex flex-col md:flex-row gap-6">
-                          {s.infra.gateImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#0E1730]"><Image src={s.infra.gateImg} alt="진입로/문주" fill sizes="280px" className="object-cover" /></div>}
+                          {s.infra.gateImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.infra.gateImg} alt="진입로/문주" fill sizes="280px" className="object-cover" /></div>}
                           <div>
-                            <h4 className="text-[15px] font-bold text-[#EDF2F4] mb-2 bg-[#0E1730] inline-block px-3 py-1 rounded-lg">진입로 및 정문</h4>
-                            <p className="text-[15px] text-[#8D99AE] leading-relaxed whitespace-pre-wrap">{s.infra.gateText || '사진만 제공됨'}</p>
+                            <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f2f4f6] inline-block px-3 py-1 rounded-lg">진입로 및 정문</h4>
+                            <p className="text-[15px] text-[#3182f6] leading-relaxed whitespace-pre-wrap">{s.infra.gateText || '사진만 제공됨'}</p>
                           </div>
                         </div>
                       )}
                       {/* Landscaping */}
                       {(s.infra.landscapeText || s.infra.landscapeImg) && (
-                        <div className="flex flex-col md:flex-row-reverse gap-6 pt-6 border-t border-[#0E1730]">
-                          {s.infra.landscapeImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#0E1730]"><Image src={s.infra.landscapeImg} alt="조경/지형" fill sizes="280px" className="object-cover" /></div>}
+                        <div className="flex flex-col md:flex-row-reverse gap-6 pt-6 border-t border-[#f2f4f6]">
+                          {s.infra.landscapeImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.infra.landscapeImg} alt="조경/지형" fill sizes="280px" className="object-cover" /></div>}
                           <div>
-                            <h4 className="text-[15px] font-bold text-[#EDF2F4] mb-2 bg-[#0E1730] inline-block px-3 py-1 rounded-lg">단지 조경 및 지형</h4>
-                            <p className="text-[15px] text-[#8D99AE] leading-relaxed whitespace-pre-wrap">{s.infra.landscapeText || '사진만 제공됨'}</p>
+                            <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f2f4f6] inline-block px-3 py-1 rounded-lg">단지 조경 및 지형</h4>
+                            <p className="text-[15px] text-[#3182f6] leading-relaxed whitespace-pre-wrap">{s.infra.landscapeText || '사진만 제공됨'}</p>
                           </div>
                         </div>
                       )}
                       {/* Parking & Maintenance ... (Skip strict layout for brevity, just render them similarly) */}
                        {(s.infra.parkingText || s.infra.parkingImg) && (
-                        <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-[#0E1730]">
-                          {s.infra.parkingImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#0E1730]"><Image src={s.infra.parkingImg} alt="지하주차장" fill sizes="280px" className="object-cover" /></div>}
+                        <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-[#f2f4f6]">
+                          {s.infra.parkingImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.infra.parkingImg} alt="지하주차장" fill sizes="280px" className="object-cover" /></div>}
                           <div>
-                            <h4 className="text-[15px] font-bold text-[#EDF2F4] mb-2 bg-[#0E1730] inline-block px-3 py-1 rounded-lg">지하주차장 인프라</h4>
-                            <p className="text-[15px] text-[#8D99AE] leading-relaxed whitespace-pre-wrap">{s.infra.parkingText || '사진만 제공됨'}</p>
+                            <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f2f4f6] inline-block px-3 py-1 rounded-lg">지하주차장 인프라</h4>
+                            <p className="text-[15px] text-[#3182f6] leading-relaxed whitespace-pre-wrap">{s.infra.parkingText || '사진만 제공됨'}</p>
                           </div>
                         </div>
                       )}
@@ -1062,24 +1062,24 @@ export function FieldReportModal({
                 </div>
 
                  {/* 4. Ecosystem */}
-                <div id="sec-eco" className="bg-[#1B2340] rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
-                   <h2 className="text-[20px] font-bold text-[#EDF2F4] flex items-center gap-2 mb-6 border-b border-[#1E2A45] pb-3"><Info size={20} className="text-[#8D99AE]"/> 생활 편의시설 및 거시 입지</h2>
+                <div id="sec-eco" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+                   <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Info size={20} className="text-[#3182f6]"/> 생활 편의시설 및 거시 입지</h2>
                    <div className="flex flex-col gap-8">
                       {(s.ecosystem.schoolText || s.ecosystem.schoolImg) && (
                         <div className="flex flex-col md:flex-row gap-6">
-                          {s.ecosystem.schoolImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#0E1730]"><Image src={s.ecosystem.schoolImg} alt="학군" fill sizes="280px" className="object-cover" /></div>}
+                          {s.ecosystem.schoolImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.ecosystem.schoolImg} alt="학군" fill sizes="280px" className="object-cover" /></div>}
                           <div>
-                            <h4 className="text-[15px] font-bold text-[#EDF2F4] mb-2 bg-[#f8f9fa] border border-[#1E2A45] inline-block px-3 py-1 rounded-lg">학군 및 통학로</h4>
-                            <p className="text-[15px] text-[#8D99AE] leading-relaxed whitespace-pre-wrap">{s.ecosystem.schoolText}</p>
+                            <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f8f9fa] border border-[#e5e8eb] inline-block px-3 py-1 rounded-lg">학군 및 통학로</h4>
+                            <p className="text-[15px] text-[#3182f6] leading-relaxed whitespace-pre-wrap">{s.ecosystem.schoolText}</p>
                           </div>
                         </div>
                       )}
                       {(s.ecosystem.commerceText || s.ecosystem.commerceImg) && (
-                        <div className="flex flex-col md:flex-row-reverse gap-6 pt-6 border-t border-[#0E1730]">
-                          {s.ecosystem.commerceImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#0E1730]"><Image src={s.ecosystem.commerceImg} alt="상권" fill sizes="280px" className="object-cover" /></div>}
+                        <div className="flex flex-col md:flex-row-reverse gap-6 pt-6 border-t border-[#f2f4f6]">
+                          {s.ecosystem.commerceImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.ecosystem.commerceImg} alt="상권" fill sizes="280px" className="object-cover" /></div>}
                           <div>
-                            <h4 className="text-[15px] font-bold text-[#EDF2F4] mb-2 bg-[#f8f9fa] border border-[#1E2A45] inline-block px-3 py-1 rounded-lg">동네 상권</h4>
-                            <p className="text-[15px] text-[#8D99AE] leading-relaxed whitespace-pre-wrap">{s.ecosystem.commerceText}</p>
+                            <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f8f9fa] border border-[#e5e8eb] inline-block px-3 py-1 rounded-lg">동네 상권</h4>
+                            <p className="text-[15px] text-[#3182f6] leading-relaxed whitespace-pre-wrap">{s.ecosystem.commerceText}</p>
                           </div>
                         </div>
                       )}
@@ -1087,24 +1087,24 @@ export function FieldReportModal({
                 </div>
 
                  {/* 5. 최종 결론 */}
-                <div id="sec-conclusion" className="bg-[#1B2340] rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
-                   <h2 className="text-[20px] font-bold text-[#EDF2F4] flex items-center gap-2 mb-6 border-b border-[#1E2A45] pb-3"><ShieldAlert size={20} className="text-[#8D99AE]"/> 최종 매수 타당성 평가</h2>
+                <div id="sec-conclusion" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+                   <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><ShieldAlert size={20} className="text-[#3182f6]"/> 최종 매수 타당성 평가</h2>
                    <div className="flex flex-col gap-4">
-                      <div className="bg-[#EDF2F4] p-6 rounded-2xl text-[#EDF2F4]">
-                        <h4 className="text-[13px] font-bold text-[#6B7394] mb-2">교통 및 개발 호재</h4>
+                      <div className="bg-[#191f28] p-6 rounded-2xl text-[#191f28]">
+                        <h4 className="text-[13px] font-bold text-[#8b95a1] mb-2">교통 및 개발 호재</h4>
                         <p className="text-[15px] leading-relaxed whitespace-pre-wrap mb-4 pb-4 border-b border-white/10">{s.location.trafficText || '-'}</p>
                         <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{s.location.developmentText || '-'}</p>
                       </div>
-                      <div className="p-6 rounded-2xl border-2 border-[#EDF2F4] bg-[#fdfdfd]">
-                        <h4 className="text-[16px] font-extrabold text-[#EDF2F4] mb-2">💡 최종 결론</h4>
-                        <p className="text-[15px] text-[#8D99AE] leading-relaxed whitespace-pre-wrap">{s.assessment.synthesis || '-'}</p>
+                      <div className="p-6 rounded-2xl border-2 border-[#191f28] bg-[#fdfdfd]">
+                        <h4 className="text-[16px] font-extrabold text-[#191f28] mb-2">💡 최종 결론</h4>
+                        <p className="text-[15px] text-[#3182f6] leading-relaxed whitespace-pre-wrap">{s.assessment.synthesis || '-'}</p>
                         
                         {s.assessment.probability && (
-                          <div className="mt-6 p-4 bg-[#141C33] rounded-xl flex items-start gap-3">
-                             <Radar size={20} className="text-[#8D99AE] shrink-0 mt-0.5" />
+                          <div className="mt-6 p-4 bg-[#f9fafb] rounded-xl flex items-start gap-3">
+                             <Radar size={20} className="text-[#3182f6] shrink-0 mt-0.5" />
                              <div>
-                               <h5 className="text-[13px] font-bold text-[#8D99AE] mb-1">향후 가격 전망</h5>
-                               <p className="text-[14px] text-[#EDF2F4] leading-snug">{s.assessment.probability}</p>
+                               <h5 className="text-[13px] font-bold text-[#3182f6] mb-1">향후 가격 전망</h5>
+                               <p className="text-[14px] text-[#191f28] leading-snug">{s.assessment.probability}</p>
                              </div>
                           </div>
                         )}
@@ -1116,10 +1116,10 @@ export function FieldReportModal({
 
             {/* Comments Section */}
             </>)}
-            <div id="sec-comments" className="bg-[#1B2340] rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
-              <h2 className="text-[20px] font-bold text-[#EDF2F4] flex items-center gap-2 mb-6 border-b border-[#1E2A45] pb-3">
-                <MessageSquare size={20} className="text-[#8D99AE]"/> 
-                이 아파트 이야기 <span className="text-[#8D99AE] text-[16px] ml-1">{comments.length}</span>
+            <div id="sec-comments" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+              <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3">
+                <MessageSquare size={20} className="text-[#3182f6]"/> 
+                이 아파트 이야기 <span className="text-[#3182f6] text-[16px] ml-1">{comments.length}</span>
               </h2>
               
               <div className="flex flex-col gap-6">
@@ -1129,7 +1129,7 @@ export function FieldReportModal({
                     type="text"
                     placeholder={user ? "임장기에 대한 생각이나 궁금한 점을 남겨주세요." : "로그인 후 댓글을 남길 수 있습니다."}
                     disabled={!user}
-                    className="flex-1 border border-[#1E2A45] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#8D99AE]/20 focus:border-[#8D99AE] disabled:bg-[#0E1730]"
+                    className="flex-1 border border-[#e5e8eb] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#3182f6]/20 focus:border-[#3182f6] disabled:bg-[#f2f4f6]"
                     value={commentInput}
                     onChange={(e) => onCommentChange(e.target.value)}
                     onKeyDown={(e) => {
@@ -1139,7 +1139,7 @@ export function FieldReportModal({
                   <button 
                     onClick={onSubmitComment}
                     disabled={!user || !commentInput.trim()}
-                    className="bg-[#8D99AE] text-[#EDF2F4] px-5 rounded-xl font-bold text-[14px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="bg-[#3182f6] text-[#191f28] px-5 rounded-xl font-bold text-[14px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     등록
                   </button>
@@ -1151,16 +1151,16 @@ export function FieldReportModal({
                     <>
                       {/* 최신 1개 댓글은 무료 공개 */}
                       {comments.slice(0, 1).map(comment => (
-                        <div key={comment.id} className="flex gap-3 bg-[#141C33] p-4 rounded-2xl border border-[#1E2A45]">
-                          <div className="w-8 h-8 rounded-full bg-[#1B2340] border border-[#1E2A45] shadow-sm flex items-center justify-center shrink-0">
-                             <UserCircle size={16} className="text-[#6B7394]" />
+                        <div key={comment.id} className="flex gap-3 bg-[#f9fafb] p-4 rounded-2xl border border-[#e5e8eb]">
+                          <div className="w-8 h-8 rounded-full bg-white border border-[#e5e8eb] shadow-sm flex items-center justify-center shrink-0">
+                             <UserCircle size={16} className="text-[#8b95a1]" />
                           </div>
                           <div className="flex-1">
                             <div className="flex items-baseline gap-2 mb-1">
-                              <span className="font-bold text-[14px] text-[#EDF2F4]">{comment.author}</span>
-                              <span className="text-[12px] text-[#6B7394]">{comment.createdAt}</span>
+                              <span className="font-bold text-[14px] text-[#191f28]">{comment.author}</span>
+                              <span className="text-[12px] text-[#8b95a1]">{comment.createdAt}</span>
                             </div>
-                            <p className="text-[14px] text-[#8D99AE] leading-relaxed break-all whitespace-pre-wrap">{comment.text}</p>
+                            <p className="text-[14px] text-[#3182f6] leading-relaxed break-all whitespace-pre-wrap">{comment.text}</p>
                           </div>
                         </div>
                       ))}
@@ -1169,16 +1169,16 @@ export function FieldReportModal({
                       {comments.length > 1 && (
                         isUnlocked ? (
                           comments.slice(1).map(comment => (
-                            <div key={comment.id} className="flex gap-3 bg-[#141C33] p-4 rounded-2xl border border-[#1E2A45]">
-                              <div className="w-8 h-8 rounded-full bg-[#1B2340] border border-[#1E2A45] shadow-sm flex items-center justify-center shrink-0">
-                                 <UserCircle size={16} className="text-[#6B7394]" />
+                            <div key={comment.id} className="flex gap-3 bg-[#f9fafb] p-4 rounded-2xl border border-[#e5e8eb]">
+                              <div className="w-8 h-8 rounded-full bg-white border border-[#e5e8eb] shadow-sm flex items-center justify-center shrink-0">
+                                 <UserCircle size={16} className="text-[#8b95a1]" />
                               </div>
                               <div className="flex-1">
                                 <div className="flex items-baseline gap-2 mb-1">
-                                  <span className="font-bold text-[14px] text-[#EDF2F4]">{comment.author}</span>
-                                  <span className="text-[12px] text-[#6B7394]">{comment.createdAt}</span>
+                                  <span className="font-bold text-[14px] text-[#191f28]">{comment.author}</span>
+                                  <span className="text-[12px] text-[#8b95a1]">{comment.createdAt}</span>
                                 </div>
-                                <p className="text-[14px] text-[#8D99AE] leading-relaxed break-all whitespace-pre-wrap">{comment.text}</p>
+                                <p className="text-[14px] text-[#3182f6] leading-relaxed break-all whitespace-pre-wrap">{comment.text}</p>
                               </div>
                             </div>
                           ))
@@ -1187,22 +1187,22 @@ export function FieldReportModal({
                             {/* 블러 처리된 미리보기 */}
                             <div className="blur-sm opacity-40 pointer-events-none">
                               {comments.slice(1, 3).map(comment => (
-                                <div key={comment.id} className="flex gap-3 bg-[#141C33] p-4 rounded-2xl border border-[#1E2A45] mb-3">
-                                  <div className="w-8 h-8 rounded-full bg-[#1B2340] border border-[#1E2A45] shadow-sm flex items-center justify-center shrink-0">
-                                    <UserCircle size={16} className="text-[#6B7394]" />
+                                <div key={comment.id} className="flex gap-3 bg-[#f9fafb] p-4 rounded-2xl border border-[#e5e8eb] mb-3">
+                                  <div className="w-8 h-8 rounded-full bg-white border border-[#e5e8eb] shadow-sm flex items-center justify-center shrink-0">
+                                    <UserCircle size={16} className="text-[#8b95a1]" />
                                   </div>
                                   <div className="flex-1">
-                                    <div className="h-3 bg-[#1E2A45] rounded w-20 mb-2" />
-                                    <div className="h-3 bg-[#1E2A45] rounded w-full" />
+                                    <div className="h-3 bg-[#e5e8eb] rounded w-20 mb-2" />
+                                    <div className="h-3 bg-[#e5e8eb] rounded w-full" />
                                   </div>
                                 </div>
                               ))}
                             </div>
                             {/* 페이월 안내 */}
                             <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="bg-[#1B2340] border border-[#1E2A45] rounded-2xl px-6 py-4 text-center shadow-lg">
-                                <p className="text-[14px] font-bold text-[#EDF2F4] mb-1">🔒 {comments.length - 1}개의 이야기가 더 있습니다</p>
-                                <p className="text-[12px] text-[#6B7394]">프리미엄 구독으로 모든 이야기를 확인하세요</p>
+                              <div className="bg-white border border-[#e5e8eb] rounded-2xl px-6 py-4 text-center shadow-lg">
+                                <p className="text-[14px] font-bold text-[#191f28] mb-1">🔒 {comments.length - 1}개의 이야기가 더 있습니다</p>
+                                <p className="text-[12px] text-[#8b95a1]">프리미엄 구독으로 모든 이야기를 확인하세요</p>
                               </div>
                             </div>
                           </div>
@@ -1210,7 +1210,7 @@ export function FieldReportModal({
                       )}
                     </>
                   ) : (
-                    <div className="text-center py-10 text-[#6B7394] text-[14px]">
+                    <div className="text-center py-10 text-[#8b95a1] text-[14px]">
                       아직 작성된 댓글이 없습니다. 첫 댓글을 남겨보세요!
                     </div>
                   )}
@@ -1231,7 +1231,7 @@ export function FieldReportModal({
           onClick={() => setFullscreenImage(null)}
         >
           <button 
-            className="absolute top-6 right-6 text-[#EDF2F4]/50 hover:text-[#EDF2F4] p-2 rounded-full bg-[#1B2340]/10 hover:bg-[#1B2340]/20 transition-colors"
+            className="absolute top-6 right-6 text-[#191f28]/50 hover:text-[#191f28] p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
             onClick={() => setFullscreenImage(null)}
           >
             <X size={24} />
@@ -1488,18 +1488,18 @@ export default function Dashboard() {
   }, [fieldReports, selectedDong]);
 
   return (
-    <div className="min-h-screen bg-[#141C33] font-sans selection:bg-[#8D99AE]/20">
+    <div className="min-h-screen bg-[#f2f4f6] font-sans selection:bg-[#3182f6]/20">
       
       {/* a11y: Skip to Content */}
       <a href="#main-content" className="skip-to-content">내용으로 건너뛰기</a>
 
       {/* Top Navigation Bar */}
-      <header className="bg-[#1B2340]/90 backdrop-blur-xl border-b border-[#1E2A45] sticky top-0 z-40 transition-all duration-300" role="banner">
+      <header className="bg-white/90 backdrop-blur-xl border-b border-[#e5e8eb] sticky top-0 z-40 transition-all duration-300" role="banner">
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 h-14 sm:h-16 flex justify-between items-center">
           {/* Left: Pill Tabs + Branding */}
           <div className="flex items-center gap-3">
             <nav aria-label="메인 네비게이션">
-            <div className="inline-flex bg-[#0E1730] rounded-full p-1 gap-0.5" role="tablist">
+            <div className="inline-flex bg-[#f2f4f6] rounded-full p-1 gap-0.5" role="tablist">
               {[
                 { id: 'imjang' as const, label: '임장기', icon: Compass },
                 { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
@@ -1510,8 +1510,8 @@ export default function Dashboard() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-200 ${
                     activeTab === tab.id
-                      ? 'bg-[#1B2340] text-[#EDF2F4] shadow-sm'
-                      : 'text-[#6B7394] hover:text-[#8D99AE]'
+                      ? 'bg-white text-[#191f28] shadow-sm'
+                      : 'text-[#8b95a1] hover:text-[#3182f6]'
                   }`}
                 >
                   <tab.icon size={14} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} />
@@ -1520,7 +1520,7 @@ export default function Dashboard() {
               ))}
             </div>
             </nav>
-            <span className="text-[17px] text-[#6B7394] font-medium hidden sm:inline">by <span className="font-extrabold text-[#EDF2F4]">임장크루</span></span>
+            <span className="text-[17px] text-[#8b95a1] font-medium hidden sm:inline">by <span className="font-extrabold text-[#191f28]">임장크루</span></span>
           </div>
           {/* User bar is now handled by FloatingUserBar in layout.tsx */}
           </div>
@@ -1535,10 +1535,10 @@ export default function Dashboard() {
           {/* 1. Section Header */}
           <div className="mb-8">
             <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
-              <h1 className="text-[22px] sm:text-[28px] md:text-[36px] font-extrabold text-[#EDF2F4] tracking-tight">
+              <h1 className="text-[22px] sm:text-[28px] md:text-[36px] font-extrabold text-[#191f28] tracking-tight">
                 동탄 아파트 탐색
               </h1>
-              <span suppressHydrationWarning className="inline-flex items-center gap-1.5 bg-[#141C33] text-[#8D99AE] text-[12px] sm:text-[13px] font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
+              <span suppressHydrationWarning className="inline-flex items-center gap-1.5 bg-[#f9fafb] text-[#3182f6] text-[12px] sm:text-[13px] font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
                 <Building size={13} />
                 {Object.values(sheetApartments).flat().length}개 단지
               </span>
@@ -1549,7 +1549,7 @@ export default function Dashboard() {
                 </span>
               )}
             </div>
-            <p className="text-[13px] sm:text-[15px] text-[#6B7394] font-medium">
+            <p className="text-[13px] sm:text-[15px] text-[#8b95a1] font-medium">
               11개 법정동 · 아파트별 인프라·실거래가·임장 리포트를 한눈에
             </p>
           </div>
@@ -1562,8 +1562,8 @@ export default function Dashboard() {
                 onClick={() => setSelectedDong(null)}
                 className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 whitespace-nowrap shrink-0 ${
                   !selectedDong
-                    ? 'bg-[#EDF2F4] text-[#EDF2F4] shadow-md'
-                    : 'bg-[#0E1730] text-[#6B7394] hover:bg-[#1E2A45]'
+                    ? 'bg-[#191f28] text-[#191f28] shadow-md'
+                    : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb]'
                 }`}
               >
                 전체 ({Object.values(sheetApartments).flat().length})
@@ -1580,8 +1580,8 @@ export default function Dashboard() {
                     onClick={() => setSelectedDong(isActive ? null : dong.name)}
                     className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                       isActive
-                        ? 'text-[#EDF2F4] shadow-md'
-                        : 'bg-[#0E1730] text-[#8D99AE] hover:bg-[#1E2A45]'
+                        ? 'text-[#191f28] shadow-md'
+                        : 'bg-[#f2f4f6] text-[#3182f6] hover:bg-[#e5e8eb]'
                     }`}
                     style={isActive ? { backgroundColor: dong.color } : {}}
                   >
@@ -1598,19 +1598,19 @@ export default function Dashboard() {
             const dongInfo = getDongByName(selectedDong);
             if (!dongInfo) return null;
             return (
-              <div className="mb-6 bg-[#1B2340] rounded-2xl border border-[#1E2A45] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+              <div className="mb-6 bg-white rounded-2xl border border-[#e5e8eb] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-[16px] sm:text-[18px] font-extrabold text-[#EDF2F4]">{dongInfo.name}</h3>
-                  <p className="text-[12px] sm:text-[13px] text-[#6B7394] mt-0.5 line-clamp-2">{dongInfo.description}</p>
+                  <h3 className="text-[16px] sm:text-[18px] font-extrabold text-[#191f28]">{dongInfo.name}</h3>
+                  <p className="text-[12px] sm:text-[13px] text-[#8b95a1] mt-0.5 line-clamp-2">{dongInfo.description}</p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <div className="text-center">
-                    <div className="text-[16px] sm:text-[18px] font-extrabold text-[#EDF2F4]">{dongAptCounts[selectedDong] || 0}</div>
-                    <div className="text-[10px] text-[#6B7394] font-bold">아파트</div>
+                    <div className="text-[16px] sm:text-[18px] font-extrabold text-[#191f28]">{dongAptCounts[selectedDong] || 0}</div>
+                    <div className="text-[10px] text-[#8b95a1] font-bold">아파트</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-[16px] sm:text-[18px] font-extrabold text-[#8D99AE]">{dongReportCounts[selectedDong] || 0}</div>
-                    <div className="text-[10px] text-[#6B7394] font-bold">리포트</div>
+                    <div className="text-[16px] sm:text-[18px] font-extrabold text-[#3182f6]">{dongReportCounts[selectedDong] || 0}</div>
+                    <div className="text-[10px] text-[#8b95a1] font-bold">리포트</div>
                   </div>
                 </div>
               </div>
@@ -1636,14 +1636,14 @@ export default function Dashboard() {
                       {/* 동 섹션 헤더 (전체 보기일 때만) */}
                       {!selectedDong && (
                         <div className="flex items-center gap-2 mb-4">
-                          <h3 className="text-[18px] font-extrabold text-[#EDF2F4]">{dongName}</h3>
-                          <span className="text-[12px] text-[#6B7394] font-bold bg-[#0E1730] px-2 py-0.5 rounded-full">{apts.length}개</span>
+                          <h3 className="text-[18px] font-extrabold text-[#191f28]">{dongName}</h3>
+                          <span className="text-[12px] text-[#8b95a1] font-bold bg-[#f2f4f6] px-2 py-0.5 rounded-full">{apts.length}개</span>
                           {(dongReportCounts[dongName] || 0) > 0 && (
                             <span className="text-[10px] font-bold bg-[#f0fdf4] text-[#03c75a] px-2 py-0.5 rounded-full">✅ 현장 검증 {dongReportCounts[dongName]}건</span>
                           )}
                           <button 
                             onClick={() => setSelectedDong(dongName)}
-                            className="ml-auto text-[12px] font-bold text-[#8D99AE] hover:underline"
+                            className="ml-auto text-[12px] font-bold text-[#3182f6] hover:underline"
                           >
                             전체보기 →
                           </button>
@@ -1682,18 +1682,18 @@ export default function Dashboard() {
                                   });
                                 }
                               }}
-                              className={`bg-[#1B2340] rounded-2xl border border-[#1E2A45] p-5 transition-all duration-200 group cursor-pointer hover:shadow-lg hover:-translate-y-0.5 hover:border-[#8D99AE]/30 ${
+                              className={`bg-white rounded-2xl border border-[#e5e8eb] p-5 transition-all duration-200 group cursor-pointer hover:shadow-lg hover:-translate-y-0.5 hover:border-[#3182f6]/30 ${
                                 !report && !txSummary ? 'opacity-70' : ''
                               }`}
                             >
                               {/* 상단: 이름 + 뱃지 */}
                               <div className="flex items-start justify-between mb-3">
                                 <div className="min-w-0 flex-1">
-                                  <h4 className="text-[15px] font-extrabold text-[#EDF2F4] truncate group-hover:text-[#8D99AE] transition-colors">{apt.name}</h4>
+                                  <h4 className="text-[15px] font-extrabold text-[#191f28] truncate group-hover:text-[#3182f6] transition-colors">{apt.name}</h4>
                                   <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                    {apt.householdCount && <span className="text-[11px] text-[#6B7394]">{apt.householdCount.toLocaleString()}세대</span>}
-                                    {apt.yearBuilt && <span className="text-[11px] text-[#6B7394]">· {apt.yearBuilt}년</span>}
-                                    {apt.brand && <span className="text-[11px] text-[#6B7394]">· {apt.brand}</span>}
+                                    {apt.householdCount && <span className="text-[11px] text-[#8b95a1]">{apt.householdCount.toLocaleString()}세대</span>}
+                                    {apt.yearBuilt && <span className="text-[11px] text-[#8b95a1]">· {apt.yearBuilt}년</span>}
+                                    {apt.brand && <span className="text-[11px] text-[#8b95a1]">· {apt.brand}</span>}
                                   </div>
                                 </div>
                                 {report && (
@@ -1703,19 +1703,19 @@ export default function Dashboard() {
                                 )}
                                 {!report && publicRentalSet.has(apt.name) && (
                                   <div className="shrink-0 ml-2">
-                                    <span className="text-[10px] font-bold bg-[#0E1730] text-[#6B7394] px-2 py-0.5 rounded-md">🏠 공공임대</span>
+                                    <span className="text-[10px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-2 py-0.5 rounded-md">🏠 공공임대</span>
                                   </div>
                                 )}
                               </div>
 
                               {/* 실거래가 요약 (정적 데이터) + 스파크라인 */}
                               {txSummary ? (
-                                <div className="bg-[#141C33] rounded-xl px-3 py-2 mt-2">
+                                <div className="bg-[#f9fafb] rounded-xl px-3 py-2 mt-2">
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-[11px] text-[#6B7394]">최근</span>
-                                      <span className="text-[14px] font-extrabold text-[#EDF2F4]">{txSummary.latestPriceEok}</span>
-                                      <span className="text-[11px] font-bold text-[#8D99AE]">{txSummary.latestArea}평</span>
+                                      <span className="text-[11px] text-[#8b95a1]">최근</span>
+                                      <span className="text-[14px] font-extrabold text-[#191f28]">{txSummary.latestPriceEok}</span>
+                                      <span className="text-[11px] font-bold text-[#3182f6]">{txSummary.latestArea}평</span>
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                       {txSummary.recent && txSummary.recent.length >= 2 && (
@@ -1725,13 +1725,13 @@ export default function Dashboard() {
                                           return parseInt(match[1]) * 10000 + parseInt((match[2] || '0').replace(/,/g, ''));
                                         })} width={48} height={16} />
                                       )}
-                                      <span className="text-[10px] text-[#6B7394]">{txSummary.txCount}건</span>
+                                      <span className="text-[10px] text-[#8b95a1]">{txSummary.txCount}건</span>
                                     </div>
                                   </div>
                                   {txSummary.txCount >= 2 && (
                                     <div className="flex items-center gap-3 mt-1.5 text-[10px]">
-                                      <span className="text-[#6B7394] font-bold">최고 <span className="text-[#EDF2F4]">{txSummary.maxPriceEok}</span></span>
-                                      <span className="text-[#6B7394] font-bold">최저 <span className="text-[#EDF2F4]">{txSummary.minPriceEok}</span></span>
+                                      <span className="text-[#8b95a1] font-bold">최고 <span className="text-[#191f28]">{txSummary.maxPriceEok}</span></span>
+                                      <span className="text-[#8b95a1] font-bold">최저 <span className="text-[#191f28]">{txSummary.minPriceEok}</span></span>
                                       {/* 84㎡ 기준 정규화 가격 */}
                                       {txSummary.recent?.[0] && (() => {
                                         const r = txSummary.recent[0];
@@ -1749,7 +1749,7 @@ export default function Dashboard() {
                                   )}
                                 </div>
                               ) : (
-                                <div className="text-[11px] text-[#2A3558] mt-2">거래 내역 없음</div>
+                                <div className="text-[11px] text-[#d1d6db] mt-2">거래 내역 없음</div>
                               )}
                             </div>
                           );
@@ -1767,20 +1767,20 @@ export default function Dashboard() {
           <div className="mt-8 sm:mt-12">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-5 sm:mb-6">
               <div>
-                <h2 className="text-[22px] sm:text-[28px] font-extrabold tracking-tight text-[#EDF2F4] mb-0.5 sm:mb-1">동탄 커뮤니티</h2>
-                <p className="text-[13px] sm:text-[15px] text-[#6B7394] font-medium">주민들의 이야기 · 리뷰 · 소식</p>
+                <h2 className="text-[22px] sm:text-[28px] font-extrabold tracking-tight text-[#191f28] mb-0.5 sm:mb-1">동탄 커뮤니티</h2>
+                <p className="text-[13px] sm:text-[15px] text-[#8b95a1] font-medium">주민들의 이야기 · 리뷰 · 소식</p>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => user ? setShowReviewModal(true) : alert('로그인 후 리뷰를 작성할 수 있습니다.')}
-                  className="px-3 py-2 bg-[#0E1730] text-[#8D99AE] rounded-xl text-[12px] font-bold flex items-center gap-1.5 hover:bg-[#1E2A45] active:scale-[0.97] transition-all"
+                  className="px-3 py-2 bg-[#f2f4f6] text-[#3182f6] rounded-xl text-[12px] font-bold flex items-center gap-1.5 hover:bg-[#e5e8eb] active:scale-[0.97] transition-all"
                 >
                   <Star size={13} />
                   리뷰
                 </button>
                 <button
                   onClick={() => user ? setShowCompose(true) : alert('로그인 후 글을 작성할 수 있습니다.')}
-                  className="px-3 py-2 bg-[#EDF2F4] text-[#EDF2F4] rounded-xl text-[12px] font-bold flex items-center gap-1.5 hover:bg-[#333d4b] active:scale-[0.97] transition-all"
+                  className="px-3 py-2 bg-[#191f28] text-[#191f28] rounded-xl text-[12px] font-bold flex items-center gap-1.5 hover:bg-[#333d4b] active:scale-[0.97] transition-all"
                 >
                   <PenLine size={13} />
                   글쓰기
@@ -1790,18 +1790,18 @@ export default function Dashboard() {
 
             {/* Profile & Verification Bar */}
             {user && userProfile && (
-              <div className="bg-[#1B2340] rounded-2xl border border-[#1E2A45] p-4 mb-4 flex items-center justify-between">
+              <div className="bg-white rounded-2xl border border-[#e5e8eb] p-4 mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-[14px] font-bold text-[#EDF2F4]">{getDisplayName(userProfile)}</span>
+                  <span className="text-[14px] font-bold text-[#191f28]">{getDisplayName(userProfile)}</span>
                   {userProfile.verifiedApartment && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#141C33] text-[#8D99AE] px-2 py-0.5 rounded-md">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#f9fafb] text-[#3182f6] px-2 py-0.5 rounded-md">
                       <ShieldCheck size={11} /> {userProfile.verifiedApartment.replace(/\[.*?\]\s*/, '')}
                     </span>
                   )}
                 </div>
                 <button
                   onClick={() => setShowVerify(true)}
-                  className="text-[12px] font-bold text-[#8D99AE] bg-[#141C33] px-3 py-1.5 rounded-lg hover:bg-[#d4e9ff] transition-colors flex items-center gap-1"
+                  className="text-[12px] font-bold text-[#3182f6] bg-[#f9fafb] px-3 py-1.5 rounded-lg hover:bg-[#d4e9ff] transition-colors flex items-center gap-1"
                 >
                   <Building2 size={13} />
                   {userProfile?.verifiedApartment ? '변경' : '아파트 인증'}
@@ -1813,14 +1813,14 @@ export default function Dashboard() {
             {newsFeed.length > 0 && (
               <div className="flex flex-col gap-3 mb-6">
                 {newsFeed.slice(0, 3).map(news => (
-                  <div key={news.id} onClick={() => router.push(`/lounge/${news.id}`)} className="bg-[#1B2340] rounded-2xl border border-[#1E2A45] px-5 py-4 hover:shadow-md transition-shadow cursor-pointer">
+                  <div key={news.id} onClick={() => router.push(`/lounge/${news.id}`)} className="bg-white rounded-2xl border border-[#e5e8eb] px-5 py-4 hover:shadow-md transition-shadow cursor-pointer">
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="text-[16px] font-bold text-[#EDF2F4] leading-snug flex-1">{news.title}</h3>
+                      <h3 className="text-[16px] font-bold text-[#191f28] leading-snug flex-1">{news.title}</h3>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-[13px] text-[#6B7394]">{news.author} · {news.meta}</span>
+                      <span className="text-[13px] text-[#8b95a1]">{news.author} · {news.meta}</span>
                       <div className="flex items-center gap-3">
-                        <span className="flex items-center gap-1 text-[12px] text-[#6B7394]"><Heart size={12} /> {news.likes || 0}</span>
+                        <span className="flex items-center gap-1 text-[12px] text-[#8b95a1]"><Heart size={12} /> {news.likes || 0}</span>
                       </div>
                     </div>
                   </div>
@@ -1828,7 +1828,7 @@ export default function Dashboard() {
                 {newsFeed.length > 3 && (
                   <button
                     onClick={() => setActiveTab('lounge')}
-                    className="text-[13px] font-bold text-[#8D99AE] hover:underline text-center py-2"
+                    className="text-[13px] font-bold text-[#3182f6] hover:underline text-center py-2"
                   >
                     라운지에서 {newsFeed.length - 3}개 더 보기 →
                   </button>
@@ -1840,30 +1840,30 @@ export default function Dashboard() {
             {userReviews.length > 0 ? (
               <div className="flex flex-col gap-3">
                 {userReviews.map(review => (
-                  <div key={review.id} className="bg-[#1B2340] rounded-2xl border border-[#1E2A45] p-5 hover:shadow-md transition-shadow">
+                  <div key={review.id} className="bg-white rounded-2xl border border-[#e5e8eb] p-5 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[13px] font-bold text-[#EDF2F4] shrink-0">{review.author}</span>
+                        <span className="text-[13px] font-bold text-[#191f28] shrink-0">{review.author}</span>
                         {review.verifiedApartment && review.verificationLevel === 'registry_verified' ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#141C33] text-[#8D99AE] px-2 py-0.5 rounded-md shrink-0">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#f9fafb] text-[#3182f6] px-2 py-0.5 rounded-md shrink-0">
                             <ShieldCheck size={11} /> {review.verifiedApartment.replace(/\[.*?\]\s*/, '')}
                           </span>
                         ) : review.verifiedApartment ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#0E1730] text-[#6B7394] px-2 py-0.5 rounded-md shrink-0">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-2 py-0.5 rounded-md shrink-0">
                             <Shield size={11} /> {review.verifiedApartment.replace(/\[.*?\]\s*/, '')}
                           </span>
                         ) : null}
                       </div>
-                      <span className="text-[11px] text-[#6B7394] shrink-0 ml-2">{review.createdAt}</span>
+                      <span className="text-[11px] text-[#8b95a1] shrink-0 ml-2">{review.createdAt}</span>
                     </div>
-                    <h4 className="text-[15px] font-extrabold text-[#EDF2F4] mb-2 truncate">{review.apartmentName}</h4>
+                    <h4 className="text-[15px] font-extrabold text-[#191f28] mb-2 truncate">{review.apartmentName}</h4>
                     <div className="flex items-center gap-1 mb-2">
                       {Array.from({ length: 5 }, (_, i) => (
-                        <Star key={i} size={14} className={i < review.rating ? 'text-[#f59e0b] fill-[#f59e0b]' : 'text-[#1E2A45]'} />
+                        <Star key={i} size={14} className={i < review.rating ? 'text-[#f59e0b] fill-[#f59e0b]' : 'text-[#e5e8eb]'} />
                       ))}
-                      <span className="text-[12px] font-bold text-[#6B7394] ml-1">{review.rating}.0</span>
+                      <span className="text-[12px] font-bold text-[#8b95a1] ml-1">{review.rating}.0</span>
                     </div>
-                    <p className="text-[14px] text-[#8D99AE] leading-relaxed mb-3">{review.content}</p>
+                    <p className="text-[14px] text-[#3182f6] leading-relaxed mb-3">{review.content}</p>
                     {review.photoURL && (
                       <div className="w-full h-48 rounded-xl overflow-hidden mb-3">
                         <img src={review.photoURL} alt="Review" className="w-full h-full object-cover" />
@@ -1872,7 +1872,7 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between">
                       <button
                         onClick={() => dashboardFacade.incrementReviewLike(review.id)}
-                        className="flex items-center gap-1 text-[12px] font-bold text-[#6B7394] hover:text-[#EF233C] transition-colors"
+                        className="flex items-center gap-1 text-[12px] font-bold text-[#8b95a1] hover:text-[#f04452] transition-colors"
                       >
                         <Heart size={14} /> {review.likes || 0}
                       </button>
@@ -1883,7 +1883,7 @@ export default function Dashboard() {
                             if (!confirm('이 리뷰를 삭제하시겠습니까?')) return;
                             try { await dashboardFacade.deleteReview(review.id); } catch { alert('삭제에 실패했습니다.'); }
                           }}
-                          className="flex items-center gap-1 text-[11px] font-bold text-[#6B7394] hover:text-[#EF233C] transition-colors"
+                          className="flex items-center gap-1 text-[11px] font-bold text-[#8b95a1] hover:text-[#f04452] transition-colors"
                         >
                           <Trash2 size={13} /> 삭제
                         </button>
@@ -1893,10 +1893,10 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : newsFeed.length === 0 && (
-              <div className="bg-[#1B2340] rounded-2xl border border-[#1E2A45] p-12 text-center">
-                <MessageSquare size={40} className="mx-auto mb-4 text-[#2A3558]" />
-                <p className="text-[15px] font-bold text-[#8D99AE] mb-2">아직 소식이 없습니다</p>
-                <p className="text-[13px] text-[#6B7394] mb-4">첫 번째 글이나 리뷰를 남겨보세요!</p>
+              <div className="bg-white rounded-2xl border border-[#e5e8eb] p-12 text-center">
+                <MessageSquare size={40} className="mx-auto mb-4 text-[#d1d6db]" />
+                <p className="text-[15px] font-bold text-[#3182f6] mb-2">아직 소식이 없습니다</p>
+                <p className="text-[13px] text-[#8b95a1] mb-4">첫 번째 글이나 리뷰를 남겨보세요!</p>
               </div>
             )}
           </div>
@@ -1909,25 +1909,25 @@ export default function Dashboard() {
         <section>
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-[28px] font-extrabold tracking-tight text-[#EDF2F4] mb-1">실시간 동탄라운지</h2>
-              <p className="text-[15px] text-[#6B7394] font-medium">동탄 주민들의 솔직한 이야기</p>
+              <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] mb-1">실시간 동탄라운지</h2>
+              <p className="text-[15px] text-[#8b95a1] font-medium">동탄 주민들의 솔직한 이야기</p>
             </div>
           </div>
 
           {/* Profile & Verification Bar */}
           {user && userProfile && (
-            <div className="bg-[#1B2340] rounded-2xl border border-[#1E2A45] p-4 mb-4 flex items-center justify-between">
+            <div className="bg-white rounded-2xl border border-[#e5e8eb] p-4 mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-[14px] font-bold text-[#EDF2F4]">{getDisplayName(userProfile)}</span>
+                <span className="text-[14px] font-bold text-[#191f28]">{getDisplayName(userProfile)}</span>
                 {userProfile.verifiedApartment && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#141C33] text-[#8D99AE] px-2 py-0.5 rounded-md">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#f9fafb] text-[#3182f6] px-2 py-0.5 rounded-md">
                     <ShieldCheck size={11} /> {userProfile.verifiedApartment.replace(/\[.*?\]\s*/, '')}
                   </span>
                 )}
               </div>
               <button
                 onClick={() => setShowVerify(true)}
-                className="text-[12px] font-bold text-[#8D99AE] bg-[#141C33] px-3 py-1.5 rounded-lg hover:bg-[#d4e9ff] transition-colors flex items-center gap-1"
+                className="text-[12px] font-bold text-[#3182f6] bg-[#f9fafb] px-3 py-1.5 rounded-lg hover:bg-[#d4e9ff] transition-colors flex items-center gap-1"
               >
                 <Building2 size={13} />
                 {userProfile?.verifiedApartment ? '변경' : '아파트 인증'}
@@ -1938,15 +1938,15 @@ export default function Dashboard() {
           {/* Feed */}
           <div className="flex flex-col gap-3">
             {newsFeed.length === 0 ? (
-              <div className="bg-[#1B2340] rounded-2xl p-12 text-center border border-[#1E2A45]">
-                <MessageSquare size={40} className="mx-auto mb-4 text-[#2A3558]" />
-                <p className="text-[15px] font-bold text-[#8D99AE]">아직 글이 없습니다</p>
+              <div className="bg-white rounded-2xl p-12 text-center border border-[#e5e8eb]">
+                <MessageSquare size={40} className="mx-auto mb-4 text-[#d1d6db]" />
+                <p className="text-[15px] font-bold text-[#3182f6]">아직 글이 없습니다</p>
               </div>
             ) : (
               newsFeed.map((news) => (
-                <div key={news.id} onClick={() => router.push(`/lounge/${news.id}`)} className="bg-[#1B2340] rounded-2xl border border-[#1E2A45] px-5 py-4 hover:shadow-md transition-shadow cursor-pointer">
+                <div key={news.id} onClick={() => router.push(`/lounge/${news.id}`)} className="bg-white rounded-2xl border border-[#e5e8eb] px-5 py-4 hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="text-[16px] font-bold text-[#EDF2F4] leading-snug flex-1">{news.title}</h3>
+                    <h3 className="text-[16px] font-bold text-[#191f28] leading-snug flex-1">{news.title}</h3>
                     {(user?.uid === news.authorUid || dashboardFacade.isAdmin(user?.email)) && (
                       <button
                         onClick={async (e) => {
@@ -1966,9 +1966,9 @@ export default function Dashboard() {
                     )}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[13px] text-[#6B7394]">{news.author} · {news.meta}</span>
+                    <span className="text-[13px] text-[#8b95a1]">{news.author} · {news.meta}</span>
                     <div className="flex items-center gap-3">
-                      <span className="flex items-center gap-1 text-[12px] text-[#6B7394]"><Heart size={12} /> {news.likes || 0}</span>
+                      <span className="flex items-center gap-1 text-[12px] text-[#8b95a1]"><Heart size={12} /> {news.likes || 0}</span>
                     </div>
                   </div>
                 </div>
@@ -1980,7 +1980,7 @@ export default function Dashboard() {
           {user && (
             <button
               onClick={() => setShowCompose(true)}
-              className="fixed bottom-6 right-6 w-14 h-14 bg-[#8D99AE] hover:bg-[#1b6de8] text-[#EDF2F4] rounded-full shadow-lg shadow-[#8D99AE]/30 flex items-center justify-center transition-all active:scale-95 z-20"
+              className="fixed bottom-6 right-6 w-14 h-14 bg-[#3182f6] hover:bg-[#1b6de8] text-[#191f28] rounded-full shadow-lg shadow-[#3182f6]/30 flex items-center justify-center transition-all active:scale-95 z-20"
             >
               <PenLine size={22} />
             </button>
@@ -1990,21 +1990,21 @@ export default function Dashboard() {
           {showCompose && (
             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
               <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowCompose(false)} />
-              <div className="relative w-full sm:max-w-lg bg-[#1B2340] rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl">
+              <div className="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl">
                 <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-[18px] font-extrabold text-[#EDF2F4]">익명 글쓰기</h2>
-                  <button onClick={() => setShowCompose(false)} className="w-8 h-8 rounded-full bg-[#0E1730] flex items-center justify-center hover:bg-[#1E2A45] transition-colors">
-                    <X size={16} className="text-[#8D99AE]" />
+                  <h2 className="text-[18px] font-extrabold text-[#191f28]">익명 글쓰기</h2>
+                  <button onClick={() => setShowCompose(false)} className="w-8 h-8 rounded-full bg-[#f2f4f6] flex items-center justify-center hover:bg-[#e5e8eb] transition-colors">
+                    <X size={16} className="text-[#3182f6]" />
                   </button>
                 </div>
                 <div className="flex gap-2 mb-4 overflow-x-auto">
                   {['부동산', '교통', '교육', '문화', '자유'].map((cat) => (
-                    <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#EDF2F4] text-[#EDF2F4] border-[#EDF2F4]' : 'bg-[#1B2340] text-[#8D99AE] border-[#2A3558] hover:border-[#8D99AE]'}`}>{cat}</button>
+                    <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#191f28] text-[#191f28] border-[#191f28]' : 'bg-white text-[#3182f6] border-[#d1d6db] hover:border-[#3182f6]'}`}>{cat}</button>
                   ))}
                 </div>
-                <textarea value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="동탄 이야기를 자유롭게 나눠보세요..." rows={3} className="w-full bg-[#141C33] border border-[#2A3558] rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#8D99AE] focus:bg-[#1B2340] transition-colors resize-none focus:ring-4 focus:ring-[#8D99AE]/10 mb-4" autoFocus />
+                <textarea value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="동탄 이야기를 자유롭게 나눠보세요..." rows={3} className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors resize-none focus:ring-4 focus:ring-[#3182f6]/10 mb-4" autoFocus />
                 <div className="flex items-center justify-between">
-                  <span className="text-[12px] text-[#6B7394]">🎭 {userProfile ? getDisplayName(userProfile) : '익명'}</span>
+                  <span className="text-[12px] text-[#8b95a1]">🎭 {userProfile ? getDisplayName(userProfile) : '익명'}</span>
                   <button
                     onClick={async () => {
                       if (!user || !postTitle.trim()) return;
@@ -2016,7 +2016,7 @@ export default function Dashboard() {
                       finally { setIsSubmitting(false); }
                     }}
                     disabled={isSubmitting || !postTitle.trim()}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#8D99AE] hover:bg-[#1b6de8] disabled:bg-[#2A3558] text-[#EDF2F4] rounded-xl font-bold text-[14px] transition-all active:scale-95"
+                    className="flex items-center gap-2 px-6 py-3 bg-[#3182f6] hover:bg-[#1b6de8] disabled:bg-[#d1d6db] text-[#191f28] rounded-xl font-bold text-[14px] transition-all active:scale-95"
                   >
                     <Send size={14} />
                     {isSubmitting ? '게시 중...' : '게시하기'}
@@ -2030,23 +2030,23 @@ export default function Dashboard() {
           {showVerify && (
             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
               <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowVerify(false)} />
-              <div className="relative w-full sm:max-w-lg bg-[#1B2340] rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl max-h-[80vh] overflow-y-auto">
+              <div className="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl max-h-[80vh] overflow-y-auto">
                 <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-[18px] font-extrabold text-[#EDF2F4]">🏠 아파트 인증</h2>
-                  <button onClick={() => setShowVerify(false)} className="w-8 h-8 rounded-full bg-[#0E1730] flex items-center justify-center hover:bg-[#1E2A45] transition-colors">
-                    <X size={16} className="text-[#8D99AE]" />
+                  <h2 className="text-[18px] font-extrabold text-[#191f28]">🏠 아파트 인증</h2>
+                  <button onClick={() => setShowVerify(false)} className="w-8 h-8 rounded-full bg-[#f2f4f6] flex items-center justify-center hover:bg-[#e5e8eb] transition-colors">
+                    <X size={16} className="text-[#3182f6]" />
                   </button>
                 </div>
-                <p className="text-[14px] font-bold text-[#EDF2F4] mb-3">내 아파트를 선택해주세요</p>
+                <p className="text-[14px] font-bold text-[#191f28] mb-3">내 아파트를 선택해주세요</p>
                 <div className="flex gap-2 overflow-x-auto pb-3 mb-3">
                   {Array.from(new Set(dongtanApartments.map(apt => apt.match(/\[(.*?)\]/)?.[1]).filter(Boolean))).map(dong => (
-                    <button key={dong} onClick={() => { setVerifyDong(dong as string); setVerifyApt(''); }} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${verifyDong === dong ? 'bg-[#EDF2F4] text-[#EDF2F4] border-[#EDF2F4]' : 'bg-[#1B2340] text-[#8D99AE] border-[#2A3558] hover:border-[#8D99AE]'}`}>{dong}</button>
+                    <button key={dong} onClick={() => { setVerifyDong(dong as string); setVerifyApt(''); }} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${verifyDong === dong ? 'bg-[#191f28] text-[#191f28] border-[#191f28]' : 'bg-white text-[#3182f6] border-[#d1d6db] hover:border-[#3182f6]'}`}>{dong}</button>
                   ))}
                 </div>
                 {verifyDong && (
-                  <div className="bg-[#141C33] border border-[#2A3558] rounded-xl overflow-hidden max-h-48 overflow-y-auto p-2 mb-5">
+                  <div className="bg-[#f9fafb] border border-[#d1d6db] rounded-xl overflow-hidden max-h-48 overflow-y-auto p-2 mb-5">
                     {dongtanApartments.filter(apt => apt.includes(`[${verifyDong}]`)).map(apt => (
-                      <button key={apt} onClick={() => setVerifyApt(apt)} className={`w-full text-left px-4 py-3 text-[14px] font-medium rounded-lg transition-colors ${verifyApt === apt ? 'bg-[#141C33] text-[#8D99AE] font-bold' : 'text-[#EDF2F4] hover:bg-[#0E1730]'}`}>{apt}</button>
+                      <button key={apt} onClick={() => setVerifyApt(apt)} className={`w-full text-left px-4 py-3 text-[14px] font-medium rounded-lg transition-colors ${verifyApt === apt ? 'bg-[#f9fafb] text-[#3182f6] font-bold' : 'text-[#191f28] hover:bg-[#f2f4f6]'}`}>{apt}</button>
                     ))}
                   </div>
                 )}
@@ -2059,7 +2059,7 @@ export default function Dashboard() {
                     alert('🏠 아파트 인증이 완료되었습니다!');
                   }}
                   disabled={!verifyApt}
-                  className="w-full py-4 rounded-xl font-bold text-[15px] transition-all active:scale-[0.98] disabled:bg-[#2A3558] disabled:text-[#6B7394] bg-[#EDF2F4] text-[#EDF2F4] flex items-center justify-center gap-2"
+                  className="w-full py-4 rounded-xl font-bold text-[15px] transition-all active:scale-[0.98] disabled:bg-[#d1d6db] disabled:text-[#8b95a1] bg-[#191f28] text-[#191f28] flex items-center justify-center gap-2"
                 >
                   <Shield size={16} />
                   자가선언 인증하기
@@ -2075,21 +2075,21 @@ export default function Dashboard() {
         {activeTab === 'recommend' && (
         <section>
           <div className="mb-8">
-            <h2 className="text-[28px] font-extrabold tracking-tight text-[#EDF2F4] mb-1">아파트 추천</h2>
-            <p className="text-[15px] text-[#6B7394] font-medium">동탄 맞춤 아파트 추천 & 분석</p>
+            <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] mb-1">아파트 추천</h2>
+            <p className="text-[15px] text-[#8b95a1] font-medium">동탄 맞춤 아파트 추천 & 분석</p>
           </div>
           <div className="flex flex-col gap-6">
-            <div className="w-full h-[180px] sm:h-[200px] bg-gradient-to-br from-[#8D99AE] to-[#2b72d6] rounded-3xl p-5 sm:p-8 flex flex-col justify-end text-[#EDF2F4] relative overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[#1B2340]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 group-hover:bg-[#1B2340]/20 transition-colors"></div>
+            <div className="w-full h-[180px] sm:h-[200px] bg-gradient-to-br from-[#3182f6] to-[#2b72d6] rounded-3xl p-5 sm:p-8 flex flex-col justify-end text-[#191f28] relative overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 group-hover:bg-white/20 transition-colors"></div>
               <h3 className="text-[18px] sm:text-[24px] font-extrabold mb-1 relative z-10">우리 아파트 탈탈 털어드림!</h3>
-              <p className="text-[#EDF2F4]/80 text-[12px] sm:text-[14px] relative z-10">장점부터 숨기고 싶은 단점까지 속 시원하게 분석 신청하기</p>
-              <div className="absolute top-6 right-6 sm:top-8 sm:right-8 bg-[#1B2340] text-[#8D99AE] w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold shadow-lg shadow-black/10">&rarr;</div>
+              <p className="text-[#191f28]/80 text-[12px] sm:text-[14px] relative z-10">장점부터 숨기고 싶은 단점까지 속 시원하게 분석 신청하기</p>
+              <div className="absolute top-6 right-6 sm:top-8 sm:right-8 bg-white text-[#3182f6] w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold shadow-lg shadow-black/10">&rarr;</div>
             </div>
 
             {/* ── 7대 투자 권역 ── */}
             <div>
-              <h3 className="text-[18px] font-extrabold text-[#EDF2F4] mb-4 flex items-center gap-2">
-                <MapPin size={18} className="text-[#8D99AE]" />
+              <h3 className="text-[18px] font-extrabold text-[#191f28] mb-4 flex items-center gap-2">
+                <MapPin size={18} className="text-[#3182f6]" />
                 7대 투자 권역
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -2097,17 +2097,17 @@ export default function Dashboard() {
                   <div
                     key={zone.id}
                     onClick={() => router.push(`/zone/${zone.id}`)}
-                    className="bg-[#1B2340] rounded-2xl border border-[#1E2A45] p-5 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer transition-all duration-200 group"
+                    className="bg-white rounded-2xl border border-[#e5e8eb] p-5 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer transition-all duration-200 group"
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <span
                         className="w-2.5 h-2.5 rounded-full shrink-0"
                         style={{ backgroundColor: zone.color }}
                       />
-                      <span className="text-[15px] font-extrabold text-[#EDF2F4] group-hover:text-[#8D99AE] transition-colors">{zone.name}</span>
+                      <span className="text-[15px] font-extrabold text-[#191f28] group-hover:text-[#3182f6] transition-colors">{zone.name}</span>
                     </div>
-                    <span className="text-[11px] font-bold text-[#6B7394] bg-[#0E1730] px-2 py-0.5 rounded-md inline-block mb-2">{zone.dongLabel}</span>
-                    <p className="text-[13px] text-[#8D99AE] leading-relaxed line-clamp-2">{zone.description}</p>
+                    <span className="text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-0.5 rounded-md inline-block mb-2">{zone.dongLabel}</span>
+                    <p className="text-[13px] text-[#3182f6] leading-relaxed line-clamp-2">{zone.description}</p>
                   </div>
                 ))}
               </div>
@@ -2115,20 +2115,20 @@ export default function Dashboard() {
 
             {/* KPI Cards */}
             {kpis.map(kpi => (
-              <div key={kpi.id} className="bg-[#1B2340] p-6 rounded-3xl border border-[#1E2A45] shadow-sm hover:shadow-md transition-shadow">
-                <h3 className="text-[13px] text-[#8D99AE] font-bold mb-3">{kpi.title}</h3>
-                <div className="text-[24px] font-extrabold text-[#EDF2F4]">{kpi.mainValue}</div>
-                {kpi.subValue && <p className="text-[12px] text-[#6B7394] font-medium mt-1">{kpi.subValue}</p>}
+              <div key={kpi.id} className="bg-white p-6 rounded-3xl border border-[#e5e8eb] shadow-sm hover:shadow-md transition-shadow">
+                <h3 className="text-[13px] text-[#3182f6] font-bold mb-3">{kpi.title}</h3>
+                <div className="text-[24px] font-extrabold text-[#191f28]">{kpi.mainValue}</div>
+                {kpi.subValue && <p className="text-[12px] text-[#8b95a1] font-medium mt-1">{kpi.subValue}</p>}
               </div>
             ))}
 
 
 
             {/* Ad Banner */}
-            <div className="w-full bg-[#0E1730] border border-[#1E2A45] rounded-3xl p-8 flex flex-col items-center justify-center text-center">
-              <span className="bg-[#EDF2F4] text-[#EDF2F4] text-[11px] font-bold px-2 py-0.5 rounded mb-2">AD</span>
-              <h3 className="text-[18px] font-bold text-[#EDF2F4] mb-1">여기에 광고 배너가 표시됩니다</h3>
-              <p className="text-[#6B7394] text-[14px]">광고 구좌 (e.g., 부동산 플랫폼 배너, 인테리어 광고 등)</p>
+            <div className="w-full bg-[#f2f4f6] border border-[#e5e8eb] rounded-3xl p-8 flex flex-col items-center justify-center text-center">
+              <span className="bg-[#191f28] text-[#191f28] text-[11px] font-bold px-2 py-0.5 rounded mb-2">AD</span>
+              <h3 className="text-[18px] font-bold text-[#191f28] mb-1">여기에 광고 배너가 표시됩니다</h3>
+              <p className="text-[#8b95a1] text-[14px]">광고 구좌 (e.g., 부동산 플랫폼 배너, 인테리어 광고 등)</p>
             </div>
           </div>
         </section>

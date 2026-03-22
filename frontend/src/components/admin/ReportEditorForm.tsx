@@ -445,26 +445,26 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
 
   const NumberInput = ({ name, label, placeholder, unit }: { name: any, label: string, placeholder: string, unit: string }) => (
     <div className="mb-4">
-      <label className="block text-[14px] font-bold text-[#8D99AE] mb-2">{label}</label>
+      <label className="block text-[14px] font-bold text-[#3182f6] mb-2">{label}</label>
       <div className="relative">
         <input 
           type="number"
           step="0.01"
           {...register(name, { required: true })}
-          className="w-full px-4 py-3 bg-[#141C33] border border-[#1E2A45] rounded-xl text-[15px] focus:ring-2 focus:ring-[#8D99AE]/30 focus:border-[#8D99AE] outline-none transition-all placeholder-[#b0b8c1]"
+          className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-all placeholder-[#b0b8c1]"
           placeholder={placeholder}
         />
-        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6B7394] font-bold text-[14px]">{unit}</span>
+        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b95a1] font-bold text-[14px]">{unit}</span>
       </div>
     </div>
   );
 
   const SelectInput = ({ name, label, options }: { name: any, label: string, options: string[] }) => (
     <div className={label ? "mb-4" : ""}>
-      {label && <label className="block text-[14px] font-bold text-[#8D99AE] mb-2">{label}</label>}
+      {label && <label className="block text-[14px] font-bold text-[#3182f6] mb-2">{label}</label>}
       <select 
         {...register(name, { required: true })}
-        className="w-full px-4 py-3 bg-[#141C33] border border-[#1E2A45] rounded-xl text-[15px] focus:ring-2 focus:ring-[#8D99AE]/30 focus:border-[#8D99AE] outline-none transition-all appearance-none cursor-pointer"
+        className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-all appearance-none cursor-pointer"
       >
         <option value="" disabled>선택하세요</option>
         {options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
@@ -476,23 +476,23 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
     <form onSubmit={handleSubmit(onSubmit)} className="p-6 md:p-8">
       {/* 1. Basic Info Section */}
       <section className="mb-12">
-        <h3 className="text-[18px] font-bold text-[#EDF2F4] mb-6 flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-[#0E1730] text-[#8D99AE] flex items-center justify-center text-[12px]">1</span>
+        <h3 className="text-[18px] font-bold text-[#191f28] mb-6 flex items-center gap-2">
+          <span className="w-6 h-6 rounded-full bg-[#f2f4f6] text-[#3182f6] flex items-center justify-center text-[12px]">1</span>
           기본 정보
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {lockedMeta ? (
-            <div className="col-span-2 p-4 bg-[#141C33] border border-[#1E2A45] rounded-xl flex gap-3 items-center">
-              <span className="text-[13px] font-bold text-[#6B7394] bg-[#1B2340] border border-[#1E2A45] px-2 py-1 rounded shadow-sm">단지 고정됨</span>
-              <span className="text-[14px] font-bold text-[#8D99AE]">{lockedMeta.dong}</span>
-              <span className="text-[14px] text-[#2A3558]">/</span>
-              <span className="text-[15px] font-extrabold text-[#8D99AE]">{lockedMeta.apartmentName}</span>
+            <div className="col-span-2 p-4 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl flex gap-3 items-center">
+              <span className="text-[13px] font-bold text-[#8b95a1] bg-white border border-[#e5e8eb] px-2 py-1 rounded shadow-sm">단지 고정됨</span>
+              <span className="text-[14px] font-bold text-[#3182f6]">{lockedMeta.dong}</span>
+              <span className="text-[14px] text-[#d1d6db]">/</span>
+              <span className="text-[15px] font-extrabold text-[#3182f6]">{lockedMeta.apartmentName}</span>
             </div>
           ) : (
             <>
               <div>
-                <label className="block text-[14px] font-bold text-[#8D99AE] mb-2">법정동 선택 <span className="text-[#EF233C]">*</span></label>
+                <label className="block text-[14px] font-bold text-[#3182f6] mb-2">법정동 선택 <span className="text-[#f04452]">*</span></label>
                 <SelectInput 
                   name="dong" 
                   label="" 
@@ -500,11 +500,11 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                 />
               </div>
               <div>
-                <label className="block text-[14px] font-bold text-[#8D99AE] mb-2">물건(아파트) 이름 <span className="text-[#EF233C]">*</span></label>
+                <label className="block text-[14px] font-bold text-[#3182f6] mb-2">물건(아파트) 이름 <span className="text-[#f04452]">*</span></label>
                 {selectedDong === '기타' ? (
                   <input 
                     {...register('apartmentName', { required: true })}
-                    className="w-full px-4 py-3 bg-[#141C33] border border-[#1E2A45] rounded-xl text-[15px] focus:ring-2 focus:ring-[#8D99AE]/30 focus:border-[#8D99AE] outline-none transition-all placeholder-[#b0b8c1]"
+                    className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-all placeholder-[#b0b8c1]"
                     placeholder="직접 단지명을 입력하세요"
                   />
                 ) : (
@@ -514,7 +514,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                     options={availableApartments} 
                   />
                 )}
-                <p className="text-[12px] text-[#6B7394] font-medium mt-2">* 동을 먼저 선택하면 해당 지역의 주요 아파트 목록이 연동됩니다.</p>
+                <p className="text-[12px] text-[#8b95a1] font-medium mt-2">* 동을 먼저 선택하면 해당 지역의 주요 아파트 목록이 연동됩니다.</p>
               </div>
             </>
           )}
@@ -523,8 +523,8 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
 
       {/* 1.5 Thumbnail Section */}
       <section className="mb-12">
-        <h3 className="text-[18px] font-bold text-[#EDF2F4] mb-4 flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-[#0E1730] text-[#8D99AE] flex items-center justify-center text-[12px]">📷</span>
+        <h3 className="text-[18px] font-bold text-[#191f28] mb-4 flex items-center gap-2">
+          <span className="w-6 h-6 rounded-full bg-[#f2f4f6] text-[#3182f6] flex items-center justify-center text-[12px]">📷</span>
           대표 썸네일
         </h3>
         <div className="flex items-start gap-5">
@@ -544,13 +544,13 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
           />
           <div
             onClick={() => thumbnailInputRef.current?.click()}
-            className="w-[200px] h-[130px] bg-[#141C33] border-2 border-dashed border-[#2A3558] rounded-2xl flex flex-col items-center justify-center text-[#6B7394] cursor-pointer hover:bg-[#0E1730] hover:text-[#8D99AE] transition-colors overflow-hidden group relative shrink-0"
+            className="w-[200px] h-[130px] bg-[#f9fafb] border-2 border-dashed border-[#d1d6db] rounded-2xl flex flex-col items-center justify-center text-[#8b95a1] cursor-pointer hover:bg-[#f2f4f6] hover:text-[#3182f6] transition-colors overflow-hidden group relative shrink-0"
           >
             {thumbnailPreview ? (
               <>
                 <img src={thumbnailPreview} alt="Thumbnail" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-[#EDF2F4] text-[11px] font-bold">변경하기</span>
+                  <span className="text-[#191f28] text-[11px] font-bold">변경하기</span>
                 </div>
               </>
             ) : (
@@ -561,17 +561,17 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
             )}
           </div>
           <div className="flex-1">
-            <p className="text-[13px] text-[#8D99AE] font-medium mb-2">
+            <p className="text-[13px] text-[#3182f6] font-medium mb-2">
               메인 피드에 표시될 대표 이미지입니다.
             </p>
-            <p className="text-[12px] text-[#6B7394]">
+            <p className="text-[12px] text-[#8b95a1]">
               미등록 시 첫 번째 현장 사진이 자동 적용됩니다.
             </p>
             {thumbnailPreview && (
               <button
                 type="button"
                 onClick={() => { setThumbnailFile(null); setThumbnailPreview(''); }}
-                className="mt-3 text-[12px] text-[#EF233C] font-bold hover:underline"
+                className="mt-3 text-[12px] text-[#f04452] font-bold hover:underline"
               >
                 썸네일 삭제
               </button>
@@ -581,10 +581,10 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
       </section>
 
       {/* 2. Objective Metrics Section */}
-      <section className="mb-12 bg-[#141C33] -mx-6 md:-mx-8 px-6 md:px-8 py-8 border-y border-[#1E2A45]">
+      <section className="mb-12 bg-[#f9fafb] -mx-6 md:-mx-8 px-6 md:px-8 py-8 border-y border-[#e5e8eb]">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-[18px] font-bold text-[#EDF2F4] flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-[#1B2340] text-[#8D99AE] shadow-sm flex items-center justify-center text-[12px]">2</span>
+          <h3 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2">
+            <span className="w-6 h-6 rounded-full bg-white text-[#3182f6] shadow-sm flex items-center justify-center text-[12px]">2</span>
             객관적 지표 통계
           </h3>
           <button
@@ -664,24 +664,24 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                 setIsCalculating(false);
               }
             }}
-            className="px-5 py-2.5 bg-[#141C33] hover:bg-[#d0e8ff] text-[#8D99AE] font-bold text-[13px] rounded-xl transition-all flex items-center gap-2 disabled:opacity-50"
+            className="px-5 py-2.5 bg-[#f9fafb] hover:bg-[#d0e8ff] text-[#3182f6] font-bold text-[13px] rounded-xl transition-all flex items-center gap-2 disabled:opacity-50"
           >
             {isCalculating ? (
-              <><div className="w-4 h-4 border-2 border-[#8D99AE] border-t-transparent rounded-full animate-spin" /> 불러오는 중...</>
+              <><div className="w-4 h-4 border-2 border-[#3182f6] border-t-transparent rounded-full animate-spin" /> 불러오는 중...</>
             ) : (
               <>📍 단지 정보 자동 출력</>
             )}
           </button>
         </div>
-        <p className="text-[14px] text-[#8D99AE] mb-6">입력하신 실제 데이터는 소비자 대상 팩트 프리미엄 지표로 자동 가공되어 표시됩니다.</p>
+        <p className="text-[14px] text-[#3182f6] mb-6">입력하신 실제 데이터는 소비자 대상 팩트 프리미엄 지표로 자동 가공되어 표시됩니다.</p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-2 mb-4">
           <div>
-            <label className="block text-[13px] font-bold text-[#8D99AE] mb-1 pl-0.5">대표 시공사 (브랜드)</label>
+            <label className="block text-[13px] font-bold text-[#3182f6] mb-1 pl-0.5">대표 시공사 (브랜드)</label>
             <input
               {...register('metrics.brand')}
               placeholder="예: 현대건설"
-              className="w-full bg-[#141C33] border border-[#1E2A45] rounded-xl px-4 py-3 text-[15px] outline-none focus:border-[#8D99AE] focus:bg-[#1B2340] transition-colors"
+              className="w-full bg-[#f9fafb] border border-[#e5e8eb] rounded-xl px-4 py-3 text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors"
             />
           </div>
           <NumberInput name="metrics.householdCount" label="총 세대수 (단지 규모)" placeholder="예: 1200" unit="세대" />
@@ -730,12 +730,12 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                   .sort(([,a], [,b]) => b - a)
                   .map(([cat, cnt]) => (
                     <div key={cat} className="flex justify-between text-[12px] py-0.5 px-1">
-                      <span className="text-[#8D99AE] truncate mr-2">{cat}</span>
+                      <span className="text-[#3182f6] truncate mr-2">{cat}</span>
                       <span className="font-bold text-[#03c75a] shrink-0">{cnt}개</span>
                     </div>
                   ))
               ) : (
-                <p className="text-[11px] text-[#6B7394] italic">단지 정보 불러오기 후 자동 표시됩니다</p>
+                <p className="text-[11px] text-[#8b95a1] italic">단지 정보 불러오기 후 자동 표시됩니다</p>
               )}
             </div>
           </div>
@@ -748,12 +748,12 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                   .sort(([,a], [,b]) => b - a)
                   .map(([cat, cnt]) => (
                     <div key={cat} className="flex justify-between text-[12px] py-0.5 px-1">
-                      <span className="text-[#8D99AE] truncate mr-2">{cat}</span>
+                      <span className="text-[#3182f6] truncate mr-2">{cat}</span>
                       <span className="font-bold text-[#f59e0b] shrink-0">{cnt}개</span>
                     </div>
                   ))
               ) : (
-                <p className="text-[11px] text-[#6B7394] italic">단지 정보 불러오기 후 자동 표시됩니다</p>
+                <p className="text-[11px] text-[#8b95a1] italic">단지 정보 불러오기 후 자동 표시됩니다</p>
               )}
             </div>
           </div>
@@ -762,18 +762,18 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
 
       {/* 3. Dynamic Images Array */}
       <section className="mb-12">
-        <h3 className="text-[18px] font-bold text-[#EDF2F4] mb-6 flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-[#0E1730] text-[#8D99AE] flex items-center justify-center text-[12px]">3</span>
+        <h3 className="text-[18px] font-bold text-[#191f28] mb-6 flex items-center gap-2">
+          <span className="w-6 h-6 rounded-full bg-[#f2f4f6] text-[#3182f6] flex items-center justify-center text-[12px]">3</span>
           현장 사진 데이터베이스
-          <span className="text-[12px] font-medium text-[#6B7394] ml-auto">{imageFields.length}장</span>
+          <span className="text-[12px] font-medium text-[#8b95a1] ml-auto">{imageFields.length}장</span>
         </h3>
 
         {/* Batch Drop Zone */}
         <div
           className={`mb-6 border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
             isDragging
-              ? 'border-[#8D99AE] bg-[#141C33] scale-[1.01]'
-              : 'border-[#2A3558] bg-[#141C33] hover:bg-[#0E1730] hover:border-[#8D99AE]'
+              ? 'border-[#3182f6] bg-[#f9fafb] scale-[1.01]'
+              : 'border-[#d1d6db] bg-[#f9fafb] hover:bg-[#f2f4f6] hover:border-[#3182f6]'
           }`}
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}
@@ -781,13 +781,13 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
           onClick={() => batchInputRef.current?.click()}
         >
           <input ref={batchInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { if (e.target.files) handleBatchFiles(e.target.files); e.target.value = ''; }} />
-          <div className="w-12 h-12 bg-[#1B2340] rounded-full shadow-sm flex items-center justify-center mx-auto mb-3">
-            <ImagePlus size={22} className="text-[#8D99AE]" />
+          <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-3">
+            <ImagePlus size={22} className="text-[#3182f6]" />
           </div>
-          <p className="text-[15px] font-bold text-[#EDF2F4] mb-1">
+          <p className="text-[15px] font-bold text-[#191f28] mb-1">
             {isDragging ? '여기에 놓으세요!' : '사진을 한번에 여러 장 추가'}
           </p>
-          <p className="text-[12px] text-[#6B7394]">드래그하거나 클릭하여 여러 사진을 선택한 후 카테고리를 직접 지정해주세요</p>
+          <p className="text-[12px] text-[#8b95a1]">드래그하거나 클릭하여 여러 사진을 선택한 후 카테고리를 직접 지정해주세요</p>
         </div>
 
         {/* Sort Button */}
@@ -795,17 +795,17 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
           <button
             type="button"
             onClick={sortByCategory}
-            className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-[#1B2340] border border-[#1E2A45] rounded-xl text-[13px] font-bold text-[#8D99AE] hover:bg-[#141C33] hover:border-[#8D99AE] hover:text-[#8D99AE] transition-all shadow-sm"
+            className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-white border border-[#e5e8eb] rounded-xl text-[13px] font-bold text-[#3182f6] hover:bg-[#f9fafb] hover:border-[#3182f6] hover:text-[#3182f6] transition-all shadow-sm"
           >
             <ArrowUpDown size={14} />
             카테고리별 자동 정렬
-            <span className="text-[11px] text-[#6B7394] font-medium">({imageFields.length}장)</span>
+            <span className="text-[11px] text-[#8b95a1] font-medium">({imageFields.length}장)</span>
           </button>
         )}
 
         <div className="space-y-4 mb-6">
           {imageFields.map((field, index) => (
-            <div key={field.id} className="flex flex-col md:flex-row gap-4 p-4 border border-[#1E2A45] rounded-2xl bg-[#1B2340] shadow-sm hover:border-[#8D99AE] transition-colors group relative">
+            <div key={field.id} className="flex flex-col md:flex-row gap-4 p-4 border border-[#e5e8eb] rounded-2xl bg-white shadow-sm hover:border-[#3182f6] transition-colors group relative">
 
               
               {/* Real File Input for Drag&Drop / Click */}
@@ -820,14 +820,14 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
               />
 
               <div 
-                className="w-full md:w-[150px] h-[100px] bg-[#141C33] border-2 border-dashed border-[#2A3558] rounded-xl flex flex-col items-center justify-center text-[#6B7394] cursor-pointer hover:bg-[#0E1730] hover:text-[#8D99AE] transition-colors overflow-hidden group/img relative"
+                className="w-full md:w-[150px] h-[100px] bg-[#f9fafb] border-2 border-dashed border-[#d1d6db] rounded-xl flex flex-col items-center justify-center text-[#8b95a1] cursor-pointer hover:bg-[#f2f4f6] hover:text-[#3182f6] transition-colors overflow-hidden group/img relative"
                 onClick={() => fileInputRefs.current[index]?.click()}
               >
                 {(field.previewUrl || field.url) ? (
                   <>
                     <img src={field.previewUrl || field.url} alt="Preview" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
-                      <span className="text-[#EDF2F4] text-[11px] font-bold">변경하기</span>
+                      <span className="text-[#191f28] text-[11px] font-bold">변경하기</span>
                     </div>
                   </>
                 ) : (
@@ -852,17 +852,17 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                             const el = document.getElementById(`cat-popover-${index}`);
                             if (el) el.classList.toggle('hidden');
                           }}
-                          className="w-full px-3 py-2 bg-[#141C33] border border-[#1E2A45] rounded-lg text-[13px] font-bold text-left cursor-pointer hover:border-[#8D99AE] focus:ring-2 focus:ring-[#8D99AE]/30 focus:border-[#8D99AE] outline-none transition-colors text-[#EDF2F4] flex items-center justify-between"
+                          className="w-full px-3 py-2 bg-[#f9fafb] border border-[#e5e8eb] rounded-lg text-[13px] font-bold text-left cursor-pointer hover:border-[#3182f6] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-colors text-[#191f28] flex items-center justify-between"
                         >
                           <span className="truncate">{currentTag || '카테고리 선택'}</span>
-                          <svg width="12" height="12" viewBox="0 0 12 12" className="shrink-0 ml-1 text-[#6B7394]"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>
+                          <svg width="12" height="12" viewBox="0 0 12 12" className="shrink-0 ml-1 text-[#8b95a1]"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>
                         </button>
                         <div
                           id={`cat-popover-${index}`}
-                          className="hidden absolute top-full left-0 mt-1 z-50 bg-[#1B2340] rounded-xl shadow-xl border border-[#1E2A45] w-[380px] md:w-[560px] max-h-[280px] overflow-hidden"
+                          className="hidden absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-xl border border-[#e5e8eb] w-[380px] md:w-[560px] max-h-[280px] overflow-hidden"
                         >
                           {/* Group tabs — horizontal scroll */}
-                          <div className="flex gap-1 p-2 overflow-x-auto border-b border-[#0E1730] bg-[#fafbfc]">
+                          <div className="flex gap-1 p-2 overflow-x-auto border-b border-[#f2f4f6] bg-[#fafbfc]">
                             {IMAGE_CATEGORY_GROUPS.map((g, gIdx) => (
                               <button
                                 key={g.group}
@@ -874,17 +874,17 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                                   container.querySelectorAll('[data-cat-group]').forEach(el => el.classList.add('hidden'));
                                   container.querySelector(`[data-cat-group="${gIdx}"]`)?.classList.remove('hidden');
                                   container.querySelectorAll('[data-cat-tab]').forEach(el => {
-                                    el.classList.remove('bg-[#EDF2F4]', 'text-[#EDF2F4]');
-                                    el.classList.add('bg-[#0E1730]', 'text-[#8D99AE]');
+                                    el.classList.remove('bg-[#191f28]', 'text-[#191f28]');
+                                    el.classList.add('bg-[#f2f4f6]', 'text-[#3182f6]');
                                   });
-                                  container.querySelector(`[data-cat-tab="${gIdx}"]`)?.classList.remove('bg-[#0E1730]', 'text-[#8D99AE]');
-                                  container.querySelector(`[data-cat-tab="${gIdx}"]`)?.classList.add('bg-[#EDF2F4]', 'text-[#EDF2F4]');
+                                  container.querySelector(`[data-cat-tab="${gIdx}"]`)?.classList.remove('bg-[#f2f4f6]', 'text-[#3182f6]');
+                                  container.querySelector(`[data-cat-tab="${gIdx}"]`)?.classList.add('bg-[#191f28]', 'text-[#191f28]');
                                 }}
                                 data-cat-tab={gIdx}
                                 className={`shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
                                   (currentGroup === g || (!currentGroup && gIdx === 0))
-                                    ? 'bg-[#EDF2F4] text-[#EDF2F4]'
-                                    : 'bg-[#0E1730] text-[#8D99AE] hover:bg-[#1E2A45]'
+                                    ? 'bg-[#191f28] text-[#191f28]'
+                                    : 'bg-[#f2f4f6] text-[#3182f6] hover:bg-[#e5e8eb]'
                                 }`}
                               >
                                 {g.group.replace(/[^\w가-힣·\s]/g, '').trim()}
@@ -911,8 +911,8 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                                   }}
                                   className={`px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-all ${
                                     currentTag === item
-                                      ? 'bg-[#141C33] text-[#8D99AE] border-[#8D99AE] font-bold'
-                                      : 'bg-[#1B2340] text-[#8D99AE] border-[#1E2A45] hover:bg-[#0E1730] hover:border-[#8D99AE]'
+                                      ? 'bg-[#f9fafb] text-[#3182f6] border-[#3182f6] font-bold'
+                                      : 'bg-white text-[#3182f6] border-[#e5e8eb] hover:bg-[#f2f4f6] hover:border-[#3182f6]'
                                   }`}
                                 >
                                   {item}
@@ -926,7 +926,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                   })()}
                   <input
                     {...register(`images.${index}.caption`)}
-                    className="flex-1 px-3 py-2 bg-[#141C33] border border-[#1E2A45] rounded-lg text-[13px] focus:ring-2 focus:ring-[#8D99AE]/30 focus:border-[#8D99AE] outline-none placeholder-[#b0b8c1]"
+                    className="flex-1 px-3 py-2 bg-[#f9fafb] border border-[#e5e8eb] rounded-lg text-[13px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none placeholder-[#b0b8c1]"
                     placeholder={CAPTION_TEMPLATES[field.locationTag]?.[0] || '사진 설명 캡션을 입력하세요'}
                   />
                 </div>
@@ -941,7 +941,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                           const currentVal = imageFields[index];
                           updateImage(index, { ...currentVal, caption: tmpl });
                         }}
-                        className="px-2.5 py-1 bg-[#0E1730] hover:bg-[#141C33] hover:text-[#8D99AE] border border-[#1E2A45] hover:border-[#8D99AE] rounded-lg text-[11px] text-[#8D99AE] font-medium transition-all truncate max-w-[240px]"
+                        className="px-2.5 py-1 bg-[#f2f4f6] hover:bg-[#f9fafb] hover:text-[#3182f6] border border-[#e5e8eb] hover:border-[#3182f6] rounded-lg text-[11px] text-[#3182f6] font-medium transition-all truncate max-w-[240px]"
                         title={tmpl}
                       >
                         📝 {tmpl}
@@ -951,14 +951,14 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                 )}
                 <div className="flex items-center gap-3 w-full">
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" {...register(`images.${index}.isPremium`)} className="w-4 h-4 rounded text-[#8D99AE] focus:ring-[#8D99AE] border-[#2A3558]" />
-                    <span className="text-[13px] font-semibold text-[#8D99AE]">유료(프리미엄) 멤버 전용 숨김 처리</span>
+                    <input type="checkbox" {...register(`images.${index}.isPremium`)} className="w-4 h-4 rounded text-[#3182f6] focus:ring-[#3182f6] border-[#d1d6db]" />
+                    <span className="text-[13px] font-semibold text-[#3182f6]">유료(프리미엄) 멤버 전용 숨김 처리</span>
                   </label>
                   
                   <button 
                     type="button" 
                     onClick={() => removeImage(index)}
-                    className="ml-auto text-[#6B7394] hover:text-[#EF233C] p-2 rounded-lg transition-colors"
+                    className="ml-auto text-[#8b95a1] hover:text-[#f04452] p-2 rounded-lg transition-colors"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -971,19 +971,19 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
         <button 
           type="button" 
           onClick={() => appendImage({ url: '', caption: '', locationTag: '', isPremium: false })}
-          className="w-full py-4 border-2 border-dashed border-[#2A3558] rounded-2xl text-[#8D99AE] font-bold text-[14px] hover:bg-[#141C33] hover:text-[#8D99AE] hover:border-[#8D99AE] transition-all flex items-center justify-center gap-2"
+          className="w-full py-4 border-2 border-dashed border-[#d1d6db] rounded-2xl text-[#3182f6] font-bold text-[14px] hover:bg-[#f9fafb] hover:text-[#3182f6] hover:border-[#3182f6] transition-all flex items-center justify-center gap-2"
         >
           <ImagePlus size={18} /> 사진 블록(Block) 추가
         </button>
       </section>
 
       {/* 4. Publishing & Save */}
-      <div className="fixed bottom-0 left-0 right-0 md:left-[240px] bg-[#1B2340]/90 backdrop-blur-md p-4 border-t border-[#1E2A45] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] flex justify-end gap-3 z-50">
+      <div className="fixed bottom-0 left-0 right-0 md:left-[240px] bg-white/90 backdrop-blur-md p-4 border-t border-[#e5e8eb] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] flex justify-end gap-3 z-50">
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-3 font-bold text-[#6B7394] bg-[#1B2340] border border-[#1E2A45] hover:bg-[#0E1730] rounded-xl transition-colors"
+            className="px-6 py-3 font-bold text-[#8b95a1] bg-white border border-[#e5e8eb] hover:bg-[#f2f4f6] rounded-xl transition-colors"
           >
             취소
           </button>
@@ -1011,14 +1011,14 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
               alert('임시 저장에 실패했습니다.');
             }
           }}
-          className="px-6 py-3 font-bold text-[#8D99AE] bg-[#0E1730] hover:bg-[#1E2A45] rounded-xl transition-colors"
+          className="px-6 py-3 font-bold text-[#3182f6] bg-[#f2f4f6] hover:bg-[#e5e8eb] rounded-xl transition-colors"
         >
           임시 저장
         </button>
         <button 
           type="submit" 
           disabled={isSubmitting}
-          className="px-8 py-3 font-bold text-[#EDF2F4] bg-[#8D99AE] hover:bg-[#2b72d6] active:bg-[#1b64da] rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 min-w-[180px] justify-center"
+          className="px-8 py-3 font-bold text-[#191f28] bg-[#3182f6] hover:bg-[#2b72d6] active:bg-[#1b64da] rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 min-w-[180px] justify-center"
         >
           {isSubmitting ? (
             <>

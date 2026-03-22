@@ -78,13 +78,13 @@ export default function PaymentButton({
       disabled={isLoading}
       className={`
         relative overflow-hidden
-        bg-gradient-to-r from-[#8D99AE] to-[#4A6CF7]
+        bg-gradient-to-r from-[#3182f6] to-[#4A6CF7]
         hover:from-[#1b64da] hover:to-[#3B5DE6]
-        text-[#EDF2F4] font-extrabold text-[15px]
+        text-[#191f28] font-extrabold text-[15px]
         px-8 py-4 rounded-2xl
         transition-all duration-200
-        shadow-lg shadow-[#8D99AE]/25
-        hover:shadow-xl hover:shadow-[#8D99AE]/30
+        shadow-lg shadow-[#3182f6]/25
+        hover:shadow-xl hover:shadow-[#3182f6]/30
         active:scale-[0.98]
         disabled:opacity-60 disabled:cursor-not-allowed
         flex items-center justify-center gap-2.5

@@ -348,7 +348,7 @@ export default function AdminDashboard() {
 
   if (!loaded) return (
     <div className="flex justify-center items-center py-32">
-      <div className="w-8 h-8 border-4 border-[#8D99AE] border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-[#3182f6] border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -357,12 +357,12 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-[#EDF2F4] tracking-tight mb-2">아파트 대시보드</h1>
-          <p className="text-[#8D99AE] text-[14px]">단지 기본정보 및 프리미엄 임장기 통합 관리</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-[#191f28] tracking-tight mb-2">아파트 대시보드</h1>
+          <p className="text-[#3182f6] text-[14px]">단지 기본정보 및 프리미엄 임장기 통합 관리</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#8D99AE] bg-[#141C33] hover:bg-[#8D99AE] hover:text-[#EDF2F4] transition-all text-[13px]">
+            className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#3182f6] bg-[#f9fafb] hover:bg-[#3182f6] hover:text-[#191f28] transition-all text-[13px]">
             <Plus size={16}/> 아파트 추가
           </button>
         </div>
@@ -370,23 +370,23 @@ export default function AdminDashboard() {
 
       {/* Add Apartment Form */}
       {showAddForm && (
-        <div className="bg-[#141C33] rounded-2xl p-5 mb-6 flex flex-col sm:flex-row gap-3 items-end animate-in slide-in-from-top duration-200">
+        <div className="bg-[#f9fafb] rounded-2xl p-5 mb-6 flex flex-col sm:flex-row gap-3 items-end animate-in slide-in-from-top duration-200">
           <div className="flex-1 min-w-0">
-            <label className="text-[12px] font-bold text-[#8D99AE] mb-1 block">아파트 이름</label>
+            <label className="text-[12px] font-bold text-[#3182f6] mb-1 block">아파트 이름</label>
             <input type="text" value={newAptName} onChange={e => setNewAptName(e.target.value)}
               placeholder="예: 동탄역 힐스테이트 2차"
-              className="w-full px-3 py-2.5 border border-[#8D99AE]/30 rounded-xl text-[14px] outline-none focus:border-[#8D99AE] bg-[#1B2340]" />
+              className="w-full px-3 py-2.5 border border-[#3182f6]/30 rounded-xl text-[14px] outline-none focus:border-[#3182f6] bg-white" />
           </div>
           <div className="shrink-0">
-            <label className="text-[12px] font-bold text-[#8D99AE] mb-1 block">동</label>
+            <label className="text-[12px] font-bold text-[#3182f6] mb-1 block">동</label>
             <select value={newAptDong} onChange={e => setNewAptDong(e.target.value)}
-              className="px-3 py-2.5 border border-[#8D99AE]/30 rounded-xl text-[14px] bg-[#1B2340] outline-none focus:border-[#8D99AE]">
+              className="px-3 py-2.5 border border-[#3182f6]/30 rounded-xl text-[14px] bg-white outline-none focus:border-[#3182f6]">
               {dongNames.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
           </div>
           <div className="flex gap-2 shrink-0">
-            <button onClick={addApartment} className="px-4 py-2.5 bg-[#8D99AE] text-[#EDF2F4] rounded-xl text-[13px] font-bold hover:bg-[#2b72d6] transition-colors">추가</button>
-            <button onClick={() => setShowAddForm(false)} className="px-4 py-2.5 bg-[#1B2340] text-[#6B7394] rounded-xl text-[13px] font-bold hover:bg-[#0E1730] transition-colors">취소</button>
+            <button onClick={addApartment} className="px-4 py-2.5 bg-[#3182f6] text-[#191f28] rounded-xl text-[13px] font-bold hover:bg-[#2b72d6] transition-colors">추가</button>
+            <button onClick={() => setShowAddForm(false)} className="px-4 py-2.5 bg-white text-[#8b95a1] rounded-xl text-[13px] font-bold hover:bg-[#f2f4f6] transition-colors">취소</button>
           </div>
         </div>
       )}
@@ -394,20 +394,20 @@ export default function AdminDashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-6">
         {[
-          { label: '전체 단지', value: stats.total, color: '#8D99AE', bg: '#141C33', icon: Building, fk: 'all' as const },
+          { label: '전체 단지', value: stats.total, color: '#3182f6', bg: '#f9fafb', icon: Building, fk: 'all' as const },
           { label: '매핑 완료', value: stats.mapped, color: '#03c75a', bg: '#f0fdf4', icon: Check, fk: 'all' as const },
-          { label: '미매핑', value: stats.unmapped, color: '#EF233C', bg: '#ffebec', icon: AlertTriangle, fk: 'unmatched' as const },
+          { label: '미매핑', value: stats.unmapped, color: '#f04452', bg: '#ffebec', icon: AlertTriangle, fk: 'unmatched' as const },
           { label: '임장기', value: stats.totalReports, color: '#ff8a3d', bg: '#fff4e6', icon: FileText, fk: 'reported' as const },
           { label: '임장완료', value: stats.reported, color: '#ff6b2c', bg: '#fff4e6', icon: MapPin, fk: 'reported' as const },
-          { label: '공공임대', value: stats.publicR, color: '#6B7394', bg: '#0E1730', icon: Home, fk: 'public' as const },
+          { label: '공공임대', value: stats.publicR, color: '#8b95a1', bg: '#f2f4f6', icon: Home, fk: 'public' as const },
         ].map(s => (
           <div key={s.label} onClick={() => setFilter(s.fk)}
-            className={`bg-[#1B2340] p-4 rounded-2xl border shadow-sm cursor-pointer hover:shadow-md transition-all ${
-              filter === s.fk && s.fk !== 'all' ? 'border-[#8D99AE] ring-2 ring-[#8D99AE]/10' : 'border-[#1E2A45]'
+            className={`bg-white p-4 rounded-2xl border shadow-sm cursor-pointer hover:shadow-md transition-all ${
+              filter === s.fk && s.fk !== 'all' ? 'border-[#3182f6] ring-2 ring-[#3182f6]/10' : 'border-[#e5e8eb]'
             }`}>
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1.5 rounded-lg" style={{ backgroundColor: s.bg, color: s.color }}><s.icon size={14}/></div>
-              <span className="text-[11px] font-bold text-[#6B7394]">{s.label}</span>
+              <span className="text-[11px] font-bold text-[#8b95a1]">{s.label}</span>
             </div>
             <div className="text-[26px] font-extrabold" style={{ color: s.color }}>{s.value}</div>
           </div>
@@ -417,16 +417,16 @@ export default function AdminDashboard() {
       {/* Search + Filter */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="flex-1 relative">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6B7394]" />
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8b95a1]" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="아파트명 또는 동 이름으로 검색..."
-            className="w-full pl-11 pr-4 py-3 bg-[#1B2340] border border-[#1E2A45] rounded-xl text-[14px] outline-none focus:border-[#8D99AE] focus:ring-4 focus:ring-[#8D99AE]/10 transition-all" />
+            className="w-full pl-11 pr-4 py-3 bg-white border border-[#e5e8eb] rounded-xl text-[14px] outline-none focus:border-[#3182f6] focus:ring-4 focus:ring-[#3182f6]/10 transition-all" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto">
           {([['all','전체'],['unmatched','미매핑'],['reported','임장완료'],['public','공공임대'],['private','일반분양']] as const).map(([key, label]) => (
             <button key={key} onClick={() => setFilter(key)}
               className={`shrink-0 px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${
-                filter === key ? 'bg-[#EDF2F4] text-[#EDF2F4]' : 'bg-[#1B2340] border border-[#1E2A45] text-[#8D99AE] hover:bg-[#0E1730]'
+                filter === key ? 'bg-[#191f28] text-[#191f28]' : 'bg-white border border-[#e5e8eb] text-[#3182f6] hover:bg-[#f2f4f6]'
               }`}>{label}</button>
           ))}
         </div>
@@ -440,20 +440,20 @@ export default function AdminDashboard() {
           const dongReported = apts.filter(a => reportedApts.has(a.name)).length;
 
           return (
-            <div key={dong} className="bg-[#1B2340] rounded-2xl border border-[#1E2A45] shadow-sm overflow-hidden">
+            <div key={dong} className="bg-white rounded-2xl border border-[#e5e8eb] shadow-sm overflow-hidden">
               <button onClick={() => toggleDong(dong)}
-                className="w-full px-4 sm:px-6 py-4 flex items-center gap-3 hover:bg-[#141C33] transition-colors">
-                {isExpanded ? <ChevronDown size={18} className="text-[#6B7394] shrink-0"/> : <ChevronRight size={18} className="text-[#6B7394] shrink-0"/>}
-                <h3 className="text-[15px] font-extrabold text-[#EDF2F4]">{dong}</h3>
-                <span className="text-[11px] font-bold text-[#6B7394] bg-[#0E1730] px-2 py-0.5 rounded-full">{apts.length}개</span>
+                className="w-full px-4 sm:px-6 py-4 flex items-center gap-3 hover:bg-[#f9fafb] transition-colors">
+                {isExpanded ? <ChevronDown size={18} className="text-[#8b95a1] shrink-0"/> : <ChevronRight size={18} className="text-[#8b95a1] shrink-0"/>}
+                <h3 className="text-[15px] font-extrabold text-[#191f28]">{dong}</h3>
+                <span className="text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-0.5 rounded-full">{apts.length}개</span>
                 <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                  dongMapped === apts.length ? 'bg-[#f0fdf4] text-[#03c75a]' : dongMapped > 0 ? 'bg-[#fff4e6] text-[#ff8a3d]' : 'bg-[#0E1730] text-[#6B7394]'
+                  dongMapped === apts.length ? 'bg-[#f0fdf4] text-[#03c75a]' : dongMapped > 0 ? 'bg-[#fff4e6] text-[#ff8a3d]' : 'bg-[#f2f4f6] text-[#8b95a1]'
                 }`}>TX {dongMapped}/{apts.length}</span>
                 {dongReported > 0 && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#fff4e6] text-[#ff8a3d]">📝 {dongReported}</span>}
               </button>
 
               {isExpanded && (
-                <div className="border-t border-[#1E2A45] divide-y divide-[#0E1730]">
+                <div className="border-t border-[#e5e8eb] divide-y divide-[#f2f4f6]">
                   {apts.map(({ name, meta: m }) => {
                     const hasValidTx = m.txKey && TX_SUMMARY[m.txKey as keyof typeof TX_SUMMARY];
                     const suggested = !m.txKey ? autoSuggest(name) : null;
@@ -461,17 +461,17 @@ export default function AdminDashboard() {
                     const isAptExpanded = expandedApts.has(name);
 
                     return (
-                      <div key={name} className={`${m.isPublicRental ? 'bg-[#141C33]' : !hasValidTx ? 'bg-[#fffbf5]' : ''}`}>
+                      <div key={name} className={`${m.isPublicRental ? 'bg-[#f9fafb]' : !hasValidTx ? 'bg-[#fffbf5]' : ''}`}>
                         {/* Apartment Unit Header */}
-                        <Link href={`/admin/apartments/${encodeURIComponent(name)}`} className="block px-4 sm:px-6 py-4 hover:bg-[#f6f8fa] transition-colors border-b border-[#0E1730] last:border-0">
+                        <Link href={`/admin/apartments/${encodeURIComponent(name)}`} className="block px-4 sm:px-6 py-4 hover:bg-[#f6f8fa] transition-colors border-b border-[#f2f4f6] last:border-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            {hasValidTx ? <Check size={14} className="text-[#03c75a] shrink-0"/> : <AlertTriangle size={14} className="text-[#EF233C] shrink-0"/>}
+                            {hasValidTx ? <Check size={14} className="text-[#03c75a] shrink-0"/> : <AlertTriangle size={14} className="text-[#f04452] shrink-0"/>}
                             
-                            <span className="text-[13px] sm:text-[14px] font-bold text-[#EDF2F4]">{name}</span>
+                            <span className="text-[13px] sm:text-[14px] font-bold text-[#191f28]">{name}</span>
 
-                            {m.isPublicRental && <span className="text-[10px] font-bold bg-[#0E1730] text-[#6B7394] px-2 py-0.5 rounded-full mt-0.5">🏠 공공임대</span>}
-                            {m.householdCount && <span className="text-[10px] text-[#6B7394]">· {m.householdCount}세대</span>}
-                            {m.yearBuilt && <span className="text-[10px] text-[#6B7394]">· {m.yearBuilt}년</span>}
+                            {m.isPublicRental && <span className="text-[10px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-2 py-0.5 rounded-full mt-0.5">🏠 공공임대</span>}
+                            {m.householdCount && <span className="text-[10px] text-[#8b95a1]">· {m.householdCount}세대</span>}
+                            {m.yearBuilt && <span className="text-[10px] text-[#8b95a1]">· {m.yearBuilt}년</span>}
                             
                             {/* Report badge */}
                             {aptReports.length > 0 && (
@@ -480,7 +480,7 @@ export default function AdminDashboard() {
                               </span>
                             )}
 
-                            <span className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-[#1B2340] border border-[#1E2A45] rounded-lg text-[12px] font-bold text-[#8D99AE] hover:bg-[#0E1730] hover:text-[#EDF2F4] transition-colors shadow-sm">
+                            <span className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e5e8eb] rounded-lg text-[12px] font-bold text-[#3182f6] hover:bg-[#f2f4f6] hover:text-[#191f28] transition-colors shadow-sm">
                               상세보기
                               <ChevronRight size={14}/>
                             </span>
@@ -497,27 +497,27 @@ export default function AdminDashboard() {
       </div>
 
       {/* Orphaned TX Keys */}
-      <div className="mt-8 bg-[#1B2340] rounded-2xl border border-[#1E2A45] shadow-sm overflow-hidden">
-        <div className="px-4 sm:px-6 py-4 bg-[#141C33] border-b border-[#1E2A45]">
-          <h3 className="font-bold text-[14px] text-[#EDF2F4]">매핑되지 않은 TX 키</h3>
-          <p className="text-[11px] text-[#6B7394]">실거래 데이터에 있지만 아파트 목록에 연결 안 된 키</p>
+      <div className="mt-8 bg-white rounded-2xl border border-[#e5e8eb] shadow-sm overflow-hidden">
+        <div className="px-4 sm:px-6 py-4 bg-[#f9fafb] border-b border-[#e5e8eb]">
+          <h3 className="font-bold text-[14px] text-[#191f28]">매핑되지 않은 TX 키</h3>
+          <p className="text-[11px] text-[#8b95a1]">실거래 데이터에 있지만 아파트 목록에 연결 안 된 키</p>
         </div>
         <div className="px-4 sm:px-6 py-4 flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto">
           {(() => {
             const used = new Set(Object.values(meta).map(m => m.txKey).filter(Boolean));
             return txKeys.filter(k => !used.has(k)).map(k => (
-              <span key={k} className="bg-[#0E1730] text-[#8D99AE] text-[11px] font-mono px-2.5 py-1 rounded-lg">{k}</span>
+              <span key={k} className="bg-[#f2f4f6] text-[#3182f6] text-[11px] font-mono px-2.5 py-1 rounded-lg">{k}</span>
               ));
             })()}
           </div>
         </div>
 
       {/* Floating Save Bar */}
-      <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-40 bg-[#1B2340]/90 backdrop-blur-lg border-t border-[#1E2A45] px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-        <span className="text-[13px] text-[#6B7394] font-medium">{stats.total}개 단지 · {stats.mapped} 매핑 · 📝 {stats.totalReports} 임장기</span>
+      <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-40 bg-white/90 backdrop-blur-lg border-t border-[#e5e8eb] px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+        <span className="text-[13px] text-[#8b95a1] font-medium">{stats.total}개 단지 · {stats.mapped} 매핑 · 📝 {stats.totalReports} 임장기</span>
         <button onClick={handleSave} disabled={saving}
           className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all text-[14px] ${
-            saved ? 'bg-[#03c75a] text-[#EDF2F4] shadow-lg shadow-[#03c75a]/20' : 'bg-[#8D99AE] hover:bg-[#2b72d6] text-[#EDF2F4] shadow-lg shadow-[#8D99AE]/20'
+            saved ? 'bg-[#03c75a] text-[#191f28] shadow-lg shadow-[#03c75a]/20' : 'bg-[#3182f6] hover:bg-[#2b72d6] text-[#191f28] shadow-lg shadow-[#3182f6]/20'
           } disabled:opacity-60`}>
           <Save size={16}/>
           {saving ? '저장 중...' : saved ? '저장 완료!' : '저장하기'}

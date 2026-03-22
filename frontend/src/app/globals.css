@@ -9,31 +9,31 @@
 
 @layer base {
   :root {
-    /* ── DSQ Theme: Institutional Navy ── */
-    --bg-body: #0B132B;
-    --bg-surface: #1B2340;
-    --bg-surface-hover: #222B4A;
-    --bg-elevated: #141C33;
-    --text-primary: #EDF2F4;
-    --text-secondary: #8D99AE;
-    --text-tertiary: #6B7394;
+    /* ── DSQ Theme ── */
+    --bg-body: #f2f4f6;
+    --bg-surface: #ffffff;
+    --bg-surface-hover: #f9fafb;
+    --bg-elevated: #f9fafb;
+    --text-primary: #191f28;
+    --text-secondary: #4e5968;
+    --text-tertiary: #8b95a1;
     --accent-silver: #8D99AE;
-    --accent-silver-light: #141C33;
+    --accent-silver-light: #e8f3ff;
     --signal-red: #EF233C;
     --signal-green: #03c75a;
-    --border-line: #1E2A45;
-    --toss-blue: #8D99AE;
-    --toss-blue-light: #141C33;
+    --border-line: #e5e8eb;
+    --toss-blue: #3182f6;
+    --toss-blue-light: #e8f3ff;
     --toss-red: #EF233C;
     --toss-green: #03c75a;
-    --toss-gray: #2A3558;
+    --toss-gray: #d1d6db;
     --border-radius-xl: 24px;
     --border-radius-lg: 16px;
     --border-radius-md: 12px;
     --border-radius-sm: 8px;
     --transition-speed: 0.2s;
-    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.2);
-    --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.3);
+    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.04);
+    --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
   }
 
   body {
@@ -103,7 +103,7 @@
     transition: background var(--transition-speed);
   }
   .btn-primary:active {
-    background: #5A6680;
+    background: #1b64da;
   }
 
   .btn-outline {
@@ -116,7 +116,7 @@
     transition: background var(--transition-speed);
   }
   .btn-outline:active {
-    background: #1E2A45;
+    background: #d4e6ff;
   }
 
   .icon-btn {
@@ -133,7 +133,7 @@
     position: relative;
   }
   .icon-btn:hover {
-    background: #222B4A;
+    background: #f9fafb;
   }
 
   .badge {
@@ -152,10 +152,10 @@
     justify-content: center;
   }
   
-  .tag-traffic { background: #141C33; color: var(--accent-silver); }
-  .tag-realestate { background: #2A1520; color: var(--signal-red); }
-  .tag-edu { background: #0B2E1A; color: var(--signal-green); }
-  .tag-culture { background: #2A2010; color: #ff9800; }
+  .tag-traffic { background: #e8f3ff; color: var(--toss-blue); }
+  .tag-realestate { background: #fce4e4; color: var(--toss-red); }
+  .tag-edu { background: #e8f5e9; color: var(--toss-green); }
+  .tag-culture { background: #fff3e0; color: #ff9800; }
 
   /* Remove black outline on chart click/tap (Recharts SVG focus) */
   .recharts-wrapper,
