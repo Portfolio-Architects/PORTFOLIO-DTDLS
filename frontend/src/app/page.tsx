@@ -14,7 +14,6 @@ import DongFilterBar from '@/components/DongFilterBar';
 import { FieldReportModal } from '@/components/ApartmentModal';
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
 import { ZONES } from '@/lib/zones';
-import { TX_SUMMARY } from '@/lib/transaction-summary';
 import { buildInitialApartments } from '@/lib/dong-apartments';
 
 interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }
@@ -55,6 +54,12 @@ export default function Dashboard() {
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const [commentsData, setCommentsData] = useState<Record<string, CommentData[]>>({});
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
+
+  // Lazy-loaded transaction summary (removes 129KB from client bundle)
+  const [txSummaryData, setTxSummaryData] = useState<Record<string, AptTxSummary>>({});
+  useEffect(() => {
+    fetch('/api/transaction-summary').then(r => r.json()).then(setTxSummaryData).catch(() => {});
+  }, []);
 
   // Tab state
   const [activeTab, setActiveTab] = useState<'imjang' | 'lounge' | 'recommend'>('imjang');
@@ -174,7 +179,7 @@ export default function Dashboard() {
     setIsTxLoading(true);
 
     // findTxKey로 JSON 파일명 결정 (접두사 자동 strip)
-    const txKey = findTxKey(selectedReport.apartmentName, TX_SUMMARY, nameMapping);
+    const txKey = findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
     const fileKey = txKey || normalizeAptName(selectedReport.apartmentName);
 
     fetch(`/tx-data/${encodeURIComponent(fileKey)}.json`)
@@ -401,8 +406,8 @@ export default function Dashboard() {
                             return aHas - bHas;
                           });
                           return (selectedDong ? sorted : sorted.slice(0, 6)).map(apt => {
-                          const txKey = findTxKey(apt.name, TX_SUMMARY, nameMapping);
-                          const txSummary = txKey ? TX_SUMMARY[txKey] : undefined;
+                          const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
+                          const txSummary = txKey ? txSummaryData[txKey] : undefined;
                           const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name));
 
                           return (
