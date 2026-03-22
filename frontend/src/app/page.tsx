@@ -25,6 +25,7 @@ const PaymentButton = dynamic(() => import('@/components/PaymentButton'), { ssr:
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
 import WriteReviewModal from '@/components/WriteReviewModal';
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
+import { ZONES } from '@/lib/zones';
 import { TX_SUMMARY } from '@/lib/transaction-summary';
 import { buildInitialApartments } from '@/lib/dong-apartments';
 
@@ -2022,6 +2023,33 @@ export default function Dashboard() {
               <h3 className="text-[18px] sm:text-[24px] font-extrabold mb-1 relative z-10">우리 아파트 탈탈 털어드림!</h3>
               <p className="text-white/80 text-[12px] sm:text-[14px] relative z-10">장점부터 숨기고 싶은 단점까지 속 시원하게 분석 신청하기</p>
               <div className="absolute top-6 right-6 sm:top-8 sm:right-8 bg-white text-[#3182f6] w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold shadow-lg shadow-black/10">&rarr;</div>
+            </div>
+
+            {/* ── 7대 투자 권역 ── */}
+            <div>
+              <h3 className="text-[18px] font-extrabold text-[#191f28] mb-4 flex items-center gap-2">
+                <MapPin size={18} className="text-[#3182f6]" />
+                7대 투자 권역
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {ZONES.map(zone => (
+                  <div
+                    key={zone.id}
+                    onClick={() => router.push(`/zone/${zone.id}`)}
+                    className="bg-white rounded-2xl border border-[#e5e8eb] p-5 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer transition-all duration-200 group"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full shrink-0"
+                        style={{ backgroundColor: zone.color }}
+                      />
+                      <span className="text-[15px] font-extrabold text-[#191f28] group-hover:text-[#3182f6] transition-colors">{zone.name}</span>
+                    </div>
+                    <span className="text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-0.5 rounded-md inline-block mb-2">{zone.dongLabel}</span>
+                    <p className="text-[13px] text-[#4e5968] leading-relaxed line-clamp-2">{zone.description}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* KPI Cards */}
