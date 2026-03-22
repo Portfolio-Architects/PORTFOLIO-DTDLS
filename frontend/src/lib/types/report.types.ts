@@ -70,6 +70,8 @@ export interface FieldReportData {
   likes: number;
   /** 댓글 수 */
   commentCount: number;
+  /** 조회수 (IP당 일 1회, 관리자 제외) */
+  viewCount?: number;
   /** 댓글 목록 */
   comments?: CommentData[];
   /** 대표 이미지 URL (Legacy) */

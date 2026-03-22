@@ -1390,6 +1390,12 @@ export default function Dashboard() {
       }).catch(() => {
         setIsLoadingDetail(false);
       });
+      // Track view (fire-and-forget, non-blocking)
+      fetch('/api/report-view', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reportId: selectedReport.id, userEmail: user?.email }),
+      }).catch(() => {}); // silently ignore errors
     } else {
       setFullReportData(null);
       setIsLoadingDetail(false);

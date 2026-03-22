@@ -15,7 +15,7 @@ import type { FieldReportData } from '@/lib/types/report.types';
  * @returns Unsubscribe function
  */
 export function listenToReports(callback: (reports: FieldReportData[]) => void): () => void {
-  const q = query(collection(db, 'scoutingReports'), orderBy('createdAt', 'desc'), limit(30));
+  const q = query(collection(db, 'scoutingReports'), orderBy('viewCount', 'desc'), limit(30));
 
   return onSnapshot(q, (snapshot) => {
     const reports: FieldReportData[] = [];
@@ -33,6 +33,7 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
         rating: 5,
         author: '데이터 랩스',
         likes: data.likes || 0,
+        viewCount: data.viewCount || 0,
         commentCount: data.commentCount || 0,
         imageUrl: data.thumbnailUrl || data.imageUrl,
                 createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
@@ -66,6 +67,7 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
     rating: 5,
     author: '데이터 랩스',
     likes: data.likes || 0,
+    viewCount: data.viewCount || 0,
     commentCount: data.commentCount || 0,
     imageUrl: data.thumbnailUrl || data.imageUrl,
     images: data.images || [],
