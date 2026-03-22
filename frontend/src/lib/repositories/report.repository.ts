@@ -17,15 +17,14 @@ import type { FieldReportData } from '@/lib/types/report.types';
 export function listenToReports(callback: (reports: FieldReportData[]) => void): () => void {
   const q = query(collection(db, 'scoutingReports'), orderBy('viewCount', 'desc'), limit(30));
 
-  return onSnapshot(q, (snapshot) => {
+  const mapSnapshot = (snapshot: any): FieldReportData[] => {
     const reports: FieldReportData[] = [];
-    snapshot.forEach((docSnap) => {
+    snapshot.forEach((docSnap: any) => {
       const data = docSnap.data();
       reports.push({
         id: docSnap.id,
         dong: data.dong || '오산동 (동탄역)',
         apartmentName: data.apartmentName,
-        // sections & images intentionally omitted for list performance
         premiumScores: data.premiumScores,
         premiumContent: data.premiumContent,
         pros: data.premiumContent || '포장 싹 뺀 진짜 동네 아파트 리뷰',
@@ -36,10 +35,25 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
         viewCount: data.viewCount || 0,
         commentCount: data.commentCount || 0,
         imageUrl: data.thumbnailUrl || data.imageUrl,
-                createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
+        metrics: data.metrics,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
       });
     });
-    callback(reports);
+    return reports;
+  };
+
+  return onSnapshot(q, (snapshot) => {
+    callback(mapSnapshot(snapshot));
+  }, (error) => {
+    console.error('[ReportRepo] onSnapshot error, falling back to unordered query:', error.message);
+    // Fallback: query without orderBy (no index needed)
+    const fallbackQ = query(collection(db, 'scoutingReports'), limit(30));
+    onSnapshot(fallbackQ, (fallbackSnapshot) => {
+      callback(mapSnapshot(fallbackSnapshot));
+    }, (fallbackError) => {
+      console.error('[ReportRepo] Fallback also failed:', fallbackError.message);
+      callback([]);
+    });
   });
 }
 

@@ -73,13 +73,19 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   private dongtanApartments: string[] = [];
   private listeners: (() => void)[] = [];
   private cleanupFns: (() => void)[] = [];
+  private initialized = false;
 
   constructor() {
     this.kpis = createInitialKPIs();
-    this.init();
+    // Only init Firestore listeners on the client side
+    if (typeof window !== 'undefined') {
+      this.init();
+    }
   }
 
   private init() {
+    if (this.initialized) return;
+    this.initialized = true;
     // KPI simulation
     const stopKPI = startKPISimulation(this.kpis, () => this.notifyListeners());
     this.cleanupFns.push(stopKPI);
@@ -111,6 +117,10 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   }
 
   subscribe(callback: () => void) {
+    // Lazy init: if not yet initialized (e.g. SSR), start now
+    if (!this.initialized && typeof window !== 'undefined') {
+      this.init();
+    }
     this.listeners.push(callback);
     return () => {
       this.listeners = this.listeners.filter(cb => cb !== callback);
