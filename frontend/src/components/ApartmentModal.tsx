@@ -1,12 +1,13 @@
-﻿'use client';
+'use client';
 
 import { useState, useRef, useMemo } from 'react';
 import {
   MapPin, X, TrendingUp, Camera, Maximize2,
-  MessageSquare, UserCircle
+  MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar
 } from 'lucide-react';
 import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Bar, Customized, Line, Legend } from 'recharts';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { normalize84Price } from '@/lib/utils/valuation';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 import type { CommentData, FieldReportData } from '@/lib/DashboardFacade';
@@ -139,7 +140,7 @@ export function FieldReportModal({
   const [chartTimeframe, setChartTimeframe] = useState<'6M'|'1Y'|'3Y'|'ALL'>('ALL');
   const [isTxExpanded, setIsTxExpanded] = useState(false);
   const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: any } | null>(null);
-  const isUnlocked = isPurchased || isAdmin;
+  const isUnlocked = !!(isPurchased || isAdmin);
   const isStub = report.id.startsWith('stub-');
   const modalRef = useRef<HTMLDivElement>(null);
   const scrollToSection = (id: string) => {
