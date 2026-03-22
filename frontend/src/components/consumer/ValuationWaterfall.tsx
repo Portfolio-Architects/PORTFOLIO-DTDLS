@@ -33,29 +33,29 @@ export default function ValuationWaterfall({ scores, price84Man }: Props) {
     {
       name: '종합',
       value: breakdown.totalScore,
-      color: '#191f28',
+      color: '#EDF2F4',
       isTotal: true,
     },
   ];
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-[#e5e8eb] animate-in fade-in duration-500">
+    <div className="bg-[#1B2340] rounded-2xl shadow-sm border border-[#1E2A45] animate-in fade-in duration-500">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-[#e5e8eb]">
+      <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-[#1E2A45]">
         <div>
-          <h2 className="text-[18px] font-extrabold text-[#191f28] flex items-center gap-2">
-            <TrendingUp size={20} className="text-[#3182f6]"/>
+          <h2 className="text-[18px] font-extrabold text-[#EDF2F4] flex items-center gap-2">
+            <TrendingUp size={20} className="text-[#8D99AE]"/>
             밸류에이션 분석
           </h2>
-          <p className="text-[13px] text-[#8b95a1] mt-0.5">PUR·임대수익률·항목별 기여도 투명 공개</p>
+          <p className="text-[13px] text-[#6B7394] mt-0.5">PUR·임대수익률·항목별 기여도 투명 공개</p>
         </div>
       </div>
 
       <div className="p-5 flex flex-col gap-5">
         {/* PUR + Yield Cards */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-[#f9fafb] border border-[#e5e8eb] rounded-2xl p-4 text-center">
-            <div className="text-[12px] font-extrabold text-[#8b95a1] mb-1">PUR (가격대비효용)</div>
+          <div className="bg-[#141C33] border border-[#1E2A45] rounded-2xl p-4 text-center">
+            <div className="text-[12px] font-extrabold text-[#6B7394] mb-1">PUR (가격대비효용)</div>
             <div className="flex items-end justify-center gap-1 mb-1">
               <span className="text-[28px] font-extrabold leading-none" style={{ color: valuation.purColor }}>
                 {valuation.pur}
@@ -64,38 +64,38 @@ export default function ValuationWaterfall({ scores, price84Man }: Props) {
             <div className="inline-block px-2 py-0.5 rounded-md text-[11px] font-extrabold" style={{ backgroundColor: `${valuation.purColor}15`, color: valuation.purColor }}>
               {valuation.purGrade}등급 · {valuation.pur <= 100 ? '가성비 우수' : '프리미엄 가격'}
             </div>
-            <p className="text-[10px] text-[#8b95a1] mt-2">낮을수록 가성비 우수 (가격÷효용점수)</p>
+            <p className="text-[10px] text-[#6B7394] mt-2">낮을수록 가성비 우수 (가격÷효용점수)</p>
           </div>
-          <div className="bg-[#f9fafb] border border-[#e5e8eb] rounded-2xl p-4 text-center">
-            <div className="text-[12px] font-extrabold text-[#8b95a1] mb-1">추정 임대수익률</div>
+          <div className="bg-[#141C33] border border-[#1E2A45] rounded-2xl p-4 text-center">
+            <div className="text-[12px] font-extrabold text-[#6B7394] mb-1">추정 임대수익률</div>
             <div className="flex items-end justify-center gap-0.5 mb-1">
               <span className="text-[28px] font-extrabold leading-none" style={{ color: valuation.yieldColor }}>
                 {valuation.estimatedYield}
               </span>
-              <span className="text-[14px] font-bold text-[#8b95a1] mb-0.5">%</span>
+              <span className="text-[14px] font-bold text-[#6B7394] mb-0.5">%</span>
             </div>
             <div className="inline-block px-2 py-0.5 rounded-md text-[11px] font-extrabold" style={{ backgroundColor: `${valuation.yieldColor}15`, color: valuation.yieldColor }}>
               {valuation.yieldGrade}등급
             </div>
-            <p className="text-[10px] text-[#8b95a1] mt-2">전세가율 62% · 전환율 4.5% 기준 추정</p>
+            <p className="text-[10px] text-[#6B7394] mt-2">전세가율 62% · 전환율 4.5% 기준 추정</p>
           </div>
         </div>
 
         {/* 기준 가격 */}
-        <div className="bg-[#e8f3ff] rounded-xl px-4 py-3 flex items-center justify-between">
-          <span className="text-[13px] font-bold text-[#3182f6]">84㎡ 기준 매매가</span>
-          <span className="text-[16px] font-extrabold text-[#191f28]">{formatEok(price84Man)}</span>
+        <div className="bg-[#141C33] rounded-xl px-4 py-3 flex items-center justify-between">
+          <span className="text-[13px] font-bold text-[#8D99AE]">84㎡ 기준 매매가</span>
+          <span className="text-[16px] font-extrabold text-[#EDF2F4]">{formatEok(price84Man)}</span>
         </div>
 
         {/* 폭포수 차트 */}
         <div>
-          <h3 className="text-[14px] font-extrabold text-[#191f28] mb-3">점수 산출 항목별 기여도</h3>
+          <h3 className="text-[14px] font-extrabold text-[#EDF2F4] mb-3">점수 산출 항목별 기여도</h3>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f2f4f6" />
-                <XAxis dataKey="name" tick={{ fill: '#4e5968', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#8b95a1', fontSize: 10 }} axisLine={false} tickLine={false} width={32} domain={[0, 'auto']} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#0E1730" />
+                <XAxis dataKey="name" tick={{ fill: '#8D99AE', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#6B7394', fontSize: 10 }} axisLine={false} tickLine={false} width={32} domain={[0, 'auto']} />
                 <Tooltip
                   contentStyle={{ borderRadius: 10, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontSize: 13, fontWeight: 700 }}
                   formatter={(value: any, name: any, entry: any) => {
@@ -115,10 +115,10 @@ export default function ValuationWaterfall({ scores, price84Man }: Props) {
         </div>
 
         {/* 상세 테이블 */}
-        <div className="bg-[#f9fafb] rounded-xl p-4 border border-[#e5e8eb]">
+        <div className="bg-[#141C33] rounded-xl p-4 border border-[#1E2A45]">
           <table className="w-full text-[12px]">
             <thead>
-              <tr className="text-[#8b95a1] border-b border-[#e5e8eb]">
+              <tr className="text-[#6B7394] border-b border-[#1E2A45]">
                 <th className="py-2 text-left font-extrabold">영역</th>
                 <th className="py-2 text-right font-extrabold">원 점수</th>
                 <th className="py-2 text-right font-extrabold">가중치</th>
@@ -127,20 +127,20 @@ export default function ValuationWaterfall({ scores, price84Man }: Props) {
             </thead>
             <tbody>
               {breakdown.items.map(item => (
-                <tr key={item.name} className="border-b border-[#f2f4f6]">
+                <tr key={item.name} className="border-b border-[#0E1730]">
                   <td className="py-2 font-bold flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
                     {item.name}
                   </td>
-                  <td className="py-2 text-right text-[#4e5968] font-bold">{item.rawScore}점</td>
-                  <td className="py-2 text-right text-[#8b95a1]">{Math.round(item.weight * 100)}%</td>
+                  <td className="py-2 text-right text-[#8D99AE] font-bold">{item.rawScore}점</td>
+                  <td className="py-2 text-right text-[#6B7394]">{Math.round(item.weight * 100)}%</td>
                   <td className="py-2 text-right font-extrabold" style={{ color: item.color }}>{item.contribution}점</td>
                 </tr>
               ))}
-              <tr className="border-t-2 border-[#191f28]">
-                <td className="py-2 font-extrabold text-[#191f28]">종합 점수</td>
+              <tr className="border-t-2 border-[#EDF2F4]">
+                <td className="py-2 font-extrabold text-[#EDF2F4]">종합 점수</td>
                 <td colSpan={2}></td>
-                <td className="py-2 text-right font-extrabold text-[16px] text-[#191f28]">{breakdown.totalScore}점</td>
+                <td className="py-2 text-right font-extrabold text-[16px] text-[#EDF2F4]">{breakdown.totalScore}점</td>
               </tr>
             </tbody>
           </table>
@@ -149,7 +149,7 @@ export default function ValuationWaterfall({ scores, price84Man }: Props) {
         {/* 알고리즘 투명성 안내 */}
         <div className="flex items-start gap-2 px-1">
           <ShieldCheck size={14} className="text-[#03c75a] mt-0.5 shrink-0" />
-          <p className="text-[11px] text-[#8b95a1] leading-relaxed">
+          <p className="text-[11px] text-[#6B7394] leading-relaxed">
             이 분석은 공개 알고리즘에 의해 산출됩니다. 학군(초등·중학교 거리, 학원 밀집도), 교통(GTX·인덕원선·트램), 주거쾌적(주차·건폐율·용적률), 단지경쟁력(세대수·브랜드·연식), 생활인프라(음식점·카페)의 5개 영역 가중 평균입니다.
           </p>
         </div>

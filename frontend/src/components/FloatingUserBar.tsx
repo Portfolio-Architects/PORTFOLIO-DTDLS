@@ -48,7 +48,7 @@ export default function FloatingUserBar() {
       {/* Floating User Bar */}
       <div className="fixed top-[13px] sm:top-4 right-2 sm:right-4 z-50 animate-in slide-in-from-top-2 duration-300">
         {user ? (
-          <div className="flex items-center gap-1.5 sm:gap-2 bg-white/90 backdrop-blur-xl rounded-full pl-2.5 sm:pl-3 pr-3 sm:pr-4 py-1 sm:py-1.5 shadow-lg border border-[#e5e8eb]/50">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-[#1B2340]/90 backdrop-blur-xl rounded-full pl-2.5 sm:pl-3 pr-3 sm:pr-4 py-1 sm:py-1.5 shadow-lg border border-[#1E2A45]/50">
             <button onClick={() => {
               setEditFrontName(anonProfile?.frontName || '동탄사는');
               setEditNickname(anonProfile?.nickname || '');
@@ -56,29 +56,29 @@ export default function FloatingUserBar() {
               setProfilePhotoFile(null);
               setShowProfileModal(true);
             }} className="flex items-center gap-1.5 hover:opacity-70 transition-opacity">
-              <div className="w-5 h-5 rounded-full bg-[#e8f3ff] flex items-center justify-center text-[#3182f6] overflow-hidden">
+              <div className="w-5 h-5 rounded-full bg-[#141C33] flex items-center justify-center text-[#8D99AE] overflow-hidden">
                 {anonProfile?.photoURL ? (
                   <img src={anonProfile.photoURL} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <UserCircle size={14} />
                 )}
               </div>
-              <span className="text-[12px] font-bold text-[#191f28] hidden sm:inline">{anonProfile?.nickname || user.displayName || user.email?.split('@')[0] || '사용자'}</span>
-              <Edit3 size={10} className="text-[#8b95a1] hidden sm:inline" />
+              <span className="text-[12px] font-bold text-[#EDF2F4] hidden sm:inline">{anonProfile?.nickname || user.displayName || user.email?.split('@')[0] || '사용자'}</span>
+              <Edit3 size={10} className="text-[#6B7394] hidden sm:inline" />
             </button>
             {dashboardFacade.isAdmin(user.email) && (
               <button 
                 onClick={() => router.push('/admin')}
-                className="ml-1 bg-[#191f28] text-white px-3 py-1 rounded-lg text-[12px] font-bold transition-colors">
+                className="ml-1 bg-[#EDF2F4] text-[#EDF2F4] px-3 py-1 rounded-lg text-[12px] font-bold transition-colors">
                 관리자
               </button>
             )}
-            <button onClick={handleLogout} className="ml-0.5 sm:ml-1 bg-[#ffebec] text-[#f04452] hover:bg-[#f04452] hover:text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-[12px] font-bold transition-colors">
+            <button onClick={handleLogout} className="ml-0.5 sm:ml-1 bg-[#ffebec] text-[#EF233C] hover:bg-[#EF233C] hover:text-[#EDF2F4] px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-[12px] font-bold transition-colors">
               로그아웃
             </button>
           </div>
         ) : (
-          <button onClick={handleLogin} className="flex items-center gap-1.5 bg-white/90 backdrop-blur-xl hover:bg-white text-[#191f28] text-[12px] sm:text-[13px] font-bold py-1.5 sm:py-2 px-3 sm:px-5 rounded-full shadow-lg border border-[#e5e8eb]/50 transition-colors">
+          <button onClick={handleLogin} className="flex items-center gap-1.5 bg-[#1B2340]/90 backdrop-blur-xl hover:bg-[#1B2340] text-[#EDF2F4] text-[12px] sm:text-[13px] font-bold py-1.5 sm:py-2 px-3 sm:px-5 rounded-full shadow-lg border border-[#1E2A45]/50 transition-colors">
             로그인
           </button>
         )}
@@ -87,24 +87,24 @@ export default function FloatingUserBar() {
       {/* Profile Edit Modal */}
       {showProfileModal && user && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="absolute inset-0 bg-[#191f28]/50 backdrop-blur-sm" onClick={() => setShowProfileModal(false)} />
-          <div className="relative bg-white rounded-3xl p-8 w-full max-w-[420px] shadow-2xl">
-            <button onClick={() => setShowProfileModal(false)} className="absolute top-4 right-4 text-[#8b95a1] hover:text-[#191f28] p-1 rounded-full transition-colors">
+          <div className="absolute inset-0 bg-[#EDF2F4]/50 backdrop-blur-sm" onClick={() => setShowProfileModal(false)} />
+          <div className="relative bg-[#1B2340] rounded-3xl p-8 w-full max-w-[420px] shadow-2xl">
+            <button onClick={() => setShowProfileModal(false)} className="absolute top-4 right-4 text-[#6B7394] hover:text-[#EDF2F4] p-1 rounded-full transition-colors">
               <X size={18} />
             </button>
 
             {/* Profile Photo */}
             <div className="flex flex-col items-center mb-6">
               <div className="relative group cursor-pointer mb-3" onClick={() => document.getElementById('floating-profile-photo-input')?.click()}>
-                <div className="w-20 h-20 rounded-full bg-[#e8f3ff] flex items-center justify-center overflow-hidden ring-4 ring-[#e8f3ff]">
+                <div className="w-20 h-20 rounded-full bg-[#141C33] flex items-center justify-center overflow-hidden ring-4 ring-[#141C33]">
                   {profilePhotoPreview ? (
                     <img src={profilePhotoPreview} alt="프로필" className="w-full h-full object-cover" />
                   ) : (
-                    <UserCircle size={40} className="text-[#3182f6]" />
+                    <UserCircle size={40} className="text-[#8D99AE]" />
                   )}
                 </div>
                 <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Camera size={20} className="text-white" />
+                  <Camera size={20} className="text-[#EDF2F4]" />
                 </div>
                 <input
                   id="floating-profile-photo-input"
@@ -120,31 +120,31 @@ export default function FloatingUserBar() {
                   }}
                 />
               </div>
-              <h3 className="text-[18px] font-extrabold text-[#191f28]">프로필 수정</h3>
-              <p className="text-[13px] text-[#8b95a1] mt-1">{user.email}</p>
+              <h3 className="text-[18px] font-extrabold text-[#EDF2F4]">프로필 수정</h3>
+              <p className="text-[13px] text-[#6B7394] mt-1">{user.email}</p>
             </div>
 
             {/* Nickname Preview */}
-            <div className="bg-[#f9fafb] border border-[#e5e8eb] rounded-2xl p-4 mb-5 text-center">
-              <p className="text-[11px] text-[#8b95a1] font-bold mb-1.5">다른 사용자에게 보이는 이름</p>
-              <p className="text-[22px] font-extrabold text-[#191f28] tracking-wide">
-                <span className="text-[#3182f6]">{editFrontName}</span> {editNickname}
+            <div className="bg-[#141C33] border border-[#1E2A45] rounded-2xl p-4 mb-5 text-center">
+              <p className="text-[11px] text-[#6B7394] font-bold mb-1.5">다른 사용자에게 보이는 이름</p>
+              <p className="text-[22px] font-extrabold text-[#EDF2F4] tracking-wide">
+                <span className="text-[#8D99AE]">{editFrontName}</span> {editNickname}
               </p>
-              <p className="text-[11px] text-[#8b95a1] mt-1">총 {editFrontName.length + editNickname.length}/7글자</p>
+              <p className="text-[11px] text-[#6B7394] mt-1">총 {editFrontName.length + editNickname.length}/7글자</p>
             </div>
 
             <div className="space-y-4">
               {/* FrontName (4자) */}
               <div>
-                <label className="text-[12px] font-bold text-[#4e5968] mb-1.5 flex items-center justify-between">
+                <label className="text-[12px] font-bold text-[#8D99AE] mb-1.5 flex items-center justify-between">
                   <span>프론트 네임 (4글자)</span>
-                  <span className={`text-[11px] ${editFrontName.length === 4 ? 'text-[#03c75a]' : 'text-[#f04452]'}`}>{editFrontName.length}/4</span>
+                  <span className={`text-[11px] ${editFrontName.length === 4 ? 'text-[#03c75a]' : 'text-[#EF233C]'}`}>{editFrontName.length}/4</span>
                 </label>
                 <input
                   type="text"
                   value={editFrontName}
                   onChange={(e) => { if (e.target.value.length <= 4) setEditFrontName(e.target.value); }}
-                  className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] font-bold text-[#191f28] focus:ring-2 focus:ring-[#3182f6]/20 focus:border-[#3182f6] outline-none text-center tracking-widest"
+                  className="w-full px-4 py-3 bg-[#141C33] border border-[#1E2A45] rounded-xl text-[15px] font-bold text-[#EDF2F4] focus:ring-2 focus:ring-[#8D99AE]/20 focus:border-[#8D99AE] outline-none text-center tracking-widest"
                   placeholder="동탄사는"
                   maxLength={4}
                 />
@@ -152,15 +152,15 @@ export default function FloatingUserBar() {
 
               {/* Nickname (3자) */}
               <div>
-                <label className="text-[12px] font-bold text-[#4e5968] mb-1.5 flex items-center justify-between">
+                <label className="text-[12px] font-bold text-[#8D99AE] mb-1.5 flex items-center justify-between">
                   <span>닉네임 (3글자)</span>
-                  <span className={`text-[11px] ${editNickname.length === 3 ? 'text-[#03c75a]' : 'text-[#f04452]'}`}>{editNickname.length}/3</span>
+                  <span className={`text-[11px] ${editNickname.length === 3 ? 'text-[#03c75a]' : 'text-[#EF233C]'}`}>{editNickname.length}/3</span>
                 </label>
                 <input
                   type="text"
                   value={editNickname}
                   onChange={(e) => { if (e.target.value.length <= 3) setEditNickname(e.target.value); }}
-                  className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] font-bold text-[#191f28] focus:ring-2 focus:ring-[#3182f6]/20 focus:border-[#3182f6] outline-none text-center tracking-widest"
+                  className="w-full px-4 py-3 bg-[#141C33] border border-[#1E2A45] rounded-xl text-[15px] font-bold text-[#EDF2F4] focus:ring-2 focus:ring-[#8D99AE]/20 focus:border-[#8D99AE] outline-none text-center tracking-widest"
                   placeholder="랑독이"
                   maxLength={3}
                 />
@@ -191,7 +191,7 @@ export default function FloatingUserBar() {
                   }
                 }}
                 disabled={isSavingProfile || editFrontName.length !== 4 || editNickname.length !== 3}
-                className="w-full py-3 bg-[#3182f6] hover:bg-[#2b72d6] text-white font-bold text-[14px] rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-[#8D99AE] hover:bg-[#2b72d6] text-[#EDF2F4] font-bold text-[14px] rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isSavingProfile ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

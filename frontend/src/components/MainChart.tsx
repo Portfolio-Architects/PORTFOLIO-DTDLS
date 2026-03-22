@@ -42,7 +42,7 @@ export default function MainChart() {
   }, []);
 
   if (loading) {
-    return <div className="text-[#8b95a1] font-medium animate-pulse">데이터를 불러오는 중입니다...</div>;
+    return <div className="text-[#6B7394] font-medium animate-pulse">데이터를 불러오는 중입니다...</div>;
   }
 
   return (
@@ -51,8 +51,8 @@ export default function MainChart() {
         <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3182f6" stopOpacity={0.2} />
-              <stop offset="95%" stopColor="#3182f6" stopOpacity={0} />
+              <stop offset="5%" stopColor="#8D99AE" stopOpacity={0.2} />
+              <stop offset="95%" stopColor="#8D99AE" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.03)" />
@@ -60,30 +60,30 @@ export default function MainChart() {
             dataKey="date" 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: '#8b95a1', fontSize: 12 }} 
+            tick={{ fill: '#6B7394', fontSize: 12 }} 
             dy={10}
           />
           <YAxis 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: '#8b95a1', fontSize: 12 }} 
+            tick={{ fill: '#6B7394', fontSize: 12 }} 
             dx={-10}
             domain={['auto', 'auto']}
           />
           <Tooltip 
             contentStyle={{ backgroundColor: 'rgba(25, 31, 40, 0.9)', borderRadius: '8px', border: 'none', color: '#fff' }}
             itemStyle={{ color: '#fff' }}
-            labelStyle={{ color: '#8b95a1', marginBottom: '4px' }}
+            labelStyle={{ color: '#6B7394', marginBottom: '4px' }}
             formatter={(value: any) => [`${Number(value).toLocaleString()} 만원`, '실거래가']}
           />
           <Area 
             type="monotone" 
             dataKey="price" 
-            stroke="#3182f6" 
+            stroke="#8D99AE" 
             strokeWidth={3}
             fillOpacity={1} 
             fill="url(#colorPrice)" 
-            activeDot={{ r: 6, strokeWidth: 0, fill: '#3182f6' }}
+            activeDot={{ r: 6, strokeWidth: 0, fill: '#8D99AE' }}
           />
         </AreaChart>
       </ResponsiveContainer>

@@ -25,10 +25,10 @@ export default function EduBubbleChart() {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-[#191f28]/90 p-3 rounded-lg text-white border-none shadow-lg text-sm">
+        <div className="bg-[#EDF2F4]/90 p-3 rounded-lg text-[#EDF2F4] border-none shadow-lg text-sm">
           <p className="font-bold mb-1">{data.area} ({data.name})</p>
-          <p className="text-[#d1d6db]">밀집도 지수: <span className="text-white font-semibold">{data.z}</span></p>
-          <p className="text-[#d1d6db]">평균 수강단가: <span className="text-white font-semibold">{data.y}</span></p>
+          <p className="text-[#2A3558]">밀집도 지수: <span className="text-[#EDF2F4] font-semibold">{data.z}</span></p>
+          <p className="text-[#2A3558]">평균 수강단가: <span className="text-[#EDF2F4] font-semibold">{data.y}</span></p>
         </div>
       );
     }
@@ -49,7 +49,7 @@ export default function EduBubbleChart() {
             tickCount={4}
             axisLine={false}
             tickLine={false}
-            tick={{ fill: '#8b95a1', fontSize: 13 }}
+            tick={{ fill: '#6B7394', fontSize: 13 }}
           />
           <YAxis 
             type="number" 
@@ -57,13 +57,13 @@ export default function EduBubbleChart() {
             name="평균 수강 단가" 
             axisLine={false}
             tickLine={false}
-            tick={{ fill: '#8b95a1', fontSize: 13 }}
+            tick={{ fill: '#6B7394', fontSize: 13 }}
             domain={[0, 100]}
           />
           <ZAxis type="number" dataKey="z" range={[200, 1500]} name="밀집도" />
-          <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3', stroke: '#d1d6db' }} />
-          <Scatter name="북동탄 (카림상권)" data={northData} fill="#3182f6" fillOpacity={0.6} stroke="#3182f6" strokeWidth={2} />
-          <Scatter name="남동탄 (호수공원 주변)" data={southData} fill="#f04452" fillOpacity={0.6} stroke="#f04452" strokeWidth={2} />
+          <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3', stroke: '#2A3558' }} />
+          <Scatter name="북동탄 (카림상권)" data={northData} fill="#8D99AE" fillOpacity={0.6} stroke="#8D99AE" strokeWidth={2} />
+          <Scatter name="남동탄 (호수공원 주변)" data={southData} fill="#EF233C" fillOpacity={0.6} stroke="#EF233C" strokeWidth={2} />
         </ScatterChart>
       </ResponsiveContainer>
     </div>

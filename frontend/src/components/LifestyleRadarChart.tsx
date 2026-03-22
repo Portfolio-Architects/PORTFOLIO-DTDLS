@@ -19,21 +19,21 @@ export default function LifestyleRadarChart() {
           <PolarGrid stroke="rgba(0,0,0,0.05)" />
           <PolarAngleAxis 
             dataKey="time" 
-            tick={{ fill: '#4e5968', fontSize: 13, fontFamily: 'sans-serif' }} 
+            tick={{ fill: '#8D99AE', fontSize: 13, fontFamily: 'sans-serif' }} 
           />
           <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
           <Tooltip 
             contentStyle={{ backgroundColor: 'rgba(25, 31, 40, 0.9)', borderRadius: '8px', border: 'none', color: '#fff' }}
             itemStyle={{ color: '#fff' }}
-            labelStyle={{ color: '#8b95a1', marginBottom: '4px' }}
+            labelStyle={{ color: '#6B7394', marginBottom: '4px' }}
           />
           <Legend wrapperStyle={{ fontSize: '13px', paddingTop: '10px' }} iconType="circle" />
           <Radar 
             name="롯데백화점 동탄점" 
             dataKey="롯데백화점" 
-            stroke="#3182f6" 
+            stroke="#8D99AE" 
             strokeWidth={3}
-            fill="#3182f6" 
+            fill="#8D99AE" 
             fillOpacity={0.2} 
           />
           <Radar 

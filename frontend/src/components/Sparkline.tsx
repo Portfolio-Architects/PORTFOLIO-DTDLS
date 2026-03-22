@@ -8,7 +8,7 @@ interface SparklineProps {
   className?: string;
 }
 
-export default function Sparkline({ data, width = 64, height = 20, color = '#3182f6', className = '' }: SparklineProps) {
+export default function Sparkline({ data, width = 64, height = 20, color = '#8D99AE', className = '' }: SparklineProps) {
   if (!data || data.length < 2) return null;
 
   const min = Math.min(...data);
@@ -24,7 +24,7 @@ export default function Sparkline({ data, width = 64, height = 20, color = '#318
 
   // Trend: last vs first
   const trend = data[data.length - 1] > data[0] ? 1 : data[data.length - 1] < data[0] ? -1 : 0;
-  const strokeColor = trend > 0 ? '#EF4444' : trend < 0 ? '#3182f6' : color;
+  const strokeColor = trend > 0 ? '#EF4444' : trend < 0 ? '#8D99AE' : color;
 
   return (
     <svg width={width} height={height} className={className} viewBox={`0 0 ${width} ${height}`}>
