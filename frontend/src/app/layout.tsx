@@ -3,6 +3,7 @@ import { PieChart, LayoutDashboard, Building2, Newspaper, MessageSquare, Search,
 import './globals.css';
 import MapProvider from '@/components/map/MapProvider';
 import FloatingUserBar from '@/components/FloatingUserBar';
+import OfflineBanner from '@/components/OfflineBanner';
 
 export const metadata: Metadata = {
   title: '임장크루 | 동탄 아파트 임장 커뮤니티',
@@ -17,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className="antialiased">
+        <OfflineBanner />
         <MapProvider>
           <FloatingUserBar />
           {children}

@@ -15,7 +15,7 @@ import type { FieldReportData } from '@/lib/types/report.types';
  * @returns Unsubscribe function
  */
 export function listenToReports(callback: (reports: FieldReportData[]) => void): () => void {
-  const q = query(collection(db, 'scoutingReports'), orderBy('viewCount', 'desc'), limit(30));
+  const q = query(collection(db, 'scoutingReports'), limit(30));
 
   const mapSnapshot = (snapshot: any): FieldReportData[] => {
     const reports: FieldReportData[] = [];
@@ -37,21 +37,30 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
         imageUrl: data.thumbnailUrl || data.imageUrl,
         metrics: data.metrics,
         createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
-      });
+        // keep raw timestamp for sorting
+        _rawTimestamp: data.createdAt?.toDate ? data.createdAt.toDate().getTime() : 0, 
+      } as any);
     });
-    return reports;
+    return reports.sort((a: any, b: any) => b._rawTimestamp - a._rawTimestamp);
   };
 
   return onSnapshot(q, (snapshot) => {
-    callback(mapSnapshot(snapshot));
+    console.log('[ReportRepo] onSnapshot fired! size:', snapshot.size, 'empty:', snapshot.empty);
+    const mapped = mapSnapshot(snapshot);
+    console.log('[ReportRepo] mapSnapshot produced:', mapped.length, 'reports');
+    console.trace('[ReportRepo] Invoking callback with mapped.length:', mapped.length);
+    callback(mapped);
   }, (error) => {
     console.error('[ReportRepo] onSnapshot error, falling back to unordered query:', error.message);
     // Fallback: query without orderBy (no index needed)
     const fallbackQ = query(collection(db, 'scoutingReports'), limit(30));
     onSnapshot(fallbackQ, (fallbackSnapshot) => {
-      callback(mapSnapshot(fallbackSnapshot));
+      const fallbackMapped = mapSnapshot(fallbackSnapshot);
+      console.trace('[ReportRepo] Invoking callback from fallback with length:', fallbackMapped.length);
+      callback(fallbackMapped);
     }, (fallbackError) => {
       console.error('[ReportRepo] Fallback also failed:', fallbackError.message);
+      console.trace('[ReportRepo] Invoking callback from fallback error with length: 0');
       callback([]);
     });
   });

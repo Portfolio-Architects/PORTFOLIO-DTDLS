@@ -98,7 +98,9 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     this.cleanupFns.push(stopPosts);
 
     const stopReports = ReportRepo.listenToReports((reports) => {
+      console.log(`[DashboardFacade] received ${reports?.length} reports from Repo`);
       this.fieldReports = reports;
+      console.log(`[DashboardFacade] updated this.fieldReports to ${this.fieldReports?.length}. Listeners count: ${this.listeners.length}`);
       this.notifyListeners();
     });
     this.cleanupFns.push(stopReports);
@@ -345,8 +347,15 @@ export class DashboardFacade {
   public isAdmin(email: string | null | undefined): boolean { return this.strategy.isAdmin ? this.strategy.isAdmin(email) : false; }
 }
 
-// Default singleton instance
-export const dashboardFacade = new DashboardFacade();
+// Prevent multiple instances during Next.js Fast Refresh
+const globalForFacade = globalThis as unknown as {
+  dashboardFacade: DashboardFacade | undefined;
+};
+
+export const dashboardFacade = globalForFacade.dashboardFacade ?? new DashboardFacade();
+if (process.env.NODE_ENV !== 'production') {
+  globalForFacade.dashboardFacade = dashboardFacade;
+}
 
 // --- React Hook (re-exported for backward compatibility) ---
 import { useState, useEffect } from 'react';
@@ -356,16 +365,32 @@ import { useState, useEffect } from 'react';
  * Subscribes to the facade's listener pattern and re-renders on data changes.
  */
 export function useDashboardData() {
+  // To avoid hydration mismatch, initialize with perfectly empty/default arrays 
+  // exactly as the server would see them before any singleton effects run.
   const [data, setData] = useState({
-    kpis: dashboardFacade.getKPIs(),
-    newsFeed: dashboardFacade.getNewsFeed(),
-    fieldReports: dashboardFacade.getFieldReports(),
-    userReviews: dashboardFacade.getUserReviews(),
-    dongtanApartments: dashboardFacade.getDongtanApartments(),
-    adBanner: dashboardFacade.getAdBanner(),
+    kpis: [] as KPIData[],
+    newsFeed: [] as NewsItemData[],
+    fieldReports: [] as FieldReportData[],
+    userReviews: [] as UserReview[],
+    dongtanApartments: [] as string[],
+    adBanner: { title: '', description: '', buttonText: '' } as AdBannerData,
   });
 
+  const [isHydrated, setIsHydrated] = useState(false);
+
   useEffect(() => {
+    setIsHydrated(true);
+    
+    // Immediate sync to catch data that arrived before/during mount
+    setData({
+      kpis: [...dashboardFacade.getKPIs()],
+      newsFeed: [...dashboardFacade.getNewsFeed()],
+      fieldReports: [...dashboardFacade.getFieldReports()],
+      userReviews: [...dashboardFacade.getUserReviews()],
+      dongtanApartments: [...dashboardFacade.getDongtanApartments()],
+      adBanner: dashboardFacade.getAdBanner(),
+    });
+
     const unsubscribe = dashboardFacade.subscribe(() => {
       setData({
         kpis: [...dashboardFacade.getKPIs()],
@@ -379,5 +404,5 @@ export function useDashboardData() {
     return () => unsubscribe();
   }, []);
 
-  return data;
+  return { ...data, isHydrated };
 }

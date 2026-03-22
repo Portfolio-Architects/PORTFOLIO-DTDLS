@@ -13,10 +13,13 @@
  * "힐스테이트동탄역" → "힐스테이트동탄역"
  */
 export function normalizeAptName(name: string): string {
+  if (!name) return '';
   return name
-    .replace(/\[.*?\]\s*/g, '')  // [오산동] 제거
-    .replace(/\s+/g, '')         // 공백 제거
-    .replace(/[()（）]/g, '')     // 괄호 제거
+    .normalize('NFC')                      // 한글 자음/모음 분리 현상 변환 (NFD -> NFC)
+    .replace(/[\u200B-\u200D\uFEFF]/g, '') // 눈에 보이지 않는 공백 (Zero-width) 제거
+    .replace(/\[.*?\]\s*/g, '')            // [오산동] 제거
+    .replace(/\s+/g, '')                   // 공백 제거
+    .replace(/[()（）]/g, '')               // 괄호 제거
     .trim();
 }
 
@@ -109,13 +112,14 @@ function deepNormalize(name: string): string {
  * @returns 매칭된 키 (없으면 null)
  */
 export function findTxKey<T>(aptName: string, txMap: Record<string, T>, manualMapping?: Record<string, string>): string | null {
+  const norm = normalizeAptName(aptName);
+
   // 0단계: 수동 매핑 (최우선)
   if (manualMapping) {
-    const mapped = manualMapping[aptName];
+    // Check raw first, then normalized
+    const mapped = manualMapping[aptName] || manualMapping[norm];
     if (mapped && mapped in txMap) return mapped;
   }
-
-  const norm = normalizeAptName(aptName);
 
   // 1단계: 정확 매칭
   if (norm in txMap) return norm;
@@ -131,8 +135,12 @@ export function findTxKey<T>(aptName: string, txMap: Record<string, T>, manualMa
   // 3단계: 심층 정규화
   const deepNorm = deepNormalize(stripped);
   for (const key of Object.keys(txMap)) {
-    const keyDeep = deepNormalize(stripLocationPrefix(key));
-    if (keyDeep === deepNorm) return key;
+    // deepNormalize removes '산척동,' BEFORE stripLocationPrefix removes '동탄호수'
+    const keyDeep = stripLocationPrefix(deepNormalize(key));
+    
+    // Fallback: compare exactly what the deepNorm has, 
+    // or compare deepNormalize(stripLocationPrefix(key)) just in case.
+    if (keyDeep === deepNorm || deepNormalize(stripLocationPrefix(key)) === deepNorm) return key;
   }
 
   return null;
