@@ -24,6 +24,9 @@ const PaymentButton = dynamic(() => import('@/components/PaymentButton'), { ssr:
 
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
 import WriteReviewModal from '@/components/WriteReviewModal';
+import CommentSection from '@/components/CommentSection';
+import ApartmentCard from '@/components/ApartmentCard';
+import DongFilterBar from '@/components/DongFilterBar';
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
 import { ZONES } from '@/lib/zones';
 import { TX_SUMMARY } from '@/lib/transaction-summary';
@@ -1114,105 +1117,14 @@ export function FieldReportModal({
             )}
 
             {/* Comments Section */}
-            <div id="sec-comments" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
-              <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3">
-                <MessageSquare size={20} className="text-[#3182f6]"/> 
-                이 아파트 이야기 <span className="text-[#3182f6] text-[16px] ml-1">{comments.length}</span>
-              </h2>
-              
-              <div className="flex flex-col gap-6">
-                {/* Input Area */}
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    placeholder={user ? "임장기에 대한 생각이나 궁금한 점을 남겨주세요." : "로그인 후 댓글을 남길 수 있습니다."}
-                    disabled={!user}
-                    className="flex-1 border border-[#e5e8eb] rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#3182f6]/20 focus:border-[#3182f6] disabled:bg-[#f2f4f6]"
-                    value={commentInput}
-                    onChange={(e) => onCommentChange(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') onSubmitComment();
-                    }}
-                  />
-                  <button 
-                    onClick={onSubmitComment}
-                    disabled={!user || !commentInput.trim()}
-                    className="bg-[#3182f6] text-white px-5 rounded-xl font-bold text-[14px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    등록
-                  </button>
-                </div>
-
-                {/* Comment List */}
-                <div className="flex flex-col gap-4 mt-2">
-                  {comments.length > 0 ? (
-                    <>
-                      {/* 최신 1개 댓글은 무료 공개 */}
-                      {comments.slice(0, 1).map(comment => (
-                        <div key={comment.id} className="flex gap-3 bg-[#f9fafb] p-4 rounded-2xl border border-[#e5e8eb]">
-                          <div className="w-8 h-8 rounded-full bg-white border border-[#e5e8eb] shadow-sm flex items-center justify-center shrink-0">
-                             <UserCircle size={16} className="text-[#8b95a1]" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-baseline gap-2 mb-1">
-                              <span className="font-bold text-[14px] text-[#191f28]">{comment.author}</span>
-                              <span className="text-[12px] text-[#8b95a1]">{comment.createdAt}</span>
-                            </div>
-                            <p className="text-[14px] text-[#4e5968] leading-relaxed break-all whitespace-pre-wrap">{comment.text}</p>
-                          </div>
-                        </div>
-                      ))}
-
-                      {/* 나머지 댓글: 결제 사용자만 */}
-                      {comments.length > 1 && (
-                        isUnlocked ? (
-                          comments.slice(1).map(comment => (
-                            <div key={comment.id} className="flex gap-3 bg-[#f9fafb] p-4 rounded-2xl border border-[#e5e8eb]">
-                              <div className="w-8 h-8 rounded-full bg-white border border-[#e5e8eb] shadow-sm flex items-center justify-center shrink-0">
-                                 <UserCircle size={16} className="text-[#8b95a1]" />
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-baseline gap-2 mb-1">
-                                  <span className="font-bold text-[14px] text-[#191f28]">{comment.author}</span>
-                                  <span className="text-[12px] text-[#8b95a1]">{comment.createdAt}</span>
-                                </div>
-                                <p className="text-[14px] text-[#4e5968] leading-relaxed break-all whitespace-pre-wrap">{comment.text}</p>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="relative">
-                            <div className="blur-sm opacity-40 pointer-events-none">
-                              {comments.slice(1, 3).map(comment => (
-                                <div key={comment.id} className="flex gap-3 bg-[#f9fafb] p-4 rounded-2xl border border-[#e5e8eb] mb-3">
-                                  <div className="w-8 h-8 rounded-full bg-white border border-[#e5e8eb] shadow-sm flex items-center justify-center shrink-0">
-                                    <UserCircle size={16} className="text-[#8b95a1]" />
-                                  </div>
-                                  <div className="flex-1">
-                                    <div className="h-3 bg-[#e5e8eb] rounded w-20 mb-2" />
-                                    <div className="h-3 bg-[#e5e8eb] rounded w-full" />
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="bg-white border border-[#e5e8eb] rounded-2xl px-6 py-4 text-center shadow-lg">
-                                <p className="text-[14px] font-bold text-[#191f28] mb-1">🔒 {comments.length - 1}개의 이야기가 더 있습니다</p>
-                                <p className="text-[12px] text-[#8b95a1]">프리미엄 구독으로 모든 이야기를 확인하세요</p>
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </>
-                  ) : (
-                    <div className="text-center py-10 text-[#8b95a1] text-[14px]">
-                      아직 작성된 댓글이 없습니다. 첫 댓글을 남겨보세요!
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+            <CommentSection
+              comments={comments}
+              commentInput={commentInput}
+              onCommentChange={onCommentChange}
+              onSubmitComment={onSubmitComment}
+              user={user}
+              isUnlocked={isUnlocked}
+            />
 
           </div>
           )}
@@ -1548,68 +1460,13 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* ── Dong Filter Chips ── */}
-          <div className="mb-6">
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <button
-                suppressHydrationWarning
-                onClick={() => setSelectedDong(null)}
-                className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 whitespace-nowrap shrink-0 ${
-                  !selectedDong
-                    ? 'bg-[#191f28] text-white shadow-md'
-                    : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb]'
-                }`}
-              >
-                전체 ({Object.values(sheetApartments).flat().length})
-              </button>
-              {DONGS.map(dong => {
-                const aptCount = dongAptCounts[dong.name] || 0;
-                const reportCount = dongReportCounts[dong.name] || 0;
-                const isActive = selectedDong === dong.name;
-                if (aptCount === 0) return null; // 아파트 없으면 숨김
-                return (
-                  <button
-                    suppressHydrationWarning
-                    key={dong.id}
-                    onClick={() => setSelectedDong(isActive ? null : dong.name)}
-                    className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
-                      isActive
-                        ? 'text-white shadow-md'
-                        : 'bg-[#f2f4f6] text-[#4e5968] hover:bg-[#e5e8eb]'
-                    }`}
-                    style={isActive ? { backgroundColor: dong.color } : {}}
-                  >
-                    {dong.name} ({aptCount})
-                    {reportCount > 0 && <span className="text-[10px] opacity-70">📝{reportCount}</span>}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ── 동 소개 배너 (선택 시) ── */}
-          {selectedDong && (() => {
-            const dongInfo = getDongByName(selectedDong);
-            if (!dongInfo) return null;
-            return (
-              <div className="mb-6 bg-white rounded-2xl border border-[#e5e8eb] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-[16px] sm:text-[18px] font-extrabold text-[#191f28]">{dongInfo.name}</h3>
-                  <p className="text-[12px] sm:text-[13px] text-[#8b95a1] mt-0.5 line-clamp-2">{dongInfo.description}</p>
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="text-center">
-                    <div className="text-[16px] sm:text-[18px] font-extrabold text-[#191f28]">{dongAptCounts[selectedDong] || 0}</div>
-                    <div className="text-[10px] text-[#8b95a1] font-bold">아파트</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-[16px] sm:text-[18px] font-extrabold text-[#3182f6]">{dongReportCounts[selectedDong] || 0}</div>
-                    <div className="text-[10px] text-[#8b95a1] font-bold">리포트</div>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
+          <DongFilterBar
+            selectedDong={selectedDong}
+            onSelectDong={setSelectedDong}
+            totalAptCount={Object.values(sheetApartments).flat().length}
+            dongAptCounts={dongAptCounts}
+            dongReportCounts={dongReportCounts}
+          />
 
           {/* ── 아파트 카드 그리드 ── */}
           {(() => {
@@ -1658,13 +1515,16 @@ export default function Dashboard() {
                           const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name));
 
                           return (
-                            <div
+                            <ApartmentCard
                               key={apt.name}
+                              apt={apt}
+                              txSummary={txSummary}
+                              report={report}
+                              isPublicRental={publicRentalSet.has(apt.name)}
                               onClick={() => {
                                 if (report) {
                                   setSelectedReport(report);
                                 } else {
-                                  // 임장기 없는 아파트: 실거래가/차트만 보여주는 스텁 리포트 생성
                                   setSelectedReport({
                                     id: `stub-${normalizeAptName(apt.name)}`,
                                     apartmentName: apt.name,
@@ -1676,76 +1536,7 @@ export default function Dashboard() {
                                   });
                                 }
                               }}
-                              className={`bg-white rounded-2xl border border-[#e5e8eb] p-5 transition-all duration-200 group cursor-pointer hover:shadow-lg hover:-translate-y-0.5 hover:border-[#3182f6]/30 ${
-                                !report && !txSummary ? 'opacity-70' : ''
-                              }`}
-                            >
-                              {/* 상단: 이름 + 뱃지 */}
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="min-w-0 flex-1">
-                                  <h4 className="text-[15px] font-extrabold text-[#191f28] truncate group-hover:text-[#3182f6] transition-colors">{apt.name}</h4>
-                                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                    {apt.householdCount && <span className="text-[11px] text-[#8b95a1]">{apt.householdCount.toLocaleString()}세대</span>}
-                                    {apt.yearBuilt && <span className="text-[11px] text-[#8b95a1]">· {apt.yearBuilt}년</span>}
-                                    {apt.brand && <span className="text-[11px] text-[#8b95a1]">· {apt.brand}</span>}
-                                  </div>
-                                </div>
-                                {report && (
-                                  <div className="shrink-0 ml-2">
-                                    <span className="text-[10px] font-bold bg-[#f0fdf4] text-[#03c75a] px-2 py-0.5 rounded-md">✅ 현장 검증</span>
-                                  </div>
-                                )}
-                                {!report && publicRentalSet.has(apt.name) && (
-                                  <div className="shrink-0 ml-2">
-                                    <span className="text-[10px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-2 py-0.5 rounded-md">🏠 공공임대</span>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* 실거래가 요약 (정적 데이터) + 스파크라인 */}
-                              {txSummary ? (
-                                <div className="bg-[#f9fafb] rounded-xl px-3 py-2 mt-2">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-[11px] text-[#8b95a1]">최근</span>
-                                      <span className="text-[14px] font-extrabold text-[#191f28]">{txSummary.latestPriceEok}</span>
-                                      <span className="text-[11px] font-bold text-[#3182f6]">{txSummary.latestArea}평</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                      {txSummary.recent && txSummary.recent.length >= 2 && (
-                                        <Sparkline data={[...txSummary.recent].reverse().map(r => {
-                                          const match = r.priceEok.match(/(\d+)억([\d,]*)/);
-                                          if (!match) return 0;
-                                          return parseInt(match[1]) * 10000 + parseInt((match[2] || '0').replace(/,/g, ''));
-                                        })} width={48} height={16} />
-                                      )}
-                                      <span className="text-[10px] text-[#8b95a1]">{txSummary.txCount}건</span>
-                                    </div>
-                                  </div>
-                                  {txSummary.txCount >= 2 && (
-                                    <div className="flex items-center gap-3 mt-1.5 text-[10px]">
-                                      <span className="text-[#8b95a1] font-bold">최고 <span className="text-[#191f28]">{txSummary.maxPriceEok}</span></span>
-                                      <span className="text-[#8b95a1] font-bold">최저 <span className="text-[#191f28]">{txSummary.minPriceEok}</span></span>
-                                      {/* 84㎡ 기준 정규화 가격 */}
-                                      {txSummary.recent?.[0] && (() => {
-                                        const r = txSummary.recent[0];
-                                        const priceMatch = r.priceEok.match(/(\d+)억([\d,]*)/);
-                                        if (!priceMatch) return null;
-                                        const priceMan = parseInt(priceMatch[1]) * 10000 + parseInt((priceMatch[2] || '0').replace(/,/g, ''));
-                                        const norm84 = normalize84Price(priceMan, r.area);
-                                        const norm84Eok = Math.floor(norm84 / 10000);
-                                        const norm84Rem = norm84 % 10000;
-                                        return (
-                                          <span className="text-[#8b5cf6] font-bold ml-auto">84㎡ {norm84Eok > 0 ? `${norm84Eok}억` : ''}{norm84Rem > 0 ? `${norm84Rem.toLocaleString()}` : ''}</span>
-                                        );
-                                      })()}
-                                    </div>
-                                  )}
-                                </div>
-                              ) : (
-                                <div className="text-[11px] text-[#d1d6db] mt-2">거래 내역 없음</div>
-                              )}
-                            </div>
+                            />
                           );
                         });
                         })()}
