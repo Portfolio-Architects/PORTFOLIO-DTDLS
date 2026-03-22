@@ -358,11 +358,11 @@ export default function AdminDashboard() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-[#191f28] tracking-tight mb-2">아파트 대시보드</h1>
-          <p className="text-[#3182f6] text-[14px]">단지 기본정보 및 프리미엄 임장기 통합 관리</p>
+          <p className="text-[#4e5968] text-[14px]">단지 기본정보 및 프리미엄 임장기 통합 관리</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#3182f6] bg-[#f9fafb] hover:bg-[#3182f6] hover:text-[#191f28] transition-all text-[13px]">
+            className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#3182f6] bg-[#e8f3ff] hover:bg-[#3182f6] hover:text-white transition-all text-[13px]">
             <Plus size={16}/> 아파트 추가
           </button>
         </div>
@@ -370,7 +370,7 @@ export default function AdminDashboard() {
 
       {/* Add Apartment Form */}
       {showAddForm && (
-        <div className="bg-[#f9fafb] rounded-2xl p-5 mb-6 flex flex-col sm:flex-row gap-3 items-end animate-in slide-in-from-top duration-200">
+        <div className="bg-[#e8f3ff] rounded-2xl p-5 mb-6 flex flex-col sm:flex-row gap-3 items-end animate-in slide-in-from-top duration-200">
           <div className="flex-1 min-w-0">
             <label className="text-[12px] font-bold text-[#3182f6] mb-1 block">아파트 이름</label>
             <input type="text" value={newAptName} onChange={e => setNewAptName(e.target.value)}
@@ -385,7 +385,7 @@ export default function AdminDashboard() {
             </select>
           </div>
           <div className="flex gap-2 shrink-0">
-            <button onClick={addApartment} className="px-4 py-2.5 bg-[#3182f6] text-[#191f28] rounded-xl text-[13px] font-bold hover:bg-[#2b72d6] transition-colors">추가</button>
+            <button onClick={addApartment} className="px-4 py-2.5 bg-[#3182f6] text-white rounded-xl text-[13px] font-bold hover:bg-[#2b72d6] transition-colors">추가</button>
             <button onClick={() => setShowAddForm(false)} className="px-4 py-2.5 bg-white text-[#8b95a1] rounded-xl text-[13px] font-bold hover:bg-[#f2f4f6] transition-colors">취소</button>
           </div>
         </div>
@@ -394,7 +394,7 @@ export default function AdminDashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-6">
         {[
-          { label: '전체 단지', value: stats.total, color: '#3182f6', bg: '#f9fafb', icon: Building, fk: 'all' as const },
+          { label: '전체 단지', value: stats.total, color: '#3182f6', bg: '#e8f3ff', icon: Building, fk: 'all' as const },
           { label: '매핑 완료', value: stats.mapped, color: '#03c75a', bg: '#f0fdf4', icon: Check, fk: 'all' as const },
           { label: '미매핑', value: stats.unmapped, color: '#f04452', bg: '#ffebec', icon: AlertTriangle, fk: 'unmatched' as const },
           { label: '임장기', value: stats.totalReports, color: '#ff8a3d', bg: '#fff4e6', icon: FileText, fk: 'reported' as const },
@@ -426,7 +426,7 @@ export default function AdminDashboard() {
           {([['all','전체'],['unmatched','미매핑'],['reported','임장완료'],['public','공공임대'],['private','일반분양']] as const).map(([key, label]) => (
             <button key={key} onClick={() => setFilter(key)}
               className={`shrink-0 px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${
-                filter === key ? 'bg-[#191f28] text-[#191f28]' : 'bg-white border border-[#e5e8eb] text-[#3182f6] hover:bg-[#f2f4f6]'
+                filter === key ? 'bg-[#191f28] text-white' : 'bg-white border border-[#e5e8eb] text-[#4e5968] hover:bg-[#f2f4f6]'
               }`}>{label}</button>
           ))}
         </div>
@@ -480,7 +480,7 @@ export default function AdminDashboard() {
                               </span>
                             )}
 
-                            <span className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e5e8eb] rounded-lg text-[12px] font-bold text-[#3182f6] hover:bg-[#f2f4f6] hover:text-[#191f28] transition-colors shadow-sm">
+                            <span className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e5e8eb] rounded-lg text-[12px] font-bold text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28] transition-colors shadow-sm">
                               상세보기
                               <ChevronRight size={14}/>
                             </span>
@@ -506,7 +506,7 @@ export default function AdminDashboard() {
           {(() => {
             const used = new Set(Object.values(meta).map(m => m.txKey).filter(Boolean));
             return txKeys.filter(k => !used.has(k)).map(k => (
-              <span key={k} className="bg-[#f2f4f6] text-[#3182f6] text-[11px] font-mono px-2.5 py-1 rounded-lg">{k}</span>
+              <span key={k} className="bg-[#f2f4f6] text-[#4e5968] text-[11px] font-mono px-2.5 py-1 rounded-lg">{k}</span>
               ));
             })()}
           </div>
@@ -517,7 +517,7 @@ export default function AdminDashboard() {
         <span className="text-[13px] text-[#8b95a1] font-medium">{stats.total}개 단지 · {stats.mapped} 매핑 · 📝 {stats.totalReports} 임장기</span>
         <button onClick={handleSave} disabled={saving}
           className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all text-[14px] ${
-            saved ? 'bg-[#03c75a] text-[#191f28] shadow-lg shadow-[#03c75a]/20' : 'bg-[#3182f6] hover:bg-[#2b72d6] text-[#191f28] shadow-lg shadow-[#3182f6]/20'
+            saved ? 'bg-[#03c75a] text-white shadow-lg shadow-[#03c75a]/20' : 'bg-[#3182f6] hover:bg-[#2b72d6] text-white shadow-lg shadow-[#3182f6]/20'
           } disabled:opacity-60`}>
           <Save size={16}/>
           {saving ? '저장 중...' : saved ? '저장 완료!' : '저장하기'}

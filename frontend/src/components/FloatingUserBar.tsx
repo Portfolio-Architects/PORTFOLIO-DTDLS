@@ -56,7 +56,7 @@ export default function FloatingUserBar() {
               setProfilePhotoFile(null);
               setShowProfileModal(true);
             }} className="flex items-center gap-1.5 hover:opacity-70 transition-opacity">
-              <div className="w-5 h-5 rounded-full bg-[#f9fafb] flex items-center justify-center text-[#3182f6] overflow-hidden">
+              <div className="w-5 h-5 rounded-full bg-[#e8f3ff] flex items-center justify-center text-[#3182f6] overflow-hidden">
                 {anonProfile?.photoURL ? (
                   <img src={anonProfile.photoURL} alt="" className="w-full h-full object-cover" />
                 ) : (
@@ -69,11 +69,11 @@ export default function FloatingUserBar() {
             {dashboardFacade.isAdmin(user.email) && (
               <button 
                 onClick={() => router.push('/admin')}
-                className="ml-1 bg-[#191f28] text-[#191f28] px-3 py-1 rounded-lg text-[12px] font-bold transition-colors">
+                className="ml-1 bg-[#191f28] text-white px-3 py-1 rounded-lg text-[12px] font-bold transition-colors">
                 관리자
               </button>
             )}
-            <button onClick={handleLogout} className="ml-0.5 sm:ml-1 bg-[#ffebec] text-[#f04452] hover:bg-[#f04452] hover:text-[#191f28] px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-[12px] font-bold transition-colors">
+            <button onClick={handleLogout} className="ml-0.5 sm:ml-1 bg-[#ffebec] text-[#f04452] hover:bg-[#f04452] hover:text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-[12px] font-bold transition-colors">
               로그아웃
             </button>
           </div>
@@ -96,7 +96,7 @@ export default function FloatingUserBar() {
             {/* Profile Photo */}
             <div className="flex flex-col items-center mb-6">
               <div className="relative group cursor-pointer mb-3" onClick={() => document.getElementById('floating-profile-photo-input')?.click()}>
-                <div className="w-20 h-20 rounded-full bg-[#f9fafb] flex items-center justify-center overflow-hidden ring-4 ring-[#f9fafb]">
+                <div className="w-20 h-20 rounded-full bg-[#e8f3ff] flex items-center justify-center overflow-hidden ring-4 ring-[#e8f3ff]">
                   {profilePhotoPreview ? (
                     <img src={profilePhotoPreview} alt="프로필" className="w-full h-full object-cover" />
                   ) : (
@@ -104,7 +104,7 @@ export default function FloatingUserBar() {
                   )}
                 </div>
                 <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Camera size={20} className="text-[#191f28]" />
+                  <Camera size={20} className="text-white" />
                 </div>
                 <input
                   id="floating-profile-photo-input"
@@ -136,7 +136,7 @@ export default function FloatingUserBar() {
             <div className="space-y-4">
               {/* FrontName (4자) */}
               <div>
-                <label className="text-[12px] font-bold text-[#3182f6] mb-1.5 flex items-center justify-between">
+                <label className="text-[12px] font-bold text-[#4e5968] mb-1.5 flex items-center justify-between">
                   <span>프론트 네임 (4글자)</span>
                   <span className={`text-[11px] ${editFrontName.length === 4 ? 'text-[#03c75a]' : 'text-[#f04452]'}`}>{editFrontName.length}/4</span>
                 </label>
@@ -152,7 +152,7 @@ export default function FloatingUserBar() {
 
               {/* Nickname (3자) */}
               <div>
-                <label className="text-[12px] font-bold text-[#3182f6] mb-1.5 flex items-center justify-between">
+                <label className="text-[12px] font-bold text-[#4e5968] mb-1.5 flex items-center justify-between">
                   <span>닉네임 (3글자)</span>
                   <span className={`text-[11px] ${editNickname.length === 3 ? 'text-[#03c75a]' : 'text-[#f04452]'}`}>{editNickname.length}/3</span>
                 </label>
@@ -191,7 +191,7 @@ export default function FloatingUserBar() {
                   }
                 }}
                 disabled={isSavingProfile || editFrontName.length !== 4 || editNickname.length !== 3}
-                className="w-full py-3 bg-[#3182f6] hover:bg-[#2b72d6] text-[#191f28] font-bold text-[14px] rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-[#3182f6] hover:bg-[#2b72d6] text-white font-bold text-[14px] rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isSavingProfile ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

@@ -36,14 +36,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <>
       <div className="mb-10 flex items-center gap-2">
         <h2 className="text-[18px] font-bold text-[#191f28] tracking-tight">Admin<span className="text-[#3182f6]"> CMS</span></h2>
-        <span className="text-[10px] bg-[#f9fafb] text-[#3182f6] px-1.5 py-0.5 rounded-sm font-bold">Beta</span>
+        <span className="text-[10px] bg-[#e8f3ff] text-[#3182f6] px-1.5 py-0.5 rounded-sm font-bold">Beta</span>
       </div>
       <nav className="flex flex-col gap-1">
         {navLinks.map((link) => (
           <Link key={link.href} href={link.href}
             onClick={() => setSidebarOpen(false)}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] font-semibold transition-all ${
-              isActive(link.href) ? 'bg-[#3182f6] text-[#191f28] shadow-lg shadow-[#3182f6]/20' : 'text-[#3182f6] hover:bg-[#f2f4f6]'
+              isActive(link.href) ? 'bg-[#3182f6] text-white shadow-lg shadow-[#3182f6]/20' : 'text-[#4e5968] hover:bg-[#f2f4f6]'
             }`}>
             <link.icon size={18} />
             {link.label}
@@ -72,7 +72,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Mobile header */}
         <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-lg border-b border-[#e5e8eb] px-4 py-3 flex items-center justify-between">
           <h2 className="text-[16px] font-bold text-[#191f28]">Admin<span className="text-[#3182f6]"> CMS</span></h2>
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-[#3182f6]">
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-[#4e5968]">
             <Menu size={22} />
           </button>
         </div>

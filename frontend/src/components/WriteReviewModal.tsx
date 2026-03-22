@@ -79,8 +79,8 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
                   onClick={() => { setSelectedDong(dong); setSelectedApt(''); }}
                   className={`shrink-0 px-3.5 py-1.5 rounded-full text-[13px] font-bold transition-all border ${
                     selectedDong === dong
-                      ? 'bg-[#191f28] text-[#191f28] border-[#191f28]'
-                      : 'bg-white text-[#3182f6] border-[#d1d6db] hover:border-[#3182f6]'
+                      ? 'bg-[#191f28] text-white border-[#191f28]'
+                      : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'
                   }`}
                 >
                   {dong}
@@ -97,7 +97,7 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
                     onClick={() => setSelectedApt(apt)}
                     className={`w-full text-left px-4 py-2.5 text-[13px] font-medium rounded-lg transition-colors ${
                       selectedApt === apt
-                        ? 'bg-[#f9fafb] text-[#3182f6] font-bold'
+                        ? 'bg-[#e8f3ff] text-[#3182f6] font-bold'
                         : 'text-[#191f28] hover:bg-[#f2f4f6]'
                     }`}
                   >
@@ -117,7 +117,7 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
               disabled={!selectedApt}
               className={`w-full mt-4 py-3.5 rounded-xl font-bold text-[14px] transition-all ${
                 selectedApt
-                  ? 'bg-[#3182f6] text-[#191f28] active:scale-[0.98]'
+                  ? 'bg-[#3182f6] text-white active:scale-[0.98]'
                   : 'bg-[#f2f4f6] text-[#8b95a1] cursor-not-allowed'
               }`}
             >
@@ -130,7 +130,7 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
         {step === 2 && (
           <div>
             {/* Selected apt badge */}
-            <div className="bg-[#f2f4f6] rounded-xl px-4 py-2.5 mb-5 text-[13px] font-bold text-[#3182f6] truncate">
+            <div className="bg-[#f2f4f6] rounded-xl px-4 py-2.5 mb-5 text-[13px] font-bold text-[#4e5968] truncate">
               📍 {selectedApt}
             </div>
 
@@ -196,7 +196,7 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
                   <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                   <button
                     onClick={() => { setImageFile(null); setImagePreview(null); }}
-                    className="absolute top-1 right-1 w-5 h-5 bg-black/50 rounded-full flex items-center justify-center text-[#191f28]"
+                    className="absolute top-1 right-1 w-5 h-5 bg-black/50 rounded-full flex items-center justify-center text-white"
                   >
                     <X size={10} />
                   </button>
@@ -204,7 +204,7 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
               ) : (
                 <button
                   onClick={() => fileRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-[#f2f4f6] hover:bg-[#e5e8eb] rounded-xl text-[13px] font-bold text-[#3182f6] transition-colors"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-[#f2f4f6] hover:bg-[#e5e8eb] rounded-xl text-[13px] font-bold text-[#4e5968] transition-colors"
                 >
                   <Camera size={16} className="text-[#3182f6]" />
                   사진 추가
@@ -217,7 +217,7 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
             <div className="flex gap-3">
               <button
                 onClick={() => setStep(1)}
-                className="w-1/3 py-3.5 rounded-xl font-bold bg-[#f2f4f6] text-[#3182f6] active:bg-[#e5e8eb] transition-colors text-[14px]"
+                className="w-1/3 py-3.5 rounded-xl font-bold bg-[#f2f4f6] text-[#4e5968] active:bg-[#e5e8eb] transition-colors text-[14px]"
               >
                 이전
               </button>
@@ -226,7 +226,7 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
                 disabled={isSubmitting || rating === 0 || !content.trim()}
                 className={`flex-1 py-3.5 rounded-xl font-bold text-[14px] flex items-center justify-center gap-2 transition-all ${
                   rating > 0 && content.trim()
-                    ? 'bg-[#191f28] text-[#191f28] active:scale-[0.98]'
+                    ? 'bg-[#191f28] text-white active:scale-[0.98]'
                     : 'bg-[#f2f4f6] text-[#8b95a1] cursor-not-allowed'
                 }`}
               >

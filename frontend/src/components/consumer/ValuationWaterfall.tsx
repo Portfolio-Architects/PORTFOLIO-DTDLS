@@ -82,7 +82,7 @@ export default function ValuationWaterfall({ scores, price84Man }: Props) {
         </div>
 
         {/* 기준 가격 */}
-        <div className="bg-[#f9fafb] rounded-xl px-4 py-3 flex items-center justify-between">
+        <div className="bg-[#e8f3ff] rounded-xl px-4 py-3 flex items-center justify-between">
           <span className="text-[13px] font-bold text-[#3182f6]">84㎡ 기준 매매가</span>
           <span className="text-[16px] font-extrabold text-[#191f28]">{formatEok(price84Man)}</span>
         </div>
@@ -94,7 +94,7 @@ export default function ValuationWaterfall({ scores, price84Man }: Props) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f2f4f6" />
-                <XAxis dataKey="name" tick={{ fill: '#3182f6', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="name" tick={{ fill: '#4e5968', fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#8b95a1', fontSize: 10 }} axisLine={false} tickLine={false} width={32} domain={[0, 'auto']} />
                 <Tooltip
                   contentStyle={{ borderRadius: 10, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontSize: 13, fontWeight: 700 }}
@@ -132,7 +132,7 @@ export default function ValuationWaterfall({ scores, price84Man }: Props) {
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
                     {item.name}
                   </td>
-                  <td className="py-2 text-right text-[#3182f6] font-bold">{item.rawScore}점</td>
+                  <td className="py-2 text-right text-[#4e5968] font-bold">{item.rawScore}점</td>
                   <td className="py-2 text-right text-[#8b95a1]">{Math.round(item.weight * 100)}%</td>
                   <td className="py-2 text-right font-extrabold" style={{ color: item.color }}>{item.contribution}점</td>
                 </tr>

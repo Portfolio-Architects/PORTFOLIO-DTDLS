@@ -70,7 +70,7 @@ export default function PropertyScoreChart({ scores }: Props) {
             <span className="text-[10px] font-bold text-[#8b95a1]">{grade.label}</span>
           </div>
           <span className="text-[26px] font-extrabold text-[#191f28] leading-none">
-            {s.totalScore}<span className="text-[13px] text-[#3182f6] font-bold ml-0.5">점</span>
+            {s.totalScore}<span className="text-[13px] text-[#4e5968] font-bold ml-0.5">점</span>
           </span>
         </div>
       </div>
@@ -83,7 +83,7 @@ export default function PropertyScoreChart({ scores }: Props) {
               <PolarGrid stroke="#e5e8eb" />
               <PolarAngleAxis
                 dataKey="subject"
-                tick={{ fill: '#3182f6', fontSize: 13, fontWeight: 700 }}
+                tick={{ fill: '#4e5968', fontSize: 13, fontWeight: 700 }}
               />
               <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
               <Tooltip
@@ -108,7 +108,7 @@ export default function PropertyScoreChart({ scores }: Props) {
                   <span className="text-[22px] font-extrabold leading-none" style={{ color }}>{val}</span>
                   <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5">점</span>
                 </div>
-                <p className="text-[11px] text-[#3182f6] font-medium leading-tight">{area.desc}</p>
+                <p className="text-[11px] text-[#4e5968] font-medium leading-tight">{area.desc}</p>
               </div>
             );
           })}

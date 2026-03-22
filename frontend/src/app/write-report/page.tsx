@@ -244,7 +244,7 @@ export default function WriteFieldReport() {
     const value = (sections[section] as any)[field] || 0;
     return (
       <div className="mb-4">
-        <label className="block text-[13px] font-bold text-[#3182f6] mb-2">{label}</label>
+        <label className="block text-[13px] font-bold text-[#4e5968] mb-2">{label}</label>
         <div className="flex items-center gap-1.5">
           {RATING_EMOJIS.map((emoji, idx) => {
             const rating = idx + 1;
@@ -279,7 +279,7 @@ export default function WriteFieldReport() {
             );
           })}
           {value > 0 && (
-            <div className="ml-2 px-2.5 py-1 rounded-full text-[12px] font-extrabold text-[#191f28]"
+            <div className="ml-2 px-2.5 py-1 rounded-full text-[12px] font-extrabold text-white"
               style={{ backgroundColor: RATING_COLORS[value - 1] }}
             >
               {value}/5
@@ -320,7 +320,7 @@ export default function WriteFieldReport() {
 
     return (
       <div className="mt-3">
-        <label className="block text-[13px] font-bold text-[#3182f6] mb-2">{label}</label>
+        <label className="block text-[13px] font-bold text-[#4e5968] mb-2">{label}</label>
 
         {/* Grid of existing previews */}
         {previews.length > 0 && (
@@ -330,13 +330,13 @@ export default function WriteFieldReport() {
                 <img src={preview} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
                 <button 
                   onClick={() => handleRemoveImage(apiKey, idx)}
-                  className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/50 hover:bg-[#f04452] backdrop-blur-sm rounded-full flex items-center justify-center text-[#191f28] transition-all opacity-0 group-hover:opacity-100"
+                  className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/50 hover:bg-[#f04452] backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all opacity-0 group-hover:opacity-100"
                   title="사진 삭제"
                 >
                   <X size={12} />
                 </button>
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1.5">
-                  <span className="text-[10px] text-[#191f28] font-bold">{idx + 1}/{previews.length}</span>
+                  <span className="text-[10px] text-white font-bold">{idx + 1}/{previews.length}</span>
                 </div>
               </div>
             ))}
@@ -347,7 +347,7 @@ export default function WriteFieldReport() {
         <div 
           className={`relative border-2 border-dashed rounded-xl transition-all cursor-pointer group flex flex-col items-center justify-center py-5 px-4 text-center ${
             isDragging 
-              ? 'border-[#3182f6] bg-[#f9fafb] scale-[1.02]' 
+              ? 'border-[#3182f6] bg-[#e8f3ff] scale-[1.02]' 
               : 'border-[#d1d6db] bg-[#f9fafb] hover:bg-[#f2f4f6] hover:border-[#3182f6]'
           }`}
           onDragOver={handleDragOver}
@@ -425,16 +425,16 @@ export default function WriteFieldReport() {
       {showDraftModal && (
         <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-95 duration-300">
-            <div className="w-12 h-12 bg-[#f9fafb] rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 bg-[#e8f3ff] rounded-full flex items-center justify-center mx-auto mb-4">
               <RotateCcw size={22} className="text-[#3182f6]" />
             </div>
             <h3 className="text-[18px] font-extrabold text-[#191f28] text-center mb-2">작성 중인 임장기가 있어요</h3>
-            <p className="text-[14px] text-[#3182f6] text-center mb-6">이전에 작성하던 내용을 이어서 작성하시겠습니까?</p>
+            <p className="text-[14px] text-[#4e5968] text-center mb-6">이전에 작성하던 내용을 이어서 작성하시겠습니까?</p>
             <div className="flex gap-3">
-              <button onClick={clearDraft} className="flex-1 py-3 rounded-xl font-bold bg-[#f2f4f6] text-[#3182f6] active:bg-[#e5e8eb] transition-colors text-[14px]">
+              <button onClick={clearDraft} className="flex-1 py-3 rounded-xl font-bold bg-[#f2f4f6] text-[#4e5968] active:bg-[#e5e8eb] transition-colors text-[14px]">
                 새로 작성
               </button>
-              <button onClick={restoreDraft} className="flex-1 py-3 rounded-xl font-bold bg-[#3182f6] text-[#191f28] active:scale-[0.98] transition-transform text-[14px]">
+              <button onClick={restoreDraft} className="flex-1 py-3 rounded-xl font-bold bg-[#3182f6] text-white active:scale-[0.98] transition-transform text-[14px]">
                 이어서 작성
               </button>
             </div>
@@ -475,23 +475,23 @@ export default function WriteFieldReport() {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="mb-6 px-1">
               <h2 className="text-[22px] font-extrabold text-[#191f28] leading-tight mb-2">어떤 단지를<br/>다녀오셨나요?</h2>
-              <p className="text-[13px] text-[#3182f6]">사는 동네를 먼저 고른 뒤, 단지를 골라주세요.</p>
+              <p className="text-[13px] text-[#4e5968]">사는 동네를 먼저 고른 뒤, 단지를 골라주세요.</p>
             </div>
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#e5e8eb]">
               <label className="block text-[13px] font-bold text-[#191f28] mb-3 flex items-center gap-1.5"><MapPin size={15} className="text-[#3182f6]" /> 다녀오신 아파트를 선택해주세요</label>
               {dongtanApartments.length === 0 ? (
-                <div className="bg-[#f2f4f6] rounded-xl p-8 flex flex-col items-center justify-center text-center animate-pulse border border-[#e5e8eb]"><div className="w-8 h-8 rounded-full border-2 border-[#3182f6] border-t-transparent animate-spin mb-3"></div><p className="text-[13px] font-bold text-[#3182f6]">단지 목록 가져오는 중...</p></div>
+                <div className="bg-[#f2f4f6] rounded-xl p-8 flex flex-col items-center justify-center text-center animate-pulse border border-[#e5e8eb]"><div className="w-8 h-8 rounded-full border-2 border-[#3182f6] border-t-transparent animate-spin mb-3"></div><p className="text-[13px] font-bold text-[#4e5968]">단지 목록 가져오는 중...</p></div>
               ) : (
                 <>
                   <div className="flex gap-2 overflow-x-auto pb-3 custom-scrollbar mb-3">
                     {availableDongs.map(dong => (
-                      <button key={dong} onClick={() => { setSelectedDong(dong); setReportAptName(''); }} className={`shrink-0 px-3.5 py-1.5 rounded-full text-[13px] font-bold transition-all border ${selectedDong === dong ? 'bg-[#191f28] text-[#191f28] border-[#191f28]' : 'bg-white text-[#3182f6] border-[#d1d6db] hover:border-[#3182f6]'}`}>{dong}</button>
+                      <button key={dong} onClick={() => { setSelectedDong(dong); setReportAptName(''); }} className={`shrink-0 px-3.5 py-1.5 rounded-full text-[13px] font-bold transition-all border ${selectedDong === dong ? 'bg-[#191f28] text-white border-[#191f28]' : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'}`}>{dong}</button>
                     ))}
                   </div>
                   {selectedDong && (
                     <div className="bg-[#f9fafb] border border-[#d1d6db] rounded-xl overflow-hidden max-h-60 overflow-y-auto custom-scrollbar p-2">
                       {filteredApts.map(apt => (
-                        <button key={apt} onClick={() => setReportAptName(apt)} className={`w-full text-left px-4 py-2.5 text-[13px] font-medium rounded-lg transition-colors ${reportAptName === apt ? 'bg-[#f9fafb] text-[#3182f6] font-bold' : 'text-[#191f28] hover:bg-[#f2f4f6]'}`}>{apt}</button>
+                        <button key={apt} onClick={() => setReportAptName(apt)} className={`w-full text-left px-4 py-2.5 text-[13px] font-medium rounded-lg transition-colors ${reportAptName === apt ? 'bg-[#e8f3ff] text-[#3182f6] font-bold' : 'text-[#191f28] hover:bg-[#f2f4f6]'}`}>{apt}</button>
                       ))}
                     </div>
                   )}
@@ -507,7 +507,7 @@ export default function WriteFieldReport() {
           <div className="animate-in fade-in slide-in-from-right-8 duration-500">
             <div className="mb-6 px-1">
               <h2 className="text-[22px] font-extrabold text-[#191f28] leading-tight mb-2">단지의 기본 정보를<br/>입력해주세요</h2>
-              <p className="text-[13px] text-[#3182f6]">{reportAptName}</p>
+              <p className="text-[13px] text-[#4e5968]">{reportAptName}</p>
             </div>
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#e5e8eb]">
                <SelectInput section="specs" field="builtYear" label="준공 연월 (연차)" options={[
@@ -545,7 +545,7 @@ export default function WriteFieldReport() {
           <div className="animate-in fade-in slide-in-from-right-8 duration-500">
             <div className="mb-6 px-1">
                <h2 className="text-[22px] font-extrabold text-[#191f28] leading-tight mb-2 flex gap-2 items-center"><Building className="text-[#3182f6]"/> 단지 내부 살펴보기</h2>
-               <p className="text-[13px] text-[#3182f6]">이모지를 눌러 빠르게 점수를 매기고, 사진을 여러 장 찍어주세요.</p>
+               <p className="text-[13px] text-[#4e5968]">이모지를 눌러 빠르게 점수를 매기고, 사진을 여러 장 찍어주세요.</p>
             </div>
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#e5e8eb] flex flex-col gap-6">
                {/* Gate */}
@@ -581,7 +581,7 @@ export default function WriteFieldReport() {
           <div className="animate-in fade-in slide-in-from-right-8 duration-500">
             <div className="mb-6 px-1">
                <h2 className="text-[22px] font-extrabold text-[#191f28] leading-tight mb-2 flex gap-2 items-center"><Info className="text-[#03c75a]"/> 주변 생활 편의시설</h2>
-               <p className="text-[13px] text-[#3182f6]">커뮤니티, 학군, 상권을 이모지로 빠르게 평가해주세요.</p>
+               <p className="text-[13px] text-[#4e5968]">커뮤니티, 학군, 상권을 이모지로 빠르게 평가해주세요.</p>
             </div>
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#e5e8eb] flex flex-col gap-6">
                <div className="pb-5 border-b border-[#f2f4f6]">
@@ -608,7 +608,7 @@ export default function WriteFieldReport() {
           <div className="animate-in fade-in slide-in-from-right-8 duration-500">
             <div className="mb-6 px-1">
                <h2 className="text-[22px] font-extrabold text-[#191f28] leading-tight mb-2 flex gap-2 items-center"><MapIcon className="text-[#a46cfd]"/> 교통과 거시 입지</h2>
-               <p className="text-[13px] text-[#3182f6]">강남 출퇴근과 대형 호재를 평가해주세요.</p>
+               <p className="text-[13px] text-[#4e5968]">강남 출퇴근과 대형 호재를 평가해주세요.</p>
             </div>
              <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#e5e8eb] flex flex-col gap-6">
                <div className="pb-5 border-b border-[#f2f4f6]">
@@ -628,17 +628,17 @@ export default function WriteFieldReport() {
           <div className="animate-in fade-in slide-in-from-right-8 duration-500">
             <div className="mb-6 px-1">
                <h2 className="text-[22px] font-extrabold text-[#191f28] leading-tight mb-2 flex gap-2 items-center"><ShieldAlert className="text-[#f04452]"/> 최종 평가</h2>
-               <p className="text-[13px] text-[#3182f6]">현장에서 느낀 장단점을 정리해주세요.</p>
+               <p className="text-[13px] text-[#4e5968]">현장에서 느낀 장단점을 정리해주세요.</p>
             </div>
 
             {/* Auto-Generated Grade Card */}
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#e5e8eb] mb-4">
               <div className="flex items-center gap-2 mb-3">
                 <Zap size={16} className="text-[#3182f6]" />
-                <p className="text-[13px] font-bold text-[#3182f6]">이모지 평가 기반 자동 산출 등급</p>
+                <p className="text-[13px] font-bold text-[#4e5968]">이모지 평가 기반 자동 산출 등급</p>
               </div>
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-[28px] font-black text-[#191f28] shadow-lg"
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-[28px] font-black text-white shadow-lg"
                   style={{ backgroundColor: gradeInfo.color }}
                 >
                   {gradeInfo.grade}
@@ -664,7 +664,7 @@ export default function WriteFieldReport() {
       {/* Sticky Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-[#e5e8eb] shadow-lg flex gap-3 z-20">
         {step > 1 && (
-           <button onClick={handlePrevStep} className="w-1/3 py-3.5 rounded-xl font-bold bg-[#f2f4f6] text-[#3182f6] active:bg-[#e5e8eb] transition-colors text-[14px]">
+           <button onClick={handlePrevStep} className="w-1/3 py-3.5 rounded-xl font-bold bg-[#f2f4f6] text-[#4e5968] active:bg-[#e5e8eb] transition-colors text-[14px]">
               이전
            </button>
         )}
@@ -680,16 +680,16 @@ export default function WriteFieldReport() {
               alert('임시 저장에 실패했습니다.');
             }
           }}
-          className="py-3.5 px-4 rounded-xl font-bold bg-[#f2f4f6] text-[#3182f6] active:bg-[#e5e8eb] transition-colors text-[14px]"
+          className="py-3.5 px-4 rounded-xl font-bold bg-[#f2f4f6] text-[#4e5968] active:bg-[#e5e8eb] transition-colors text-[14px]"
         >
           💾 저장
         </button>
         {step < 6 ? (
-           <button onClick={handleNextStep} className="flex-1 py-3.5 rounded-xl font-bold bg-[#3182f6] text-[#191f28] active:scale-[0.98] transition-transform text-[14px]">
+           <button onClick={handleNextStep} className="flex-1 py-3.5 rounded-xl font-bold bg-[#3182f6] text-white active:scale-[0.98] transition-transform text-[14px]">
               다음 단계로
            </button>
         ) : (
-           <button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 py-3.5 rounded-xl font-bold bg-[#191f28] text-[#191f28] active:scale-[0.98] transition-transform flex items-center justify-center gap-2 text-[14px]">
+           <button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 py-3.5 rounded-xl font-bold bg-[#191f28] text-white active:scale-[0.98] transition-transform flex items-center justify-center gap-2 text-[14px]">
                {isSubmitting ? (uploadProgress ? `📤 ${uploadProgress.done}/${uploadProgress.total}장 업로드 중...` : '서버에 저장 중...') : '🔥 최종 제출하기'}
            </button>
         )}

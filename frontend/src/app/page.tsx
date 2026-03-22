@@ -79,8 +79,8 @@ function GalleryGrid({ images, tags, tagLabels, onImageClick }: {
               onClick={() => setActiveTag(tag)}
               className={`shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-all border ${
                 activeTag === tag
-                  ? 'bg-[#191f28] text-[#191f28] border-[#191f28]'
-                  : 'bg-white text-[#3182f6] border-[#d1d6db] hover:border-[#3182f6] hover:text-[#3182f6]'
+                  ? 'bg-[#191f28] text-white border-[#191f28]'
+                  : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6] hover:text-[#3182f6]'
               }`}
             >
               {label} <span className="opacity-60 ml-0.5">{count}</span>
@@ -106,7 +106,7 @@ function GalleryGrid({ images, tags, tagLabels, onImageClick }: {
             {/* Hover overlay with caption + tag */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-2.5">
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-bold text-[#191f28]/90 bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-md">
+                <span className="text-[10px] font-bold text-white/90 bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-md">
                   {tagLabels[img.locationTag || ''] || img.locationTag || '기타'}
                 </span>
                 {img.isPremium && (
@@ -114,7 +114,7 @@ function GalleryGrid({ images, tags, tagLabels, onImageClick }: {
                 )}
               </div>
               {img.caption && (
-                <p className="text-[11px] text-[#191f28]/90 mt-1 line-clamp-2">{img.caption}</p>
+                <p className="text-[11px] text-white/90 mt-1 line-clamp-2">{img.caption}</p>
               )}
             </div>
           </div>
@@ -185,7 +185,7 @@ export function FieldReportModal({
         <div className="absolute inset-0 bg-[#191f28]/60 backdrop-blur-sm" onClick={onClose} />
         
         <div ref={modalRef} className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] max-h-[90vh] rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden shadow-2xl transition-all duration-300 ring-1 ring-black/5`}>
-          <button onClick={onClose} className="sticky top-4 z-20 ml-auto mr-4 mt-4 -mb-14 bg-[#191f28]/80 hover:bg-[#191f28] text-[#191f28] w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0">
+          <button onClick={onClose} className="sticky top-4 z-20 ml-auto mr-4 mt-4 -mb-14 bg-[#191f28]/80 hover:bg-[#191f28] text-white w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0">
             <X size={20} />
           </button>
 
@@ -214,13 +214,13 @@ export function FieldReportModal({
                       <tbody>
                         {(isTxExpanded ? transactions : transactions.slice(0, 10)).map((tx, idx) => (
                           <tr key={idx} className={`border-b border-[#f2f4f6] hover:bg-white/60 transition-colors ${idx < 3 ? 'bg-[#f0f7ff]' : ''}`}>
-                            <td className={`py-3 ${idx < 3 ? 'text-[#191f28] font-bold' : 'text-[#3182f6]'}`}>
+                            <td className={`py-3 ${idx < 3 ? 'text-[#191f28] font-bold' : 'text-[#4e5968]'}`}>
                               {idx < 3 && <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3182f6] mr-1.5 mb-[1px]" />}
                               {tx.contractYm.slice(0,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}
                             </td>
                             <td className={`py-3 text-right font-extrabold ${idx < 3 ? 'text-[#3182f6]' : 'text-[#191f28]'}`}>{tx.priceEok}</td>
-                            <td className="py-3 text-right text-[#3182f6]">{(() => { const norm = normalizeAptName(tx.aptName); const t = typeMap[norm]?.[String(tx.area)]; return t ? <span className="font-bold text-[#3182f6] bg-[#f9fafb] px-1.5 py-0.5 rounded text-[10px]">{t}</span> : `${tx.areaPyeong}평`; })()}</td>
-                            <td className="py-3 text-right text-[#3182f6]">{tx.floor}층</td>
+                            <td className="py-3 text-right text-[#4e5968]">{(() => { const norm = normalizeAptName(tx.aptName); const t = typeMap[norm]?.[String(tx.area)]; return t ? <span className="font-bold text-[#3182f6] bg-[#e8f3ff] px-1.5 py-0.5 rounded text-[10px]">{t}</span> : `${tx.areaPyeong}평`; })()}</td>
+                            <td className="py-3 text-right text-[#4e5968]">{tx.floor}층</td>
                             <td className="py-3 text-right text-[#8b95a1]">{tx.dealType}</td>
                           </tr>
                         ))}
@@ -229,7 +229,7 @@ export function FieldReportModal({
                     {transactions.length > 10 && (
                       <button
                         onClick={() => setIsTxExpanded(!isTxExpanded)}
-                        className="w-full mt-2 py-2 text-[12px] font-bold text-[#3182f6] hover:bg-[#f9fafb] rounded-lg transition-colors"
+                        className="w-full mt-2 py-2 text-[12px] font-bold text-[#3182f6] hover:bg-[#e8f3ff] rounded-lg transition-colors"
                       >
                         {isTxExpanded ? '접기 ▲' : `나머지 ${transactions.length - 10}건 더보기 ▼`}
                       </button>
@@ -289,7 +289,7 @@ export function FieldReportModal({
                           <div className="grid grid-cols-2 gap-1.5">
                             {areaCards.map((c, i) => (
                               <div key={i} className="bg-white rounded-lg px-2.5 py-2 ring-1 ring-black/5">
-                                <div className="text-[10px] font-bold text-[#3182f6] bg-[#f9fafb] inline-block px-1.5 py-0.5 rounded mb-1">{c.label}</div>
+                                <div className="text-[10px] font-bold text-[#3182f6] bg-[#e8f3ff] inline-block px-1.5 py-0.5 rounded mb-1">{c.label}</div>
                                 <div className="text-[13px] font-extrabold text-[#191f28] leading-tight">{c.price}</div>
                                 <div className="text-[10px] text-[#8b95a1]">{c.count}건</div>
                               </div>
@@ -304,7 +304,7 @@ export function FieldReportModal({
                             <div className="flex items-center gap-2">
                               <span className="text-[15px] font-extrabold text-[#191f28]">{avg3Eok}</span>
                               {trendPct !== null && (
-                                <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-md ${trendPct >= 0 ? 'text-[#EF4444] bg-[#fef2f2]' : 'text-[#3182f6] bg-[#f9fafb]'}`}>
+                                <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-md ${trendPct >= 0 ? 'text-[#EF4444] bg-[#fef2f2]' : 'text-[#3182f6] bg-[#e8f3ff]'}`}>
                                   전분기 대비 {trendPct > 0 ? '+' : ''}{trendPct.toFixed(1)}%
                                 </span>
                               )}
@@ -322,7 +322,7 @@ export function FieldReportModal({
                               { label: '6개월', count: cnt6 },
                             ].map(({ label, count }) => (
                               <div key={label} className="flex items-center gap-2">
-                                <span className="text-[10px] font-bold text-[#3182f6] w-[36px] shrink-0">{label}</span>
+                                <span className="text-[10px] font-bold text-[#4e5968] w-[36px] shrink-0">{label}</span>
                                 <div className="flex-1 bg-[#f2f4f6] rounded-full h-[6px] overflow-hidden">
                                   <div
                                     className="h-full rounded-full bg-gradient-to-r from-[#3182f6] to-[#6dd5fa] transition-all duration-500"
@@ -348,7 +348,7 @@ export function FieldReportModal({
             {/* Right: Title + Chart — mobile: 1번째, desktop: 2번째 (60%) */}
             <div className="w-full md:w-[60%] flex flex-col order-1 md:order-2">
                <div className="flex items-center gap-2 mb-3">
-                 <span className="bg-[#3182f6] text-[#191f28] text-[13px] font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
+                 <span className="bg-[#3182f6] text-white text-[13px] font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
                </div>
                <h1 className="text-[22px] sm:text-[28px] md:text-[36px] font-extrabold leading-tight tracking-tight mb-2 text-[#191f28]">{report.apartmentName}</h1>
 
@@ -452,7 +452,7 @@ export function FieldReportModal({
                          {(['6M','1Y','3Y','ALL'] as const).map(tf => (
                            <button key={tf} onClick={() => setChartTimeframe(tf)}
                              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                               chartTimeframe === tf ? 'bg-[#191f28] text-[#191f28]' : 'text-[#8b95a1] hover:bg-[#f2f4f6]'
+                               chartTimeframe === tf ? 'bg-[#191f28] text-white' : 'text-[#8b95a1] hover:bg-[#f2f4f6]'
                              }`}>{tf}</button>
                          ))}
                        </div>
@@ -608,7 +608,7 @@ export function FieldReportModal({
                   <button
                     key={ids[idx]}
                     onClick={() => scrollToSection(ids[idx])}
-                    className="shrink-0 px-3.5 py-1.5 rounded-lg border border-[#e5e8eb] bg-[#f9fafb] text-[12px] font-bold text-[#3182f6] hover:bg-[#191f28] hover:text-[#191f28] hover:border-[#191f28] active:scale-95 transition-all duration-150"
+                    className="shrink-0 px-3.5 py-1.5 rounded-lg border border-[#e5e8eb] bg-[#f9fafb] text-[12px] font-bold text-[#4e5968] hover:bg-[#191f28] hover:text-white hover:border-[#191f28] active:scale-95 transition-all duration-150"
                   >
                     {label}
                   </button>
@@ -634,12 +634,12 @@ export function FieldReportModal({
                   </svg>
                 </div>
                 <h3 className="text-[20px] font-extrabold text-[#191f28] mb-2">프리미엄 리포트</h3>
-                <p className="text-[14px] text-[#3182f6] mb-1">밸류에이션 분석, 상세 인프라 데이터, 현장 사진 갤러리,</p>
-                <p className="text-[14px] text-[#3182f6] mb-6">단지 명세, 종합 평가를 확인하세요</p>
+                <p className="text-[14px] text-[#4e5968] mb-1">밸류에이션 분석, 상세 인프라 데이터, 현장 사진 갤러리,</p>
+                <p className="text-[14px] text-[#4e5968] mb-6">단지 명세, 종합 평가를 확인하세요</p>
                 
                 <div className="flex flex-wrap justify-center gap-2 mb-8">
                   {['밸류에이션', '사진 갤러리', '상세 인프라', '단지 명세', '종합 결론'].map(tag => (
-                    <span key={tag} className="bg-[#f9fafb] text-[#3182f6] text-[12px] font-bold px-3 py-1 rounded-full">{tag}</span>
+                    <span key={tag} className="bg-[#e8f3ff] text-[#3182f6] text-[12px] font-bold px-3 py-1 rounded-full">{tag}</span>
                   ))}
                 </div>
 
@@ -656,7 +656,7 @@ export function FieldReportModal({
                     <p className="text-[13px] text-[#8b95a1]">결제하려면 먼저 로그인해주세요</p>
                     <button
                       onClick={() => signInWithPopup(auth, googleProvider)}
-                      className="bg-[#191f28] text-[#191f28] font-bold px-6 py-3 rounded-xl hover:bg-[#333d4b] transition-colors flex items-center gap-2"
+                      className="bg-[#191f28] text-white font-bold px-6 py-3 rounded-xl hover:bg-[#333d4b] transition-colors flex items-center gap-2"
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -728,7 +728,7 @@ export function FieldReportModal({
                       <div className="text-[13px] font-bold text-[#8b95a1] mb-1">초등학교</div>
                       <div className="text-[22px] font-extrabold text-[#191f28]">{report.metrics.distanceToElementary}<span className="text-[13px] text-[#8b95a1] ml-0.5">m</span></div>
                       {report.metrics.nearestSchoolNames?.elementary && (
-                        <div className="text-[10px] text-[#3182f6] mt-1 truncate">{report.metrics.nearestSchoolNames.elementary}</div>
+                        <div className="text-[10px] text-[#4e5968] mt-1 truncate">{report.metrics.nearestSchoolNames.elementary}</div>
                       )}
                     </div>
                   )}
@@ -737,7 +737,7 @@ export function FieldReportModal({
                       <div className="text-[13px] font-bold text-[#8b95a1] mb-1">중학교</div>
                       <div className="text-[22px] font-extrabold text-[#191f28]">{report.metrics.distanceToMiddle}<span className="text-[13px] text-[#8b95a1] ml-0.5">m</span></div>
                       {report.metrics.nearestSchoolNames?.middle && (
-                        <div className="text-[10px] text-[#3182f6] mt-1 truncate">{report.metrics.nearestSchoolNames.middle}</div>
+                        <div className="text-[10px] text-[#4e5968] mt-1 truncate">{report.metrics.nearestSchoolNames.middle}</div>
                       )}
                     </div>
                   )}
@@ -746,12 +746,12 @@ export function FieldReportModal({
                       <div className="text-[13px] font-bold text-[#8b95a1] mb-1">고등학교</div>
                       <div className="text-[22px] font-extrabold text-[#191f28]">{report.metrics.distanceToHigh}<span className="text-[13px] text-[#8b95a1] ml-0.5">m</span></div>
                       {report.metrics.nearestSchoolNames?.high && (
-                        <div className="text-[10px] text-[#3182f6] mt-1 truncate">{report.metrics.nearestSchoolNames.high}</div>
+                        <div className="text-[10px] text-[#4e5968] mt-1 truncate">{report.metrics.nearestSchoolNames.high}</div>
                       )}
                     </div>
                   )}
                   {report.metrics.distanceToSubway > 0 && (
-                    <div className="bg-[#f9fafb] rounded-2xl p-4 text-center">
+                    <div className="bg-[#e8f3ff] rounded-2xl p-4 text-center">
                       <div className="text-[13px] font-bold text-[#3182f6] mb-1">GTX-A/SRT</div>
                       <div className="text-[22px] font-extrabold text-[#3182f6]">{report.metrics.distanceToSubway}<span className="text-[13px] text-[#3182f6]/70 ml-0.5">m</span></div>
                       {report.metrics.nearestStationName && (
@@ -760,13 +760,13 @@ export function FieldReportModal({
                     </div>
                   )}
                   {report.metrics.distanceToIndeokwon != null && report.metrics.distanceToIndeokwon > 0 && (
-                    <div className="bg-[#f9fafb] rounded-2xl p-4 text-center">
+                    <div className="bg-[#e8f3ff] rounded-2xl p-4 text-center">
                       <div className="text-[13px] font-bold text-[#3182f6] mb-1">인덕원선</div>
                       <div className="text-[22px] font-extrabold text-[#3182f6]">{report.metrics.distanceToIndeokwon}<span className="text-[13px] text-[#3182f6]/70 ml-0.5">m</span></div>
                     </div>
                   )}
                   {report.metrics.distanceToTram != null && report.metrics.distanceToTram > 0 && (
-                    <div className="bg-[#f9fafb] rounded-2xl p-4 text-center">
+                    <div className="bg-[#e8f3ff] rounded-2xl p-4 text-center">
                       <div className="text-[13px] font-bold text-[#3182f6] mb-1">동탄트램</div>
                       <div className="text-[22px] font-extrabold text-[#3182f6]">{report.metrics.distanceToTram}<span className="text-[13px] text-[#3182f6]/70 ml-0.5">m</span></div>
                     </div>
@@ -783,7 +783,7 @@ export function FieldReportModal({
                             .slice(0, 5)
                             .map(([cat, cnt]) => (
                               <div key={cat} className="flex justify-between text-[10px] px-1 py-0.5">
-                                <span className="text-[#3182f6] truncate mr-1">{cat}</span>
+                                <span className="text-[#4e5968] truncate mr-1">{cat}</span>
                                 <span className="font-bold text-[#03c75a] shrink-0">{cnt as number}개</span>
                               </div>
                             ))}
@@ -803,7 +803,7 @@ export function FieldReportModal({
                             .slice(0, 5)
                             .map(([cat, cnt]) => (
                               <div key={cat} className="flex justify-between text-[10px] px-1 py-0.5">
-                                <span className="text-[#3182f6] truncate mr-1">{cat}</span>
+                                <span className="text-[#4e5968] truncate mr-1">{cat}</span>
                                 <span className="font-bold text-[#f59e0b] shrink-0">{cnt as number}개</span>
                               </div>
                             ))}
@@ -827,19 +827,19 @@ export function FieldReportModal({
                           <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">🏫 교육</h4>
                           <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[13px]">
                             <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
-                              <span className="text-[#3182f6]">초등학교 거리</span>
+                              <span className="text-[#4e5968]">초등학교 거리</span>
                               <span className="font-bold text-[#191f28]">{report.metrics.distanceToElementary || '-'}m {report.metrics.nearestSchoolNames?.elementary ? `(${report.metrics.nearestSchoolNames.elementary})` : ''}</span>
                             </div>
                             <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
-                              <span className="text-[#3182f6]">중학교 거리</span>
+                              <span className="text-[#4e5968]">중학교 거리</span>
                               <span className="font-bold text-[#191f28]">{report.metrics.distanceToMiddle || '-'}m {report.metrics.nearestSchoolNames?.middle ? `(${report.metrics.nearestSchoolNames.middle})` : ''}</span>
                             </div>
                             <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
-                              <span className="text-[#3182f6]">고등학교 거리</span>
+                              <span className="text-[#4e5968]">고등학교 거리</span>
                               <span className="font-bold text-[#191f28]">{report.metrics.distanceToHigh || '-'}m {report.metrics.nearestSchoolNames?.high ? `(${report.metrics.nearestSchoolNames.high})` : ''}</span>
                             </div>
                             <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
-                              <span className="text-[#3182f6]">학원 밀집도 (500m)</span>
+                              <span className="text-[#4e5968]">학원 밀집도 (500m)</span>
                               <span className="font-bold text-[#03c75a]">{report.metrics.academyDensity || '-'}개</span>
                             </div>
                           </div>
@@ -849,18 +849,18 @@ export function FieldReportModal({
                           <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">🚇 교통</h4>
                           <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[13px]">
                             <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
-                              <span className="text-[#3182f6]">GTX-A/SRT역</span>
+                              <span className="text-[#4e5968]">GTX-A/SRT역</span>
                               <span className="font-bold text-[#191f28]">{report.metrics.distanceToSubway || '-'}m {report.metrics.nearestStationName ? `(${report.metrics.nearestStationName})` : ''}</span>
                             </div>
                             {report.metrics.distanceToIndeokwon != null && (
                               <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
-                                <span className="text-[#3182f6]">인덕원선</span>
+                                <span className="text-[#4e5968]">인덕원선</span>
                                 <span className="font-bold text-[#191f28]">{report.metrics.distanceToIndeokwon}m</span>
                               </div>
                             )}
                             {report.metrics.distanceToTram != null && (
                               <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
-                                <span className="text-[#3182f6]">동탄트램</span>
+                                <span className="text-[#4e5968]">동탄트램</span>
                                 <span className="font-bold text-[#191f28]">{report.metrics.distanceToTram}m</span>
                               </div>
                             )}
@@ -871,27 +871,27 @@ export function FieldReportModal({
                           <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">🏢 단지 정보</h4>
                           <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[13px]">
                             <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
-                              <span className="text-[#3182f6]">시공사</span>
+                              <span className="text-[#4e5968]">시공사</span>
                               <span className="font-bold text-[#191f28]">{report.metrics.brand || '-'}</span>
                             </div>
                             <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
-                              <span className="text-[#3182f6]">세대수</span>
+                              <span className="text-[#4e5968]">세대수</span>
                               <span className="font-bold text-[#191f28]">{report.metrics.householdCount?.toLocaleString() || '-'}세대</span>
                             </div>
                             <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
-                              <span className="text-[#3182f6]">준공연도</span>
+                              <span className="text-[#4e5968]">준공연도</span>
                               <span className="font-bold text-[#191f28]">{report.metrics.yearBuilt || '-'}년</span>
                             </div>
                             <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
-                              <span className="text-[#3182f6]">용적률</span>
+                              <span className="text-[#4e5968]">용적률</span>
                               <span className="font-bold text-[#191f28]">{report.metrics.far || '-'}%</span>
                             </div>
                             <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
-                              <span className="text-[#3182f6]">건폐율</span>
+                              <span className="text-[#4e5968]">건폐율</span>
                               <span className="font-bold text-[#191f28]">{report.metrics.bcr || '-'}%</span>
                             </div>
                             <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
-                              <span className="text-[#3182f6]">세대당 주차</span>
+                              <span className="text-[#4e5968]">세대당 주차</span>
                               <span className="font-bold text-[#191f28]">{report.metrics.parkingPerHousehold || '-'}대</span>
                             </div>
                           </div>
@@ -902,7 +902,7 @@ export function FieldReportModal({
                             <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">🍽️ 생활 인프라</h4>
                             <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[13px]">
                               <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
-                                <span className="text-[#3182f6]">음식점·카페 (500m)</span>
+                                <span className="text-[#4e5968]">음식점·카페 (500m)</span>
                                 <span className="font-bold text-[#f59e0b]">{report.metrics.restaurantDensity}개</span>
                               </div>
                             </div>
@@ -912,7 +912,7 @@ export function FieldReportModal({
                                   .sort(([,a], [,b]) => (b as number) - (a as number))
                                   .map(([cat, cnt]) => (
                                     <div key={cat} className="bg-white rounded-lg py-1.5 px-2 text-[11px] border border-[#e5e8eb] flex justify-between">
-                                      <span className="text-[#3182f6] truncate">{cat}</span>
+                                      <span className="text-[#4e5968] truncate">{cat}</span>
                                       <span className="font-bold text-[#f59e0b] ml-1 shrink-0">{cnt as number}</span>
                                     </div>
                                   ))}
@@ -924,27 +924,27 @@ export function FieldReportModal({
                               <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">🎯 핵심 앵커 테넌트 (최단거리)</h4>
                               <div className="flex flex-wrap gap-2">
                                 {report.metrics.distanceToStarbucks != null && (
-                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#3182f6] flex items-center gap-1">
+                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#4e5968] flex items-center gap-1">
                                     ☕ 스타벅스 <span className="text-[#03c75a] font-bold">{report.metrics.distanceToStarbucks}m</span>
                                   </div>
                                 )}
                                 {report.metrics.distanceToOliveYoung != null && (
-                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#3182f6] flex items-center gap-1">
+                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#4e5968] flex items-center gap-1">
                                     💄 올리브영 <span className="text-[#03c75a] font-bold">{report.metrics.distanceToOliveYoung}m</span>
                                   </div>
                                 )}
                                 {report.metrics.distanceToDaiso != null && (
-                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#3182f6] flex items-center gap-1">
+                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#4e5968] flex items-center gap-1">
                                     🛍️ 다이소 <span className="text-[#03c75a] font-bold">{report.metrics.distanceToDaiso}m</span>
                                   </div>
                                 )}
                                 {report.metrics.distanceToSupermarket != null && (
-                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#3182f6] flex items-center gap-1">
+                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#4e5968] flex items-center gap-1">
                                     🛒 대형마트 <span className="text-[#03c75a] font-bold">{report.metrics.distanceToSupermarket}m</span>
                                   </div>
                                 )}
                                 {report.metrics.distanceToMcDonalds != null && (
-                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#3182f6] flex items-center gap-1">
+                                  <div className="bg-[#f2f4f6] rounded-full px-2.5 py-1 text-[11px] font-medium text-[#4e5968] flex items-center gap-1">
                                     🍔 맥도날드 <span className="text-[#03c75a] font-bold">{report.metrics.distanceToMcDonalds}m</span>
                                   </div>
                                 )}
@@ -1034,7 +1034,7 @@ export function FieldReportModal({
                           {s.infra.gateImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.infra.gateImg} alt="진입로/문주" fill sizes="280px" className="object-cover" /></div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f2f4f6] inline-block px-3 py-1 rounded-lg">진입로 및 정문</h4>
-                            <p className="text-[15px] text-[#3182f6] leading-relaxed whitespace-pre-wrap">{s.infra.gateText || '사진만 제공됨'}</p>
+                            <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.infra.gateText || '사진만 제공됨'}</p>
                           </div>
                         </div>
                       )}
@@ -1044,7 +1044,7 @@ export function FieldReportModal({
                           {s.infra.landscapeImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.infra.landscapeImg} alt="조경/지형" fill sizes="280px" className="object-cover" /></div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f2f4f6] inline-block px-3 py-1 rounded-lg">단지 조경 및 지형</h4>
-                            <p className="text-[15px] text-[#3182f6] leading-relaxed whitespace-pre-wrap">{s.infra.landscapeText || '사진만 제공됨'}</p>
+                            <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.infra.landscapeText || '사진만 제공됨'}</p>
                           </div>
                         </div>
                       )}
@@ -1054,7 +1054,7 @@ export function FieldReportModal({
                           {s.infra.parkingImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.infra.parkingImg} alt="지하주차장" fill sizes="280px" className="object-cover" /></div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f2f4f6] inline-block px-3 py-1 rounded-lg">지하주차장 인프라</h4>
-                            <p className="text-[15px] text-[#3182f6] leading-relaxed whitespace-pre-wrap">{s.infra.parkingText || '사진만 제공됨'}</p>
+                            <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.infra.parkingText || '사진만 제공됨'}</p>
                           </div>
                         </div>
                       )}
@@ -1070,7 +1070,7 @@ export function FieldReportModal({
                           {s.ecosystem.schoolImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.ecosystem.schoolImg} alt="학군" fill sizes="280px" className="object-cover" /></div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f8f9fa] border border-[#e5e8eb] inline-block px-3 py-1 rounded-lg">학군 및 통학로</h4>
-                            <p className="text-[15px] text-[#3182f6] leading-relaxed whitespace-pre-wrap">{s.ecosystem.schoolText}</p>
+                            <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.ecosystem.schoolText}</p>
                           </div>
                         </div>
                       )}
@@ -1079,7 +1079,7 @@ export function FieldReportModal({
                           {s.ecosystem.commerceImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.ecosystem.commerceImg} alt="상권" fill sizes="280px" className="object-cover" /></div>}
                           <div>
                             <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f8f9fa] border border-[#e5e8eb] inline-block px-3 py-1 rounded-lg">동네 상권</h4>
-                            <p className="text-[15px] text-[#3182f6] leading-relaxed whitespace-pre-wrap">{s.ecosystem.commerceText}</p>
+                            <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.ecosystem.commerceText}</p>
                           </div>
                         </div>
                       )}
@@ -1090,17 +1090,17 @@ export function FieldReportModal({
                 <div id="sec-conclusion" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
                    <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><ShieldAlert size={20} className="text-[#3182f6]"/> 최종 매수 타당성 평가</h2>
                    <div className="flex flex-col gap-4">
-                      <div className="bg-[#191f28] p-6 rounded-2xl text-[#191f28]">
+                      <div className="bg-[#191f28] p-6 rounded-2xl text-white">
                         <h4 className="text-[13px] font-bold text-[#8b95a1] mb-2">교통 및 개발 호재</h4>
                         <p className="text-[15px] leading-relaxed whitespace-pre-wrap mb-4 pb-4 border-b border-white/10">{s.location.trafficText || '-'}</p>
                         <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{s.location.developmentText || '-'}</p>
                       </div>
                       <div className="p-6 rounded-2xl border-2 border-[#191f28] bg-[#fdfdfd]">
                         <h4 className="text-[16px] font-extrabold text-[#191f28] mb-2">💡 최종 결론</h4>
-                        <p className="text-[15px] text-[#3182f6] leading-relaxed whitespace-pre-wrap">{s.assessment.synthesis || '-'}</p>
+                        <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.assessment.synthesis || '-'}</p>
                         
                         {s.assessment.probability && (
-                          <div className="mt-6 p-4 bg-[#f9fafb] rounded-xl flex items-start gap-3">
+                          <div className="mt-6 p-4 bg-[#e8f3ff] rounded-xl flex items-start gap-3">
                              <Radar size={20} className="text-[#3182f6] shrink-0 mt-0.5" />
                              <div>
                                <h5 className="text-[13px] font-bold text-[#3182f6] mb-1">향후 가격 전망</h5>
@@ -1139,7 +1139,7 @@ export function FieldReportModal({
                   <button 
                     onClick={onSubmitComment}
                     disabled={!user || !commentInput.trim()}
-                    className="bg-[#3182f6] text-[#191f28] px-5 rounded-xl font-bold text-[14px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="bg-[#3182f6] text-white px-5 rounded-xl font-bold text-[14px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     등록
                   </button>
@@ -1160,7 +1160,7 @@ export function FieldReportModal({
                               <span className="font-bold text-[14px] text-[#191f28]">{comment.author}</span>
                               <span className="text-[12px] text-[#8b95a1]">{comment.createdAt}</span>
                             </div>
-                            <p className="text-[14px] text-[#3182f6] leading-relaxed break-all whitespace-pre-wrap">{comment.text}</p>
+                            <p className="text-[14px] text-[#4e5968] leading-relaxed break-all whitespace-pre-wrap">{comment.text}</p>
                           </div>
                         </div>
                       ))}
@@ -1178,13 +1178,12 @@ export function FieldReportModal({
                                   <span className="font-bold text-[14px] text-[#191f28]">{comment.author}</span>
                                   <span className="text-[12px] text-[#8b95a1]">{comment.createdAt}</span>
                                 </div>
-                                <p className="text-[14px] text-[#3182f6] leading-relaxed break-all whitespace-pre-wrap">{comment.text}</p>
+                                <p className="text-[14px] text-[#4e5968] leading-relaxed break-all whitespace-pre-wrap">{comment.text}</p>
                               </div>
                             </div>
                           ))
                         ) : (
                           <div className="relative">
-                            {/* 블러 처리된 미리보기 */}
                             <div className="blur-sm opacity-40 pointer-events-none">
                               {comments.slice(1, 3).map(comment => (
                                 <div key={comment.id} className="flex gap-3 bg-[#f9fafb] p-4 rounded-2xl border border-[#e5e8eb] mb-3">
@@ -1198,7 +1197,6 @@ export function FieldReportModal({
                                 </div>
                               ))}
                             </div>
-                            {/* 페이월 안내 */}
                             <div className="absolute inset-0 flex items-center justify-center">
                               <div className="bg-white border border-[#e5e8eb] rounded-2xl px-6 py-4 text-center shadow-lg">
                                 <p className="text-[14px] font-bold text-[#191f28] mb-1">🔒 {comments.length - 1}개의 이야기가 더 있습니다</p>
@@ -1231,7 +1229,7 @@ export function FieldReportModal({
           onClick={() => setFullscreenImage(null)}
         >
           <button 
-            className="absolute top-6 right-6 text-[#191f28]/50 hover:text-[#191f28] p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+            className="absolute top-6 right-6 text-white/50 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
             onClick={() => setFullscreenImage(null)}
           >
             <X size={24} />
@@ -1511,7 +1509,7 @@ export default function Dashboard() {
                   className={`flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-200 ${
                     activeTab === tab.id
                       ? 'bg-white text-[#191f28] shadow-sm'
-                      : 'text-[#8b95a1] hover:text-[#3182f6]'
+                      : 'text-[#8b95a1] hover:text-[#4e5968]'
                   }`}
                 >
                   <tab.icon size={14} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} />
@@ -1538,7 +1536,7 @@ export default function Dashboard() {
               <h1 className="text-[22px] sm:text-[28px] md:text-[36px] font-extrabold text-[#191f28] tracking-tight">
                 동탄 아파트 탐색
               </h1>
-              <span suppressHydrationWarning className="inline-flex items-center gap-1.5 bg-[#f9fafb] text-[#3182f6] text-[12px] sm:text-[13px] font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
+              <span suppressHydrationWarning className="inline-flex items-center gap-1.5 bg-[#e8f3ff] text-[#3182f6] text-[12px] sm:text-[13px] font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
                 <Building size={13} />
                 {Object.values(sheetApartments).flat().length}개 단지
               </span>
@@ -1562,7 +1560,7 @@ export default function Dashboard() {
                 onClick={() => setSelectedDong(null)}
                 className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 whitespace-nowrap shrink-0 ${
                   !selectedDong
-                    ? 'bg-[#191f28] text-[#191f28] shadow-md'
+                    ? 'bg-[#191f28] text-white shadow-md'
                     : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb]'
                 }`}
               >
@@ -1580,8 +1578,8 @@ export default function Dashboard() {
                     onClick={() => setSelectedDong(isActive ? null : dong.name)}
                     className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                       isActive
-                        ? 'text-[#191f28] shadow-md'
-                        : 'bg-[#f2f4f6] text-[#3182f6] hover:bg-[#e5e8eb]'
+                        ? 'text-white shadow-md'
+                        : 'bg-[#f2f4f6] text-[#4e5968] hover:bg-[#e5e8eb]'
                     }`}
                     style={isActive ? { backgroundColor: dong.color } : {}}
                   >
@@ -1773,14 +1771,14 @@ export default function Dashboard() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => user ? setShowReviewModal(true) : alert('로그인 후 리뷰를 작성할 수 있습니다.')}
-                  className="px-3 py-2 bg-[#f2f4f6] text-[#3182f6] rounded-xl text-[12px] font-bold flex items-center gap-1.5 hover:bg-[#e5e8eb] active:scale-[0.97] transition-all"
+                  className="px-3 py-2 bg-[#f2f4f6] text-[#4e5968] rounded-xl text-[12px] font-bold flex items-center gap-1.5 hover:bg-[#e5e8eb] active:scale-[0.97] transition-all"
                 >
                   <Star size={13} />
                   리뷰
                 </button>
                 <button
                   onClick={() => user ? setShowCompose(true) : alert('로그인 후 글을 작성할 수 있습니다.')}
-                  className="px-3 py-2 bg-[#191f28] text-[#191f28] rounded-xl text-[12px] font-bold flex items-center gap-1.5 hover:bg-[#333d4b] active:scale-[0.97] transition-all"
+                  className="px-3 py-2 bg-[#191f28] text-white rounded-xl text-[12px] font-bold flex items-center gap-1.5 hover:bg-[#333d4b] active:scale-[0.97] transition-all"
                 >
                   <PenLine size={13} />
                   글쓰기
@@ -1794,14 +1792,14 @@ export default function Dashboard() {
                 <div className="flex items-center gap-2">
                   <span className="text-[14px] font-bold text-[#191f28]">{getDisplayName(userProfile)}</span>
                   {userProfile.verifiedApartment && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#f9fafb] text-[#3182f6] px-2 py-0.5 rounded-md">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#e8f3ff] text-[#3182f6] px-2 py-0.5 rounded-md">
                       <ShieldCheck size={11} /> {userProfile.verifiedApartment.replace(/\[.*?\]\s*/, '')}
                     </span>
                   )}
                 </div>
                 <button
                   onClick={() => setShowVerify(true)}
-                  className="text-[12px] font-bold text-[#3182f6] bg-[#f9fafb] px-3 py-1.5 rounded-lg hover:bg-[#d4e9ff] transition-colors flex items-center gap-1"
+                  className="text-[12px] font-bold text-[#3182f6] bg-[#e8f3ff] px-3 py-1.5 rounded-lg hover:bg-[#d4e9ff] transition-colors flex items-center gap-1"
                 >
                   <Building2 size={13} />
                   {userProfile?.verifiedApartment ? '변경' : '아파트 인증'}
@@ -1845,7 +1843,7 @@ export default function Dashboard() {
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-[13px] font-bold text-[#191f28] shrink-0">{review.author}</span>
                         {review.verifiedApartment && review.verificationLevel === 'registry_verified' ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#f9fafb] text-[#3182f6] px-2 py-0.5 rounded-md shrink-0">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#e8f3ff] text-[#3182f6] px-2 py-0.5 rounded-md shrink-0">
                             <ShieldCheck size={11} /> {review.verifiedApartment.replace(/\[.*?\]\s*/, '')}
                           </span>
                         ) : review.verifiedApartment ? (
@@ -1863,7 +1861,7 @@ export default function Dashboard() {
                       ))}
                       <span className="text-[12px] font-bold text-[#8b95a1] ml-1">{review.rating}.0</span>
                     </div>
-                    <p className="text-[14px] text-[#3182f6] leading-relaxed mb-3">{review.content}</p>
+                    <p className="text-[14px] text-[#4e5968] leading-relaxed mb-3">{review.content}</p>
                     {review.photoURL && (
                       <div className="w-full h-48 rounded-xl overflow-hidden mb-3">
                         <img src={review.photoURL} alt="Review" className="w-full h-full object-cover" />
@@ -1895,7 +1893,7 @@ export default function Dashboard() {
             ) : newsFeed.length === 0 && (
               <div className="bg-white rounded-2xl border border-[#e5e8eb] p-12 text-center">
                 <MessageSquare size={40} className="mx-auto mb-4 text-[#d1d6db]" />
-                <p className="text-[15px] font-bold text-[#3182f6] mb-2">아직 소식이 없습니다</p>
+                <p className="text-[15px] font-bold text-[#4e5968] mb-2">아직 소식이 없습니다</p>
                 <p className="text-[13px] text-[#8b95a1] mb-4">첫 번째 글이나 리뷰를 남겨보세요!</p>
               </div>
             )}
@@ -1920,14 +1918,14 @@ export default function Dashboard() {
               <div className="flex items-center gap-2">
                 <span className="text-[14px] font-bold text-[#191f28]">{getDisplayName(userProfile)}</span>
                 {userProfile.verifiedApartment && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#f9fafb] text-[#3182f6] px-2 py-0.5 rounded-md">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#e8f3ff] text-[#3182f6] px-2 py-0.5 rounded-md">
                     <ShieldCheck size={11} /> {userProfile.verifiedApartment.replace(/\[.*?\]\s*/, '')}
                   </span>
                 )}
               </div>
               <button
                 onClick={() => setShowVerify(true)}
-                className="text-[12px] font-bold text-[#3182f6] bg-[#f9fafb] px-3 py-1.5 rounded-lg hover:bg-[#d4e9ff] transition-colors flex items-center gap-1"
+                className="text-[12px] font-bold text-[#3182f6] bg-[#e8f3ff] px-3 py-1.5 rounded-lg hover:bg-[#d4e9ff] transition-colors flex items-center gap-1"
               >
                 <Building2 size={13} />
                 {userProfile?.verifiedApartment ? '변경' : '아파트 인증'}
@@ -1940,7 +1938,7 @@ export default function Dashboard() {
             {newsFeed.length === 0 ? (
               <div className="bg-white rounded-2xl p-12 text-center border border-[#e5e8eb]">
                 <MessageSquare size={40} className="mx-auto mb-4 text-[#d1d6db]" />
-                <p className="text-[15px] font-bold text-[#3182f6]">아직 글이 없습니다</p>
+                <p className="text-[15px] font-bold text-[#4e5968]">아직 글이 없습니다</p>
               </div>
             ) : (
               newsFeed.map((news) => (
@@ -1980,7 +1978,7 @@ export default function Dashboard() {
           {user && (
             <button
               onClick={() => setShowCompose(true)}
-              className="fixed bottom-6 right-6 w-14 h-14 bg-[#3182f6] hover:bg-[#1b6de8] text-[#191f28] rounded-full shadow-lg shadow-[#3182f6]/30 flex items-center justify-center transition-all active:scale-95 z-20"
+              className="fixed bottom-6 right-6 w-14 h-14 bg-[#3182f6] hover:bg-[#1b6de8] text-white rounded-full shadow-lg shadow-[#3182f6]/30 flex items-center justify-center transition-all active:scale-95 z-20"
             >
               <PenLine size={22} />
             </button>
@@ -1994,12 +1992,12 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="text-[18px] font-extrabold text-[#191f28]">익명 글쓰기</h2>
                   <button onClick={() => setShowCompose(false)} className="w-8 h-8 rounded-full bg-[#f2f4f6] flex items-center justify-center hover:bg-[#e5e8eb] transition-colors">
-                    <X size={16} className="text-[#3182f6]" />
+                    <X size={16} className="text-[#4e5968]" />
                   </button>
                 </div>
                 <div className="flex gap-2 mb-4 overflow-x-auto">
                   {['부동산', '교통', '교육', '문화', '자유'].map((cat) => (
-                    <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#191f28] text-[#191f28] border-[#191f28]' : 'bg-white text-[#3182f6] border-[#d1d6db] hover:border-[#3182f6]'}`}>{cat}</button>
+                    <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#191f28] text-white border-[#191f28]' : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'}`}>{cat}</button>
                   ))}
                 </div>
                 <textarea value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="동탄 이야기를 자유롭게 나눠보세요..." rows={3} className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors resize-none focus:ring-4 focus:ring-[#3182f6]/10 mb-4" autoFocus />
@@ -2016,7 +2014,7 @@ export default function Dashboard() {
                       finally { setIsSubmitting(false); }
                     }}
                     disabled={isSubmitting || !postTitle.trim()}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#3182f6] hover:bg-[#1b6de8] disabled:bg-[#d1d6db] text-[#191f28] rounded-xl font-bold text-[14px] transition-all active:scale-95"
+                    className="flex items-center gap-2 px-6 py-3 bg-[#3182f6] hover:bg-[#1b6de8] disabled:bg-[#d1d6db] text-white rounded-xl font-bold text-[14px] transition-all active:scale-95"
                   >
                     <Send size={14} />
                     {isSubmitting ? '게시 중...' : '게시하기'}
@@ -2034,19 +2032,19 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="text-[18px] font-extrabold text-[#191f28]">🏠 아파트 인증</h2>
                   <button onClick={() => setShowVerify(false)} className="w-8 h-8 rounded-full bg-[#f2f4f6] flex items-center justify-center hover:bg-[#e5e8eb] transition-colors">
-                    <X size={16} className="text-[#3182f6]" />
+                    <X size={16} className="text-[#4e5968]" />
                   </button>
                 </div>
                 <p className="text-[14px] font-bold text-[#191f28] mb-3">내 아파트를 선택해주세요</p>
                 <div className="flex gap-2 overflow-x-auto pb-3 mb-3">
                   {Array.from(new Set(dongtanApartments.map(apt => apt.match(/\[(.*?)\]/)?.[1]).filter(Boolean))).map(dong => (
-                    <button key={dong} onClick={() => { setVerifyDong(dong as string); setVerifyApt(''); }} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${verifyDong === dong ? 'bg-[#191f28] text-[#191f28] border-[#191f28]' : 'bg-white text-[#3182f6] border-[#d1d6db] hover:border-[#3182f6]'}`}>{dong}</button>
+                    <button key={dong} onClick={() => { setVerifyDong(dong as string); setVerifyApt(''); }} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${verifyDong === dong ? 'bg-[#191f28] text-white border-[#191f28]' : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'}`}>{dong}</button>
                   ))}
                 </div>
                 {verifyDong && (
                   <div className="bg-[#f9fafb] border border-[#d1d6db] rounded-xl overflow-hidden max-h-48 overflow-y-auto p-2 mb-5">
                     {dongtanApartments.filter(apt => apt.includes(`[${verifyDong}]`)).map(apt => (
-                      <button key={apt} onClick={() => setVerifyApt(apt)} className={`w-full text-left px-4 py-3 text-[14px] font-medium rounded-lg transition-colors ${verifyApt === apt ? 'bg-[#f9fafb] text-[#3182f6] font-bold' : 'text-[#191f28] hover:bg-[#f2f4f6]'}`}>{apt}</button>
+                      <button key={apt} onClick={() => setVerifyApt(apt)} className={`w-full text-left px-4 py-3 text-[14px] font-medium rounded-lg transition-colors ${verifyApt === apt ? 'bg-[#e8f3ff] text-[#3182f6] font-bold' : 'text-[#191f28] hover:bg-[#f2f4f6]'}`}>{apt}</button>
                     ))}
                   </div>
                 )}
@@ -2059,7 +2057,7 @@ export default function Dashboard() {
                     alert('🏠 아파트 인증이 완료되었습니다!');
                   }}
                   disabled={!verifyApt}
-                  className="w-full py-4 rounded-xl font-bold text-[15px] transition-all active:scale-[0.98] disabled:bg-[#d1d6db] disabled:text-[#8b95a1] bg-[#191f28] text-[#191f28] flex items-center justify-center gap-2"
+                  className="w-full py-4 rounded-xl font-bold text-[15px] transition-all active:scale-[0.98] disabled:bg-[#d1d6db] disabled:text-[#8b95a1] bg-[#191f28] text-white flex items-center justify-center gap-2"
                 >
                   <Shield size={16} />
                   자가선언 인증하기
@@ -2079,10 +2077,10 @@ export default function Dashboard() {
             <p className="text-[15px] text-[#8b95a1] font-medium">동탄 맞춤 아파트 추천 & 분석</p>
           </div>
           <div className="flex flex-col gap-6">
-            <div className="w-full h-[180px] sm:h-[200px] bg-gradient-to-br from-[#3182f6] to-[#2b72d6] rounded-3xl p-5 sm:p-8 flex flex-col justify-end text-[#191f28] relative overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+            <div className="w-full h-[180px] sm:h-[200px] bg-gradient-to-br from-[#3182f6] to-[#2b72d6] rounded-3xl p-5 sm:p-8 flex flex-col justify-end text-white relative overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 group-hover:bg-white/20 transition-colors"></div>
               <h3 className="text-[18px] sm:text-[24px] font-extrabold mb-1 relative z-10">우리 아파트 탈탈 털어드림!</h3>
-              <p className="text-[#191f28]/80 text-[12px] sm:text-[14px] relative z-10">장점부터 숨기고 싶은 단점까지 속 시원하게 분석 신청하기</p>
+              <p className="text-white/80 text-[12px] sm:text-[14px] relative z-10">장점부터 숨기고 싶은 단점까지 속 시원하게 분석 신청하기</p>
               <div className="absolute top-6 right-6 sm:top-8 sm:right-8 bg-white text-[#3182f6] w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold shadow-lg shadow-black/10">&rarr;</div>
             </div>
 
@@ -2107,7 +2105,7 @@ export default function Dashboard() {
                       <span className="text-[15px] font-extrabold text-[#191f28] group-hover:text-[#3182f6] transition-colors">{zone.name}</span>
                     </div>
                     <span className="text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-0.5 rounded-md inline-block mb-2">{zone.dongLabel}</span>
-                    <p className="text-[13px] text-[#3182f6] leading-relaxed line-clamp-2">{zone.description}</p>
+                    <p className="text-[13px] text-[#4e5968] leading-relaxed line-clamp-2">{zone.description}</p>
                   </div>
                 ))}
               </div>
@@ -2116,7 +2114,7 @@ export default function Dashboard() {
             {/* KPI Cards */}
             {kpis.map(kpi => (
               <div key={kpi.id} className="bg-white p-6 rounded-3xl border border-[#e5e8eb] shadow-sm hover:shadow-md transition-shadow">
-                <h3 className="text-[13px] text-[#3182f6] font-bold mb-3">{kpi.title}</h3>
+                <h3 className="text-[13px] text-[#4e5968] font-bold mb-3">{kpi.title}</h3>
                 <div className="text-[24px] font-extrabold text-[#191f28]">{kpi.mainValue}</div>
                 {kpi.subValue && <p className="text-[12px] text-[#8b95a1] font-medium mt-1">{kpi.subValue}</p>}
               </div>
@@ -2126,7 +2124,7 @@ export default function Dashboard() {
 
             {/* Ad Banner */}
             <div className="w-full bg-[#f2f4f6] border border-[#e5e8eb] rounded-3xl p-8 flex flex-col items-center justify-center text-center">
-              <span className="bg-[#191f28] text-[#191f28] text-[11px] font-bold px-2 py-0.5 rounded mb-2">AD</span>
+              <span className="bg-[#191f28] text-white text-[11px] font-bold px-2 py-0.5 rounded mb-2">AD</span>
               <h3 className="text-[18px] font-bold text-[#191f28] mb-1">여기에 광고 배너가 표시됩니다</h3>
               <p className="text-[#8b95a1] text-[14px]">광고 구좌 (e.g., 부동산 플랫폼 배너, 인테리어 광고 등)</p>
             </div>

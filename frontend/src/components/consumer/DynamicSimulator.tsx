@@ -97,7 +97,7 @@ export default function DynamicSimulator({ scores, price84Man }: Props) {
             <div key={area.key} className="flex items-center gap-3">
               <div className="w-[80px] flex items-center gap-1.5 shrink-0">
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: area.color }} />
-                <span className="text-[12px] font-bold text-[#3182f6] truncate">{area.name}</span>
+                <span className="text-[12px] font-bold text-[#4e5968] truncate">{area.name}</span>
               </div>
               <input
                 type="range"
@@ -127,8 +127,8 @@ export default function DynamicSimulator({ scores, price84Man }: Props) {
                   onClick={() => setFutureToggles(prev => ({ ...prev, [event.id]: !prev[event.id] }))}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-bold transition-all border ${
                     active
-                      ? 'bg-[#191f28] text-[#191f28] border-[#191f28]'
-                      : 'bg-white text-[#3182f6] border-[#d1d6db] hover:border-[#3182f6]'
+                      ? 'bg-[#191f28] text-white border-[#191f28]'
+                      : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'
                   }`}
                 >
                   <event.icon size={13} />
@@ -145,7 +145,7 @@ export default function DynamicSimulator({ scores, price84Man }: Props) {
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                 <PolarGrid stroke="#e5e8eb" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: '#3182f6', fontSize: 11, fontWeight: 700 }} />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: '#4e5968', fontSize: 11, fontWeight: 700 }} />
                 <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
                 <Radar name="원본" dataKey="original" stroke="#d1d6db" fill="#d1d6db" fillOpacity={0.2} strokeWidth={1.5} strokeDasharray="4 4" />
                 <Radar name="시뮬레이션" dataKey="simulated" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.3} strokeWidth={2} />

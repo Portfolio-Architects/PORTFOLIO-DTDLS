@@ -16,11 +16,11 @@ function PaymentFailContent() {
           <span className="text-[32px]">😥</span>
         </div>
         <h1 className="text-[22px] font-extrabold text-[#191f28] mb-2">결제 실패</h1>
-        <p className="text-[14px] text-[#3182f6] mb-2">{message}</p>
+        <p className="text-[14px] text-[#4e5968] mb-2">{message}</p>
         {code && <p className="text-[12px] text-[#8b95a1] mb-6">에러 코드: {code}</p>}
         <button
           onClick={() => router.push('/')}
-          className="bg-[#3182f6] text-[#191f28] font-bold px-6 py-3 rounded-xl hover:bg-[#1b64da] transition-colors"
+          className="bg-[#3182f6] text-white font-bold px-6 py-3 rounded-xl hover:bg-[#1b64da] transition-colors"
         >
           돌아가기
         </button>

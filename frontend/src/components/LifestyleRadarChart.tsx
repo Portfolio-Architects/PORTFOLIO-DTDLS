@@ -19,7 +19,7 @@ export default function LifestyleRadarChart() {
           <PolarGrid stroke="rgba(0,0,0,0.05)" />
           <PolarAngleAxis 
             dataKey="time" 
-            tick={{ fill: '#3182f6', fontSize: 13, fontFamily: 'sans-serif' }} 
+            tick={{ fill: '#4e5968', fontSize: 13, fontFamily: 'sans-serif' }} 
           />
           <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
           <Tooltip 

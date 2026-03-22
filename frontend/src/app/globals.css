@@ -9,22 +9,14 @@
 
 @layer base {
   :root {
-    /* ── DSQ Theme ── */
     --bg-body: #f2f4f6;
     --bg-surface: #ffffff;
-    --bg-surface-hover: #f9fafb;
-    --bg-elevated: #f9fafb;
     --text-primary: #191f28;
     --text-secondary: #4e5968;
     --text-tertiary: #8b95a1;
-    --accent-silver: #8D99AE;
-    --accent-silver-light: #e8f3ff;
-    --signal-red: #EF233C;
-    --signal-green: #03c75a;
-    --border-line: #e5e8eb;
     --toss-blue: #3182f6;
     --toss-blue-light: #e8f3ff;
-    --toss-red: #EF233C;
+    --toss-red: #f04452;
     --toss-green: #03c75a;
     --toss-gray: #d1d6db;
     --border-radius-xl: 24px;
@@ -50,21 +42,21 @@
     cursor: pointer;
   }
 
-  /* ── a11y: Focus Ring ── */
+  /* a11y: Focus Ring */
   :focus-visible {
-    outline: 2px solid #8D99AE;
+    outline: 2px solid #3182f6;
     outline-offset: 2px;
     border-radius: 4px;
   }
 
-  /* ── a11y: Skip to Content ── */
+  /* a11y: Skip to Content */
   .skip-to-content {
     position: absolute;
     left: -9999px;
     top: 0;
     z-index: 9999;
-    background: #0B132B;
-    color: #EDF2F4;
+    background: #191f28;
+    color: white;
     padding: 8px 16px;
     font-weight: 700;
     font-size: 14px;
@@ -74,7 +66,7 @@
     left: 0;
   }
 
-  /* ── a11y: Reduced Motion ── */
+  /* a11y: Reduced Motion */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
@@ -141,7 +133,7 @@
     top: 4px;
     right: 4px;
     background: var(--toss-red);
-    color: #EDF2F4;
+    color: white;
     font-size: 10px;
     font-weight: 700;
     width: 16px;

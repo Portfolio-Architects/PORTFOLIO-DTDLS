@@ -445,7 +445,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
 
   const NumberInput = ({ name, label, placeholder, unit }: { name: any, label: string, placeholder: string, unit: string }) => (
     <div className="mb-4">
-      <label className="block text-[14px] font-bold text-[#3182f6] mb-2">{label}</label>
+      <label className="block text-[14px] font-bold text-[#4e5968] mb-2">{label}</label>
       <div className="relative">
         <input 
           type="number"
@@ -461,7 +461,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
 
   const SelectInput = ({ name, label, options }: { name: any, label: string, options: string[] }) => (
     <div className={label ? "mb-4" : ""}>
-      {label && <label className="block text-[14px] font-bold text-[#3182f6] mb-2">{label}</label>}
+      {label && <label className="block text-[14px] font-bold text-[#4e5968] mb-2">{label}</label>}
       <select 
         {...register(name, { required: true })}
         className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-all appearance-none cursor-pointer"
@@ -477,7 +477,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
       {/* 1. Basic Info Section */}
       <section className="mb-12">
         <h3 className="text-[18px] font-bold text-[#191f28] mb-6 flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-[#f2f4f6] text-[#3182f6] flex items-center justify-center text-[12px]">1</span>
+          <span className="w-6 h-6 rounded-full bg-[#f2f4f6] text-[#4e5968] flex items-center justify-center text-[12px]">1</span>
           기본 정보
         </h3>
 
@@ -485,14 +485,14 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
           {lockedMeta ? (
             <div className="col-span-2 p-4 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl flex gap-3 items-center">
               <span className="text-[13px] font-bold text-[#8b95a1] bg-white border border-[#e5e8eb] px-2 py-1 rounded shadow-sm">단지 고정됨</span>
-              <span className="text-[14px] font-bold text-[#3182f6]">{lockedMeta.dong}</span>
+              <span className="text-[14px] font-bold text-[#4e5968]">{lockedMeta.dong}</span>
               <span className="text-[14px] text-[#d1d6db]">/</span>
               <span className="text-[15px] font-extrabold text-[#3182f6]">{lockedMeta.apartmentName}</span>
             </div>
           ) : (
             <>
               <div>
-                <label className="block text-[14px] font-bold text-[#3182f6] mb-2">법정동 선택 <span className="text-[#f04452]">*</span></label>
+                <label className="block text-[14px] font-bold text-[#4e5968] mb-2">법정동 선택 <span className="text-[#f04452]">*</span></label>
                 <SelectInput 
                   name="dong" 
                   label="" 
@@ -500,7 +500,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                 />
               </div>
               <div>
-                <label className="block text-[14px] font-bold text-[#3182f6] mb-2">물건(아파트) 이름 <span className="text-[#f04452]">*</span></label>
+                <label className="block text-[14px] font-bold text-[#4e5968] mb-2">물건(아파트) 이름 <span className="text-[#f04452]">*</span></label>
                 {selectedDong === '기타' ? (
                   <input 
                     {...register('apartmentName', { required: true })}
@@ -524,7 +524,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
       {/* 1.5 Thumbnail Section */}
       <section className="mb-12">
         <h3 className="text-[18px] font-bold text-[#191f28] mb-4 flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-[#f2f4f6] text-[#3182f6] flex items-center justify-center text-[12px]">📷</span>
+          <span className="w-6 h-6 rounded-full bg-[#f2f4f6] text-[#4e5968] flex items-center justify-center text-[12px]">📷</span>
           대표 썸네일
         </h3>
         <div className="flex items-start gap-5">
@@ -550,7 +550,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
               <>
                 <img src={thumbnailPreview} alt="Thumbnail" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-[#191f28] text-[11px] font-bold">변경하기</span>
+                  <span className="text-white text-[11px] font-bold">변경하기</span>
                 </div>
               </>
             ) : (
@@ -561,7 +561,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
             )}
           </div>
           <div className="flex-1">
-            <p className="text-[13px] text-[#3182f6] font-medium mb-2">
+            <p className="text-[13px] text-[#4e5968] font-medium mb-2">
               메인 피드에 표시될 대표 이미지입니다.
             </p>
             <p className="text-[12px] text-[#8b95a1]">
@@ -584,7 +584,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
       <section className="mb-12 bg-[#f9fafb] -mx-6 md:-mx-8 px-6 md:px-8 py-8 border-y border-[#e5e8eb]">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-white text-[#3182f6] shadow-sm flex items-center justify-center text-[12px]">2</span>
+            <span className="w-6 h-6 rounded-full bg-white text-[#4e5968] shadow-sm flex items-center justify-center text-[12px]">2</span>
             객관적 지표 통계
           </h3>
           <button
@@ -664,7 +664,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                 setIsCalculating(false);
               }
             }}
-            className="px-5 py-2.5 bg-[#f9fafb] hover:bg-[#d0e8ff] text-[#3182f6] font-bold text-[13px] rounded-xl transition-all flex items-center gap-2 disabled:opacity-50"
+            className="px-5 py-2.5 bg-[#e8f3ff] hover:bg-[#d0e8ff] text-[#3182f6] font-bold text-[13px] rounded-xl transition-all flex items-center gap-2 disabled:opacity-50"
           >
             {isCalculating ? (
               <><div className="w-4 h-4 border-2 border-[#3182f6] border-t-transparent rounded-full animate-spin" /> 불러오는 중...</>
@@ -673,11 +673,11 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
             )}
           </button>
         </div>
-        <p className="text-[14px] text-[#3182f6] mb-6">입력하신 실제 데이터는 소비자 대상 팩트 프리미엄 지표로 자동 가공되어 표시됩니다.</p>
+        <p className="text-[14px] text-[#4e5968] mb-6">입력하신 실제 데이터는 소비자 대상 팩트 프리미엄 지표로 자동 가공되어 표시됩니다.</p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-2 mb-4">
           <div>
-            <label className="block text-[13px] font-bold text-[#3182f6] mb-1 pl-0.5">대표 시공사 (브랜드)</label>
+            <label className="block text-[13px] font-bold text-[#4e5968] mb-1 pl-0.5">대표 시공사 (브랜드)</label>
             <input
               {...register('metrics.brand')}
               placeholder="예: 현대건설"
@@ -730,7 +730,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                   .sort(([,a], [,b]) => b - a)
                   .map(([cat, cnt]) => (
                     <div key={cat} className="flex justify-between text-[12px] py-0.5 px-1">
-                      <span className="text-[#3182f6] truncate mr-2">{cat}</span>
+                      <span className="text-[#4e5968] truncate mr-2">{cat}</span>
                       <span className="font-bold text-[#03c75a] shrink-0">{cnt}개</span>
                     </div>
                   ))
@@ -748,7 +748,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                   .sort(([,a], [,b]) => b - a)
                   .map(([cat, cnt]) => (
                     <div key={cat} className="flex justify-between text-[12px] py-0.5 px-1">
-                      <span className="text-[#3182f6] truncate mr-2">{cat}</span>
+                      <span className="text-[#4e5968] truncate mr-2">{cat}</span>
                       <span className="font-bold text-[#f59e0b] shrink-0">{cnt}개</span>
                     </div>
                   ))
@@ -763,7 +763,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
       {/* 3. Dynamic Images Array */}
       <section className="mb-12">
         <h3 className="text-[18px] font-bold text-[#191f28] mb-6 flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-[#f2f4f6] text-[#3182f6] flex items-center justify-center text-[12px]">3</span>
+          <span className="w-6 h-6 rounded-full bg-[#f2f4f6] text-[#4e5968] flex items-center justify-center text-[12px]">3</span>
           현장 사진 데이터베이스
           <span className="text-[12px] font-medium text-[#8b95a1] ml-auto">{imageFields.length}장</span>
         </h3>
@@ -772,7 +772,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
         <div
           className={`mb-6 border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
             isDragging
-              ? 'border-[#3182f6] bg-[#f9fafb] scale-[1.01]'
+              ? 'border-[#3182f6] bg-[#e8f3ff] scale-[1.01]'
               : 'border-[#d1d6db] bg-[#f9fafb] hover:bg-[#f2f4f6] hover:border-[#3182f6]'
           }`}
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -795,7 +795,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
           <button
             type="button"
             onClick={sortByCategory}
-            className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-white border border-[#e5e8eb] rounded-xl text-[13px] font-bold text-[#3182f6] hover:bg-[#f9fafb] hover:border-[#3182f6] hover:text-[#3182f6] transition-all shadow-sm"
+            className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-white border border-[#e5e8eb] rounded-xl text-[13px] font-bold text-[#4e5968] hover:bg-[#f9fafb] hover:border-[#3182f6] hover:text-[#3182f6] transition-all shadow-sm"
           >
             <ArrowUpDown size={14} />
             카테고리별 자동 정렬
@@ -827,7 +827,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                   <>
                     <img src={field.previewUrl || field.url} alt="Preview" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
-                      <span className="text-[#191f28] text-[11px] font-bold">변경하기</span>
+                      <span className="text-white text-[11px] font-bold">변경하기</span>
                     </div>
                   </>
                 ) : (
@@ -874,17 +874,17 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                                   container.querySelectorAll('[data-cat-group]').forEach(el => el.classList.add('hidden'));
                                   container.querySelector(`[data-cat-group="${gIdx}"]`)?.classList.remove('hidden');
                                   container.querySelectorAll('[data-cat-tab]').forEach(el => {
-                                    el.classList.remove('bg-[#191f28]', 'text-[#191f28]');
-                                    el.classList.add('bg-[#f2f4f6]', 'text-[#3182f6]');
+                                    el.classList.remove('bg-[#191f28]', 'text-white');
+                                    el.classList.add('bg-[#f2f4f6]', 'text-[#4e5968]');
                                   });
-                                  container.querySelector(`[data-cat-tab="${gIdx}"]`)?.classList.remove('bg-[#f2f4f6]', 'text-[#3182f6]');
-                                  container.querySelector(`[data-cat-tab="${gIdx}"]`)?.classList.add('bg-[#191f28]', 'text-[#191f28]');
+                                  container.querySelector(`[data-cat-tab="${gIdx}"]`)?.classList.remove('bg-[#f2f4f6]', 'text-[#4e5968]');
+                                  container.querySelector(`[data-cat-tab="${gIdx}"]`)?.classList.add('bg-[#191f28]', 'text-white');
                                 }}
                                 data-cat-tab={gIdx}
                                 className={`shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
                                   (currentGroup === g || (!currentGroup && gIdx === 0))
-                                    ? 'bg-[#191f28] text-[#191f28]'
-                                    : 'bg-[#f2f4f6] text-[#3182f6] hover:bg-[#e5e8eb]'
+                                    ? 'bg-[#191f28] text-white'
+                                    : 'bg-[#f2f4f6] text-[#4e5968] hover:bg-[#e5e8eb]'
                                 }`}
                               >
                                 {g.group.replace(/[^\w가-힣·\s]/g, '').trim()}
@@ -911,8 +911,8 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                                   }}
                                   className={`px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-all ${
                                     currentTag === item
-                                      ? 'bg-[#f9fafb] text-[#3182f6] border-[#3182f6] font-bold'
-                                      : 'bg-white text-[#3182f6] border-[#e5e8eb] hover:bg-[#f2f4f6] hover:border-[#3182f6]'
+                                      ? 'bg-[#e8f3ff] text-[#3182f6] border-[#3182f6] font-bold'
+                                      : 'bg-white text-[#4e5968] border-[#e5e8eb] hover:bg-[#f2f4f6] hover:border-[#3182f6]'
                                   }`}
                                 >
                                   {item}
@@ -941,7 +941,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                           const currentVal = imageFields[index];
                           updateImage(index, { ...currentVal, caption: tmpl });
                         }}
-                        className="px-2.5 py-1 bg-[#f2f4f6] hover:bg-[#f9fafb] hover:text-[#3182f6] border border-[#e5e8eb] hover:border-[#3182f6] rounded-lg text-[11px] text-[#3182f6] font-medium transition-all truncate max-w-[240px]"
+                        className="px-2.5 py-1 bg-[#f2f4f6] hover:bg-[#e8f3ff] hover:text-[#3182f6] border border-[#e5e8eb] hover:border-[#3182f6] rounded-lg text-[11px] text-[#4e5968] font-medium transition-all truncate max-w-[240px]"
                         title={tmpl}
                       >
                         📝 {tmpl}
@@ -952,7 +952,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                 <div className="flex items-center gap-3 w-full">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" {...register(`images.${index}.isPremium`)} className="w-4 h-4 rounded text-[#3182f6] focus:ring-[#3182f6] border-[#d1d6db]" />
-                    <span className="text-[13px] font-semibold text-[#3182f6]">유료(프리미엄) 멤버 전용 숨김 처리</span>
+                    <span className="text-[13px] font-semibold text-[#4e5968]">유료(프리미엄) 멤버 전용 숨김 처리</span>
                   </label>
                   
                   <button 
@@ -971,7 +971,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
         <button 
           type="button" 
           onClick={() => appendImage({ url: '', caption: '', locationTag: '', isPremium: false })}
-          className="w-full py-4 border-2 border-dashed border-[#d1d6db] rounded-2xl text-[#3182f6] font-bold text-[14px] hover:bg-[#f9fafb] hover:text-[#3182f6] hover:border-[#3182f6] transition-all flex items-center justify-center gap-2"
+          className="w-full py-4 border-2 border-dashed border-[#d1d6db] rounded-2xl text-[#4e5968] font-bold text-[14px] hover:bg-[#f9fafb] hover:text-[#3182f6] hover:border-[#3182f6] transition-all flex items-center justify-center gap-2"
         >
           <ImagePlus size={18} /> 사진 블록(Block) 추가
         </button>
@@ -1011,14 +1011,14 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
               alert('임시 저장에 실패했습니다.');
             }
           }}
-          className="px-6 py-3 font-bold text-[#3182f6] bg-[#f2f4f6] hover:bg-[#e5e8eb] rounded-xl transition-colors"
+          className="px-6 py-3 font-bold text-[#4e5968] bg-[#f2f4f6] hover:bg-[#e5e8eb] rounded-xl transition-colors"
         >
           임시 저장
         </button>
         <button 
           type="submit" 
           disabled={isSubmitting}
-          className="px-8 py-3 font-bold text-[#191f28] bg-[#3182f6] hover:bg-[#2b72d6] active:bg-[#1b64da] rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 min-w-[180px] justify-center"
+          className="px-8 py-3 font-bold text-white bg-[#3182f6] hover:bg-[#2b72d6] active:bg-[#1b64da] rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 min-w-[180px] justify-center"
         >
           {isSubmitting ? (
             <>
