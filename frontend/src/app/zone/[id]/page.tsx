@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Camera, MapPin, ArrowLeft } from 'lucide-react';
 import { useDashboardData, dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import { ZONES, dongToZoneId, getZoneById } from '@/lib/zones';
-import { FieldReportModal } from '@/app/page';
+import { FieldReportModal } from '@/components/ApartmentModal';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { onAuthStateChanged, User } from 'firebase/auth';
 
