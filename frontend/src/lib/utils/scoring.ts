@@ -16,13 +16,61 @@ export interface PremiumScores {
   totalPremiumScore: number;
 }
 
-// 브랜드별 가산점 (시공사 인지도 + 프리미엄)
-const BRAND_BONUS: Record<string, number> = {
-  '래미안': 10, '자이': 10, '디에이치': 12,
-  '힐스테이트': 8, '푸르지오': 7, '더샵': 7,
-  '롯데캐슬': 6, '아이파크': 6, 'e편한세상': 5,
-  '해링턴': 4, '제일풍경채': 4, '호반써밋': 3,
-};
+/**
+ * 브랜드별 위험 조정 승수 (μ, Risk-Adjusted Multiplier)
+ *
+ * PUR 밸류에이션의 최종 산출 연산 변수.
+ * 전국 단위 기초 프리미엄(α), 지역별 시장 지배력(β),
+ * 이벤트 드리븐 리스크 패널티(γ)를 통합한 계량적 결과물.
+ *
+ * μ > 1.0: 자본 조달 우위 + 초과 수요 창출
+ * μ < 1.0: 구조적 디스카운트 + 리스크 전가
+ */
+interface BrandTier {
+  tier: number;
+  mu: number;       // 위험 조정 승수 (midpoint)
+  brands: string[]; // 매칭 키워드 (아파트명에 포함 여부로 판정)
+}
+
+const BRAND_TIERS: BrandTier[] = [
+  // Tier 1: High-End Core — μ = 1.12~1.15
+  { tier: 1, mu: 1.135, brands: ['디에이치', '아크로', '르엘', '써밋'] },
+  // Tier 2: Top-Tier Major — μ = 1.08~1.10
+  { tier: 2, mu: 1.09, brands: ['래미안', '힐스테이트'] },
+  // Tier 3: Upper Major — μ = 1.05~1.07
+  { tier: 3, mu: 1.06, brands: ['자이', '푸르지오', 'e편한세상', '더샵'] },
+  // Tier 4: Risk-Managed Major — μ = 1.02~1.04
+  { tier: 4, mu: 1.03, brands: ['롯데캐슬', '아이파크', 'SK뷰', '포레나'] },
+  // Tier 5: New Town Leading — μ = 1.01~1.03
+  { tier: 5, mu: 1.02, brands: ['호반써밋', '우미린', '제일풍경채', '중흥S-클래스', '중흥'] },
+  // Tier 6: Traditional Regional — μ = 0.99~1.01
+  { tier: 6, mu: 1.00, brands: ['하늘채', '어울림', '유보라', '센트레빌', '엘리프'] },
+  // Tier 7: Risk Exposed Mid-size — μ = 0.95~0.98
+  { tier: 7, mu: 0.965, brands: ['데시앙', '스타힐스', '스위첸', '빌리브'] },
+  // Tier 8: Public & Micro — μ = 0.90~0.95
+  { tier: 8, mu: 0.925, brands: ['안단테'] },
+];
+
+/** μ 범위: 0.90 ~ 1.15 → 0 ~ 100 선형 매핑 */
+const MU_MIN = 0.90;
+const MU_MAX = 1.15;
+const MU_DEFAULT = 0.925; // Tier 8 (비브랜드 기본값)
+
+/**
+ * 아파트명에서 브랜드 승수(μ)를 조회합니다.
+ * @param brand 시공사/브랜드명 (아파트명에서 매칭)
+ * @returns μ 값 (기본 0.925)
+ */
+export function getBrandMultiplier(brand: string | undefined): number {
+  if (!brand) return MU_DEFAULT;
+  for (const tier of BRAND_TIERS) {
+    for (const keyword of tier.brands) {
+      if (brand.includes(keyword)) return tier.mu;
+    }
+  }
+  return MU_DEFAULT;
+}
+
 
 function clamp(v: number, min = 0, max = 100): number {
   return Math.max(min, Math.min(max, v));
@@ -112,15 +160,9 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   else sizeScore = (metrics.householdCount / 500) * 30;
   sizeScore = clamp(sizeScore);
 
-  // 브랜드 가산
-  let brandScore = 40; // 기본 (무브랜드)
-  for (const [brand, bonus] of Object.entries(BRAND_BONUS)) {
-    if (metrics.brand?.includes(brand)) {
-      brandScore = 40 + bonus * 6; // 래미안: 40 + 60 = 100
-      break;
-    }
-  }
-  brandScore = clamp(brandScore);
+  // 브랜드 승수(μ) → 0~100 점수 선형 매핑
+  const mu = getBrandMultiplier(metrics.brand);
+  const brandScore = clamp(((mu - MU_MIN) / (MU_MAX - MU_MIN)) * 100);
 
   // 연식: 신축일수록 높은 점수
   const currentYear = new Date().getFullYear();

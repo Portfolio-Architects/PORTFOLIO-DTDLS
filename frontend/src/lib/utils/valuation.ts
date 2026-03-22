@@ -1,4 +1,5 @@
 import type { PremiumScores } from './scoring';
+import { getBrandMultiplier } from './scoring';
 
 /**
  * 밸류에이션 상대 가치 지표
@@ -71,10 +72,12 @@ function getYieldGrade(y: number): { grade: string; color: string } {
  * PUR 계산
  * @param price84Man 84㎡ 기준 매매가 (만원 단위)
  * @param totalScore 종합 프리미엄 점수 (0~100)
+ * @param brandName 브랜드/시공사명 (μ 조회용)
  */
-export function calculatePUR(price84Man: number, totalScore: number): ValuationResult {
+export function calculatePUR(price84Man: number, totalScore: number, brandName?: string): ValuationResult {
+  const mu = getBrandMultiplier(brandName);
   const safeTotalScore = Math.max(totalScore, 1);
-  const pur = Math.round((price84Man / safeTotalScore) * 10) / 10;
+  const pur = Math.round((price84Man / (safeTotalScore * mu)) * 10) / 10;
   const purInfo = getPurGrade(pur);
 
   // 추정 임대수익률: 동탄 평균 전세가율 약 55~70%
@@ -102,7 +105,8 @@ export function calculatePUR(price84Man: number, totalScore: number): ValuationR
 export function getValuationBreakdown(
   scores: PremiumScores,
   price84Man: number,
-  customWeights?: Record<string, number>
+  customWeights?: Record<string, number>,
+  brandName?: string,
 ): ValuationBreakdown {
   const items: WaterfallItem[] = AREA_CONFIG.map(area => {
     const rawScore = (scores as any)[area.key] ?? 0;
@@ -117,8 +121,9 @@ export function getValuationBreakdown(
   });
 
   const totalScore = Math.round(items.reduce((sum, item) => sum + item.contribution, 0));
+  const mu = getBrandMultiplier(brandName);
   const safeTotalScore = Math.max(totalScore, 1);
-  const pur = Math.round((price84Man / safeTotalScore) * 10) / 10;
+  const pur = Math.round((price84Man / (safeTotalScore * mu)) * 10) / 10;
 
   const jeonseRate = 0.62;
   const conversionRate = 0.045;
