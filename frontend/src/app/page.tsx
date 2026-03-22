@@ -602,7 +602,7 @@ export function FieldReportModal({
           {!isStub && (
           <nav className="sticky top-0 z-10 bg-[#1B2340]/95 backdrop-blur-md border-b border-[#1E2A45] px-4 py-2.5">
             <div className="flex gap-1.5 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-w-[1000px] mx-auto">
-              {['밸류에이션', '동적 시뮬레이터', '현장 사진', '이웃들의 이야기'].map((label, idx) => {
+              {['밸류에이션', '동적 시뮬레이터', '현장 사진', '이 아파트 이야기'].map((label, idx) => {
                 const ids = ['sec-premium', 'sec-simulator', 'sec-photos', 'sec-comments'];
                 return (
                   <button
@@ -1119,7 +1119,7 @@ export function FieldReportModal({
             <div id="sec-comments" className="bg-[#1B2340] rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
               <h2 className="text-[20px] font-bold text-[#EDF2F4] flex items-center gap-2 mb-6 border-b border-[#1E2A45] pb-3">
                 <MessageSquare size={20} className="text-[#8D99AE]"/> 
-                이웃들의 이야기 <span className="text-[#8D99AE] text-[16px] ml-1">{comments.length}</span>
+                이 아파트 이야기 <span className="text-[#8D99AE] text-[16px] ml-1">{comments.length}</span>
               </h2>
               
               <div className="flex flex-col gap-6">
@@ -1148,20 +1148,67 @@ export function FieldReportModal({
                 {/* Comment List */}
                 <div className="flex flex-col gap-4 mt-2">
                   {comments.length > 0 ? (
-                    comments.map(comment => (
-                      <div key={comment.id} className="flex gap-3 bg-[#141C33] p-4 rounded-2xl border border-[#1E2A45]">
-                        <div className="w-8 h-8 rounded-full bg-[#1B2340] border border-[#1E2A45] shadow-sm flex items-center justify-center shrink-0">
-                           <UserCircle size={16} className="text-[#6B7394]" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-baseline gap-2 mb-1">
-                            <span className="font-bold text-[14px] text-[#EDF2F4]">{comment.author}</span>
-                            <span className="text-[12px] text-[#6B7394]">{comment.createdAt}</span>
+                    <>
+                      {/* 최신 1개 댓글은 무료 공개 */}
+                      {comments.slice(0, 1).map(comment => (
+                        <div key={comment.id} className="flex gap-3 bg-[#141C33] p-4 rounded-2xl border border-[#1E2A45]">
+                          <div className="w-8 h-8 rounded-full bg-[#1B2340] border border-[#1E2A45] shadow-sm flex items-center justify-center shrink-0">
+                             <UserCircle size={16} className="text-[#6B7394]" />
                           </div>
-                          <p className="text-[14px] text-[#8D99AE] leading-relaxed break-all whitespace-pre-wrap">{comment.text}</p>
+                          <div className="flex-1">
+                            <div className="flex items-baseline gap-2 mb-1">
+                              <span className="font-bold text-[14px] text-[#EDF2F4]">{comment.author}</span>
+                              <span className="text-[12px] text-[#6B7394]">{comment.createdAt}</span>
+                            </div>
+                            <p className="text-[14px] text-[#8D99AE] leading-relaxed break-all whitespace-pre-wrap">{comment.text}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      ))}
+
+                      {/* 나머지 댓글: 결제 사용자만 */}
+                      {comments.length > 1 && (
+                        isUnlocked ? (
+                          comments.slice(1).map(comment => (
+                            <div key={comment.id} className="flex gap-3 bg-[#141C33] p-4 rounded-2xl border border-[#1E2A45]">
+                              <div className="w-8 h-8 rounded-full bg-[#1B2340] border border-[#1E2A45] shadow-sm flex items-center justify-center shrink-0">
+                                 <UserCircle size={16} className="text-[#6B7394]" />
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-baseline gap-2 mb-1">
+                                  <span className="font-bold text-[14px] text-[#EDF2F4]">{comment.author}</span>
+                                  <span className="text-[12px] text-[#6B7394]">{comment.createdAt}</span>
+                                </div>
+                                <p className="text-[14px] text-[#8D99AE] leading-relaxed break-all whitespace-pre-wrap">{comment.text}</p>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="relative">
+                            {/* 블러 처리된 미리보기 */}
+                            <div className="blur-sm opacity-40 pointer-events-none">
+                              {comments.slice(1, 3).map(comment => (
+                                <div key={comment.id} className="flex gap-3 bg-[#141C33] p-4 rounded-2xl border border-[#1E2A45] mb-3">
+                                  <div className="w-8 h-8 rounded-full bg-[#1B2340] border border-[#1E2A45] shadow-sm flex items-center justify-center shrink-0">
+                                    <UserCircle size={16} className="text-[#6B7394]" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="h-3 bg-[#1E2A45] rounded w-20 mb-2" />
+                                    <div className="h-3 bg-[#1E2A45] rounded w-full" />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            {/* 페이월 안내 */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="bg-[#1B2340] border border-[#1E2A45] rounded-2xl px-6 py-4 text-center shadow-lg">
+                                <p className="text-[14px] font-bold text-[#EDF2F4] mb-1">🔒 {comments.length - 1}개의 이야기가 더 있습니다</p>
+                                <p className="text-[12px] text-[#6B7394]">프리미엄 구독으로 모든 이야기를 확인하세요</p>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </>
                   ) : (
                     <div className="text-center py-10 text-[#6B7394] text-[14px]">
                       아직 작성된 댓글이 없습니다. 첫 댓글을 남겨보세요!
