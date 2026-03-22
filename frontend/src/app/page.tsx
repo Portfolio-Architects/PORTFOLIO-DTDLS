@@ -468,7 +468,7 @@ export function FieldReportModal({
                        )}
                        <span className="text-[12px] text-[#8b95a1] font-medium">{scatterData.length}건 · 최고 {maxP.toFixed(1)}억 · 최저 {minP.toFixed(1)}억</span>
                      </div>
-                     <div className="flex-1 min-h-[300px] relative">
+                     <div className="h-[300px] relative">
                        <ResponsiveContainer width="100%" height="100%">
                          <ComposedChart data={monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
                            <defs>
