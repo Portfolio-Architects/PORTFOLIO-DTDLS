@@ -16,12 +16,14 @@ import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { createHash } from 'crypto';
 import { ADMIN_EMAILS } from '@/lib/config/admin.config';
 
-// ── Firebase Admin init (reuse across invocations) ──
-if (!getApps().length) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY || '{}');
-  initializeApp({ credential: cert(serviceAccount) });
+/** Lazy-init Firebase Admin (avoids build-time execution) */
+function getAdminDb() {
+  if (!getApps().length) {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY || '{}');
+    initializeApp({ credential: cert(serviceAccount) });
+  }
+  return getFirestore();
 }
-const adminDb = getFirestore();
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,9 +44,10 @@ export async function POST(request: NextRequest) {
     const ipHash = createHash('sha256').update(rawIp).digest('hex').slice(0, 16);
 
     // ── Daily dedup key: reportId_ipHash_YYYY-MM-DD ──
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const today = new Date().toISOString().slice(0, 10);
     const dedupKey = `${reportId}_${ipHash}_${today}`;
 
+    const adminDb = getAdminDb();
     const viewRef = adminDb.collection('reportViews').doc(dedupKey);
     const viewSnap = await viewRef.get();
 
