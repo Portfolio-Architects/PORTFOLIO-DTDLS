@@ -689,6 +689,7 @@ export function FieldReportModal({
             <>
             {report.premiumScores && (
               <div id="sec-premium" className="mb-2 scroll-mt-14">
+                <PropertyScoreChart scores={report.premiumScores} />
               </div>
             )}
 
@@ -1585,6 +1586,9 @@ export default function Dashboard() {
                         <div className="flex items-center gap-2 mb-4">
                           <h3 className="text-[18px] font-extrabold text-[#191f28]">{dongName}</h3>
                           <span className="text-[12px] text-[#8b95a1] font-bold bg-[#f2f4f6] px-2 py-0.5 rounded-full">{apts.length}개</span>
+                          {(dongReportCounts[dongName] || 0) > 0 && (
+                            <span className="text-[10px] font-bold bg-[#f0fdf4] text-[#03c75a] px-2 py-0.5 rounded-full">✅ 현장 검증 {dongReportCounts[dongName]}건</span>
+                          )}
                           <button 
                             onClick={() => setSelectedDong(dongName)}
                             className="ml-auto text-[12px] font-bold text-[#3182f6] hover:underline"
@@ -1641,9 +1645,8 @@ export default function Dashboard() {
                                   </div>
                                 </div>
                                 {report && (
-                                  <div className="flex items-center gap-1 shrink-0 ml-2">
-                                    <span className="text-[10px] font-bold bg-[#e8f3ff] text-[#3182f6] px-2 py-0.5 rounded-md">📝 리포트</span>
-                                    <span className="text-[10px] font-bold bg-[#f0fdf4] text-[#03c75a] px-2 py-0.5 rounded-md">✅ 현장검증</span>
+                                  <div className="shrink-0 ml-2">
+                                    <span className="text-[10px] font-bold bg-[#f0fdf4] text-[#03c75a] px-2 py-0.5 rounded-md">✅ 현장 검증</span>
                                   </div>
                                 )}
                                 {!report && publicRentalSet.has(apt.name) && (
