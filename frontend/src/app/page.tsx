@@ -81,6 +81,11 @@ export default function Dashboard() {
 
   // Dong filter state
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
+  const [listSort, setListSort] = useState<'views' | 'likes' | 'name'>('views');
+
+  // Favorites state
+  const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
+  const [favoriteCounts, setFavoriteCounts] = useState<Record<string, number>>({});
 
   // Apartment data — 정적 import로 즉시 로드
   const sheetApartments = buildInitialApartments();
@@ -118,6 +123,13 @@ export default function Dashboard() {
     });
   }, []);
 
+  // Fetch favorite counts on mount
+  useEffect(() => {
+    fetch('/api/favorite-counts').then(r => r.json()).then(data => {
+      if (data.counts) setFavoriteCounts(data.counts);
+    }).catch(() => {});
+  }, []);
+
   // Auth & Profile State
   const [user, setUser] = useState<User | null>(null);
   const [anonProfile, setAnonProfile] = useState<{nickname: string; frontName?: string; photoURL?: string} | null>(null);
@@ -145,6 +157,82 @@ export default function Dashboard() {
     });
     return () => unsubscribe();
   }, []);
+
+  // Fetch user favorites when auth changes
+  useEffect(() => {
+    if (user) {
+      fetch(`/api/favorite?userId=${user.uid}`).then(r => r.json()).then(data => {
+        if (data.favorites) setUserFavorites(new Set(data.favorites));
+      }).catch(() => {});
+    } else {
+      setUserFavorites(new Set());
+    }
+  }, [user]);
+
+  // Toggle favorite handler
+  const handleToggleFavorite = async (aptName: string) => {
+    if (!user) {
+      // Trigger login
+      const { signInWithPopup } = await import('firebase/auth');
+      const { auth, googleProvider } = await import('@/lib/firebaseConfig');
+      try { await signInWithPopup(auth, googleProvider); } catch { /* cancelled */ }
+      return;
+    }
+    // Optimistic update
+    const wasFavorited = userFavorites.has(aptName);
+    setUserFavorites(prev => {
+      const next = new Set(prev);
+      wasFavorited ? next.delete(aptName) : next.add(aptName);
+      return next;
+    });
+    setFavoriteCounts(prev => ({
+      ...prev,
+      [aptName]: Math.max(0, (prev[aptName] || 0) + (wasFavorited ? -1 : 1))
+    }));
+    // Server sync
+    try {
+      await fetch('/api/favorite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ aptName, userId: user.uid }),
+      });
+    } catch {
+      // Revert on failure
+      setUserFavorites(prev => {
+        const next = new Set(prev);
+        wasFavorited ? next.add(aptName) : next.delete(aptName);
+        return next;
+      });
+      setFavoriteCounts(prev => ({
+        ...prev,
+        [aptName]: Math.max(0, (prev[aptName] || 0) + (wasFavorited ? 1 : -1))
+      }));
+    }
+  };
+
+  // Auto-select first apartment as default for desktop detail panel
+  useEffect(() => {
+    if (selectedReport) return; // already selected
+    const allApts = Object.values(sheetApartments).flat();
+    if (allApts.length === 0) return;
+    // Pick the first apartment (same as what would be rank #1)
+    const first = allApts[0];
+    const report = fieldReports.find(r => isSameApartment(r.apartmentName, first.name));
+    if (report) {
+      setSelectedReport(report);
+    } else {
+      setSelectedReport({
+        id: `stub-${normalizeAptName(first.name)}`,
+        apartmentName: first.name,
+        dong: first.dong,
+        author: '',
+        likes: 0,
+        commentCount: 0,
+        createdAt: null,
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fieldReports.length]);
 
   // Fetch type map data only (lightweight)
   useEffect(() => {
@@ -364,223 +452,129 @@ export default function Dashboard() {
             dongReportCounts={dongReportCounts}
           />
 
-          {/* ── 아파트 카드 그리드 ── */}
+
+          {/* ── 마스터-디테일 레이아웃 ── */}
+          <div className="flex flex-col md:flex-row">
+            {/* LEFT: 아파트 리스트 (1/3) */}
+            <div className="w-full md:w-[380px] md:shrink-0 md:sticky md:top-16 md:self-start md:max-h-[calc(100vh-8rem)] md:overflow-y-auto md:overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden md:border-r md:border-[#e5e8eb] md:rounded-bl-2xl">
           {(() => {
-            // 선택된 동 또는 전체 아파트 리스트
-            const dongList = selectedDong 
-              ? [selectedDong] 
-              : DONGS.map(d => d.name).filter(d => sheetApartments[d]?.length > 0);
+            // 전체: 모든 아파트 플랫 리스트 / 특정 동: 해당 동만
+            const allApts = selectedDong 
+              ? (sheetApartments[selectedDong] || [])
+              : Object.values(sheetApartments).flat();
+
+            // 정렬 로직
+            const sorted = [...allApts].sort((a, b) => {
+              if (listSort === 'views') {
+                const aReport = fieldReports.find(r => isSameApartment(r.apartmentName, a.name));
+                const bReport = fieldReports.find(r => isSameApartment(r.apartmentName, b.name));
+                return (bReport?.viewCount || 0) - (aReport?.viewCount || 0);
+              }
+              if (listSort === 'likes') {
+                return (favoriteCounts[b.name] || 0) - (favoriteCounts[a.name] || 0);
+              }
+              // 'name' — 가나다순
+              return a.name.localeCompare(b.name, 'ko');
+            });
 
             return (
-              <div className="space-y-10">
-                {dongList.map(dongName => {
-                  const apts = sheetApartments[dongName] || [];
-                  if (apts.length === 0) return null;
-                  const dongInfo = getDongByName(dongName);
+              <>
+                {/* 정렬 셀렉터 */}
+                <div className="flex items-center gap-1 mb-3 bg-[#f2f4f6] rounded-lg p-1 w-fit">
+                  {[
+                    { id: 'views' as const, label: '조회수' },
+                    { id: 'likes' as const, label: '관심' },
+                    { id: 'name' as const, label: '가나다' },
+                  ].map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => setListSort(s.id)}
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${
+                        listSort === s.id ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
 
-                  return (
-                    <div key={dongName}>
-                      {/* 동 섹션 헤더 (전체 보기일 때만) */}
-                      {!selectedDong && (
-                        <div className="flex items-center gap-2 mb-4">
-                          <h3 className="text-[18px] font-extrabold text-[#191f28]">{dongName}</h3>
-                          <span className="text-[12px] text-[#8b95a1] font-bold bg-[#f2f4f6] px-2 py-0.5 rounded-full">{apts.length}개</span>
-                          {(dongReportCounts[dongName] || 0) > 0 && (
-                            <span className="text-[10px] font-bold bg-[#f0fdf4] text-[#03c75a] px-2 py-0.5 rounded-full">✅ 현장 검증 {dongReportCounts[dongName]}건</span>
-                          )}
-                          <button 
-                            onClick={() => setSelectedDong(dongName)}
-                            className="ml-auto text-[12px] font-bold text-[#3182f6] hover:underline"
-                          >
-                            전체보기 →
-                          </button>
-                        </div>
-                      )}
+                {/* 아파트 리스트 */}
+                <div className="bg-white md:rounded-none md:border-0 rounded-2xl border border-[#e5e8eb] overflow-hidden">
+                  {sorted.map((apt, idx) => {
+                    const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
+                    const txSummary = txKey ? txSummaryData[txKey] : undefined;
+                    const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name));
 
-                      {/* 아파트 카드 그리드 */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {(() => {
-                          const sorted = [...apts].sort((a, b) => {
-                            const aHas = fieldReports.some(r => isSameApartment(r.apartmentName, a.name)) ? 0 : 1;
-                            const bHas = fieldReports.some(r => isSameApartment(r.apartmentName, b.name)) ? 0 : 1;
-                            return aHas - bHas;
-                          });
-                          return (selectedDong ? sorted : sorted.slice(0, 6)).map(apt => {
-                          const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
-                          const txSummary = txKey ? txSummaryData[txKey] : undefined;
-                          const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name));
-
-                          return (
-                            <ApartmentCard
-                              key={apt.name}
-                              apt={apt}
-                              txSummary={txSummary}
-                              report={report}
-                              isPublicRental={publicRentalSet.has(apt.name)}
-                              onClick={() => {
-                                if (report) {
-                                  setSelectedReport(report);
-                                } else {
-                                  setSelectedReport({
-                                    id: `stub-${normalizeAptName(apt.name)}`,
-                                    apartmentName: apt.name,
-                                    dong: apt.dong,
-                                    author: '',
-                                    likes: 0,
-                                    commentCount: 0,
-                                    createdAt: null,
-                                  });
-                                }
-                              }}
-                            />
-                          );
-                        });
-                        })()}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    return (
+                      <ApartmentCard
+                        key={apt.name}
+                        apt={apt}
+                        txSummary={txSummary}
+                        report={report}
+                        isPublicRental={publicRentalSet.has(apt.name)}
+                        rank={idx + 1}
+                        isSelected={!!(selectedReport && isSameApartment(selectedReport.apartmentName, apt.name))}
+                        isFavorited={userFavorites.has(apt.name)}
+                        favoriteCount={favoriteCounts[apt.name] || 0}
+                        onToggleFavorite={() => handleToggleFavorite(apt.name)}
+                        onClick={() => {
+                          if (report) {
+                            setSelectedReport(report);
+                          } else {
+                            setSelectedReport({
+                              id: `stub-${normalizeAptName(apt.name)}`,
+                              apartmentName: apt.name,
+                              dong: apt.dong,
+                              author: '',
+                              likes: 0,
+                              commentCount: 0,
+                              createdAt: null,
+                            });
+                          }
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              </>
             );
           })()}
-
-          {/* ── 동탄 커뮤니티 ── */}
-          <div className="mt-8 sm:mt-12">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0 mb-5 sm:mb-6">
-              <div>
-                <h2 className="text-[22px] sm:text-[28px] font-extrabold tracking-tight text-[#191f28] mb-0.5 sm:mb-1">동탄 커뮤니티</h2>
-                <p className="text-[13px] sm:text-[15px] text-[#8b95a1] font-medium">주민들의 이야기 · 리뷰 · 소식</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => user ? setShowReviewModal(true) : alert('로그인 후 리뷰를 작성할 수 있습니다.')}
-                  className="px-3 py-2 bg-[#f2f4f6] text-[#4e5968] rounded-xl text-[12px] font-bold flex items-center gap-1.5 hover:bg-[#e5e8eb] active:scale-[0.97] transition-all"
-                >
-                  <Star size={13} />
-                  리뷰
-                </button>
-                <button
-                  onClick={() => user ? setShowCompose(true) : alert('로그인 후 글을 작성할 수 있습니다.')}
-                  className="px-3 py-2 bg-[#191f28] text-white rounded-xl text-[12px] font-bold flex items-center gap-1.5 hover:bg-[#333d4b] active:scale-[0.97] transition-all"
-                >
-                  <PenLine size={13} />
-                  글쓰기
-                </button>
-              </div>
             </div>
 
-            {/* Profile & Verification Bar */}
-            {user && userProfile && (
-              <div className="bg-white rounded-2xl border border-[#e5e8eb] p-4 mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-[14px] font-bold text-[#191f28]">{getDisplayName(userProfile)}</span>
-                  {userProfile.verifiedApartment && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#e8f3ff] text-[#3182f6] px-2 py-0.5 rounded-md">
-                      <ShieldCheck size={11} /> {userProfile.verifiedApartment.replace(/\[.*?\]\s*/, '')}
-                    </span>
-                  )}
+            {/* RIGHT: 인라인 디테일 패널 (2/3, 데스크톱 전용) */}
+            <div className="hidden md:block flex-1 md:sticky md:top-16 md:self-start md:h-[calc(100vh-8rem)] md:rounded-r-2xl md:overflow-hidden">
+              {selectedReport ? (
+                <FieldReportModal 
+                  report={fullReportData || selectedReport} 
+                  onClose={() => setSelectedReport(null)} 
+                  comments={commentsData[selectedReport.id] || []}
+                  commentInput={commentInput[selectedReport.id] || ''}
+                  onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}
+                  onSubmitComment={() => handleSubmitComment(selectedReport.id)}
+                  user={user}
+                  transactions={modalTransactions}
+                  typeMap={typeMap}
+                  isLoadingDetail={isLoadingDetail}
+                  isPurchased={purchasedReportIds.includes(selectedReport.id)}
+                  isAdmin={dashboardFacade.isAdmin(user?.email)}
+                  onPurchaseComplete={() => {
+                    if (user) {
+                      PurchaseRepo.getUserPurchasedReportIds(user.uid).then(setPurchasedReportIds);
+                    }
+                  }}
+                  inline
+                />
+              ) : (
+                <div className="h-full flex items-center justify-center bg-[#f9fafb]">
+                  <div className="text-center">
+                    <Building className="mx-auto mb-3 text-[#d1d6db]" size={40} />
+                    <p className="text-[14px] font-bold text-[#8b95a1]">좌측에서 아파트를 선택하세요</p>
+                  </div>
                 </div>
-                <button
-                  onClick={() => setShowVerify(true)}
-                  className="text-[12px] font-bold text-[#3182f6] bg-[#e8f3ff] px-3 py-1.5 rounded-lg hover:bg-[#d4e9ff] transition-colors flex items-center gap-1"
-                >
-                  <Building2 size={13} />
-                  {userProfile?.verifiedApartment ? '변경' : '아파트 인증'}
-                </button>
-              </div>
-            )}
-
-            {/* 라운지 글 (최신 3개) */}
-            {newsFeed.length > 0 && (
-              <div className="flex flex-col gap-3 mb-6">
-                {newsFeed.slice(0, 3).map(news => (
-                  <div key={news.id} onClick={() => router.push(`/lounge/${news.id}`)} className="bg-white rounded-2xl border border-[#e5e8eb] px-5 py-4 hover:shadow-md transition-shadow cursor-pointer">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="text-[16px] font-bold text-[#191f28] leading-snug flex-1">{news.title}</h3>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[13px] text-[#8b95a1]">{news.author} · {news.meta}</span>
-                      <div className="flex items-center gap-3">
-                        <span className="flex items-center gap-1 text-[12px] text-[#8b95a1]"><Heart size={12} /> {news.likes || 0}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {newsFeed.length > 3 && (
-                  <button
-                    onClick={() => setActiveTab('lounge')}
-                    className="text-[13px] font-bold text-[#3182f6] hover:underline text-center py-2"
-                  >
-                    라운지에서 {newsFeed.length - 3}개 더 보기 →
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* 아파트 리뷰 */}
-            {userReviews.length > 0 ? (
-              <div className="flex flex-col gap-3">
-                {userReviews.map(review => (
-                  <div key={review.id} className="bg-white rounded-2xl border border-[#e5e8eb] p-5 hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-[13px] font-bold text-[#191f28] shrink-0">{review.author}</span>
-                        {review.verifiedApartment && review.verificationLevel === 'registry_verified' ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#e8f3ff] text-[#3182f6] px-2 py-0.5 rounded-md shrink-0">
-                            <ShieldCheck size={11} /> {review.verifiedApartment.replace(/\[.*?\]\s*/, '')}
-                          </span>
-                        ) : review.verifiedApartment ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-2 py-0.5 rounded-md shrink-0">
-                            <Shield size={11} /> {review.verifiedApartment.replace(/\[.*?\]\s*/, '')}
-                          </span>
-                        ) : null}
-                      </div>
-                      <span className="text-[11px] text-[#8b95a1] shrink-0 ml-2">{review.createdAt}</span>
-                    </div>
-                    <h4 className="text-[15px] font-extrabold text-[#191f28] mb-2 truncate">{review.apartmentName}</h4>
-                    <div className="flex items-center gap-1 mb-2">
-                      {Array.from({ length: 5 }, (_, i) => (
-                        <Star key={i} size={14} className={i < review.rating ? 'text-[#f59e0b] fill-[#f59e0b]' : 'text-[#e5e8eb]'} />
-                      ))}
-                      <span className="text-[12px] font-bold text-[#8b95a1] ml-1">{review.rating}.0</span>
-                    </div>
-                    <p className="text-[14px] text-[#4e5968] leading-relaxed mb-3">{review.content}</p>
-                    {review.photoURL && (
-                      <div className="w-full h-48 rounded-xl overflow-hidden mb-3">
-                        <img src={review.photoURL} alt="Review" className="w-full h-full object-cover" />
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <button
-                        onClick={() => dashboardFacade.incrementReviewLike(review.id)}
-                        className="flex items-center gap-1 text-[12px] font-bold text-[#8b95a1] hover:text-[#f04452] transition-colors"
-                      >
-                        <Heart size={14} /> {review.likes || 0}
-                      </button>
-                      {(user?.uid === review.authorUid || dashboardFacade.isAdmin(user?.email)) && (
-                        <button
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            if (!confirm('이 리뷰를 삭제하시겠습니까?')) return;
-                            try { await dashboardFacade.deleteReview(review.id); } catch { alert('삭제에 실패했습니다.'); }
-                          }}
-                          className="flex items-center gap-1 text-[11px] font-bold text-[#8b95a1] hover:text-[#f04452] transition-colors"
-                        >
-                          <Trash2 size={13} /> 삭제
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : newsFeed.length === 0 && (
-              <div className="bg-white rounded-2xl border border-[#e5e8eb] p-12 text-center">
-                <MessageSquare size={40} className="mx-auto mb-4 text-[#d1d6db]" />
-                <p className="text-[15px] font-bold text-[#4e5968] mb-2">아직 소식이 없습니다</p>
-                <p className="text-[13px] text-[#8b95a1] mb-4">첫 번째 글이나 리뷰를 남겨보세요!</p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
+
 
         </section>
         )}
@@ -817,8 +811,8 @@ export default function Dashboard() {
         
       </main>
 
-      {/* Field Report Full View Modal */}
-      {selectedReport && (
+      {/* Field Report Full View Modal — 모바일에서만 or 임장기 탭 외에서 사용 */}
+      {selectedReport && activeTab !== 'imjang' && (
         <FieldReportModal 
           report={fullReportData || selectedReport} 
           onClose={() => setSelectedReport(null)} 

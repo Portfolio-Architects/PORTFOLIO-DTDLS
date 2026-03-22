@@ -119,7 +119,8 @@ export function FieldReportModal({
   isLoadingDetail,
   isPurchased,
   isAdmin,
-  onPurchaseComplete
+  onPurchaseComplete,
+  inline
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -134,6 +135,7 @@ export function FieldReportModal({
   isPurchased?: boolean;
   isAdmin?: boolean;
   onPurchaseComplete?: () => void;
+  inline?: boolean;
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
@@ -157,18 +159,10 @@ export function FieldReportModal({
   const coverImage = report.imageUrl || s?.infra?.gateImg || s?.infra?.landscapeImg || s?.ecosystem?.communityImg;
   const rating = report.premiumScores?.totalPremiumScore ? Math.max(1, Math.round(report.premiumScores.totalPremiumScore / 20)) : (report.rating || 5);
 
-  return (
+  const content = (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 md:p-12 animate-in fade-in duration-200">
-        <div className="absolute inset-0 bg-[#191f28]/60 backdrop-blur-sm" onClick={onClose} />
-        
-        <div ref={modalRef} className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] max-h-[90vh] rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden shadow-2xl transition-all duration-300 ring-1 ring-black/5`}>
-          <button onClick={onClose} className="sticky top-4 z-20 ml-auto mr-4 mt-4 -mb-14 bg-[#191f28]/80 hover:bg-[#191f28] text-white w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0">
-            <X size={20} />
-          </button>
-
           {/* Hero Section — Layout: 40% table / 60% chart */}
-          <div className="bg-white w-full flex flex-col md:flex-row p-4 md:p-10 gap-4 md:gap-8 rounded-t-3xl shrink-0 pt-4 md:pt-8 border-b border-[#e5e8eb]">
+          <div className={`bg-white w-full flex flex-col md:flex-row p-4 ${inline ? 'md:p-6' : 'md:p-10'} gap-4 md:gap-8 ${inline ? '' : 'rounded-t-3xl'} shrink-0 pt-4 md:pt-8 border-b border-[#e5e8eb]`}>
             
             {/* Left: 실거래가 전체 리스트 — mobile: 2번째, desktop: 1번째 (40%) */}
             <div className="w-full md:w-[40%] shrink-0 order-2 md:order-1 flex flex-col">
@@ -213,108 +207,6 @@ export function FieldReportModal({
                       </button>
                     )}
                   </div>
-
-                  {/* ── 거래 요약 통계 ── */}
-                  {(() => {
-                    const now = new Date();
-                    const aptNorm = normalizeAptName(report.apartmentName);
-
-                    // 1) 평형별 최근 거래가 그룹핑
-                    const byArea = new Map<string, { label: string; price: string; count: number; latestYm: number }>();
-                    transactions.forEach(tx => {
-                      const key = String(tx.area);
-                      const typeName = typeMap[aptNorm]?.[key];
-                      const label = typeName || `${tx.areaPyeong}평`;
-                      const ym = parseInt(tx.contractYm);
-                      const existing = byArea.get(key);
-                      if (!existing || ym > existing.latestYm) {
-                        byArea.set(key, { label, price: tx.priceEok, count: (existing?.count || 0) + 1, latestYm: ym });
-                      } else {
-                        existing.count++;
-                      }
-                    });
-                    const areaCards = Array.from(byArea.values())
-                      .sort((a, b) => b.count - a.count)
-                      .slice(0, 4);
-
-                    // 2) 최근 3개월 vs 이전 3개월 트렌드
-                    const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-                    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
-                    const ymThree = threeMonthsAgo.getFullYear() * 100 + (threeMonthsAgo.getMonth() + 1);
-                    const ymSix = sixMonthsAgo.getFullYear() * 100 + (sixMonthsAgo.getMonth() + 1);
-                    const recent3 = transactions.filter(tx => parseInt(tx.contractYm) >= ymThree);
-                    const prev3 = transactions.filter(tx => { const ym = parseInt(tx.contractYm); return ym >= ymSix && ym < ymThree; });
-                    const avg3 = recent3.length > 0 ? recent3.reduce((s, t) => s + t.price, 0) / recent3.length : 0;
-                    const avgPrev3 = prev3.length > 0 ? prev3.reduce((s, t) => s + t.price, 0) / prev3.length : 0;
-                    const trendPct = avgPrev3 > 0 ? ((avg3 - avgPrev3) / avgPrev3 * 100) : null;
-                    const avg3Eok = avg3 >= 10000
-                      ? `${Math.floor(avg3 / 10000)}억${(avg3 % 10000) > 0 ? (avg3 % 10000).toLocaleString() : ''}`
-                      : `${avg3.toLocaleString()}만`;
-
-                    // 3) 거래 활성도 (1/3/6개월)
-                    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                    const ymOne = oneMonthAgo.getFullYear() * 100 + (oneMonthAgo.getMonth() + 1);
-                    const cnt1 = transactions.filter(tx => parseInt(tx.contractYm) >= ymOne).length;
-                    const cnt3 = recent3.length;
-                    const cnt6 = transactions.filter(tx => parseInt(tx.contractYm) >= ymSix).length;
-                    const maxCnt = Math.max(cnt1, cnt3, cnt6, 1);
-
-                    return (
-                      <div className="mt-3 space-y-3">
-                        {/* 평형별 최근가 */}
-                        <div>
-                          <h5 className="text-[11px] font-bold text-[#8b95a1] mb-2">평형별 최근 거래가</h5>
-                          <div className="grid grid-cols-2 gap-1.5">
-                            {areaCards.map((c, i) => (
-                              <div key={i} className="bg-white rounded-lg px-2.5 py-2 ring-1 ring-black/5">
-                                <div className="text-[10px] font-bold text-[#3182f6] bg-[#e8f3ff] inline-block px-1.5 py-0.5 rounded mb-1">{c.label}</div>
-                                <div className="text-[13px] font-extrabold text-[#191f28] leading-tight">{c.price}</div>
-                                <div className="text-[10px] text-[#8b95a1]">{c.count}건</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* 거래 트렌드 */}
-                        {recent3.length > 0 && (
-                          <div className="bg-white rounded-lg px-3 py-2.5 ring-1 ring-black/5">
-                            <div className="text-[11px] font-bold text-[#8b95a1] mb-1">최근 3개월 평균</div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[15px] font-extrabold text-[#191f28]">{avg3Eok}</span>
-                              {trendPct !== null && (
-                                <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-md ${trendPct >= 0 ? 'text-[#EF4444] bg-[#fef2f2]' : 'text-[#3182f6] bg-[#e8f3ff]'}`}>
-                                  전분기 대비 {trendPct > 0 ? '+' : ''}{trendPct.toFixed(1)}%
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* 거래 활성도 */}
-                        <div className="bg-white rounded-lg px-3 py-2.5 ring-1 ring-black/5">
-                          <div className="text-[11px] font-bold text-[#8b95a1] mb-2">거래 활성도</div>
-                          <div className="space-y-1.5">
-                            {[
-                              { label: '1개월', count: cnt1 },
-                              { label: '3개월', count: cnt3 },
-                              { label: '6개월', count: cnt6 },
-                            ].map(({ label, count }) => (
-                              <div key={label} className="flex items-center gap-2">
-                                <span className="text-[10px] font-bold text-[#4e5968] w-[36px] shrink-0">{label}</span>
-                                <div className="flex-1 bg-[#f2f4f6] rounded-full h-[6px] overflow-hidden">
-                                  <div
-                                    className="h-full rounded-full bg-gradient-to-r from-[#3182f6] to-[#6dd5fa] transition-all duration-500"
-                                    style={{ width: `${Math.max((count / maxCnt) * 100, count > 0 ? 8 : 0)}%` }}
-                                  />
-                                </div>
-                                <span className="text-[10px] font-extrabold text-[#191f28] w-[28px] text-right shrink-0">{count}건</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
                 </div>
               ) : (
                 <div className="bg-[#f9fafb] rounded-2xl p-8 flex items-center justify-center ring-1 ring-black/5 h-full min-h-[200px]">
@@ -575,6 +467,105 @@ export function FieldReportModal({
             </div>
 
           </div>
+
+          {/* ── 평형별 최근 거래가 · 트렌드 · 활성도 ── (Full-width below chart) */}
+          {transactions.length > 0 && (() => {
+            const now = new Date();
+            const aptNorm = normalizeAptName(report.apartmentName);
+
+            // 1) 평형별 최근 거래가 그룹핑
+            const byArea = new Map<string, { label: string; price: string; count: number; latestYm: number }>();
+            transactions.forEach(tx => {
+              const key = String(tx.area);
+              const typeName = typeMap[aptNorm]?.[key];
+              const label = typeName || `${tx.areaPyeong}평`;
+              const ym = parseInt(tx.contractYm);
+              const existing = byArea.get(key);
+              if (!existing || ym > existing.latestYm) {
+                byArea.set(key, { label, price: tx.priceEok, count: (existing?.count || 0) + 1, latestYm: ym });
+              } else {
+                existing.count++;
+              }
+            });
+            const areaCards = Array.from(byArea.values())
+              .sort((a, b) => b.count - a.count);
+
+            // 2) 최근 3개월 vs 이전 3개월 트렌드
+            const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+            const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+            const ymThree = threeMonthsAgo.getFullYear() * 100 + (threeMonthsAgo.getMonth() + 1);
+            const ymSix = sixMonthsAgo.getFullYear() * 100 + (sixMonthsAgo.getMonth() + 1);
+            const recent3 = transactions.filter(tx => parseInt(tx.contractYm) >= ymThree);
+            const prev3 = transactions.filter(tx => { const ym = parseInt(tx.contractYm); return ym >= ymSix && ym < ymThree; });
+            const avg3 = recent3.length > 0 ? recent3.reduce((s, t) => s + t.price, 0) / recent3.length : 0;
+            const avgPrev3 = prev3.length > 0 ? prev3.reduce((s, t) => s + t.price, 0) / prev3.length : 0;
+            const trendPct = avgPrev3 > 0 ? ((avg3 - avgPrev3) / avgPrev3 * 100) : null;
+            const avg3Eok = avg3 >= 10000
+              ? `${Math.floor(avg3 / 10000)}억${(avg3 % 10000) > 0 ? (avg3 % 10000).toLocaleString() : ''}`
+              : `${avg3.toLocaleString()}만`;
+
+            // 3) 거래 활성도 (1/3/6개월)
+            const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const ymOne = oneMonthAgo.getFullYear() * 100 + (oneMonthAgo.getMonth() + 1);
+            const cnt1 = transactions.filter(tx => parseInt(tx.contractYm) >= ymOne).length;
+            const cnt3 = recent3.length;
+            const cnt6 = transactions.filter(tx => parseInt(tx.contractYm) >= ymSix).length;
+            const maxCnt = Math.max(cnt1, cnt3, cnt6, 1);
+
+            return (
+              <div className="bg-white w-full px-4 md:px-10 pb-6 border-b border-[#e5e8eb]">
+                <h5 className="text-[13px] font-bold text-[#8b95a1] mb-3 flex items-center gap-1.5">
+                  평형별 최근 거래가
+                </h5>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                  {/* 평형별 카드 */}
+                  {areaCards.map((c, i) => (
+                    <div key={i} className="bg-[#f9fafb] rounded-xl px-3.5 py-3 ring-1 ring-black/5 hover:ring-[#3182f6]/30 transition-all">
+                      <div className="text-[11px] font-bold text-[#3182f6] bg-[#e8f3ff] inline-block px-2 py-0.5 rounded-md mb-1.5">{c.label}</div>
+                      <div className="text-[15px] font-extrabold text-[#191f28] leading-tight">{c.price}</div>
+                      <div className="text-[11px] text-[#8b95a1] mt-0.5">{c.count}건</div>
+                    </div>
+                  ))}
+
+                  {/* 3개월 평균 카드 */}
+                  {recent3.length > 0 && (
+                    <div className="bg-[#f9fafb] rounded-xl px-3.5 py-3 ring-1 ring-black/5">
+                      <div className="text-[11px] font-bold text-[#8b95a1] mb-1.5">최근 3개월 평균</div>
+                      <div className="text-[15px] font-extrabold text-[#191f28] leading-tight">{avg3Eok}</div>
+                      {trendPct !== null && (
+                        <div className={`text-[11px] font-bold mt-1 ${trendPct >= 0 ? 'text-[#EF4444]' : 'text-[#3182f6]'}`}>
+                          전분기 대비 {trendPct > 0 ? '+' : ''}{trendPct.toFixed(1)}%
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 거래 활성도 카드 */}
+                  <div className="bg-[#f9fafb] rounded-xl px-3.5 py-3 ring-1 ring-black/5 col-span-2 sm:col-span-1">
+                    <div className="text-[11px] font-bold text-[#8b95a1] mb-2">거래 활성도</div>
+                    <div className="space-y-1.5">
+                      {[
+                        { label: '1개월', count: cnt1 },
+                        { label: '3개월', count: cnt3 },
+                        { label: '6개월', count: cnt6 },
+                      ].map(({ label, count }) => (
+                        <div key={label} className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-[#4e5968] w-[36px] shrink-0">{label}</span>
+                          <div className="flex-1 bg-[#e5e8eb] rounded-full h-[6px] overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-[#3182f6] to-[#6dd5fa] transition-all duration-500"
+                              style={{ width: `${Math.max((count / maxCnt) * 100, count > 0 ? 8 : 0)}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] font-extrabold text-[#191f28] w-[28px] text-right shrink-0">{count}건</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Sticky Section Nav — stub이면 숨김 */}
           {!isStub && (
@@ -1103,6 +1094,48 @@ export function FieldReportModal({
 
           </div>
           )}
+    </>
+  );
+
+  // ── Return: inline panel vs modal overlay ──
+  if (inline) {
+    return (
+      <div ref={modalRef} className="bg-[#f2f4f6] h-full flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden">
+        {content}
+        {/* Fullscreen Image Overlay */}
+        {fullscreenImage && (
+          <div 
+            className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center animate-in fade-in duration-200"
+            onClick={() => setFullscreenImage(null)}
+          >
+            <button 
+              className="absolute top-6 right-6 text-white/50 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+              onClick={() => setFullscreenImage(null)}
+            >
+              <X size={24} />
+            </button>
+            <img 
+              src={fullscreenImage} 
+              alt="Fullscreen view" 
+              className="max-w-[95vw] max-h-[95vh] object-contain select-none shadow-2xl"
+              onClick={(e) => e.stopPropagation()} 
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 md:p-12 animate-in fade-in duration-200">
+        <div className="absolute inset-0 bg-[#191f28]/60 backdrop-blur-sm" onClick={onClose} />
+        
+        <div ref={modalRef} className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] max-h-[90vh] rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden shadow-2xl transition-all duration-300 ring-1 ring-black/5`}>
+          <button onClick={onClose} className="sticky top-4 z-20 ml-auto mr-4 mt-4 -mb-14 bg-[#191f28]/80 hover:bg-[#191f28] text-white w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0">
+            <X size={20} />
+          </button>
+          {content}
         </div>
       </div>
       {/* Fullscreen Image Overlay */}
@@ -1128,3 +1161,4 @@ export function FieldReportModal({
     </>
   );
 }
+
