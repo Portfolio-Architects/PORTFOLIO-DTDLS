@@ -49,6 +49,39 @@
   button, a, [role="button"], summary, select {
     cursor: pointer;
   }
+
+  /* ── a11y: Focus Ring ── */
+  :focus-visible {
+    outline: 2px solid #8D99AE;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ── a11y: Skip to Content ── */
+  .skip-to-content {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 9999;
+    background: #0B132B;
+    color: #EDF2F4;
+    padding: 8px 16px;
+    font-weight: 700;
+    font-size: 14px;
+    border-radius: 0 0 8px 0;
+  }
+  .skip-to-content:focus {
+    left: 0;
+  }
+
+  /* ── a11y: Reduced Motion ── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
 @layer utilities {

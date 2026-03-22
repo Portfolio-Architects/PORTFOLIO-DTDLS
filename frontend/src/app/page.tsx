@@ -1490,12 +1490,16 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#141C33] font-sans selection:bg-[#8D99AE]/20">
       
+      {/* a11y: Skip to Content */}
+      <a href="#main-content" className="skip-to-content">내용으로 건너뛰기</a>
+
       {/* Top Navigation Bar */}
-      <header className="bg-[#1B2340]/90 backdrop-blur-xl border-b border-[#1E2A45] sticky top-0 z-40 transition-all duration-300">
+      <header className="bg-[#1B2340]/90 backdrop-blur-xl border-b border-[#1E2A45] sticky top-0 z-40 transition-all duration-300" role="banner">
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 h-14 sm:h-16 flex justify-between items-center">
           {/* Left: Pill Tabs + Branding */}
           <div className="flex items-center gap-3">
-            <div className="inline-flex bg-[#0E1730] rounded-full p-1 gap-0.5">
+            <nav aria-label="메인 네비게이션">
+            <div className="inline-flex bg-[#0E1730] rounded-full p-1 gap-0.5" role="tablist">
               {[
                 { id: 'imjang' as const, label: '임장기', icon: Compass },
                 { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
@@ -1515,6 +1519,7 @@ export default function Dashboard() {
                 </button>
               ))}
             </div>
+            </nav>
             <span className="text-[17px] text-[#6B7394] font-medium hidden sm:inline">by <span className="font-extrabold text-[#EDF2F4]">임장크루</span></span>
           </div>
           {/* User bar is now handled by FloatingUserBar in layout.tsx */}
@@ -1522,7 +1527,7 @@ export default function Dashboard() {
       </header>
 
       {/* Main Container */}
-      <main className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 py-5 sm:py-8 md:py-12 animate-in fade-in duration-500">
+      <main id="main-content" className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 py-5 sm:py-8 md:py-12 animate-in fade-in duration-500">
 
         {/* ═══ TAB 1: 임장기 ═══ */}
         {mounted && activeTab === 'imjang' && (
@@ -1530,9 +1535,9 @@ export default function Dashboard() {
           {/* 1. Section Header */}
           <div className="mb-8">
             <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
-              <h2 className="text-[22px] sm:text-[28px] md:text-[36px] font-extrabold text-[#EDF2F4] tracking-tight">
+              <h1 className="text-[22px] sm:text-[28px] md:text-[36px] font-extrabold text-[#EDF2F4] tracking-tight">
                 동탄 아파트 탐색
-              </h2>
+              </h1>
               <span suppressHydrationWarning className="inline-flex items-center gap-1.5 bg-[#141C33] text-[#8D99AE] text-[12px] sm:text-[13px] font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
                 <Building size={13} />
                 {Object.values(sheetApartments).flat().length}개 단지
