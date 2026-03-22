@@ -673,26 +673,25 @@ export function FieldReportModal({
 
             {/* 0. Premium Score Analysis — Gated behind paywall */}
             {isUnlocked && (
-            <>
-            {isLoadingDetail ? (
-              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm animate-pulse">
-                <div className="h-6 bg-[#e5e8eb] rounded-lg w-48 mb-6" />
-                <div className="space-y-3">
-                  <div className="h-4 bg-[#f2f4f6] rounded w-full" />
-                  <div className="h-4 bg-[#f2f4f6] rounded w-5/6" />
-                  <div className="h-4 bg-[#f2f4f6] rounded w-4/6" />
-                  <div className="h-32 bg-[#f2f4f6] rounded-2xl mt-4" />
-                  <div className="h-32 bg-[#f2f4f6] rounded-2xl" />
+              isLoadingDetail ? (
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm animate-pulse">
+                  <div className="h-6 bg-[#e5e8eb] rounded-lg w-48 mb-6" />
+                  <div className="space-y-3">
+                    <div className="h-4 bg-[#f2f4f6] rounded w-full" />
+                    <div className="h-4 bg-[#f2f4f6] rounded w-5/6" />
+                    <div className="h-4 bg-[#f2f4f6] rounded w-4/6" />
+                    <div className="h-32 bg-[#f2f4f6] rounded-2xl mt-4" />
+                    <div className="h-32 bg-[#f2f4f6] rounded-2xl" />
+                  </div>
                 </div>
-              </div>
-            ) : (
-            <>
-            {report.premiumScores && (
-              <div id="sec-premium" className="mb-2 scroll-mt-14">
-                <PropertyScoreChart scores={report.premiumScores} />
-              </div>
+              ) : (
+                report.premiumScores ? (
+                  <div id="sec-premium" className="mb-2 scroll-mt-14">
+                    <PropertyScoreChart scores={report.premiumScores} />
+                  </div>
+                ) : null
+              )
             )}
-
             {/* 밸류에이션 폭포수 차트 — 무료 티어 개방 */}
             {report.premiumScores && transactions.length > 0 && (() => {
               // 84㎡ 기준 가격 산출
@@ -1115,7 +1114,6 @@ export function FieldReportModal({
             )}
 
             {/* Comments Section */}
-            </>)}
             <div id="sec-comments" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
               <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3">
                 <MessageSquare size={20} className="text-[#3182f6]"/> 
@@ -1215,8 +1213,6 @@ export function FieldReportModal({
                 </div>
               </div>
             </div>
-            </>
-            )}
 
           </div>
           )}
