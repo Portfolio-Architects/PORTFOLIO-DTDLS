@@ -26,7 +26,7 @@ export type { UserReview } from '@/lib/types/review.types';
 import type { KPIData, NewsItemData, AdBannerData } from '@/lib/types/dashboard.types';
 import type { FieldReportData, ReportSections, CommentData } from '@/lib/types/report.types';
 import type { UserReview } from '@/lib/types/review.types';
-import { computeUserLevel } from '@/lib/types/user.types';
+
 import { isAdmin as checkAdmin } from '@/lib/config/admin.config';
 import * as PostRepo from '@/lib/repositories/post.repository';
 import * as ReportRepo from '@/lib/repositories/report.repository';
@@ -56,7 +56,7 @@ export interface DashboardDataStrategy {
   deleteReview?(reviewId: string): Promise<void>;
   deletePost?(postId: string): Promise<void>;
   listenToComments?(reportId: string, callback: (comments: CommentData[]) => void): () => void;
-  getUserProfile?(uid: string): Promise<{ nickname: string; reviewCount?: number }>;
+  getUserProfile?(uid: string): Promise<{ nickname: string }>;
   getUserReviews?(): UserReview[];
   addUserReview?(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File): Promise<void>;
   getDongtanApartments?(): string[];
