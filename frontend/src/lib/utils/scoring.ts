@@ -178,10 +178,22 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
 
   // ─────────────────────────────────────────────
   // 5. 🍽️ 생활 인프라 (15%)
-  // 음식점 밀집도 (100%)  
+  // 음식점 밀집도 (60%) + 앵커 테넌트 근접도 (40%)
   // ─────────────────────────────────────────────
   const restDensity = metrics.restaurantDensity ?? 0;
-  const lifestyle = clamp((restDensity / 60) * 100); // 60개=100점
+  const restScore = clamp((restDensity / 60) * 100); // 60개=100점
+
+  // 앵커 테넌트 근접도: 각 테넌트 거리 → 0~100 점수, 평균
+  const anchorDistances: number[] = [];
+  if (metrics.distanceToStarbucks != null) anchorDistances.push(clamp(100 - (metrics.distanceToStarbucks / 10)));
+  if (metrics.distanceToOliveYoung != null) anchorDistances.push(clamp(100 - (metrics.distanceToOliveYoung / 10)));
+  if (metrics.distanceToDaiso != null) anchorDistances.push(clamp(100 - (metrics.distanceToDaiso / 10)));
+  if (metrics.distanceToSupermarket != null) anchorDistances.push(clamp(100 - (metrics.distanceToSupermarket / 15))); // 대형마트는 1500m 반경
+  if (metrics.distanceToMcDonalds != null) anchorDistances.push(clamp(100 - (metrics.distanceToMcDonalds / 10)));
+
+  const lifestyle = anchorDistances.length > 0
+    ? (restScore * 0.6) + ((anchorDistances.reduce((a, b) => a + b, 0) / anchorDistances.length) * 0.4)
+    : restScore; // 앵커 데이터 없으면 음식점 100% 폴백
 
   // ─────────────────────────────────────────────
   // 종합 점수 (가중 평균)

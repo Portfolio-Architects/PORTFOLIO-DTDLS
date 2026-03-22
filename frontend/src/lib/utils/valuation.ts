@@ -20,6 +20,10 @@ export interface ValuationResult {
   estimatedYield: number; // 추정 임대수익률 (%)
   yieldGrade: string;
   yieldColor: string;
+  fairValue84: number;    // μ 보정 적정가 (만원)
+  fairValueGap: number;   // (적정가 - 실제가) / 실제가 × 100 (%)
+  investmentGrade: string; // S/A/B/C/D 종합 투자 등급
+  investmentColor: string;
 }
 
 export interface WaterfallItem {
@@ -68,6 +72,28 @@ function getYieldGrade(y: number): { grade: string; color: string } {
   return { grade: 'D', color: '#f04452' };
 }
 
+/** 동탄 시장 평균 PUR (벤치마크) */
+const DONGTAN_AVG_PUR = 95;
+
+/** 종합 투자 등급: PUR·수익률·적정가 괴리율 가중 합산 */
+function getInvestmentGrade(purGradeScore: number, yieldScore: number, gapPct: number): { grade: string; color: string } {
+  // purGradeScore: S=5,A=4,B+=3,B=2,C=1,D=0 / yieldScore: 동일
+  // gapPct: 양수=저평가, 음수=고평가 → 보너스/페널티
+  const gapBonus = Math.max(-2, Math.min(2, gapPct / 10)); // ±20% → ±2점
+  const composite = (purGradeScore * 0.4) + (yieldScore * 0.3) + (gapBonus + 2.5) * 0.3;
+  if (composite >= 4.0) return { grade: 'S', color: '#03c75a' };
+  if (composite >= 3.2) return { grade: 'A', color: '#36b37e' };
+  if (composite >= 2.4) return { grade: 'B+', color: '#3182f6' };
+  if (composite >= 1.6) return { grade: 'B', color: '#f59e0b' };
+  if (composite >= 0.8) return { grade: 'C', color: '#ff8b3d' };
+  return { grade: 'D', color: '#f04452' };
+}
+
+function gradeToScore(grade: string): number {
+  const map: Record<string, number> = { 'S': 5, 'A': 4, 'B+': 3, 'B': 2, 'C': 1, 'D': 0 };
+  return map[grade] ?? 0;
+}
+
 /**
  * PUR 계산
  * @param price84Man 84㎡ 기준 매매가 (만원 단위)
@@ -89,6 +115,17 @@ export function calculatePUR(price84Man: number, totalScore: number, brandName?:
   const estimatedYield = Math.round((annualRent / price84Man) * 1000) / 10;
   const yieldInfo = getYieldGrade(estimatedYield);
 
+  // μ 보정 적정가: totalScore × μ × 시장 평균 PUR
+  const fairValue84 = Math.round(safeTotalScore * mu * DONGTAN_AVG_PUR);
+  const fairValueGap = Math.round(((fairValue84 - price84Man) / Math.max(price84Man, 1)) * 1000) / 10;
+
+  // 종합 투자 등급
+  const investmentInfo = getInvestmentGrade(
+    gradeToScore(purInfo.grade),
+    gradeToScore(yieldInfo.grade),
+    fairValueGap,
+  );
+
   return {
     pur,
     purGrade: purInfo.grade,
@@ -96,6 +133,10 @@ export function calculatePUR(price84Man: number, totalScore: number, brandName?:
     estimatedYield,
     yieldGrade: yieldInfo.grade,
     yieldColor: yieldInfo.color,
+    fairValue84,
+    fairValueGap,
+    investmentGrade: investmentInfo.grade,
+    investmentColor: investmentInfo.color,
   };
 }
 
