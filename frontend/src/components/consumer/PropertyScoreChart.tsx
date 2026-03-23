@@ -58,9 +58,9 @@ export default function PropertyScoreChart({ scores }: Props) {
         <div>
           <h2 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2">
             <ShieldCheck size={20} className="text-[#3182f6]"/>
-            아파트 프리미엄 분석
+            아파트 가치 분석
           </h2>
-          <p className="text-[13px] text-[#8b95a1] mt-0.5">학군·교통·쾌적·경쟁력·생활 5대 핵심 지표</p>
+          <p className="text-[13px] text-[#8b95a1] mt-1 tracking-[0.5px] font-medium">학군·교통·쾌적·경쟁력·생활 5대 핵심 지표</p>
         </div>
 
         {/* Total Score Badge */}
@@ -78,7 +78,7 @@ export default function PropertyScoreChart({ scores }: Props) {
       <div className="flex flex-col gap-3 pt-3">
         {/* Radar Chart */}
         <div className="w-full h-[300px] flex items-center justify-center">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
               <PolarGrid stroke="#e5e8eb" />
               <PolarAngleAxis

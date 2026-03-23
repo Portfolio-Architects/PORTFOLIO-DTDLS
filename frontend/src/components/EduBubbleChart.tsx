@@ -37,7 +37,7 @@ export default function EduBubbleChart() {
 
   return (
     <div className="w-full h-full min-h-[300px] p-2">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
         <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.03)" />
           <XAxis 

@@ -142,7 +142,7 @@ export default function DynamicSimulator({ scores, price84Man }: Props) {
         {/* Radar Comparison */}
         <div className="flex flex-col md:flex-row items-center gap-4">
           <div className="w-full md:w-1/2 h-[240px]">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                 <PolarGrid stroke="#e5e8eb" />
                 <PolarAngleAxis dataKey="subject" tick={{ fill: '#4e5968', fontSize: 11, fontWeight: 700 }} />

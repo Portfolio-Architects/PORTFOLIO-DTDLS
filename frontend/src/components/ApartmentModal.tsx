@@ -16,9 +16,8 @@ import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { signInWithPopup } from 'firebase/auth';
 import CommentSection from '@/components/CommentSection';
 
-const PropertyScoreChart = dynamic(() => import('@/components/consumer/PropertyScoreChart'), { ssr: false });
-const ValuationWaterfall = dynamic(() => import('@/components/consumer/ValuationWaterfall'), { ssr: false });
-const DynamicSimulator = dynamic(() => import('@/components/consumer/DynamicSimulator'), { ssr: false });
+
+const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics'), { ssr: false });
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard'), { ssr: false });
 // PaymentButton 비활성화 (Vercel Hobby Plan 호환성 — 추후 유료 모델 전환 시 복원)
 // const PaymentButton = dynamic(() => import('@/components/PaymentButton'), { ssr: false });
@@ -36,75 +35,77 @@ interface TransactionRecord {
   buildYear: number;
   dealType: string;
 }
-/** GalleryGrid — Compact category-tab photo grid for 100+ photos */
+/** GalleryGrid — Horizontal Category-based Scroll for quick point-catching */
 function GalleryGrid({ images, tags, tagLabels, onImageClick }: {
   images: {url: string; caption?: string; locationTag?: string; isPremium?: boolean}[];
   tags: string[];
   tagLabels: Record<string, string>;
   onImageClick: (url: string) => void;
 }) {
-  const [activeTag, setActiveTag] = useState('전체');
-  const filtered = activeTag === '전체' ? images : images.filter(img => (img.locationTag || '기타') === activeTag);
+  const categories = tags.filter(t => t !== '전체');
+  
+  const groupedImages: Record<string, typeof images> = {};
+  categories.forEach(tag => {
+    groupedImages[tag] = images.filter(img => (img.locationTag || '기타') === tag);
+  });
 
   return (
-    <>
-      {/* Category Filter Chips */}
-      <div className="flex gap-2 overflow-x-auto pb-3 mb-4 custom-scrollbar">
-        {tags.map(tag => {
-          const count = tag === '전체' ? images.length : images.filter(img => (img.locationTag || '기타') === tag).length;
-          const label = tagLabels[tag] || tag;
-          return (
-            <button
-              key={tag}
-              onClick={() => setActiveTag(tag)}
-              className={`shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-all border ${
-                activeTag === tag
-                  ? 'bg-[#191f28] text-white border-[#191f28]'
-                  : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6] hover:text-[#3182f6]'
-              }`}
-            >
-              {label} <span className="opacity-60 ml-0.5">{count}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Photo Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-        {filtered.map((img, i) => (
-          <div
-            key={i}
-            className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group border border-[#e5e8eb] shadow-sm"
-            onClick={() => onImageClick(img.url)}
-          >
-            <img
-              src={img.url}
-              alt={img.caption || img.locationTag || `Photo ${i + 1}`}
-              loading="lazy"
-              className="w-full h-full object-cover bg-[#f2f4f6] group-hover:scale-105 transition-transform duration-300"
-            />
-            {/* Hover overlay with caption + tag */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-2.5">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-bold text-white/90 bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-md">
-                  {tagLabels[img.locationTag || ''] || img.locationTag || '기타'}
-                </span>
-                {img.isPremium && (
-                  <span className="text-[9px] font-bold bg-[#ffc107] text-[#191f28] px-1.5 py-0.5 rounded-md">★ PRO</span>
-                )}
-              </div>
-              {img.caption && (
-                <p className="text-[11px] text-white/90 mt-1 line-clamp-2">{img.caption}</p>
-              )}
+    <div className="flex flex-col gap-8 mt-2">
+      {categories.map(tag => {
+        const categoryImages = groupedImages[tag];
+        if (!categoryImages || categoryImages.length === 0) return null;
+        
+        const label = tagLabels[tag] || tag;
+        
+        return (
+          <div key={tag} className="flex flex-col">
+            <div className="flex items-center justify-between mb-3 px-1">
+              <h3 className="text-[15px] font-extrabold text-[#191f28] flex items-center gap-1.5">
+                <span className="w-1.5 h-4 bg-[#3182f6] rounded-full inline-block"></span>
+                {label}
+              </h3>
+              <span className="text-[12px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-0.5 rounded-md">
+                {categoryImages.length}장
+              </span>
+            </div>
+            
+            <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x shrink-0 w-full [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {categoryImages.map((img, i) => (
+                <div
+                  key={i}
+                  className="relative shrink-0 w-[240px] md:w-[280px] aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer group border border-[#e5e8eb] shadow-sm snap-start"
+                  onClick={() => onImageClick(img.url)}
+                >
+                  <Image
+                    src={img.url}
+                    alt={img.caption || img.locationTag || `Photo ${i + 1}`}
+                    fill
+                    sizes="(max-width: 768px) 240px, 280px"
+                    className="object-cover bg-[#f2f4f6]"
+                  />
+                  {(img.caption || img.isPremium) && (
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-3.5 pt-8">
+                      <div className="flex flex-col gap-1.5">
+                        {img.isPremium && (
+                          <span className="w-fit text-[9px] font-bold bg-[#ffc107] text-[#191f28] px-1.5 py-0.5 rounded-md">★ PRO</span>
+                        )}
+                        {img.caption && (
+                          <p className="text-[12px] font-medium text-white line-clamp-2 leading-snug">{img.caption}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
+        );
+      })}
 
-      {filtered.length === 0 && (
-        <div className="text-center py-8 text-[#8b95a1] text-[13px]">이 카테고리에 등록된 사진이 없습니다.</div>
+      {categories.length === 0 && (
+        <div className="text-center py-8 text-[#8b95a1] text-[13px]">등록된 갤러리 사진이 없습니다.</div>
       )}
-    </>
+    </div>
   );
 }
 
@@ -165,6 +166,28 @@ export function FieldReportModal({
   const coverImage = report.imageUrl || s?.infra?.gateImg || s?.infra?.landscapeImg || s?.ecosystem?.communityImg;
   const rating = report.premiumScores?.totalPremiumScore ? Math.max(1, Math.round(report.premiumScores.totalPremiumScore / 20)) : (report.rating || 5);
 
+  const typeBadgeColors: [string, string][] = [['text-[#3182f6]','bg-[#e8f3ff]'], ['text-[#059669]','bg-[#d1fae5]'], ['text-[#7c3aed]','bg-[#ede9fe]'], ['text-[#d97706]','bg-[#fef3c7]'], ['text-[#db2777]','bg-[#fce7f3]']];
+  const groupSet = new Set<number>();
+  transactions.forEach(tx => {
+    const norm = normalizeAptName(tx.aptName);
+    const t = typeMap[norm]?.[String(tx.area)];
+    const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : null;
+    if (label) {
+      const m = label.match(/\d+/);
+      if (m) groupSet.add(Math.round(parseInt(m[0]) / 3));
+    }
+  });
+  const sortedGroups = Array.from(groupSet).sort((a, b) => a - b);
+  const groupColorIdx = new Map(sortedGroups.map((g, i) => [g, i]));
+
+  const getBadgeColorClasses = (label: string | null) => {
+    if (!label) return ['text-[#3182f6]', 'bg-[#e8f3ff]'];
+    const m = label.match(/\d+/);
+    const group = m ? Math.round(parseInt(m[0]) / 3) : 0;
+    const cIdx = (groupColorIdx.get(group) ?? 0) % typeBadgeColors.length;
+    return typeBadgeColors[cIdx];
+  };
+
   const content = (
     <>
           {/* Hero Section — Layout: 40% table / 60% chart */}
@@ -191,20 +214,6 @@ export function FieldReportModal({
                       </thead>
                       <tbody>
                         {(() => {
-                          const colors: [string, string][] = [['text-[#3182f6]','bg-[#e8f3ff]'], ['text-[#059669]','bg-[#d1fae5]'], ['text-[#7c3aed]','bg-[#ede9fe]'], ['text-[#d97706]','bg-[#fef3c7]'], ['text-[#db2777]','bg-[#fce7f3]']];
-                          // 전체 거래에서 고유 평형 그룹(숫자/3 반올림)을 추출해 오름차순으로 정렬
-                          const groupSet = new Set<number>();
-                          transactions.forEach(tx => {
-                            const norm = normalizeAptName(tx.aptName);
-                            const t = typeMap[norm]?.[String(tx.area)];
-                            const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : null;
-                            if (!label) return;
-                            const m = label.match(/\d+/);
-                            if (m) groupSet.add(Math.round(parseInt(m[0]) / 3));
-                          });
-                          const sortedGroups = Array.from(groupSet).sort((a, b) => a - b);
-                          const groupColorIdx = new Map(sortedGroups.map((g, i) => [g, i]));
-
                           return transactions.map((tx, idx) => {
                             const txDate = new Date(parseInt(tx.contractYm.slice(0, 4)), parseInt(tx.contractYm.slice(4)) - 1, parseInt(tx.contractDay) || 15);
                             const now = new Date();
@@ -214,16 +223,13 @@ export function FieldReportModal({
                             const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : null;
                             const badgeEl = (() => {
                               if (!label) return <span className="text-xs">{tx.areaPyeong}평</span>;
-                              const m = label.match(/\d+/);
-                              const group = m ? Math.round(parseInt(m[0]) / 3) : 0;
-                              const cIdx = (groupColorIdx.get(group) ?? 0) % colors.length;
-                              const [tc, bgc] = colors[cIdx];
+                              const [tc, bgc] = getBadgeColorClasses(label);
                               return <span className={`font-bold ${tc} ${bgc} px-1.5 py-0.5 rounded text-xs`} title={`${tx.areaPyeong}평`}>{label}</span>;
                             })();
                             return (
                               <tr key={idx} className={`border-b border-[#f2f4f6] hover:bg-white/60 transition-colors ${isRecent ? 'bg-[#f0f7ff]' : ''}`}>
-                                <td className={`py-3 pl-2 ${isRecent ? 'text-[#191f28] font-bold' : 'text-[#4e5968]'}`}>
-                                  {isRecent && <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3182f6] mr-1.5 mb-[1px]" />}
+                                <td className={`py-3 pl-2 whitespace-nowrap flex items-center h-full ${isRecent ? 'text-[#191f28] font-bold' : 'text-[#4e5968]'}`}>
+                                  {isRecent && <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3182f6] mr-1.5" />}
                                   {tx.contractYm.slice(0,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}
                                 </td>
                                 <td className={`py-3 pr-2 text-right font-extrabold ${isRecent ? 'text-[#3182f6]' : 'text-[#191f28]'}`}>{tx.priceEok}</td>
@@ -297,9 +303,9 @@ export function FieldReportModal({
                  const lowCut = Math.ceil(maxFloor / 3);
                  const midCut = Math.ceil((maxFloor * 2) / 3);
                  const getFloorColor = (floor: number) => {
-                   if (floor >= midCut) return '#EF4444'; // 고층 = 빨강
+                   if (floor >= midCut) return '#FF6B6B'; // 고층 = 다홍/빨강
                    if (floor >= lowCut) return '#3182f6'; // 중층 = 파랑
-                   return '#03c75a'; // 저층 = 초록
+                   return '#20C997'; // 저층 = 민트/청록 (보색 대비 강화)
                  };
                  const getFloorTier = (floor: number): 'low' | 'mid' | 'high' => {
                    if (floor >= midCut) return 'high';
@@ -362,15 +368,12 @@ export function FieldReportModal({
                        <span className="text-[24px] font-extrabold text-[#191f28]">
                          {latestAvg >= 1 ? `${Math.floor(latestAvg)}억` : ''}{(() => { const rem = Math.round((latestAvg % 1) * 10000); return rem > 0 ? rem.toLocaleString() : ''; })()}
                        </span>
-                       {yoyChange !== null && (
-                         <span className="text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-1 rounded-lg">
-                           전년 대비 {yoyChange > 0 ? '+' : ''}{yoyChange.toFixed(1)}%
-                         </span>
-                       )}
-                       <span className="text-[12px] text-[#8b95a1] font-medium">{scatterData.length}건 · 최고 {maxP.toFixed(1)}억 · 최저 {minP.toFixed(1)}억</span>
+                       <span className="text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-1 rounded-lg">
+                         최근 1개월 평균
+                       </span>
                      </div>
                      <div className="h-[300px] relative">
-                       <ResponsiveContainer width="100%" height="100%">
+                       <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                          <ComposedChart data={monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
                            <defs>
                              <linearGradient id="avgGrad" x1="0" y1="0" x2="0" y2="1">
@@ -406,9 +409,9 @@ export function FieldReportModal({
                                    <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>
                                      {new Date(item?.ts).getFullYear()}.{String(new Date(item?.ts).getMonth()+1).padStart(2,'0')}월
                                    </div>
-                                   {item?.highAvg && <div style={{ color: '#EF4444', fontSize: 12, fontWeight: 700 }}>고층 {item.highAvg.toFixed(2)}억</div>}
+                                   {item?.highAvg && <div style={{ color: '#FF6B6B', fontSize: 12, fontWeight: 700 }}>고층 {item.highAvg.toFixed(2)}억</div>}
                                    {item?.midAvg && <div style={{ color: '#3182f6', fontSize: 12, fontWeight: 700 }}>중층 {item.midAvg.toFixed(2)}억</div>}
-                                   {item?.lowAvg && <div style={{ color: '#03c75a', fontSize: 12, fontWeight: 700 }}>저층 {item.lowAvg.toFixed(2)}억</div>}
+                                   {item?.lowAvg && <div style={{ color: '#20C997', fontSize: 12, fontWeight: 700 }}>저층 {item.lowAvg.toFixed(2)}억</div>}
                                    {vol != null && <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2 }}>거래 {vol}건</div>}
                                  </div>
                                );
@@ -420,11 +423,11 @@ export function FieldReportModal({
                            {/* 거래량 막대그래프 */}
                            <Bar dataKey="volume" yAxisId="volume" fill="#e5e8eb" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.6} isAnimationActive={false} />
                            {/* 저층 월별 평균선 — 점점선 */}
-                           <Line type="monotone" dataKey="lowAvg" yAxisId="price" stroke="#03c75a" strokeWidth={2.5} strokeDasharray="2 3" dot={false} activeDot={false} connectNulls isAnimationActive={false} />
+                           <Line type="monotone" dataKey="lowAvg" yAxisId="price" stroke="#20C997" strokeWidth={2} strokeDasharray="2 3" dot={false} activeDot={false} connectNulls isAnimationActive={false} />
                            {/* 중층 월별 평균선 — 점선 */}
-                           <Line type="monotone" dataKey="midAvg" yAxisId="price" stroke="#3182f6" strokeWidth={2.5} strokeDasharray="6 3" dot={false} activeDot={false} connectNulls isAnimationActive={false} />
+                           <Line type="monotone" dataKey="midAvg" yAxisId="price" stroke="#3182f6" strokeWidth={2} strokeDasharray="6 3" dot={false} activeDot={false} connectNulls isAnimationActive={false} />
                            {/* 고층 월별 평균선 — 실선 */}
-                           <Line type="monotone" dataKey="highAvg" yAxisId="price" stroke="#EF4444" strokeWidth={2.5} dot={false} activeDot={false} connectNulls isAnimationActive={false} />
+                           <Line type="monotone" dataKey="highAvg" yAxisId="price" stroke="#FF6B6B" strokeWidth={2} dot={false} activeDot={false} connectNulls isAnimationActive={false} />
                            {/* 산점도 — 층수별 색상 */}
                            <Customized
                              component={(rechartProps: any) => {
@@ -488,9 +491,9 @@ export function FieldReportModal({
                      </div>
                      {/* 범례 */}
                      <div className="flex items-center gap-4 mt-2 px-1 text-[13px] font-bold text-[#8b95a1]">
-                       <span className="flex items-center gap-1.5"><span className="w-6 border-t-2 border-dotted border-[#03c75a]"/>저층 (1~{lowCut - 1}F)</span>
-                       <span className="flex items-center gap-1.5"><span className="w-6 border-t-2 border-dashed border-[#3182f6]"/>중층 ({lowCut}~{midCut - 1}F)</span>
-                       <span className="flex items-center gap-1.5"><span className="w-6 h-0.5 bg-[#EF4444] rounded"/>고층 ({midCut}F~)</span>
+                       <span className="flex items-center gap-1.5"><span className="w-6 border-t-[1.5px] border-dotted border-[#20C997]"/>저층 (1~{lowCut - 1}F)</span>
+                       <span className="flex items-center gap-1.5"><span className="w-6 border-t-[1.5px] border-dashed border-[#3182f6]"/>중층 ({lowCut}~{midCut - 1}F)</span>
+                       <span className="flex items-center gap-1.5"><span className="w-6 h-[1.5px] bg-[#FF6B6B] rounded"/>고층 ({midCut}F~)</span>
                        <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 bg-[#e5e8eb] rounded-sm"/>거래량</span>
                      </div>
                    </div>
@@ -521,7 +524,12 @@ export function FieldReportModal({
               }
             });
             const areaCards = Array.from(byArea.values())
-              .sort((a, b) => b.count - a.count);
+              .sort((a, b) => {
+                const numA = parseInt(a.label.match(/\d+/)?.[0] || '0');
+                const numB = parseInt(b.label.match(/\d+/)?.[0] || '0');
+                if (numA !== numB) return numA - numB;
+                return a.label.localeCompare(b.label);
+              });
 
             // 2) 최근 3개월 vs 이전 3개월 트렌드
             const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
@@ -534,67 +542,67 @@ export function FieldReportModal({
             const avgPrev3 = prev3.length > 0 ? prev3.reduce((s, t) => s + t.price, 0) / prev3.length : 0;
             const trendPct = avgPrev3 > 0 ? ((avg3 - avgPrev3) / avgPrev3 * 100) : null;
             const avg3Eok = avg3 >= 10000
-              ? `${Math.floor(avg3 / 10000)}억${(avg3 % 10000) > 0 ? (avg3 % 10000).toLocaleString() : ''}`
-              : `${avg3.toLocaleString()}만`;
+              ? `${Math.floor(avg3 / 10000)}억${Math.round(avg3 % 10000) > 0 ? Math.round(avg3 % 10000).toLocaleString() : ''}`
+              : `${Math.round(avg3).toLocaleString()}만`;
 
-            // 3) 거래 활성도 (1/3/6개월)
-            const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-            const ymOne = oneMonthAgo.getFullYear() * 100 + (oneMonthAgo.getMonth() + 1);
-            const cnt1 = transactions.filter(tx => parseInt(tx.contractYm) >= ymOne).length;
-            const cnt3 = recent3.length;
-            const cnt6 = transactions.filter(tx => parseInt(tx.contractYm) >= ymSix).length;
-            const maxCnt = Math.max(cnt1, cnt3, cnt6, 1);
+            // 3) 최근 12개월 vs 전년 12개월 트렌드
+            const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 12, 1);
+            const twentyFourMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 24, 1);
+            const ymTwelve = twelveMonthsAgo.getFullYear() * 100 + (twelveMonthsAgo.getMonth() + 1);
+            const ymTwentyFour = twentyFourMonthsAgo.getFullYear() * 100 + (twentyFourMonthsAgo.getMonth() + 1);
+            const recent12 = transactions.filter(tx => parseInt(tx.contractYm) >= ymTwelve);
+            const prev12 = transactions.filter(tx => { const ym = parseInt(tx.contractYm); return ym >= ymTwentyFour && ym < ymTwelve; });
+            const avg12 = recent12.length > 0 ? recent12.reduce((s, t) => s + t.price, 0) / recent12.length : 0;
+            const avgPrev12 = prev12.length > 0 ? prev12.reduce((s, t) => s + t.price, 0) / prev12.length : 0;
+            const trendPct12 = avgPrev12 > 0 ? ((avg12 - avgPrev12) / avgPrev12 * 100) : null;
+            const avg12Eok = avg12 >= 10000
+              ? `${Math.floor(avg12 / 10000)}억${Math.round(avg12 % 10000) > 0 ? Math.round(avg12 % 10000).toLocaleString() : ''}`
+              : `${Math.round(avg12).toLocaleString()}만`;
 
             return (
               <div className="bg-white w-full px-4 md:px-10 pb-6 border-b border-[#e5e8eb]">
-                <h5 className="text-[13px] font-bold text-[#8b95a1] mb-3 flex items-center gap-1.5">
+                <h5 className="text-[13px] font-bold text-[#8b95a1] mb-3 flex items-center gap-1.5 mt-2">
                   평형별 최근 거래가
                 </h5>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                <div className="flex flex-nowrap gap-3 overflow-x-auto pb-4 px-4 md:px-10 -mx-4 md:-mx-10 custom-scrollbar items-stretch p-1">
                   {/* 평형별 카드 */}
-                  {areaCards.map((c, i) => (
-                    <div key={i} className="bg-[#f9fafb] rounded-xl px-3.5 py-3 ring-1 ring-black/5 hover:ring-[#3182f6]/30 transition-all">
-                      <div className="text-[11px] font-bold text-[#3182f6] bg-[#e8f3ff] inline-block px-2 py-0.5 rounded-md mb-1.5">{c.label}</div>
-                      <div className="text-[15px] font-extrabold text-[#191f28] leading-tight">{c.price}</div>
-                      <div className="text-[11px] text-[#8b95a1] mt-0.5">{c.count}건</div>
-                    </div>
-                  ))}
+                  {areaCards.map((c, i) => {
+                    const [tc, bgc] = getBadgeColorClasses(c.label);
+                    return (
+                      <div key={i} className="flex flex-col bg-[#f9fafb] rounded-xl px-4 py-3 ring-1 ring-black/5 hover:ring-[#3182f6]/30 transition-all shrink-0 min-w-[110px] h-auto">
+                        <div className={`text-[11px] font-bold ${tc} ${bgc} inline-block px-2 py-0.5 rounded-md mb-1.5 w-fit`}>{c.label}</div>
+                        <div className="text-[15px] font-extrabold text-[#191f28] leading-tight">{c.price}</div>
+                        <div className="text-[11px] text-[#8b95a1] mt-0.5">{c.count}건</div>
+                      </div>
+                    );
+                  })}
 
                   {/* 3개월 평균 카드 */}
                   {recent3.length > 0 && (
-                    <div className="bg-[#f9fafb] rounded-xl px-3.5 py-3 ring-1 ring-black/5">
-                      <div className="text-[11px] font-bold text-[#8b95a1] mb-1.5">최근 3개월 평균</div>
+                    <div className="flex flex-col bg-[#f9fafb] rounded-xl px-4 py-3 ring-1 ring-black/5 shrink-0 min-w-[130px] h-auto">
+                      <div className="text-[11px] font-bold text-[#8b95a1] mb-1.5 w-fit">최근 3개월 평균</div>
                       <div className="text-[15px] font-extrabold text-[#191f28] leading-tight">{avg3Eok}</div>
                       {trendPct !== null && (
                         <div className={`text-[11px] font-bold mt-1 ${trendPct >= 0 ? 'text-[#EF4444]' : 'text-[#3182f6]'}`}>
-                          전분기 대비 {trendPct > 0 ? '+' : ''}{trendPct.toFixed(1)}%
+                          직전 분기 대비 {trendPct > 0 ? '+' : ''}{trendPct.toFixed(1)}%
                         </div>
                       )}
                     </div>
                   )}
 
-                  {/* 거래 활성도 카드 */}
-                  <div className="bg-[#f9fafb] rounded-xl px-3.5 py-3 ring-1 ring-black/5 col-span-2 sm:col-span-1">
-                    <div className="text-[11px] font-bold text-[#8b95a1] mb-2">거래 활성도</div>
-                    <div className="space-y-1.5">
-                      {[
-                        { label: '1개월', count: cnt1 },
-                        { label: '3개월', count: cnt3 },
-                        { label: '6개월', count: cnt6 },
-                      ].map(({ label, count }) => (
-                        <div key={label} className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold text-[#4e5968] w-[36px] shrink-0">{label}</span>
-                          <div className="flex-1 bg-[#e5e8eb] rounded-full h-[6px] overflow-hidden">
-                            <div
-                              className="h-full rounded-full bg-gradient-to-r from-[#3182f6] to-[#6dd5fa] transition-all duration-500"
-                              style={{ width: `${Math.max((count / maxCnt) * 100, count > 0 ? 8 : 0)}%` }}
-                            />
-                          </div>
-                          <span className="text-[10px] font-extrabold text-[#191f28] w-[28px] text-right shrink-0">{count}건</span>
+                  {/* 12개월 평균 카드 */}
+                  {recent12.length > 0 && (
+                    <div className="flex flex-col bg-[#f9fafb] rounded-xl px-4 py-3 ring-1 ring-black/5 shrink-0 min-w-[130px] h-auto">
+                      <div className="text-[11px] font-bold text-[#8b95a1] mb-1.5 w-fit">최근 12개월 평균</div>
+                      <div className="text-[15px] font-extrabold text-[#191f28] leading-tight">{avg12Eok}</div>
+                      {trendPct12 !== null && (
+                        <div className={`text-[11px] font-bold mt-1 ${trendPct12 >= 0 ? 'text-[#EF4444]' : 'text-[#3182f6]'}`}>
+                          직전 1년 대비 {trendPct12 > 0 ? '+' : ''}{trendPct12.toFixed(1)}%
                         </div>
-                      ))}
+                      )}
                     </div>
-                  </div>
+                  )}
+
                 </div>
               </div>
             );
@@ -602,15 +610,15 @@ export function FieldReportModal({
 
           {/* Sticky Section Nav — stub이면 숨김 */}
           {!isStub && (
-          <nav className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] px-4 py-2.5">
-            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-w-[1000px] mx-auto">
-              {['밸류에이션', '동적 시뮬레이터', '현장 사진', '이 아파트 이야기'].map((label, idx) => {
-                const ids = ['sec-premium', 'sec-simulator', 'sec-photos', 'sec-comments'];
+          <nav className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] px-4 pt-4 pb-0">
+            <div className="flex gap-6 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-w-[1000px] mx-auto">
+              {['밸류에이션', '현장 사진', '이 아파트 이야기'].map((label, idx) => {
+                const ids = ['sec-premium', 'sec-photos', 'sec-comments'];
                 return (
                   <button
                     key={ids[idx]}
                     onClick={() => scrollToSection(ids[idx])}
-                    className="shrink-0 px-3.5 py-1.5 rounded-lg border border-[#e5e8eb] bg-[#f9fafb] text-[12px] font-bold text-[#4e5968] hover:bg-[#191f28] hover:text-white hover:border-[#191f28] active:scale-95 transition-all duration-150"
+                    className="shrink-0 pb-3 text-[14px] font-bold text-[#8b95a1] hover:text-[#191f28] border-b-2 border-transparent hover:border-[#191f28] transition-all duration-200"
                   >
                     {label}
                   </button>
@@ -631,49 +639,19 @@ export function FieldReportModal({
              * 원본: isPurchased/isAdmin 체크 후 PaymentButton 표시
              */}
 
-            {/* 0. Premium Score Analysis — Gated behind paywall */}
-            {isUnlocked && (
-              isLoadingDetail ? (
-                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm animate-pulse">
-                  <div className="h-6 bg-[#e5e8eb] rounded-lg w-48 mb-6" />
-                  <div className="space-y-3">
-                    <div className="h-4 bg-[#f2f4f6] rounded w-full" />
-                    <div className="h-4 bg-[#f2f4f6] rounded w-5/6" />
-                    <div className="h-4 bg-[#f2f4f6] rounded w-4/6" />
-                    <div className="h-32 bg-[#f2f4f6] rounded-2xl mt-4" />
-                    <div className="h-32 bg-[#f2f4f6] rounded-2xl" />
-                  </div>
-                </div>
-              ) : (
-                report.premiumScores ? (
-                  <div id="sec-premium" className="mb-2 scroll-mt-14">
-                    <PropertyScoreChart scores={report.premiumScores} />
-                  </div>
-                ) : null
-              )
-            )}
-            {/* 밸류에이션 폭포수 차트 — 무료 티어 개방 */}
+            {/* 밸류에이션 퀀트 수치 — 무료 티어 개방 */}
             {report.premiumScores && transactions.length > 0 && (() => {
               // 84㎡ 기준 가격 산출
               const tx84 = transactions.find(t => t.area >= 80 && t.area <= 88) || transactions[0];
               const price84 = tx84 ? normalize84Price(tx84.price, tx84.area) : 0;
               return price84 > 0 ? (
-                <div className="mb-2">
-                  <ValuationWaterfall scores={report.premiumScores} price84Man={price84} />
+                <div id="sec-premium" className="mb-2 scroll-mt-14 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#e5e8eb]">
+                  <AdvancedValuationMetrics price84Man={price84} />
                 </div>
               ) : null;
             })()}
 
-            {/* 동적 시뮬레이터 — 유료 페이월 */}
-            {isUnlocked && report.premiumScores && transactions.length > 0 && (() => {
-              const tx84 = transactions.find(t => t.area >= 80 && t.area <= 88) || transactions[0];
-              const price84 = tx84 ? normalize84Price(tx84.price, tx84.area) : 0;
-              return price84 > 0 ? (
-                <div id="sec-simulator" className="mb-2 scroll-mt-14">
-                  <DynamicSimulator scores={report.premiumScores} price84Man={price84} />
-                </div>
-              ) : null;
-            })()}
+
 
             {/* Location Infrastructure Info — Enhanced with categories + raw data */}
             {report.metrics && (report.metrics.distanceToElementary || report.metrics.distanceToSubway || report.metrics.academyDensity) && (
@@ -942,7 +920,16 @@ export function FieldReportModal({
                     <summary className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-5 border-b border-[#e5e8eb] pb-3 cursor-pointer list-none">
                       <Camera size={20} className="text-[#3182f6]"/>
                       현장 사진 갤러리
-                      <span className="text-[13px] font-medium text-[#8b95a1] ml-auto">{report.images.length}장</span>
+                      <div className="ml-auto flex items-center gap-2 md:gap-3">
+                        {(report.scoutingDate || report.createdAt) && (
+                          <span className="text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-1 rounded-md">
+                            촬영일자: {report.scoutingDate 
+                              ? report.scoutingDate.replace(/-/g, '.')
+                              : new Date(report.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').slice(0, -1)}
+                          </span>
+                        )}
+                        <span className="text-[13px] font-bold text-[#8b95a1]">{report.images.length}장</span>
+                      </div>
                     </summary>
 
                     {/* Category Filter Chips */}
@@ -952,22 +939,7 @@ export function FieldReportModal({
               );
             })()}
 
-            {!s ? (
-              // Legacy Template Render (Fallback if both schemas are empty)
-              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
-                 <h2 className="text-[20px] font-bold text-[#191f28] mb-6 border-b border-[#e5e8eb] pb-3">단지 요약 정보</h2>
-                 <div className="flex flex-col gap-4">
-                   {(report.pros || report.premiumContent) ? (
-                     <div className="bg-[#f0fdf4] p-5 rounded-2xl border border-[#bbf7d0]">
-                       <h3 className="text-[15px] font-extrabold text-[#03c75a] mb-2 flex items-center gap-1.5"><CheckCircle2 size={18}/> 주요 내용 및 총평</h3>
-                       <p className="text-[15px] text-[#191f28] leading-relaxed whitespace-pre-wrap">{report.premiumContent || report.pros}</p>
-                     </div>
-                   ) : (
-                     <p className="text-[#8b95a1] text-[15px]">데이터가 준비되지 않았습니다.</p>
-                   )}
-                 </div>
-              </div>
-            ) : (
+            {!s ? null : (
               // Advanced Template Render (요약은 위로 이동됨)
               <>
 
@@ -1102,7 +1074,7 @@ export function FieldReportModal({
   // ── Return: inline panel vs modal overlay ──
   if (inline) {
     return (
-      <div ref={modalRef} className="bg-white h-full flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden">
+      <div ref={modalRef} className="bg-white h-full flex flex-col overflow-y-auto overflow-x-hidden">
         {content}
         {/* Fullscreen Image Overlay */}
         {fullscreenImage && (
@@ -1111,17 +1083,20 @@ export function FieldReportModal({
             onClick={() => setFullscreenImage(null)}
           >
             <button 
-              className="absolute top-6 right-6 text-white/50 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-              onClick={() => setFullscreenImage(null)}
+              className="absolute top-6 right-6 z-50 text-white/50 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+              onClick={(e) => { e.stopPropagation(); setFullscreenImage(null); }}
             >
               <X size={24} />
             </button>
-            <img 
-              src={fullscreenImage} 
-              alt="Fullscreen view" 
-              className="max-w-[95vw] max-h-[95vh] object-contain select-none shadow-2xl"
-              onClick={(e) => e.stopPropagation()} 
-            />
+            <div className="relative w-[95vw] h-[95vh]">
+              <Image 
+                src={fullscreenImage} 
+                alt="Fullscreen view"
+                fill
+                sizes="100vw"
+                className="object-contain select-none shadow-2xl"
+              />
+            </div>
           </div>
         )}
       </div>
@@ -1133,7 +1108,7 @@ export function FieldReportModal({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 md:p-12 animate-in fade-in duration-200">
         <div className="absolute inset-0 bg-[#191f28]/60 backdrop-blur-sm" onClick={onClose} />
         
-        <div ref={modalRef} className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] max-h-[90vh] rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden shadow-2xl transition-all duration-300 ring-1 ring-black/5`}>
+        <div ref={modalRef} className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] max-h-[90vh] rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden shadow-2xl transition-all duration-300 ring-1 ring-black/5`}>
           <button onClick={onClose} className="sticky top-4 z-20 ml-auto mr-4 mt-4 -mb-14 bg-[#191f28]/80 hover:bg-[#191f28] text-white w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0">
             <X size={20} />
           </button>

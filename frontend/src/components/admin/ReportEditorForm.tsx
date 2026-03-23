@@ -13,6 +13,7 @@ type FormValues = {
   dong: string;
   apartmentName: string;
   thumbnailUrl: string;
+  scoutingDate: string;
   images: { file?: File; previewUrl?: string; url: string; caption: string; locationTag: string; isPremium: boolean }[];
   metrics: {
     brand: string;
@@ -143,6 +144,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
     defaultValues: initialData || {
       dong: lockedMeta?.dong || '',
       apartmentName: lockedMeta?.apartmentName || '',
+      scoutingDate: new Date().toLocaleDateString('en-CA'), // Default to YYYY-MM-DD
       metrics: {
         brand: '',
         householdCount: '',
@@ -408,6 +410,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
       const reportData = {
         dong: data.dong,
         apartmentName: data.apartmentName,
+        scoutingDate: data.scoutingDate,
         thumbnailUrl: finalThumbnailUrl || uploadedImages[0]?.url || '',
         images: uploadedImages,
         metrics: metricsPayload,
@@ -518,6 +521,15 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
               </div>
             </>
           )}
+          <div className="md:col-span-2">
+            <label className="block text-[14px] font-bold text-[#4e5968] mb-2">현장 방문(촬영) 일자 <span className="text-[#f04452]">*</span></label>
+            <input 
+              type="date"
+              {...register('scoutingDate', { required: true })}
+              className="w-full md:w-1/2 px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-all text-[#191f28]"
+            />
+            <p className="text-[12px] text-[#8b95a1] font-medium mt-2">* 현장 사진 갤러리에 '기준일자'로 자동 표시됩니다.</p>
+          </div>
         </div>
       </section>
 

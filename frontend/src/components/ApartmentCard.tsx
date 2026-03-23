@@ -83,7 +83,7 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
           {apt.householdCount && <span className="text-xs text-[#d1d6db]">·</span>}
           {apt.householdCount && <span className="text-xs text-[#8b95a1]">{apt.householdCount.toLocaleString()}세대</span>}
           {apt.yearBuilt && <span className="text-xs text-[#d1d6db]">·</span>}
-          {apt.yearBuilt && <span className="text-xs text-[#8b95a1]">{apt.yearBuilt}</span>}
+          {apt.yearBuilt && <span className="text-xs text-[#8b95a1]">승인 {apt.yearBuilt.slice(0, 4)}</span>}
         </div>
       </div>
 

@@ -14,7 +14,7 @@ export default function LifestyleRadarChart() {
 
   return (
     <div className="w-full h-full min-h-[300px] flex items-center justify-center p-2">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
         <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
           <PolarGrid stroke="rgba(0,0,0,0.05)" />
           <PolarAngleAxis 

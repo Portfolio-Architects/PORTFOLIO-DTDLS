@@ -84,6 +84,9 @@ export default function Dashboard() {
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
   const [listSort, setListSort] = useState<'views' | 'likes' | 'name'>('views');
 
+  // Mobile modal: only open when user explicitly taps an apartment
+  const [mobileModalOpen, setMobileModalOpen] = useState(false);
+
   // Favorites state
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
   const [favoriteCounts, setFavoriteCounts] = useState<Record<string, number>>({});
@@ -223,7 +226,9 @@ export default function Dashboard() {
   };
 
   // Auto-select first apartment as default for desktop detail panel
+  // Skip on mobile (<768px) to prevent the full-screen modal from auto-opening
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) return;
     // Allow re-selection if current is a stub (no real data yet)
     if (selectedReport && !selectedReport.id.startsWith('stub-')) return;
     const allApts = Object.values(sheetApartments).flat();
@@ -486,7 +491,7 @@ export default function Dashboard() {
             </div>
             {/* 2행: 서브타이틀 — 로고 좌측으로 정렬 (margin 제거) */}
             <p className="text-sm sm:text-base text-[#8b95a1] font-medium">
-              <span className="text-[#3182f6] font-extrabold">D-VIEW</span> : <span className="text-[#3182f6] font-bold">D</span>ongtan <span className="text-[#3182f6] font-bold">V</span>alue <span className="text-[#3182f6] font-bold">I</span>nsight &amp; <span className="text-[#3182f6] font-bold">E</span>valuation <span className="text-[#3182f6] font-bold">W</span>indow · 실거래가 · 가치측정 · 임장리포트
+              <span className="text-[#191f28] font-extrabold">D-VIEW</span> : <span className="text-[#191f28] font-bold">D</span>ongtan <span className="text-[#191f28] font-bold">V</span>alue <span className="text-[#191f28] font-bold">I</span>nsight &amp; <span className="text-[#191f28] font-bold">E</span>valuation <span className="text-[#191f28] font-bold">W</span>indow · 실거래가 · 가치측정 · 임장리포트
             </p>
           </div>
 
@@ -574,6 +579,10 @@ export default function Dashboard() {
                                   createdAt: null,
                                 });
                               }
+                              // Open mobile modal on explicit tap
+                              if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                                setMobileModalOpen(true);
+                              }
                             }}
                             typeMap={typeMap}
                             areaUnit={areaUnit}
@@ -627,12 +636,12 @@ export default function Dashboard() {
         </section>
         )}
 
-        {/* 모바일 풀스크린 모달 (md 미만에서만 표시) */}
-        {selectedReport && (
+        {/* 모바일 풀스크린 모달 (md 미만에서만 표시, 사용자 클릭 시에만) */}
+        {selectedReport && mobileModalOpen && (
           <div className="fixed inset-0 z-50 bg-white overflow-y-auto md:hidden animate-in slide-in-from-bottom duration-300">
             <FieldReportModal
               report={fullReportData || selectedReport}
-              onClose={() => setSelectedReport(null)}
+              onClose={() => { setSelectedReport(null); setMobileModalOpen(false); }}
               comments={commentsData[selectedReport.id] || []}
               commentInput={commentInput[selectedReport.id] || ''}
               onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}

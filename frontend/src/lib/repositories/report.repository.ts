@@ -36,6 +36,7 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
         commentCount: data.commentCount || 0,
         imageUrl: data.thumbnailUrl || data.imageUrl,
         metrics: data.metrics,
+        scoutingDate: data.scoutingDate || '',
         createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
         // keep raw timestamp for sorting
         _rawTimestamp: data.createdAt?.toDate ? data.createdAt.toDate().getTime() : 0, 
@@ -94,7 +95,8 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
     commentCount: data.commentCount || 0,
     imageUrl: data.thumbnailUrl || data.imageUrl,
     images: data.images || [],
-            createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
+    scoutingDate: data.scoutingDate || '',
+    createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
   };
 }
 

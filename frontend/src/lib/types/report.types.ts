@@ -78,6 +78,8 @@ export interface FieldReportData {
   imageUrl?: string;
   /** 이미지 배열 (New Schema) */
   images?: { url: string; caption: string; locationTag: string; isPremium: boolean }[];
+  /** 현장 촬영/임장 일자 (YYYY-MM-DD) */
+  scoutingDate?: string;
   /** 작성 시각 */
   createdAt: any;
 }
