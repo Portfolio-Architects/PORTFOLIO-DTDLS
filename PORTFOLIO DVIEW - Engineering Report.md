@@ -1,4 +1,4 @@
-# 📋 PORTFOLIO-DTDLS — App 총괄 보고서
+# 📋 PORTFOLIO D-VIEW — Engineering Report
 > **Date**: 2026-03-23 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
 
 ---
@@ -7,6 +7,13 @@
 
 | 일시 | 항목 | 내용 |
 |:---|:---|:---|
+| 2026-03-23 17:19 | **보고서 이름 변경** | `PORTFOLIO_DTDLS_REPORT.md` → `PORTFOLIO DVIEW - Engineering Report.md` |
+| 2026-03-23 17:03 | **관리자 트래픽 분석 탭** | Admin 페이지에 `트래픽` 탭 신규 — scoutingReports 기반 단지별 조회수·관심 집계, 바 차트 + 정렬 기능 |
+| 2026-03-23 16:52 | **면적 컬럼 헤더 동적 전환** | `ApartmentModal` 거래 테이블 헤더 `m²/평` 토글에 따라 동적 변경 |
+| 2026-03-23 16:50 | **임장 배지 통일** | 카드 배지 `✅` → `FileText` 아이콘 + 앰버 스타일 (`bg-[#fff8e1]`), 헤더 `2개 리포트` 배지와 통일 |
+| 2026-03-23 16:46 | **평당가격 공급면적 기준 수정** | `typeM2` 숫자 파싱 → 공급m² × 0.3025 = 공급평형 → `avg1MPrice / supplyPyeong` 재계산, `typeMap·areaUnit` props 전달 누락 수정 |
+| 2026-03-23 16:35 | **D-VIEW 서브타이틀 강조** | `D-VIEW` 파란 볼드 + `Dongtan Value Insight & Evaluation Window` 각 이니셜 동일 색상 강조 |
+| 2026-03-23 16:34 | **면적 토글 표기 변경** | 토글 버튼 `면적 → m²`, 거래 테이블 헤더 `m²` 고정 적용 |
 | 2026-03-23 13:10 | **테스트 커버리지 확충** | 16→45 assertions (5 suites), haversine·valuation·dongs·scoring 테스트 신규, stale 테스트 수정 |
 | 2026-03-23 12:45 | **D-VIEW 브랜딩** | 아이콘 생성 (D + 상승 바차트), favicon·헤더 적용, 메타데이터 업데이트, 여백 축소 |
 | 2026-03-23 12:33 | **UI 수정 + 모바일 모달 버그 수정** | 'by 임장크루' 삭제, D-VIEW 타이틀 적용, 모바일 풀스크린 모달 오버레이 추가 |
@@ -112,6 +119,7 @@ src/
 | **Community** | 댓글/리뷰 | comments, reviews | 유저 피드백 |
 | **Admin** | Sheets 동기화 | /api/admin/* | 일괄 업데이트 |
 | **Admin** | 종합 보고서 | /admin/report | SSOT 리포트 |
+| **Admin** | 트래픽 분석 탭 | scoutingReports | 단지별 조회수·관심 집계 |
 | **Analytics** | Signal Map | MindMap3D | 3D 지식 그래프 |
 
 ---
