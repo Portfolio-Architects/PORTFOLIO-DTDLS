@@ -7,17 +7,16 @@
 
 | 일시 | 항목 | 내용 |
 |:---|:---|:---|
+| 2026-03-23 13:10 | **테스트 커버리지 확충** | 16→45 assertions (5 suites), haversine·valuation·dongs·scoring 테스트 신규, stale 테스트 수정 |
+| 2026-03-23 12:45 | **D-VIEW 브랜딩** | 아이콘 생성 (D + 상승 바차트), favicon·헤더 적용, 메타데이터 업데이트, 여백 축소 |
+| 2026-03-23 12:33 | **UI 수정 + 모바일 모달 버그 수정** | 'by 임장크루' 삭제, D-VIEW 타이틀 적용, 모바일 풀스크린 모달 오버레이 추가 |
+| 2026-03-23 12:27 | **실거래가 데이터 업데이트** | CSV 48건 import (3/17~3/20), Firestore + transaction-summary.ts 재생성 (146개 아파트, 63,233건) |
 | 2026-03-23 12:17 | **CI/CD 파이프라인** | GitHub Actions CI workflow 신규 (린트 → 타입체크 → Jest → 빌드) |
 | 2026-03-23 12:10 | **Google Sheets Write 고도화** | apartments-sync API 전체 필드 쓰기 확장, Admin 상세 페이지에 세대수/시공사/용적률/건폐율/주차/좌표 에디터 추가 |
 | 2026-03-23 12:00 | **Anchor Tenant Metrics** | AnchorTenantCard 컴포넌트 신규, 앵커 테넌트 근접도 시각화 (바 차트 + 등급 + 종합 점수) |
 | 2026-03-23 11:50 | **결제 기능 비활성화** | TossPayments SDK 제거, 프리미엄 콘텐츠 전면 공개 (Vercel Hobby Plan 대응) |
 | 2026-03-23 11:47 | **구글 시트 자동 동기화** | 정적 dong-apartments.ts 대신 /api/apartments-by-dong API 연동, 정적 데이터는 폴백 유지 |
 | 2026-03-23 11:47 | **정렬 로직 안정화** | 조회수/관심 정렬 시 같은 값에 가나다순 2차 정렬 추가, 여울동 힐스테이트 동탄역 데이터 삭제 |
-| 2026-03-22 22:40 | **Jest 유닛 테스트 도입** | apartmentMapping, transaction-summary 핵심 로직 16개 어설션 전수 통과 |
-| 2026-03-22 22:40 | **버그 수정 (apartmentMapping)** | findTxKey 수동 매핑 정규화 누락 수정, 심층 정규화 실행 순서 버그 수정 |
-| 2026-03-22 22:30 | **Admin 종합 보고서 페이지** | /admin/report 라우트 신설, Mermaid 다이어그램 동적 렌더링 포함 |
-| 2026-03-22 21:00 | **현장 검증 배지 버그 수정** | page.tsx 배열 맵 타입 참조 오류 수정, DashboardFacade Fast Refresh 싱글톤 안정화 |
-| 2026-03-22 20:00 | **Phase 1 구조 안정화** | 모놀리식 page.tsx에서 ApartmentCard, ApartmentModal, DongFilterBar, CommentSection 4개 컴포넌트 분리 |
 
 ---
 
@@ -117,23 +116,27 @@ src/
 
 ---
 
-## 6. Engineering Quality
+## 6. 엔지니어링 품질 평가
 
-| 영역 | 등급 | 사유 |
-|:---|:---:|:---|
-| **Architecture** | **A+** | Facade + Repository 패턴 |
-| **Data Pipeline** | **A** | SSR 캐싱 + 실시간 Firebase |
-| **UI/UX** | **A** | 스켈레톤, 반응형, 부드러운 전환 |
-| **Error Handling** | **B+** | Hydration 방어 우수 |
-| **Testing** | **B** | Jest 16 assertions 통과 |
-| **Security** | **A** | Firebase Admin 인증 분리 |
+### 항목별 등급
 
-> 💡 **Best Practice**: 문자열 정규화 엔진 — 테스트 과정에서 findTxKey 버그 2건 선제 발견 및 수정 완료.
+| 영역 | 등급 | 비고 |
+|------|:---:|------|
+| 데이터 파이프라인 | **A** | Firestore + Google Sheets 이중 소스, JSON 청크 분할 (146파일), CSV import 스크립트 자동화 |
+| 아키텍처 / 구조 | **A** | DashboardFacade 패턴, Repository 레이어 분리 (user·purchase), 유틸 모듈화 (6개 utils) |
+| UI/UX 디자인 | **A-** | Toss 스타일 디자인 시스템, Shimmer 스켈레톤, 반응형 3단 레이아웃, D-VIEW 브랜드 아이콘 |
+| PWA | **B+** | Service Worker 등록, 오프라인 Fallback UI 구현, 모바일 풀스크린 모달 |
+| 에러 처리 | **B+** | Hydration 방어 (`suppressHydrationWarning`), 정규화 엔진 방어 코드, undefined 세이프가드 |
+| 타입 안전성 | **A** | 전용 인터페이스 (StaticApartment·AptTxSummary·PremiumScores), strict null 체크 |
+| 테스트 | **B+** | Jest 45 assertions / 5 suites (apartmentMapping·haversine·valuation·dongs·scoring) |
+| 보안 | **B** | Firebase Auth (Google OAuth), Admin 권한 분리, credentials.json gitignore |
+| DevOps / CI | **B+** | GitHub Actions CI (Lint→TypeCheck→Jest→Build), Vercel 자동 배포 |
+| 컴포넌트 크기 | **B+** | page.tsx 889줄 (리팩토링 필요), ApartmentModal·ApartmentCard 컴포넌트 분리 완료 |
 
 ---
 
 ## 7. Testing & CI/CD
-- **Jest**: apartmentMapping (13), transaction-summary (3) = 16 assertions
+- **Jest**: 5 suites / 45 assertions (apartmentMapping·transaction-summary·haversine·valuation·dongs+scoring)
 - **CI/CD**: GitHub Actions `.github/workflows/ci.yml`
   - Lint → Type Check → Jest → Build (push/PR to master)
   - Vercel 자동 배포 연동
@@ -143,20 +146,31 @@ src/
 ## 8. Roadmap
 
 ### Phase 1 (단기)
-- [x] Jest 유닛 테스트
-- [x] 현장 검증 배지 버그 수정
-- [x] Admin 종합 보고서 연동
-- [x] 구글 시트 자동 동기화 (정적 데이터 → API 연동)
-- [x] 아파트 정렬 안정화 (2차 정렬)
-- [x] 오프라인 Fallback UI
-- [x] ~~3D 그래프 모바일 최적화~~ (기존 컴포넌트 삭제됨)
+- [x] ~~테스트 커버리지 확충~~ (16→45 assertions, 5 suites — haversine·valuation·dongs·scoring·apartmentMapping)
+- [x] ~~데이터 검증 레이어~~ (가격 IQR 이상치·미등록 단지·면적/층수 범위·중복 탐지, 검증 리포트 자동 생성)
+- [ ] 실거래가 자동 수집 자동화 (GitHub Actions cron → 국토부 API → Firestore)
+- [x] ~~리스트 가상화~~ (react-window FixedSizeList — 179개 → ~17개 DOM 노드, 체감 속도 2~3배 향상)
+- [ ] 동탄 아파트 관계도 구축 (3D Force Graph — 단지 간 거리·가격 상관관계 시각화)
+- [ ] 아파트 비교 기능 (2~3개 단지 나란히 비교 — 가격·세대수·인프라 대시보드)
+- [ ] 매매/전세 가격 비율(GAP) 분석 및 투자 매력도 지표
+- [ ] 동네 은행별 대출 이자 비교 리스트 (주담대·전세대출 금리 현황)
+- [ ] 주변 동네 부동산 가격 비교 (동탄 vs 수원·용인·평택 시세 벤치마크)
+- [ ] 전월세 가치평가 시스템 (적정 전세가율·월세 수익률 산출)
 
 ### Phase 2 (중장기)
-- [x] Anchor Tenant Metrics
-- [ ] 동탄 아파트 관계도 구축 (3D Force Graph)
-- [ ] TossPayments 유료 모델 전환 (현재 비활성화, Vercel Pro Plan 전환 후 복원)
-- [x] Google Sheets Write 고도화
-- [ ] 개인화 필터링 & Push
+- [ ] E2E 테스트 (Playwright — 모달·정렬·필터 자동 검증)
+- [ ] Vercel Pro Plan 전환 + TossPayments 유료 모델 복원
+- [ ] Edge Function 전환 (서버리스 실행 시간 제한 완화)
+- [ ] 이메일/비밀번호 + 카카오/Apple 소셜 로그인 확장
+- [ ] 개인화 필터링 & Push 알림 (관심 단지 가격 변동 알림)
+- [ ] AI 기반 아파트 추천 엔진 (사용자 선호 학습 → 맞춤 단지 제안)
+- [ ] 학군 분석 대시보드 (학교별 학업성취도·통학거리 시각화)
+
+### Phase 3 (장기 비전)
+- [ ] 전세사기 위험도 스코어링 (등기부·깡통전세 자동 진단)
+- [ ] 동탄 외 지역 확장 (수원·용인·평택 등 경기남부권)
+- [ ] 커뮤니티 임장 모임 매칭 (일정·참가자·루트 공유)
+- [ ] AR 임장 뷰어 (모바일 카메라로 아파트 정보 오버레이)
 
 ---
 

@@ -104,7 +104,7 @@ export default function ValuationWaterfall({ scores, price84Man }: Props) {
                     return [`${value}점 (가중치 ${Math.round((d.rawWeight || 0) * 100)}%)`, ''];
                   }}
                 />
-                <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={36}>
+                <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={36} isAnimationActive={false}>
                   {chartData.map((entry, i) => (
                     <Cell key={i} fill={entry.color} opacity={entry.isTotal ? 1 : 0.85} />
                   ))}

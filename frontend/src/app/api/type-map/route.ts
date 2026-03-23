@@ -9,7 +9,8 @@ export const revalidate = 86400; // ISR: 24 hours (타입 매핑은 거의 변�
 export interface TypeMapEntry {
   aptName: string;
   area: string;
-  typeName: string;
+  typeM2: string;
+  typePyeong: string;
 }
 
 
@@ -33,11 +34,12 @@ export async function GET() {
     for (let i = 1; i < lines.length; i++) {
       const cols = parseCsvLine(lines[i]);
       if (cols.length < 3) continue;
-      const aptName = cols[0]?.trim();
-      const area = cols[1]?.trim();
-      const typeName = cols[2]?.trim();
-      if (aptName && area && typeName) {
-        entries.push({ aptName, area, typeName });
+      const aptName = cols[1]?.trim(); // 인덱스 보정
+      const area = cols[2]?.trim();
+      const typeM2 = cols[3]?.trim() || '';
+      const typePyeong = cols[5]?.trim() || '';
+      if (aptName && area && (typeM2 || typePyeong)) {
+        entries.push({ aptName, area, typeM2, typePyeong });
       }
     }
 
@@ -58,8 +60,6 @@ export async function GET() {
 
 /** 하드코딩 폴백 (시트 접근 실패 시 사용) */
 const FALLBACK_MAP: TypeMapEntry[] = [
-  { aptName: '힐스테이트동탄역', area: '54.5533', typeName: '78A' },
-  { aptName: '힐스테이트동탄역', area: '54.4202', typeName: '78B' },
-  { aptName: '힐스테이트동탄역', area: '54.5508', typeName: '77C' },
-  { aptName: '힐스테이트동탄역', area: '54.9749', typeName: '78D' },
+  { aptName: '힐스테이트동탄역', area: '54.5533', typeM2: '78A', typePyeong: '' },
+  { aptName: '힐스테이트동탄역', area: '54.4202', typeM2: '78B', typePyeong: '' },
 ];

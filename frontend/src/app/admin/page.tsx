@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Building, Save, Search, Check, AlertTriangle, ChevronDown, ChevronRight,
-  Home, Link2, FileText, Plus, Trash2, MapPin, PlusCircle, Edit
+  Home, Link2, FileText, Plus, Trash2, MapPin, PlusCircle, Edit, BarChart2, Eye, Heart
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, onSnapshot, where, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
@@ -80,8 +80,53 @@ export default function AdminDashboard() {
   const [newAptDong, setNewAptDong] = useState(dongNames[0]);
   // Deletes tracking for sync
   const [deletedApts, setDeletedApts] = useState<Set<string>>(new Set());
+  const [adminTab, setAdminTab] = useState<'단지관리' | '트래픽'>('단지관리');
+
+  // Traffic data
+  const [trafficData, setTrafficData] = useState<{name: string; dong: string; viewCount: number; likes: number}[]>([]);
+  const [trafficSort, setTrafficSort] = useState<'viewCount' | 'likes'>('viewCount');
+  const [trafficLoading, setTrafficLoading] = useState(false);
 
   const txKeys = useMemo(() => Object.keys(TX_SUMMARY).sort(), []);
+
+  // ── Load Traffic Data ──
+  useEffect(() => {
+    if (adminTab !== '트래픽') return;
+    setTrafficLoading(true);
+    (async () => {
+      try {
+        // Gather viewCount from scoutingReports grouped by apartmentName
+        const snap = await getDocs(collection(db, 'scoutingReports'));
+        const viewMap: Record<string, number> = {};
+        const likeMap: Record<string, number> = {};
+        snap.docs.forEach(d => {
+          const data = d.data();
+          const apt = data.apartmentName as string;
+          if (!apt) return;
+          viewMap[apt] = (viewMap[apt] || 0) + (data.viewCount || 0);
+          likeMap[apt] = (likeMap[apt] || 0) + (data.likes || 0);
+        });
+        // Also check apartments/{name}/stats docs if they exist
+        const aptViewSnap = await getDocs(collection(db, 'apartmentViews')).catch(() => null);
+        if (aptViewSnap) {
+          aptViewSnap.docs.forEach(d => {
+            const apt = d.id;
+            viewMap[apt] = (viewMap[apt] || 0) + (d.data().count || 0);
+          });
+        }
+        // Merge with full apartment list from meta
+        const rows = Object.keys(meta).map(name => ({
+          name,
+          dong: meta[name]?.dong || '',
+          viewCount: viewMap[name] || 0,
+          likes: likeMap[name] || 0,
+        }));
+        setTrafficData(rows);
+      } finally {
+        setTrafficLoading(false);
+      }
+    })();
+  }, [adminTab, meta]);
 
   // ── Load Scouting Reports ──
   useEffect(() => {
@@ -366,6 +411,18 @@ export default function AdminDashboard() {
             <Plus size={16}/> 아파트 추가
           </button>
         </div>
+        {/* 탭 */}
+        <div className="flex gap-1 bg-[#f2f4f6] p-1 rounded-xl">
+          {(['단지관리', '트래픽'] as const).map(tab => (
+            <button key={tab} onClick={() => setAdminTab(tab)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-bold transition-all ${
+                adminTab === tab ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'
+              }`}>
+              {tab === '단지관리' ? <Building size={14}/> : <BarChart2 size={14}/>}
+              {tab}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Add Apartment Form */}
@@ -432,6 +489,85 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* ── 트래픽 탭 ── */}
+      {adminTab === '트래픽' && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-extrabold text-[#191f28]">트래픽 분석</h2>
+              <p className="text-xs text-[#8b95a1] mt-0.5">임장 리포트 기반 조회수 · 관심 수 집계</p>
+            </div>
+            <div className="flex gap-1.5">
+              {(['viewCount', 'likes'] as const).map(k => (
+                <button key={k} onClick={() => setTrafficSort(k)}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    trafficSort === k ? 'bg-[#191f28] text-white' : 'bg-white border border-[#e5e8eb] text-[#4e5968]'
+                  }`}>
+                  {k === 'viewCount' ? <><Eye size={12}/> 조회수</> : <><Heart size={12}/> 관심</>}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {trafficLoading ? (
+            <div className="flex justify-center py-16"><div className="w-7 h-7 border-4 border-[#3182f6] border-t-transparent rounded-full animate-spin" /></div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-[#e5e8eb] shadow-sm overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-[#f9fafb] border-b border-[#e5e8eb]">
+                  <tr className="text-[#8b95a1] text-xs font-bold">
+                    <th className="py-3 pl-4 text-left w-8">#</th>
+                    <th className="py-3 text-left">아파트명</th>
+                    <th className="py-3 text-left text-[#8b95a1]">동</th>
+                    <th className="py-3 pr-4 text-right text-[#3182f6]"><span className="flex items-center justify-end gap-1"><Eye size={12}/>조회수</span></th>
+                    <th className="py-3 pr-4 text-right text-[#f04452]"><span className="flex items-center justify-end gap-1"><Heart size={12}/>관심</span></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#f2f4f6]">
+                  {[...trafficData]
+                    .sort((a, b) => b[trafficSort] - a[trafficSort])
+                    .map((row, i) => {
+                      const maxViews = Math.max(...trafficData.map(r => r.viewCount), 1);
+                      const maxLikes = Math.max(...trafficData.map(r => r.likes), 1);
+                      return (
+                        <tr key={row.name} className={`hover:bg-[#f9fafb] transition-colors ${i < 3 ? 'bg-[#fffbf5]' : ''}`}>
+                          <td className="py-3 pl-4 text-center">
+                            <span className={`text-xs font-extrabold ${i === 0 ? 'text-[#f59e0b]' : i === 1 ? 'text-[#8b95a1]' : i === 2 ? 'text-[#cd7c2f]' : 'text-[#d1d6db]'}`}>{i + 1}</span>
+                          </td>
+                          <td className="py-3 font-bold text-[#191f28] text-[13px]">{row.name}</td>
+                          <td className="py-3 text-xs text-[#8b95a1]">{row.dong}</td>
+                          <td className="py-3 pr-4">
+                            <div className="flex items-center justify-end gap-2">
+                              <div className="w-20 h-1.5 bg-[#f2f4f6] rounded-full overflow-hidden">
+                                <div className="h-full bg-[#3182f6] rounded-full" style={{ width: `${(row.viewCount / maxViews) * 100}%` }} />
+                              </div>
+                              <span className="text-xs font-bold text-[#3182f6] tabular-nums w-8 text-right">{row.viewCount}</span>
+                            </div>
+                          </td>
+                          <td className="py-3 pr-4">
+                            <div className="flex items-center justify-end gap-2">
+                              <div className="w-20 h-1.5 bg-[#f2f4f6] rounded-full overflow-hidden">
+                                <div className="h-full bg-[#f04452] rounded-full" style={{ width: `${(row.likes / maxLikes) * 100}%` }} />
+                              </div>
+                              <span className="text-xs font-bold text-[#f04452] tabular-nums w-8 text-right">{row.likes}</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+              {trafficData.every(r => r.viewCount === 0 && r.likes === 0) && (
+                <div className="py-12 text-center text-[#8b95a1] text-sm">임장 리포트가 있는 단지에서만 조회수가 집계됩니다.</div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── 단지관리 탭 ── */}
+      {adminTab === '단지관리' && (
+      <>
       {/* Apartment List by Dong */}
       <div className="flex flex-col gap-3">
         {filteredDongs.map(([dong, apts]) => {
@@ -509,9 +645,9 @@ export default function AdminDashboard() {
               <span key={k} className="bg-[#f2f4f6] text-[#4e5968] text-[11px] font-mono px-2.5 py-1 rounded-lg">{k}</span>
               ));
             })()}
-          </div>
         </div>
-
+        </div>
+      </>)}
       {/* Floating Save Bar */}
       <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-40 bg-white/90 backdrop-blur-lg border-t border-[#e5e8eb] px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
         <span className="text-[13px] text-[#8b95a1] font-medium">{stats.total}개 단지 · {stats.mapped} 매핑 · 📝 {stats.totalReports} 임장기</span>

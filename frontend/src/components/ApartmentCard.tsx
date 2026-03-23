@@ -1,5 +1,6 @@
 'use client';
 
+import { FileText } from 'lucide-react';
 import { normalize84Price } from '@/lib/utils/valuation';
 import type { AptTxSummary } from '@/lib/transaction-summary';
 import type { FieldReportData } from '@/lib/DashboardFacade';
@@ -23,9 +24,11 @@ interface ApartmentCardProps {
   isFavorited?: boolean;
   favoriteCount?: number;
   onToggleFavorite?: () => void;
+  typeMap?: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
+  areaUnit?: 'm2' | 'pyeong';
 }
 
-export default function ApartmentCard({ apt, txSummary, report, isPublicRental, onClick, rank, isSelected, isFavorited, favoriteCount, onToggleFavorite }: ApartmentCardProps) {
+export default function ApartmentCard({ apt, txSummary, report, isPublicRental, onClick, rank, isSelected, isFavorited, favoriteCount, onToggleFavorite, typeMap, areaUnit = 'm2' }: ApartmentCardProps) {
   // 84㎡ 정규화 가격
   const norm84Label = (() => {
     if (!txSummary?.recent?.[0]) return null;
@@ -54,7 +57,7 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
       )}
       {/* 순위 */}
       {rank != null && (
-        <span className="text-[13px] font-extrabold text-[#8b95a1] w-5 text-center shrink-0 tabular-nums">
+        <span className="text-sm font-extrabold text-[#8b95a1] w-5 text-center shrink-0 tabular-nums">
           {rank}
         </span>
       )}
@@ -62,22 +65,25 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
       {/* 아파트 정보 */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <h4 className="text-[14px] font-bold text-[#191f28] truncate group-hover:text-[#3182f6] transition-colors leading-tight">
+          <h4 className="text-base font-bold text-[#191f28] truncate group-hover:text-[#3182f6] transition-colors leading-tight">
             {apt.name}
           </h4>
           {report && (
-            <span className="text-[9px] font-bold bg-[#f0fdf4] text-[#03c75a] px-1.5 py-[1px] rounded shrink-0">✅</span>
+            <span className="inline-flex items-center gap-0.5 bg-[#fff8e1] text-[#f59e0b] text-[10px] font-bold px-1.5 py-[2px] rounded-full shrink-0" title="현장 검증 완료">
+              <FileText size={10} strokeWidth={2.5} />
+              리포트
+            </span>
           )}
           {!report && isPublicRental && (
-            <span className="text-[9px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-1.5 py-[1px] rounded shrink-0">공공</span>
+            <span className="text-[11px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-1.5 py-[1px] rounded shrink-0 leading-tight">공공</span>
           )}
         </div>
-        <div className="flex items-center gap-1.5 mt-0.5">
-          <span className="text-[11px] text-[#8b95a1]">{apt.dong}</span>
-          {apt.householdCount && <span className="text-[11px] text-[#d1d6db]">·</span>}
-          {apt.householdCount && <span className="text-[11px] text-[#8b95a1]">{apt.householdCount.toLocaleString()}세대</span>}
-          {apt.yearBuilt && <span className="text-[11px] text-[#d1d6db]">·</span>}
-          {apt.yearBuilt && <span className="text-[11px] text-[#8b95a1]">{apt.yearBuilt}</span>}
+        <div className="flex items-center gap-1.5 mt-1">
+          <span className="text-xs text-[#8b95a1]">{apt.dong}</span>
+          {apt.householdCount && <span className="text-xs text-[#d1d6db]">·</span>}
+          {apt.householdCount && <span className="text-xs text-[#8b95a1]">{apt.householdCount.toLocaleString()}세대</span>}
+          {apt.yearBuilt && <span className="text-xs text-[#d1d6db]">·</span>}
+          {apt.yearBuilt && <span className="text-xs text-[#8b95a1]">{apt.yearBuilt}</span>}
         </div>
       </div>
 
@@ -85,19 +91,33 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
       <div className="flex items-center shrink-0">
         {txSummary ? (
           <div className="text-right min-w-[80px]">
-            <div className="text-[14px] font-extrabold text-[#191f28] tabular-nums leading-tight">
-              {txSummary.latestPriceEok}
+            <div className="text-base font-extrabold text-[#191f28] tabular-nums leading-none mb-1">
+              {txSummary.avg1MPriceEok}
             </div>
-            <div className="flex items-center justify-end gap-1.5 mt-0.5">
-              <span className="text-[10px] font-bold text-[#3182f6]">{txSummary.latestArea}평</span>
-              <span className="text-[10px] text-[#8b95a1]">{txSummary.txCount}건</span>
+            <div className="flex items-center justify-end gap-1.5">
+              {(() => {
+                if (typeMap && txSummary.recent?.[0]) {
+                  const m2Area = txSummary.recent[0].area;
+                  const aptNorm = apt.name.replace(/\[.*?\]\s*/g, '').replace(/\s+/g, '').replace(/[()（）]/g, '').trim();
+                  const t = typeMap[aptNorm]?.[String(m2Area)];
+                  if (t) {
+                    const supplyM2Match = t.typeM2?.match(/\d+(\.\d+)?/);
+                    const supplyM2 = supplyM2Match ? parseFloat(supplyM2Match[0]) : null;
+                    const supplyPyeong = supplyM2 ? Math.round(supplyM2 * 0.3025 * 10) / 10 : null;
+                    const perPyeong = supplyPyeong && txSummary.avg1MPrice
+                      ? Math.round(txSummary.avg1MPrice / supplyPyeong)
+                      : null;
+                    if (perPyeong) {
+                      return <span className="text-xs font-bold text-[#3182f6]">{perPyeong.toLocaleString()}만/평</span>;
+                    }
+                  }
+                }
+                return <span className="text-xs font-bold text-[#3182f6]">{txSummary.avg1MPerPyeong.toLocaleString()}만/평</span>;
+              })()}
             </div>
-            {norm84Label && (
-              <div className="text-[10px] font-bold text-[#8b5cf6] mt-0.5">84㎡ {norm84Label}</div>
-            )}
           </div>
         ) : (
-          <span className="text-[11px] text-[#d1d6db]">—</span>
+          <span className="text-xs text-[#d1d6db]">—</span>
         )}
       </div>
 
@@ -116,7 +136,7 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
           {(favoriteCount ?? 0) > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 text-[8px] font-bold text-[#ff3b30] bg-white rounded-full px-0.5 min-w-[12px] text-center leading-tight">
+            <span className="absolute -top-0.5 -right-0.5 text-[10px] font-bold text-[#ff3b30] bg-white rounded-full px-1 min-w-[14px] text-center leading-tight shadow-sm ring-1 ring-white">
               {favoriteCount}
             </span>
           )}

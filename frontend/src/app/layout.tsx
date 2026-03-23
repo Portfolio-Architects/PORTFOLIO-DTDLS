@@ -6,8 +6,8 @@ import FloatingUserBar from '@/components/FloatingUserBar';
 import OfflineBanner from '@/components/OfflineBanner';
 
 export const metadata: Metadata = {
-  title: '임장크루 | 동탄 아파트 임장 커뮤니티',
-  description: '포장 싹 뺀 진짜 동네 아파트 리뷰. 임장기와 실시간 동탄 소식을 한눈에 확인하세요.',
+  title: 'DSQ | 동탄구 아파트 가치 측정 플랫폼',
+  description: 'Dongtan Spatial Quant — 동탄구 179개 아파트의 실거래가·인프라·임장 리포트를 한눈에.',
 };
 
 export default function RootLayout({

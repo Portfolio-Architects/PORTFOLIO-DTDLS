@@ -35,6 +35,7 @@ export default function LifestyleRadarChart() {
             strokeWidth={3}
             fill="#3182f6" 
             fillOpacity={0.2} 
+            isAnimationActive={false}
           />
           <Radar 
             name="동탄호수공원" 
@@ -43,6 +44,7 @@ export default function LifestyleRadarChart() {
             strokeWidth={3}
             fill="#03c75a" 
             fillOpacity={0.2} 
+            isAnimationActive={false}
           />
         </RadarChart>
       </ResponsiveContainer>

@@ -62,8 +62,8 @@ export default function EduBubbleChart() {
           />
           <ZAxis type="number" dataKey="z" range={[200, 1500]} name="밀집도" />
           <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3', stroke: '#d1d6db' }} />
-          <Scatter name="북동탄 (카림상권)" data={northData} fill="#3182f6" fillOpacity={0.6} stroke="#3182f6" strokeWidth={2} />
-          <Scatter name="남동탄 (호수공원 주변)" data={southData} fill="#f04452" fillOpacity={0.6} stroke="#f04452" strokeWidth={2} />
+          <Scatter name="북동탄 (카림상권)" data={northData} fill="#3182f6" fillOpacity={0.6} stroke="#3182f6" strokeWidth={2} isAnimationActive={false} />
+          <Scatter name="남동탄 (호수공원 주변)" data={southData} fill="#f04452" fillOpacity={0.6} stroke="#f04452" strokeWidth={2} isAnimationActive={false} />
         </ScatterChart>
       </ResponsiveContainer>
     </div>

@@ -76,12 +76,16 @@ async function main() {
       areaPyeong: d.areaPyeong || 0,
       floor: d.floor || 0,
       dong: d.dong || '',
+      dealType: d.dealType || '',
     });
   });
 
   // 아파트별 요약 계산
   const summaries = {};
   let aptCount = 0;
+
+  const now = new Date();
+  const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
 
   for (const [aptName, txs] of Object.entries(byApt)) {
     const prices = txs.map(t => t.price).filter(p => p > 0);
@@ -90,6 +94,23 @@ async function main() {
     const maxPrice = Math.max(...prices);
     const minPrice = Math.min(...prices);
     const latestTx = txs[0]; // already sorted by contractDate desc
+
+    // 최근 1개월 거래 필터
+    const recentMonth = txs.filter(t => {
+      if (!t.contractYm || t.contractYm.length < 6) return false;
+      const y = parseInt(t.contractYm.slice(0, 4));
+      const m = parseInt(t.contractYm.slice(4, 6));
+      const d = parseInt(t.contractDay) || 1;
+      const txDate = new Date(y, m - 1, d);
+      return txDate >= oneMonthAgo && t.price > 0 && t.areaPyeong > 0;
+    });
+
+    const avg1MPrice = recentMonth.length > 0
+      ? Math.round(recentMonth.reduce((s, t) => s + t.price, 0) / recentMonth.length)
+      : latestTx.price;
+    const avg1MPerPyeong = recentMonth.length > 0
+      ? Math.round(recentMonth.reduce((s, t) => s + t.price / t.areaPyeong, 0) / recentMonth.length)
+      : (latestTx.areaPyeong > 0 ? Math.round(latestTx.price / latestTx.areaPyeong) : 0);
     
     summaries[aptName] = {
       latestPrice: latestTx.price,
@@ -102,6 +123,10 @@ async function main() {
       minPrice,
       minPriceEok: formatPriceEok(minPrice),
       txCount: txs.length,
+      avg1MPrice,
+      avg1MPriceEok: formatPriceEok(avg1MPrice),
+      avg1MPerPyeong,
+      avg1MTxCount: recentMonth.length,
       // 최근 4건 (카드 미리보기용)
       recent: txs.slice(0, 4).map(t => ({
         date: `${t.contractYm.slice(4)}.${t.contractDay}`,
@@ -144,6 +169,10 @@ export interface AptTxSummary {
   minPrice: number;
   minPriceEok: string;
   txCount: number;
+  avg1MPrice: number;
+  avg1MPriceEok: string;
+  avg1MPerPyeong: number;
+  avg1MTxCount: number;
   recent: RecentTx[];
 }
 
@@ -180,6 +209,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = `;
       area: t.area,
       areaPyeong: t.areaPyeong,
       floor: t.floor,
+      dealType: t.dealType || '',
     }));
 
     // 파일명: 정규화된 아파트명 (URL-safe)

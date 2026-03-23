@@ -122,7 +122,8 @@ export function FieldReportModal({
   isPurchased,
   isAdmin,
   onPurchaseComplete,
-  inline
+  inline,
+  areaUnit = 'm2'
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -132,12 +133,13 @@ export function FieldReportModal({
   onSubmitComment: () => void;
   user: User | null;
   transactions: TransactionRecord[];
-  typeMap: Record<string, Record<string, string>>;
+  typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   isLoadingDetail?: boolean;
   isPurchased?: boolean;
   isAdmin?: boolean;
   onPurchaseComplete?: () => void;
   inline?: boolean;
+  areaUnit?: 'm2' | 'pyeong';
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
@@ -166,65 +168,90 @@ export function FieldReportModal({
   const content = (
     <>
           {/* Hero Section — Layout: 40% table / 60% chart */}
-          <div className={`bg-white w-full flex flex-col md:flex-row p-4 ${inline ? 'md:p-6' : 'md:p-10'} gap-4 md:gap-8 ${inline ? '' : 'rounded-t-3xl'} shrink-0 pt-4 md:pt-8 border-b border-[#e5e8eb]`}>
+          <div className={`bg-white w-full flex flex-col md:flex-row p-4 ${inline ? 'md:p-6' : 'md:p-10'} gap-4 md:gap-8 ${inline ? '' : 'rounded-t-3xl'} shrink-0 pt-4 md:pt-8 ${inline ? 'border-b border-[#f2f4f6]' : 'border-b border-[#e5e8eb]'}`}>
             
             {/* Left: 실거래가 전체 리스트 — mobile: 2번째, desktop: 1번째 (40%) */}
             <div className="w-full md:w-[40%] shrink-0 order-2 md:order-1 flex flex-col">
               {transactions.length > 0 ? (
                 <div className="bg-[#f9fafb] rounded-2xl p-4 ring-1 ring-black/5 h-full flex flex-col">
-                  <h4 className="text-[13px] font-bold text-[#8b95a1] mb-3 flex items-center gap-1.5 shrink-0">
-                    <TrendingUp size={13} className="text-[#03c75a]" />
-                    실거래가 내역 <span className="text-[11px] ml-1">{transactions.length}건</span>
+                  <h4 className="text-sm font-bold text-[#8b95a1] mb-3 flex items-center gap-1.5 shrink-0">
+                    <TrendingUp size={16} className="text-[#03c75a]" />
+                    <span className="flex items-center gap-1.5">실거래가 내역 <span className="text-sm font-medium ml-0.5">총 {transactions.length.toLocaleString()}건</span></span>
                   </h4>
-                  <div className="flex-1">
-                    <table className="w-full text-[13px]">
+                  <div className="overflow-y-auto max-h-[460px]">
+                    <table className="w-full text-sm">
                       <thead className="sticky top-0 bg-[#f9fafb]">
                         <tr className="border-b border-[#e5e8eb] text-[#8b95a1]">
-                          <th className="py-3 text-left font-bold">거래일</th>
-                          <th className="py-3 text-right font-bold">금액</th>
-                          <th className="py-3 text-right font-bold">면적</th>
-                          <th className="py-3 text-right font-bold">층</th>
-                          <th className="py-3 text-right font-bold">유형</th>
+                          <th className="py-3 pl-2 text-left font-bold">거래일</th>
+                          <th className="py-3 pr-2 text-right font-bold w-[25%]">금액</th>
+                          <th className="py-3 text-center font-bold w-[18%]">{areaUnit === 'm2' ? 'm²' : '평'}</th>
+                          <th className="py-3 text-center font-bold w-[15%]">층</th>
+                          <th className="py-3 pr-2 text-right font-bold w-[18%]">유형</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {(isTxExpanded ? transactions : transactions.slice(0, 10)).map((tx, idx) => (
-                          <tr key={idx} className={`border-b border-[#f2f4f6] hover:bg-white/60 transition-colors ${idx < 3 ? 'bg-[#f0f7ff]' : ''}`}>
-                            <td className={`py-3 ${idx < 3 ? 'text-[#191f28] font-bold' : 'text-[#4e5968]'}`}>
-                              {idx < 3 && <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3182f6] mr-1.5 mb-[1px]" />}
-                              {tx.contractYm.slice(0,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}
-                            </td>
-                            <td className={`py-3 text-right font-extrabold ${idx < 3 ? 'text-[#3182f6]' : 'text-[#191f28]'}`}>{tx.priceEok}</td>
-                            <td className="py-3 text-right text-[#4e5968]">{(() => { const norm = normalizeAptName(tx.aptName); const t = typeMap[norm]?.[String(tx.area)]; return t ? <span className="font-bold text-[#3182f6] bg-[#e8f3ff] px-1.5 py-0.5 rounded text-[10px]">{t}</span> : `${tx.areaPyeong}평`; })()}</td>
-                            <td className="py-3 text-right text-[#4e5968]">{tx.floor}층</td>
-                            <td className="py-3 text-right text-[#8b95a1]">{tx.dealType}</td>
-                          </tr>
-                        ))}
+                        {(() => {
+                          const colors: [string, string][] = [['text-[#3182f6]','bg-[#e8f3ff]'], ['text-[#059669]','bg-[#d1fae5]'], ['text-[#7c3aed]','bg-[#ede9fe]'], ['text-[#d97706]','bg-[#fef3c7]'], ['text-[#db2777]','bg-[#fce7f3]']];
+                          // 전체 거래에서 고유 평형 그룹(숫자/3 반올림)을 추출해 오름차순으로 정렬
+                          const groupSet = new Set<number>();
+                          transactions.forEach(tx => {
+                            const norm = normalizeAptName(tx.aptName);
+                            const t = typeMap[norm]?.[String(tx.area)];
+                            const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : null;
+                            if (!label) return;
+                            const m = label.match(/\d+/);
+                            if (m) groupSet.add(Math.round(parseInt(m[0]) / 3));
+                          });
+                          const sortedGroups = Array.from(groupSet).sort((a, b) => a - b);
+                          const groupColorIdx = new Map(sortedGroups.map((g, i) => [g, i]));
+
+                          return transactions.map((tx, idx) => {
+                            const txDate = new Date(parseInt(tx.contractYm.slice(0, 4)), parseInt(tx.contractYm.slice(4)) - 1, parseInt(tx.contractDay) || 15);
+                            const now = new Date();
+                            const isRecent = txDate >= new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+                            const norm = normalizeAptName(tx.aptName);
+                            const t = typeMap[norm]?.[String(tx.area)];
+                            const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : null;
+                            const badgeEl = (() => {
+                              if (!label) return <span className="text-xs">{tx.areaPyeong}평</span>;
+                              const m = label.match(/\d+/);
+                              const group = m ? Math.round(parseInt(m[0]) / 3) : 0;
+                              const cIdx = (groupColorIdx.get(group) ?? 0) % colors.length;
+                              const [tc, bgc] = colors[cIdx];
+                              return <span className={`font-bold ${tc} ${bgc} px-1.5 py-0.5 rounded text-xs`} title={`${tx.areaPyeong}평`}>{label}</span>;
+                            })();
+                            return (
+                              <tr key={idx} className={`border-b border-[#f2f4f6] hover:bg-white/60 transition-colors ${isRecent ? 'bg-[#f0f7ff]' : ''}`}>
+                                <td className={`py-3 pl-2 ${isRecent ? 'text-[#191f28] font-bold' : 'text-[#4e5968]'}`}>
+                                  {isRecent && <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3182f6] mr-1.5 mb-[1px]" />}
+                                  {tx.contractYm.slice(0,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}
+                                </td>
+                                <td className={`py-3 pr-2 text-right font-extrabold ${isRecent ? 'text-[#3182f6]' : 'text-[#191f28]'}`}>{tx.priceEok}</td>
+                                <td className="py-3 text-center">{badgeEl}</td>
+                                <td className="py-3 text-center text-[#4e5968]">{tx.floor}층</td>
+                                <td className="py-3 pr-2 text-right text-[#8b95a1]">{tx.dealType}</td>
+                              </tr>
+                            );
+                          });
+                        })()}
                       </tbody>
                     </table>
-                    {transactions.length > 10 && (
-                      <button
-                        onClick={() => setIsTxExpanded(!isTxExpanded)}
-                        className="w-full mt-2 py-2 text-[12px] font-bold text-[#3182f6] hover:bg-[#e8f3ff] rounded-lg transition-colors"
-                      >
-                        {isTxExpanded ? '접기 ▲' : `나머지 ${transactions.length - 10}건 더보기 ▼`}
-                      </button>
-                    )}
                   </div>
+
                 </div>
               ) : (
                 <div className="bg-[#f9fafb] rounded-2xl p-8 flex items-center justify-center ring-1 ring-black/5 h-full min-h-[200px]">
-                  <span className="text-[#8b95a1] text-[13px] font-bold">매매 기록이 없습니다</span>
+                  <span className="text-[#8b95a1] text-sm font-bold">매매 기록이 없습니다</span>
                 </div>
               )}
             </div>
 
             {/* Right: Title + Chart — mobile: 1번째, desktop: 2번째 (60%) */}
-            <div className="w-full md:w-[60%] flex flex-col order-1 md:order-2">
+             <div className="w-full md:w-[60%] flex flex-col order-1 md:order-2">
                <div className="flex items-center gap-2 mb-3">
-                 <span className="bg-[#3182f6] text-white text-[13px] font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
+                 <span className="bg-[#3182f6] text-white text-sm font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
                </div>
-               <h1 className="text-[22px] sm:text-[28px] md:text-[36px] font-extrabold leading-tight tracking-tight mb-2 text-[#191f28]">{report.apartmentName}</h1>
+               <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-[#191f28]">{report.apartmentName}</h1>
 
                {/* 매매가 추이 차트 — 산점도(층수별) + 거래량 막대 + 이동평균선 */}
                {transactions.length > 0 && (() => {
@@ -389,15 +416,15 @@ export function FieldReportModal({
                              cursor={{ stroke: '#d1d6db', strokeWidth: 1, strokeDasharray: '3 3' }}
                            />
                            {/* 가격 밴드 (P5~P95) */}
-                           <Area type="monotone" dataKey="bandHigh" yAxisId="price" stroke="none" fill="url(#bandGrad)" fillOpacity={1} dot={false} activeDot={false} />
+                           <Area type="monotone" dataKey="bandHigh" yAxisId="price" stroke="none" fill="url(#bandGrad)" fillOpacity={1} dot={false} activeDot={false} isAnimationActive={false} />
                            {/* 거래량 막대그래프 */}
-                           <Bar dataKey="volume" yAxisId="volume" fill="#e5e8eb" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.6} />
+                           <Bar dataKey="volume" yAxisId="volume" fill="#e5e8eb" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.6} isAnimationActive={false} />
                            {/* 저층 월별 평균선 — 점점선 */}
-                           <Line type="monotone" dataKey="lowAvg" yAxisId="price" stroke="#03c75a" strokeWidth={2.5} strokeDasharray="2 3" dot={false} activeDot={false} connectNulls />
+                           <Line type="monotone" dataKey="lowAvg" yAxisId="price" stroke="#03c75a" strokeWidth={2.5} strokeDasharray="2 3" dot={false} activeDot={false} connectNulls isAnimationActive={false} />
                            {/* 중층 월별 평균선 — 점선 */}
-                           <Line type="monotone" dataKey="midAvg" yAxisId="price" stroke="#3182f6" strokeWidth={2.5} strokeDasharray="6 3" dot={false} activeDot={false} connectNulls />
+                           <Line type="monotone" dataKey="midAvg" yAxisId="price" stroke="#3182f6" strokeWidth={2.5} strokeDasharray="6 3" dot={false} activeDot={false} connectNulls isAnimationActive={false} />
                            {/* 고층 월별 평균선 — 실선 */}
-                           <Line type="monotone" dataKey="highAvg" yAxisId="price" stroke="#EF4444" strokeWidth={2.5} dot={false} activeDot={false} connectNulls />
+                           <Line type="monotone" dataKey="highAvg" yAxisId="price" stroke="#EF4444" strokeWidth={2.5} dot={false} activeDot={false} connectNulls isAnimationActive={false} />
                            {/* 산점도 — 층수별 색상 */}
                            <Customized
                              component={(rechartProps: any) => {
@@ -436,7 +463,8 @@ export function FieldReportModal({
                        {hoveredDot && (() => {
                          const d = hoveredDot.data;
                          const aptKey = normalizeAptName(report.apartmentName);
-                         const typeName = typeMap[aptKey]?.[String(d.rawArea)];
+                         const typeData = typeMap[aptKey]?.[String(d.rawArea)];
+                        const typeName = typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
                          return (
                            <div style={{
                              position: 'absolute', left: hoveredDot.x + 48, top: hoveredDot.y + 10,
@@ -459,11 +487,11 @@ export function FieldReportModal({
                        })()}
                      </div>
                      {/* 범례 */}
-                     <div className="flex items-center gap-4 mt-2 px-1 text-[10px] font-bold text-[#8b95a1]">
-                       <span className="flex items-center gap-1"><span className="w-5 border-t-2 border-dotted border-[#03c75a]"/>저층 (1~{lowCut - 1}F)</span>
-                       <span className="flex items-center gap-1"><span className="w-5 border-t-2 border-dashed border-[#3182f6]"/>중층 ({lowCut}~{midCut - 1}F)</span>
-                       <span className="flex items-center gap-1"><span className="w-5 h-0.5 bg-[#EF4444] rounded"/>고층 ({midCut}F~)</span>
-                       <span className="flex items-center gap-1"><span className="w-3 h-3 bg-[#e5e8eb] rounded-sm"/>거래량</span>
+                     <div className="flex items-center gap-4 mt-2 px-1 text-[13px] font-bold text-[#8b95a1]">
+                       <span className="flex items-center gap-1.5"><span className="w-6 border-t-2 border-dotted border-[#03c75a]"/>저층 (1~{lowCut - 1}F)</span>
+                       <span className="flex items-center gap-1.5"><span className="w-6 border-t-2 border-dashed border-[#3182f6]"/>중층 ({lowCut}~{midCut - 1}F)</span>
+                       <span className="flex items-center gap-1.5"><span className="w-6 h-0.5 bg-[#EF4444] rounded"/>고층 ({midCut}F~)</span>
+                       <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 bg-[#e5e8eb] rounded-sm"/>거래량</span>
                      </div>
                    </div>
                  );
@@ -481,7 +509,8 @@ export function FieldReportModal({
             const byArea = new Map<string, { label: string; price: string; count: number; latestYm: number }>();
             transactions.forEach(tx => {
               const key = String(tx.area);
-              const typeName = typeMap[aptNorm]?.[key];
+              const typeData = typeMap[aptNorm]?.[key];
+              const typeName = typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
               const label = typeName || `${tx.areaPyeong}평`;
               const ym = parseInt(tx.contractYm);
               const existing = byArea.get(key);
@@ -593,7 +622,7 @@ export function FieldReportModal({
 
           {/* Magazine Content Wrapper — stub이면 숨김 */}
           {!isStub && (
-          <div className="px-2 py-2 md:px-3 md:py-3 flex flex-col gap-8 w-full">
+          <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4' : 'px-2 py-2 md:px-3 md:py-3'} flex flex-col gap-8 w-full`}>
 
 
 
@@ -1073,7 +1102,7 @@ export function FieldReportModal({
   // ── Return: inline panel vs modal overlay ──
   if (inline) {
     return (
-      <div ref={modalRef} className="bg-[#f2f4f6] h-full flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden">
+      <div ref={modalRef} className="bg-white h-full flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden">
         {content}
         {/* Fullscreen Image Overlay */}
         {fullscreenImage && (

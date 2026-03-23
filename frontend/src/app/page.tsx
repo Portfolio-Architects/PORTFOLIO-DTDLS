@@ -20,7 +20,7 @@ interface StaticApartment { name: string; dong: string; householdCount?: number;
 import type { AptTxSummary } from '@/lib/transaction-summary';
 import { isSameApartment, normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import * as PurchaseRepo from '@/lib/repositories/purchase.repository';
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, googleProvider, db } from '@/lib/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
@@ -28,6 +28,7 @@ import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/aut
 import * as UserRepo from '@/lib/repositories/user.repository';
 import type { UserProfile } from '@/lib/types/user.types';
 import { getDisplayName } from '@/lib/types/user.types';
+import { FixedSizeList } from 'react-window';
 
 interface TransactionRecord {
   dong: string;
@@ -100,8 +101,9 @@ export default function Dashboard() {
       .catch(() => {}); // 실패 시 정적 폴백 유지
   }, []);
 
-  // Transaction data — static import, no API call needed
-  const [typeMap, setTypeMap] = useState<Record<string, Record<string, string>>>({});
+  // 거래내역, 평/면적 토글 상태
+  const [typeMap, setTypeMap] = useState<Record<string, Record<string, { typeM2: string; typePyeong: string }>>>({});
+  const [areaUnit, setAreaUnit] = useState<'m2' | 'pyeong'>('m2');
 
   // Name mapping + public rental — Firestore 메타 보강
   const [nameMapping, setNameMapping] = useState<Record<string, string> | undefined>(undefined);
@@ -222,11 +224,21 @@ export default function Dashboard() {
 
   // Auto-select first apartment as default for desktop detail panel
   useEffect(() => {
-    if (selectedReport) return; // already selected
+    // Allow re-selection if current is a stub (no real data yet)
+    if (selectedReport && !selectedReport.id.startsWith('stub-')) return;
     const allApts = Object.values(sheetApartments).flat();
     if (allApts.length === 0) return;
-    // Pick the first apartment (same as what would be rank #1)
-    const first = allApts[0];
+    // Don't auto-select until viewCount data is loaded (prevents wrong-apartment flash)
+    const hasViewData = fieldReports.some(r => (r.viewCount || 0) > 0);
+    if (!hasViewData) return;
+    // Apply same sorting as visible list (default: 조회수)
+    const sorted = [...allApts].sort((a, b) => {
+      const aReport = fieldReports.find(r => isSameApartment(r.apartmentName, a.name));
+      const bReport = fieldReports.find(r => isSameApartment(r.apartmentName, b.name));
+      const diff = (bReport?.viewCount || 0) - (aReport?.viewCount || 0);
+      return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
+    });
+    const first = sorted[0];
     const report = fieldReports.find(r => isSameApartment(r.apartmentName, first.name));
     if (report) {
       setSelectedReport(report);
@@ -242,17 +254,17 @@ export default function Dashboard() {
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fieldReports.length]);
+  }, [fieldReports]);
 
   // Fetch type map data only (lightweight)
   useEffect(() => {
     fetch('/api/type-map').then(r => r.json()).then(tmData => {
       if (tmData.entries) {
-        const map: Record<string, Record<string, string>> = {};
+        const map: Record<string, Record<string, { typeM2: string; typePyeong: string }>> = {};
         for (const e of tmData.entries) {
           const key = normalizeAptName(e.aptName);
           if (!map[key]) map[key] = {};
-          map[key][e.area] = e.typeName;
+          map[key][e.area] = { typeM2: e.typeM2, typePyeong: e.typePyeong };
         }
         setTypeMap(map);
       }
@@ -280,9 +292,10 @@ export default function Dashboard() {
     const txKey = findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
     const fileKey = txKey || normalizeAptName(selectedReport.apartmentName);
 
-    fetch(`/tx-data/${encodeURIComponent(fileKey)}.json`)
+    // 캐시를 방지하기 위해 쿼리스트링(v=Date.now()) 추가
+    fetch(`/tx-data/${encodeURIComponent(fileKey)}.json?v=${Date.now()}`)
       .then(res => res.ok ? res.json() : [])
-      .then((records: { contractYm: string; contractDay: string; price: number; area: number; areaPyeong: number; floor: number }[]) => {
+      .then((records: { contractYm: string; contractDay: string; price: number; area: number; areaPyeong: number; floor: number; dealType?: string }[]) => {
         const mapped: TransactionRecord[] = records.map((r, i) => ({
           no: i + 1,
           sigungu: '', dong: '', aptName: fileKey,
@@ -291,7 +304,7 @@ export default function Dashboard() {
           price: r.price, priceEok: formatPriceEok(r.price),
           floor: r.floor, buyer: '', seller: '',
           buildYear: 0, roadName: '', cancelDate: '-',
-          dealType: '', agentLocation: '',
+          dealType: r.dealType || '', agentLocation: '',
           registrationDate: '-', housingType: '',
         }));
         setModalTransactions(mapped);
@@ -396,77 +409,94 @@ export default function Dashboard() {
       {/* Top Navigation Bar */}
       <header className="bg-white/90 backdrop-blur-xl border-b border-[#e5e8eb] sticky top-0 z-40 transition-all duration-300" role="banner">
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 h-14 sm:h-16 flex justify-between items-center">
-          {/* Left: Pill Tabs + Branding */}
-          <div className="flex items-center gap-3">
-            <nav aria-label="메인 네비게이션">
-            <div className="inline-flex bg-[#f2f4f6] rounded-full p-1 gap-0.5" role="tablist">
-              {[
-                { id: 'imjang' as const, label: '임장기', icon: Compass },
-                { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
-                { id: 'recommend' as const, label: '집 추천', icon: Home },
-              ].map(tab => (
+          {/* Left: Pill Tabs */}
+          <div className="flex items-center">
+            <nav aria-label="메인 네비게이션" className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <div className="inline-flex bg-[#f2f4f6] rounded-full p-1 gap-0.5" role="tablist">
+                {[
+                  { id: 'imjang' as const, label: '임장기', icon: Compass },
+                  { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
+                  { id: 'recommend' as const, label: '집 추천', icon: Home },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-200 ${
+                      activeTab === tab.id
+                        ? 'bg-white text-[#191f28] shadow-sm'
+                        : 'text-[#8b95a1] hover:text-[#4e5968]'
+                    }`}
+                  >
+                    <tab.icon size={14} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* 평/면적 토글 버튼 */}
+              <div className="inline-flex bg-[#f2f4f6] rounded-full p-1 gap-0.5">
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-200 ${
-                    activeTab === tab.id
-                      ? 'bg-white text-[#191f28] shadow-sm'
-                      : 'text-[#8b95a1] hover:text-[#4e5968]'
+                  onClick={() => setAreaUnit('m2')}
+                  className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 ${
+                    areaUnit === 'm2' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'
                   }`}
                 >
-                  <tab.icon size={14} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} />
-                  <span className="hidden sm:inline">{tab.label}</span>
+                  m²
                 </button>
-              ))}
-            </div>
+                <button
+                  onClick={() => setAreaUnit('pyeong')}
+                  className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 ${
+                    areaUnit === 'pyeong' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'
+                  }`}
+                >
+                  평
+                </button>
+              </div>
             </nav>
-            <span className="text-[17px] text-[#8b95a1] font-medium hidden sm:inline">by <span className="font-extrabold text-[#191f28]">임장크루</span></span>
           </div>
           {/* User bar is now handled by FloatingUserBar in layout.tsx */}
+
           </div>
       </header>
 
       {/* Main Container */}
-      <main id="main-content" className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 py-5 sm:py-8 md:py-12 animate-in fade-in duration-500">
+      <main id="main-content" className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 py-3 sm:py-5 md:py-8 animate-in fade-in duration-500">
 
         {/* ═══ TAB 1: 임장기 ═══ */}
         {mounted && activeTab === 'imjang' && (
         <section>
           {/* 1. Section Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
-              <h1 className="text-[22px] sm:text-[28px] md:text-[36px] font-extrabold text-[#191f28] tracking-tight">
-                동탄 아파트 탐색
+          <div className="mb-3">
+            {/* 1행: 로고 + 타이틀 + 배지 */}
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 mb-1.5">
+              <img src="/dsq-icon.png" alt="DSQ" className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-sm shrink-0" />
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#191f28] tracking-tight">
+                동탄 아파트 가치 분석
               </h1>
-              <span suppressHydrationWarning className="inline-flex items-center gap-1.5 bg-[#e8f3ff] text-[#3182f6] text-[12px] sm:text-[13px] font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
-                <Building size={13} />
+              <span suppressHydrationWarning className="inline-flex items-center gap-1.5 bg-[#e8f3ff] text-[#3182f6] text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
+                <Building size={14} />
                 {Object.values(sheetApartments).flat().length}개 단지
               </span>
               {fieldReports.length > 0 && (
-                <span className="inline-flex items-center gap-1.5 bg-[#fff8e1] text-[#f59e0b] text-[12px] sm:text-[13px] font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
-                  <FileText size={13} />
+                <span className="inline-flex items-center gap-1.5 bg-[#fff8e1] text-[#f59e0b] text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
+                  <FileText size={14} />
                   {fieldReports.length}개 리포트
                 </span>
               )}
             </div>
-            <p className="text-[13px] sm:text-[15px] text-[#8b95a1] font-medium">
-              11개 법정동 · 아파트별 인프라·실거래가·임장 리포트를 한눈에
+            {/* 2행: 서브타이틀 — 로고 좌측으로 정렬 (margin 제거) */}
+            <p className="text-sm sm:text-base text-[#8b95a1] font-medium">
+              <span className="text-[#3182f6] font-extrabold">D-VIEW</span> : <span className="text-[#3182f6] font-bold">D</span>ongtan <span className="text-[#3182f6] font-bold">V</span>alue <span className="text-[#3182f6] font-bold">I</span>nsight &amp; <span className="text-[#3182f6] font-bold">E</span>valuation <span className="text-[#3182f6] font-bold">W</span>indow · 실거래가 · 가치측정 · 임장리포트
             </p>
           </div>
 
-          <DongFilterBar
-            selectedDong={selectedDong}
-            onSelectDong={setSelectedDong}
-            totalAptCount={Object.values(sheetApartments).flat().length}
-            dongAptCounts={dongAptCounts}
-            dongReportCounts={dongReportCounts}
-          />
+
 
 
           {/* ── 마스터-디테일 레이아웃 ── */}
           <div className="flex flex-col md:flex-row">
             {/* LEFT: 아파트 리스트 (1/3) */}
-            <div className="w-full md:w-[380px] md:shrink-0 md:sticky md:top-16 md:self-start md:max-h-[calc(100vh-8rem)] md:overflow-y-auto md:overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden md:border-r md:border-[#e5e8eb] md:rounded-bl-2xl">
+            <div className="w-full md:w-[380px] md:shrink-0 md:sticky md:top-16 md:self-start md:max-h-[calc(100vh-8rem)] md:overflow-y-auto md:overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden md:border-r md:border-[#e5e8eb] md:rounded-tl-2xl md:rounded-bl-2xl">
           {(() => {
             // 전체: 모든 아파트 플랫 리스트 / 특정 동: 해당 동만
             const allApts = selectedDong 
@@ -491,62 +521,67 @@ export default function Dashboard() {
 
             return (
               <>
-                {/* 정렬 셀렉터 */}
-                <div className="flex items-center gap-1 mb-3 bg-[#f2f4f6] rounded-lg p-1 w-fit">
-                  {[
-                    { id: 'views' as const, label: '조회수' },
-                    { id: 'likes' as const, label: '관심' },
-                    { id: 'name' as const, label: '가나다' },
-                  ].map(s => (
-                    <button
-                      key={s.id}
-                      onClick={() => setListSort(s.id)}
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${
-                        listSort === s.id ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'
-                      }`}
-                    >
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
-
                 {/* 아파트 리스트 */}
                 <div className="bg-white md:rounded-none md:border-0 rounded-2xl border border-[#e5e8eb] overflow-hidden">
-                  {sorted.map((apt, idx) => {
-                    const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
-                    const txSummary = txKey ? txSummaryData[txKey] : undefined;
-                    const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name));
-
-                    return (
-                      <ApartmentCard
-                        key={apt.name}
-                        apt={apt}
-                        txSummary={txSummary}
-                        report={report}
-                        isPublicRental={publicRentalSet.has(apt.name)}
-                        rank={idx + 1}
-                        isSelected={!!(selectedReport && isSameApartment(selectedReport.apartmentName, apt.name))}
-                        isFavorited={userFavorites.has(apt.name)}
-                        favoriteCount={favoriteCounts[apt.name] || 0}
-                        onToggleFavorite={() => handleToggleFavorite(apt.name)}
-                        onClick={() => {
-                          if (report) {
-                            setSelectedReport(report);
-                          } else {
-                            setSelectedReport({
-                              id: `stub-${normalizeAptName(apt.name)}`,
-                              apartmentName: apt.name,
-                              dong: apt.dong,
-                              author: '',
-                              likes: 0,
-                              commentCount: 0,
-                              createdAt: null,
-                            });
-                          }
-                        }}
-                      />
-                    );
-                  })}
+                  {/* 통합 필터 바 — 리스트 상단에 고정 */}
+                  <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-[#f2f4f6] px-3 py-2.5">
+                    <DongFilterBar
+                      selectedDong={selectedDong}
+                      onSelectDong={setSelectedDong}
+                      totalAptCount={Object.values(sheetApartments).flat().length}
+                      dongAptCounts={dongAptCounts}
+                      dongReportCounts={dongReportCounts}
+                      listSort={listSort}
+                      onSortChange={setListSort}
+                    />
+                  </div>
+                  <FixedSizeList
+                    height={Math.min(sorted.length * 72, 600)}
+                    itemCount={sorted.length}
+                    itemSize={72}
+                    width="100%"
+                    overscanCount={5}
+                  >
+                    {({ index, style }: { index: number; style: React.CSSProperties }) => {
+                      const apt = sorted[index];
+                      const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
+                      const txSummary = txKey ? txSummaryData[txKey] : undefined;
+                      const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name));
+                      return (
+                        <div style={style}>
+                          <ApartmentCard
+                            key={apt.name}
+                            apt={apt}
+                            txSummary={txSummary}
+                            report={report}
+                            isPublicRental={publicRentalSet.has(apt.name)}
+                            rank={index + 1}
+                            isSelected={!!(selectedReport && isSameApartment(selectedReport.apartmentName, apt.name))}
+                            isFavorited={userFavorites.has(apt.name)}
+                            favoriteCount={favoriteCounts[apt.name] || 0}
+                            onToggleFavorite={() => handleToggleFavorite(apt.name)}
+                            onClick={() => {
+                              if (report) {
+                                setSelectedReport(report);
+                              } else {
+                                setSelectedReport({
+                                  id: `stub-${normalizeAptName(apt.name)}`,
+                                  apartmentName: apt.name,
+                                  dong: apt.dong,
+                                  author: '',
+                                  likes: 0,
+                                  commentCount: 0,
+                                  createdAt: null,
+                                });
+                              }
+                            }}
+                            typeMap={typeMap}
+                            areaUnit={areaUnit}
+                          />
+                        </div>
+                      );
+                    }}
+                  </FixedSizeList>
                 </div>
               </>
             );
@@ -566,6 +601,7 @@ export default function Dashboard() {
                   user={user}
                   transactions={modalTransactions}
                   typeMap={typeMap}
+                  areaUnit={areaUnit}
                   isLoadingDetail={isLoadingDetail}
                   isPurchased={purchasedReportIds.includes(selectedReport.id)}
                   isAdmin={dashboardFacade.isAdmin(user?.email)}
@@ -589,6 +625,31 @@ export default function Dashboard() {
 
 
         </section>
+        )}
+
+        {/* 모바일 풀스크린 모달 (md 미만에서만 표시) */}
+        {selectedReport && (
+          <div className="fixed inset-0 z-50 bg-white overflow-y-auto md:hidden animate-in slide-in-from-bottom duration-300">
+            <FieldReportModal
+              report={fullReportData || selectedReport}
+              onClose={() => setSelectedReport(null)}
+              comments={commentsData[selectedReport.id] || []}
+              commentInput={commentInput[selectedReport.id] || ''}
+              onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}
+              onSubmitComment={() => handleSubmitComment(selectedReport.id)}
+              user={user}
+              transactions={modalTransactions}
+              typeMap={typeMap}
+              isLoadingDetail={isLoadingDetail}
+              isPurchased={purchasedReportIds.includes(selectedReport.id)}
+              isAdmin={dashboardFacade.isAdmin(user?.email)}
+              onPurchaseComplete={() => {
+                if (user) {
+                  PurchaseRepo.getUserPurchasedReportIds(user.uid).then(setPurchasedReportIds);
+                }
+              }}
+            />
+          </div>
         )}
 
         {/* ═══ TAB 2: 라운지 ═══ */}

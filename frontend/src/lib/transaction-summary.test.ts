@@ -21,8 +21,8 @@ describe('Transaction Summary Verification', () => {
     expect(typeof summary.latestPriceEok).toBe('string');
     
     expect(summary).toHaveProperty('latestArea');
-    expect(summary).toHaveProperty('recordPrice');
-    expect(summary).toHaveProperty('topAreaPyeong');
+    expect(summary).toHaveProperty('maxPrice');
+    expect(summary).toHaveProperty('txCount');
   });
 
   it('should gracefully handle unexpected keys (no undefined crashes)', () => {

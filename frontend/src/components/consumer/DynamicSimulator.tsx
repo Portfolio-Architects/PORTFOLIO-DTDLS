@@ -147,8 +147,8 @@ export default function DynamicSimulator({ scores, price84Man }: Props) {
                 <PolarGrid stroke="#e5e8eb" />
                 <PolarAngleAxis dataKey="subject" tick={{ fill: '#4e5968', fontSize: 11, fontWeight: 700 }} />
                 <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
-                <Radar name="원본" dataKey="original" stroke="#d1d6db" fill="#d1d6db" fillOpacity={0.2} strokeWidth={1.5} strokeDasharray="4 4" />
-                <Radar name="시뮬레이션" dataKey="simulated" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.3} strokeWidth={2} />
+                <Radar name="원본" dataKey="original" stroke="#d1d6db" fill="#d1d6db" fillOpacity={0.2} strokeWidth={1.5} strokeDasharray="4 4" isAnimationActive={false} />
+                <Radar name="시뮬레이션" dataKey="simulated" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.3} strokeWidth={2} isAnimationActive={false} />
               </RadarChart>
             </ResponsiveContainer>
           </div>

@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { DONGS, getDongByName } from '@/lib/dongs';
 
 interface DongFilterBarProps {
@@ -8,6 +10,8 @@ interface DongFilterBarProps {
   totalAptCount: number;
   dongAptCounts: Record<string, number>;
   dongReportCounts: Record<string, number>;
+  listSort: 'views' | 'likes' | 'name';
+  onSortChange: (sort: 'views' | 'likes' | 'name') => void;
 }
 
 export default function DongFilterBar({
@@ -16,71 +20,97 @@ export default function DongFilterBar({
   totalAptCount,
   dongAptCounts,
   dongReportCounts,
+  listSort,
+  onSortChange,
 }: DongFilterBarProps) {
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // 외부 클릭 시 닫기
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
+  const dongInfo = selectedDong ? getDongByName(selectedDong) : null;
+  const currentCount = selectedDong ? (dongAptCounts[selectedDong] || 0) : totalAptCount;
+  const currentLabel = selectedDong || '전체';
+
   return (
-    <>
-      {/* ── Dong Filter Chips ── */}
-      <div className="mb-6">
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <button
-            suppressHydrationWarning
-            onClick={() => onSelectDong(null)}
-            className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 whitespace-nowrap shrink-0 ${
-              !selectedDong
-                ? 'bg-[#191f28] text-white shadow-md'
-                : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb]'
-            }`}
-          >
-            전체 ({totalAptCount})
-          </button>
-          {DONGS.map(dong => {
-            const aptCount = dongAptCounts[dong.name] || 0;
-            const reportCount = dongReportCounts[dong.name] || 0;
-            const isActive = selectedDong === dong.name;
-            if (aptCount === 0) return null;
-            return (
-              <button
-                suppressHydrationWarning
-                key={dong.id}
-                onClick={() => onSelectDong(isActive ? null : dong.name)}
-                className={`px-4 py-2 rounded-full text-[13px] font-bold transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
-                  isActive
-                    ? 'text-white shadow-md'
-                    : 'bg-[#f2f4f6] text-[#4e5968] hover:bg-[#e5e8eb]'
-                }`}
-                style={isActive ? { backgroundColor: dong.color } : {}}
-              >
-                {dong.name} ({aptCount})
-                {reportCount > 0 && <span className="text-[10px] opacity-70">📝{reportCount}</span>}
-              </button>
-            );
-          })}
-        </div>
+    <div className="flex items-center justify-between gap-3">
+      {/* 좌: 동 드롭다운 */}
+      <div className="relative" ref={dropdownRef}>
+        <button
+          onClick={() => setOpen(!open)}
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13px] font-bold transition-all border border-[#e5e8eb] bg-white hover:border-[#d1d6db] shadow-sm"
+          style={dongInfo ? { borderColor: dongInfo.color, color: dongInfo.color } : { color: '#191f28' }}
+        >
+          {dongInfo && <span className="w-2 h-2 rounded-full" style={{ backgroundColor: dongInfo.color }} />}
+          {currentLabel}
+          <span className="text-[#8b95a1] font-medium">({currentCount})</span>
+          <ChevronDown size={14} className={`text-[#8b95a1] transition-transform ${open ? 'rotate-180' : ''}`} />
+        </button>
+
+        {/* 드롭다운 메뉴 */}
+        {open && (
+          <div className="absolute top-full left-0 mt-1.5 bg-white border border-[#e5e8eb] rounded-xl shadow-lg z-50 min-w-[200px] py-1.5 max-h-[320px] overflow-y-auto custom-scrollbar">
+            <button
+              onClick={() => { onSelectDong(null); setOpen(false); }}
+              className={`w-full text-left px-4 py-2.5 text-[13px] font-bold transition-colors flex items-center justify-between ${
+                !selectedDong ? 'bg-[#f2f4f6] text-[#191f28]' : 'text-[#4e5968] hover:bg-[#f8f9fa]'
+              }`}
+            >
+              <span>전체</span>
+              <span className="text-[11px] text-[#8b95a1] font-medium">{totalAptCount}</span>
+            </button>
+            {DONGS.map(dong => {
+              const aptCount = dongAptCounts[dong.name] || 0;
+              if (aptCount === 0) return null;
+              const isActive = selectedDong === dong.name;
+              return (
+                <button
+                  key={dong.id}
+                  onClick={() => { onSelectDong(isActive ? null : dong.name); setOpen(false); }}
+                  className={`w-full text-left px-4 py-2.5 text-[13px] font-bold transition-colors flex items-center justify-between ${
+                    isActive ? 'text-white' : 'text-[#4e5968] hover:bg-[#f8f9fa]'
+                  }`}
+                  style={isActive ? { backgroundColor: dong.color } : {}}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: dong.color }} />
+                    {dong.name}
+                  </span>
+                  <span className={`text-[11px] font-medium ${isActive ? 'text-white/70' : 'text-[#8b95a1]'}`}>{aptCount}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* ── 동 소개 배너 (선택 시) ── */}
-      {selectedDong && (() => {
-        const dongInfo = getDongByName(selectedDong);
-        if (!dongInfo) return null;
-        return (
-          <div className="mb-6 bg-white rounded-2xl border border-[#e5e8eb] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-            <div className="flex-1 min-w-0">
-              <h3 className="text-[16px] sm:text-[18px] font-extrabold text-[#191f28]">{dongInfo.name}</h3>
-              <p className="text-[12px] sm:text-[13px] text-[#8b95a1] mt-0.5 line-clamp-2">{dongInfo.description}</p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="text-center">
-                <div className="text-[16px] sm:text-[18px] font-extrabold text-[#191f28]">{dongAptCounts[selectedDong] || 0}</div>
-                <div className="text-[10px] text-[#8b95a1] font-bold">아파트</div>
-              </div>
-              <div className="text-center">
-                <div className="text-[16px] sm:text-[18px] font-extrabold text-[#3182f6]">{dongReportCounts[selectedDong] || 0}</div>
-                <div className="text-[10px] text-[#8b95a1] font-bold">리포트</div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-    </>
+      {/* 우: 정렬 탭 */}
+      <div className="flex items-center gap-1 bg-[#f2f4f6] rounded-lg p-1">
+        {[
+          { id: 'views' as const, label: '조회수' },
+          { id: 'likes' as const, label: '관심' },
+          { id: 'name' as const, label: '가나다' },
+        ].map(s => (
+          <button
+            key={s.id}
+            onClick={() => onSortChange(s.id)}
+            className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${
+              listSort === s.id ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'
+            }`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }

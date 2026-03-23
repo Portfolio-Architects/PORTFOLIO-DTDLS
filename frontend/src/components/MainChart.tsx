@@ -84,6 +84,7 @@ export default function MainChart() {
             fillOpacity={1} 
             fill="url(#colorPrice)" 
             activeDot={{ r: 6, strokeWidth: 0, fill: '#3182f6' }}
+            isAnimationActive={false}
           />
         </AreaChart>
       </ResponsiveContainer>

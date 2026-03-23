@@ -45,17 +45,17 @@ export default function FloatingUserBar() {
 
   return (
     <>
-      {/* Floating User Bar */}
-      <div className="fixed top-[13px] sm:top-4 right-2 sm:right-4 z-50 animate-in slide-in-from-top-2 duration-300">
+      {/* User Bar — 모바일: 헤더 내부 배치 / 데스크톱: fixed floating */}
+      <div className="fixed top-[13px] right-2 sm:right-4 z-50 animate-in slide-in-from-top-2 duration-300">
         {user ? (
-          <div className="flex items-center gap-1.5 sm:gap-2 bg-white/90 backdrop-blur-xl rounded-full pl-2.5 sm:pl-3 pr-3 sm:pr-4 py-1 sm:py-1.5 shadow-lg border border-[#e5e8eb]/50">
+          <div className="flex items-center gap-1 sm:gap-2 bg-white/90 backdrop-blur-xl rounded-full pl-2 sm:pl-3 pr-2 sm:pr-4 py-1 sm:py-1.5 shadow-lg border border-[#e5e8eb]/50">
             <button onClick={() => {
               setEditFrontName(anonProfile?.frontName || '동탄사는');
               setEditNickname(anonProfile?.nickname || '');
               setProfilePhotoPreview(anonProfile?.photoURL || null);
               setProfilePhotoFile(null);
               setShowProfileModal(true);
-            }} className="flex items-center gap-1.5 hover:opacity-70 transition-opacity">
+            }} className="flex items-center gap-1 hover:opacity-70 transition-opacity">
               <div className="w-5 h-5 rounded-full bg-[#e8f3ff] flex items-center justify-center text-[#3182f6] overflow-hidden">
                 {anonProfile?.photoURL ? (
                   <img src={anonProfile.photoURL} alt="" className="w-full h-full object-cover" />
@@ -63,22 +63,21 @@ export default function FloatingUserBar() {
                   <UserCircle size={14} />
                 )}
               </div>
-              <span className="text-[12px] font-bold text-[#191f28] hidden sm:inline">{anonProfile?.nickname || user.displayName || user.email?.split('@')[0] || '사용자'}</span>
-              <Edit3 size={10} className="text-[#8b95a1] hidden sm:inline" />
+              <span className="text-[11px] sm:text-[12px] font-bold text-[#191f28] hidden sm:inline">{anonProfile?.nickname || user.displayName || user.email?.split('@')[0] || '사용자'}</span>
             </button>
             {dashboardFacade.isAdmin(user.email) && (
               <button 
                 onClick={() => router.push('/admin')}
-                className="ml-1 bg-[#191f28] text-white px-3 py-1 rounded-lg text-[12px] font-bold transition-colors">
+                className="bg-[#191f28] text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-[12px] font-bold transition-colors">
                 관리자
               </button>
             )}
-            <button onClick={handleLogout} className="ml-0.5 sm:ml-1 bg-[#ffebec] text-[#f04452] hover:bg-[#f04452] hover:text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-[12px] font-bold transition-colors">
+            <button onClick={handleLogout} className="bg-[#ffebec] text-[#f04452] hover:bg-[#f04452] hover:text-white px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[12px] font-bold transition-colors">
               로그아웃
             </button>
           </div>
         ) : (
-          <button onClick={handleLogin} className="flex items-center gap-1.5 bg-white/90 backdrop-blur-xl hover:bg-white text-[#191f28] text-[12px] sm:text-[13px] font-bold py-1.5 sm:py-2 px-3 sm:px-5 rounded-full shadow-lg border border-[#e5e8eb]/50 transition-colors">
+          <button onClick={handleLogin} className="flex items-center gap-1.5 bg-white/90 backdrop-blur-xl hover:bg-white text-[#191f28] text-[11px] sm:text-[13px] font-bold py-1 sm:py-2 px-3 sm:px-5 rounded-full shadow-lg border border-[#e5e8eb]/50 transition-colors">
             로그인
           </button>
         )}
