@@ -87,8 +87,18 @@ export default function Dashboard() {
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
   const [favoriteCounts, setFavoriteCounts] = useState<Record<string, number>>({});
 
-  // Apartment data — 정적 import로 즉시 로드
-  const sheetApartments = buildInitialApartments();
+  // Apartment data — 구글 시트 자동 동기화 (정적 데이터는 폴백)
+  const [sheetApartments, setSheetApartments] = useState(buildInitialApartments);
+  useEffect(() => {
+    fetch('/api/apartments-by-dong')
+      .then(r => r.json())
+      .then(data => {
+        if (data.byDong && Object.keys(data.byDong).length > 0) {
+          setSheetApartments(data.byDong);
+        }
+      })
+      .catch(() => {}); // 실패 시 정적 폴백 유지
+  }, []);
 
   // Transaction data — static import, no API call needed
   const [typeMap, setTypeMap] = useState<Record<string, Record<string, string>>>({});
@@ -468,10 +478,12 @@ export default function Dashboard() {
               if (listSort === 'views') {
                 const aReport = fieldReports.find(r => isSameApartment(r.apartmentName, a.name));
                 const bReport = fieldReports.find(r => isSameApartment(r.apartmentName, b.name));
-                return (bReport?.viewCount || 0) - (aReport?.viewCount || 0);
+                const diff = (bReport?.viewCount || 0) - (aReport?.viewCount || 0);
+                return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
               }
               if (listSort === 'likes') {
-                return (favoriteCounts[b.name] || 0) - (favoriteCounts[a.name] || 0);
+                const diff = (favoriteCounts[b.name] || 0) - (favoriteCounts[a.name] || 0);
+                return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
               }
               // 'name' — 가나다순
               return a.name.localeCompare(b.name, 'ko');

@@ -115,6 +115,10 @@ interface AptMeta {
   yearBuilt?: string;
   brand?: string;
   ticker?: string;
+  far?: number;
+  bcr?: number;
+  parkingCount?: number;
+  coordinates?: string;
 }
 
 export default function ApartmentInfoPage() {
@@ -158,6 +162,10 @@ export default function ApartmentInfoPage() {
                 yearBuilt: foundApt.yearBuilt,
                 brand: foundApt.brand,
                 ticker: foundApt.ticker,
+                far: foundApt.far,
+                bcr: foundApt.bcr,
+                parkingCount: foundApt.parkingCount,
+                coordinates: (foundApt.lat && foundApt.lng) ? `${foundApt.lat}, ${foundApt.lng}` : undefined,
               };
               break;
             }
@@ -227,6 +235,13 @@ export default function ApartmentInfoPage() {
         if (meta.txKey !== initialMeta.txKey) updates['txKey'] = meta.txKey || '';
         if (meta.maxFloor !== initialMeta.maxFloor) updates['최고층'] = meta.maxFloor || '';
         if (meta.isPublicRental !== initialMeta.isPublicRental) updates['공공임대'] = meta.isPublicRental ? 'Y' : 'N';
+        if (meta.householdCount !== initialMeta.householdCount) updates['세대수'] = meta.householdCount || '';
+        if (meta.brand !== initialMeta.brand) updates['시공사'] = meta.brand || '';
+        if (meta.far !== initialMeta.far) updates['용적률'] = meta.far || '';
+        if (meta.bcr !== initialMeta.bcr) updates['건폐율'] = meta.bcr || '';
+        if (meta.parkingCount !== initialMeta.parkingCount) updates['주차대수'] = meta.parkingCount || '';
+        if (meta.yearBuilt !== initialMeta.yearBuilt) updates['사용승인'] = meta.yearBuilt || '';
+        if (meta.coordinates !== initialMeta.coordinates) updates['좌표'] = meta.coordinates || '';
         
         if (Object.keys(updates).length > 0) {
           syncPayload.updates.push({
@@ -378,6 +393,67 @@ export default function ApartmentInfoPage() {
                 }`}>
                 <Home size={16}/> 공공임대 단지 설정
               </button>
+            </div>
+          </div>
+
+          {/* 확장 메타데이터 */}
+          <div className="mt-6 pt-5 border-t border-[#f2f4f6]">
+            <h3 className="text-[14px] font-bold text-[#8b95a1] mb-4">📋 단지 상세 정보 (Google Sheets 연동)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div>
+                <label className="text-[13px] font-bold text-[#4e5968] mb-1.5 block">세대수</label>
+                <div className="relative">
+                  <input type="number" min={0} value={meta.householdCount || ''} onChange={e => setMeta({ ...meta, householdCount: parseInt(e.target.value) || undefined })}
+                    placeholder="예: 1200"
+                    className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none focus:border-[#3182f6] focus:bg-white" />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b95a1] text-[13px]">세대</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-[13px] font-bold text-[#4e5968] mb-1.5 block">시공사 (브랜드)</label>
+                <input type="text" value={meta.brand || ''} onChange={e => setMeta({ ...meta, brand: e.target.value || undefined })}
+                  placeholder="예: 현대건설"
+                  className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none focus:border-[#3182f6] focus:bg-white" />
+              </div>
+              <div>
+                <label className="text-[13px] font-bold text-[#4e5968] mb-1.5 block">사용승인 (준공)</label>
+                <input type="text" value={meta.yearBuilt || ''} onChange={e => setMeta({ ...meta, yearBuilt: e.target.value || undefined })}
+                  placeholder="예: 2024.06"
+                  className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none focus:border-[#3182f6] focus:bg-white" />
+              </div>
+              <div>
+                <label className="text-[13px] font-bold text-[#4e5968] mb-1.5 block">용적률</label>
+                <div className="relative">
+                  <input type="number" step="0.1" min={0} value={meta.far || ''} onChange={e => setMeta({ ...meta, far: parseFloat(e.target.value) || undefined })}
+                    placeholder="예: 249.8"
+                    className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none focus:border-[#3182f6] focus:bg-white" />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b95a1] text-[13px]">%</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-[13px] font-bold text-[#4e5968] mb-1.5 block">건폐율</label>
+                <div className="relative">
+                  <input type="number" step="0.1" min={0} value={meta.bcr || ''} onChange={e => setMeta({ ...meta, bcr: parseFloat(e.target.value) || undefined })}
+                    placeholder="예: 18.5"
+                    className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none focus:border-[#3182f6] focus:bg-white" />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b95a1] text-[13px]">%</span>
+                </div>
+              </div>
+              <div>
+                <label className="text-[13px] font-bold text-[#4e5968] mb-1.5 block">주차대수</label>
+                <div className="relative">
+                  <input type="number" min={0} value={meta.parkingCount || ''} onChange={e => setMeta({ ...meta, parkingCount: parseInt(e.target.value) || undefined })}
+                    placeholder="예: 1580"
+                    className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none focus:border-[#3182f6] focus:bg-white" />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b95a1] text-[13px]">대</span>
+                </div>
+              </div>
+              <div className="md:col-span-2 lg:col-span-3">
+                <label className="text-[13px] font-bold text-[#4e5968] mb-1.5 flex items-center gap-1"><MapPin size={14}/> 좌표 (위도, 경도)</label>
+                <input type="text" value={meta.coordinates || ''} onChange={e => setMeta({ ...meta, coordinates: e.target.value || undefined })}
+                  placeholder="예: 37.2005, 127.0985"
+                  className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none focus:border-[#3182f6] focus:bg-white font-mono" />
+              </div>
             </div>
           </div>
 

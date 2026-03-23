@@ -90,13 +90,23 @@ export async function POST(req: Request) {
       }
     }
 
-    // 3. Adds
+    // 3. Adds — 전체 메타데이터 필드 지원
     if (adds.length > 0) {
       for (const addObj of adds) {
         const newRow: Record<string, string> = {};
         newRow[nameCol] = addObj.name;
         newRow[dongCol] = addObj.dong;
         if (addObj.txKey) newRow[col(['txkey', '실거래키'])] = addObj.txKey;
+        if (addObj.coordinates) newRow[col(['좌표', 'coordinates', 'coord'])] = addObj.coordinates;
+        if (addObj.householdCount) newRow[col(['세대수', 'householdcount'])] = String(addObj.householdCount);
+        if (addObj.brand) newRow[col(['시공사', 'brand', '브랜드'])] = addObj.brand;
+        if (addObj.yearBuilt) newRow[col(['시공&준공인', '사용승인', '준공연도', 'yearbuilt'])] = addObj.yearBuilt;
+        if (addObj.far) newRow[col(['용적률', 'far'])] = String(addObj.far);
+        if (addObj.bcr) newRow[col(['건폐율', 'bcr'])] = String(addObj.bcr);
+        if (addObj.parkingCount) newRow[col(['주차대수', 'parkingcount'])] = String(addObj.parkingCount);
+        if (addObj.maxFloor) newRow[col(['최고층', 'maxfloor'])] = String(addObj.maxFloor);
+        if (addObj.isPublicRental != null) newRow[col(['공공임대', 'ispublicrental'])] = addObj.isPublicRental ? 'Y' : 'N';
+        if (addObj.ticker) newRow[col(['ticker', '티커'])] = addObj.ticker;
         await sheet.addRow(newRow);
         addedCount++;
       }
