@@ -2,9 +2,9 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'DSQ | 동탄구 아파트 가치 측정 플랫폼',
-    short_name: 'DSQ',
-    description: 'Dongtan Spatial Quant — 동탄구 179개 아파트의 실거래가·인프라·임장 리포트를 한눈에.',
+    name: 'D-VIEW | 동탄 아파트 가치분석',
+    short_name: 'D-VIEW',
+    description: 'D-VIEW — 동탄 179개 아파트의 실거래가·인프라·현장 검증 사진을 한눈에.',
     start_url: '/',
     display: 'standalone',
     background_color: '#f2f4f6',

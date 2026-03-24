@@ -1,6 +1,12 @@
 # 📋 PORTFOLIO D-VIEW — Engineering Report
 > **Date**: 2026-03-24 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
 
+> [!CAUTION]
+> **🔧 TODO (다른 로컬 PC에서 작업)**: Google Sheets API 활성화 필요
+> - 링크: https://console.developers.google.com/apis/api/sheets.googleapis.com/overview?project=294879479843
+> - "Enable" 클릭 후 `apartments-sync` (통합 저장) 동작 확인
+> - 완료 후 이 블록 삭제
+
 ---
 
 ## 1. Executive Summary (프로젝트 요약)
@@ -143,9 +149,11 @@ src/
 - [ ] 전월세 가치평가 시스템 (적정 전세가율·월세 수익률 산출)
 
 ### Phase 2 (중장기)
+- [ ] Server Components 부분 도입 (page.tsx SSR 전환 → TTFB 감소, 초기 JS 축소)
+- [ ] Streaming + Suspense 경계 추가 (점진적 렌더링 → 체감 속도 개선)
+- [ ] Edge Runtime 전환 (일부 API → Cold Start 제거)
 - [ ] E2E 테스트 (Playwright — 모달·정렬·필터 자동 검증)
 - [ ] Vercel Pro Plan 전환 + TossPayments 유료 모델 복원
-- [ ] Edge Function 전환 (서버리스 실행 시간 제한 완화)
 - [ ] 이메일/비밀번호 + 카카오/Apple 소셜 로그인 확장
 - [ ] 개인화 필터링 & Push 알림 (관심 단지 가격 변동 알림)
 - [ ] AI 기반 아파트 추천 엔진 (사용자 선호 학습 → 맞춤 단지 제안)
@@ -166,6 +174,11 @@ src/
 
 | 일시 | 항목 | 내용 |
 |:---|:---|:---|
+| 2026-03-24 17:48 | **가치분석 가격 테이블 및 평형별 UI 고도화** | 1M~ALL 기간별 평균가/변동률 가로 테이블 개편(전체기간 평균 기준), 평형별 최근 거래가 카드 층수/평당가 추가 및 디자인 통일, D-VIEW 타이틀 부제 변경 |
+| 2026-03-24 16:45 | **단지 상세 통합 폼 리팩터링** | Meta + ReportEditorForm을 3섹션(기본정보·입지분석·현장사진) 통합 폼으로 병합, 6개 중복 필드 제거, 통합 저장(Sheets+Firestore) |
+| 2026-03-24 16:38 | **비용 모니터링 패널** | 트래픽 탭에 Google Maps·Firebase·Vercel 비용 콘솔 바로가기 + 무료 한도 표시 추가 |
+| 2026-03-24 16:25 | **사진 전체 삭제 기능** | 현장 사진 섹션에 "전체 삭제" 버튼 추가 (confirm + 중복감지 초기화) |
+| 2026-03-24 16:16 | **EXIF 촬영일 자동 감지** | `exif.ts` 유틸 신규, 사진 업로드 시 EXIF DateTimeOriginal 추출 → `ImageMeta.capturedAt` 저장, 사진 카드에 날짜 뱃지 표시 |
 | 2026-03-24 13:17 | **AdvancedValuationMetrics 컴포넌트 신규** | 퀀트 애널리틱스·폭포수 차트를 통합한 `AdvancedValuationMetrics.tsx`(179줄) 신규 생성, 탭 병합으로 밸류에이션 UX 경량화 |
 | 2026-03-24 13:17 | **ApartmentModal next/image 전환 및 리팩토링** | 갤러리 이미지 `next/image` 전면 도입, 카테고리별 가로 스와이프(Snap) UX 개편, 모달 전체 385줄 변경 |
 | 2026-03-24 13:17 | **CSP Report-Only 헤더 적용** | `next.config.ts`에 Content-Security-Policy-Report-Only 헤더 추가, XSS·인젝션 사전 탐지 |

@@ -5,8 +5,8 @@ import FloatingUserBar from '@/components/FloatingUserBar';
 import OfflineBanner from '@/components/OfflineBanner';
 
 export const metadata: Metadata = {
-  title: 'DSQ | 동탄구 아파트 가치 측정 플랫폼',
-  description: 'Dongtan Spatial Quant — 동탄구 179개 아파트의 실거래가·인프라·임장 리포트를 한눈에.',
+  title: 'D-VIEW | 동탄 아파트 가치분석',
+  description: 'D-VIEW — 동탄 179개 아파트의 실거래가·인프라·현장 검증 사진을 한눈에.',
   icons: {
     icon: '/icon.png',
     shortcut: '/favicon.ico',

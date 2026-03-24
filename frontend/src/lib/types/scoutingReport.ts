@@ -3,6 +3,7 @@ export interface ImageMeta {
   caption: string;
   locationTag?: string;
   isPremium?: boolean; // Can blur this image for non-premium
+  capturedAt?: string; // EXIF DateTimeOriginal (YYYY-MM-DD)
 }
 
 export interface ObjectiveMetrics {

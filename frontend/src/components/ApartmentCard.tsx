@@ -64,26 +64,20 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
 
       {/* 아파트 정보 */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <h4 className="text-base font-bold text-[#191f28] truncate group-hover:text-[#3182f6] transition-colors leading-tight">
-            {apt.name}
-          </h4>
+        <h4 className="text-base font-bold text-[#191f28] truncate group-hover:text-[#3182f6] transition-colors leading-tight">
+          {apt.name}
+        </h4>
+        <div className="flex items-center gap-1.5 mt-1">
+          <span className="text-xs text-[#8b95a1]">{apt.dong}</span>
           {report && (
-            <span className="inline-flex items-center gap-0.5 bg-[#fff8e1] text-[#f59e0b] text-[10px] font-bold px-1.5 py-[2px] rounded-full shrink-0" title="현장 검증 완료">
-              <FileText size={10} strokeWidth={2.5} />
+            <span className="inline-flex items-center gap-0.5 bg-[#fff8e1] text-[#f59e0b] text-[10px] font-bold px-1.5 py-[1px] rounded-full shrink-0" title="현장 검증 완료">
+              <FileText size={9} strokeWidth={2.5} />
               리포트
             </span>
           )}
           {!report && isPublicRental && (
             <span className="text-[11px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-1.5 py-[1px] rounded shrink-0 leading-tight">공공</span>
           )}
-        </div>
-        <div className="flex items-center gap-1.5 mt-1">
-          <span className="text-xs text-[#8b95a1]">{apt.dong}</span>
-          {apt.householdCount && <span className="text-xs text-[#d1d6db]">·</span>}
-          {apt.householdCount && <span className="text-xs text-[#8b95a1]">{apt.householdCount.toLocaleString()}세대</span>}
-          {apt.yearBuilt && <span className="text-xs text-[#d1d6db]">·</span>}
-          {apt.yearBuilt && <span className="text-xs text-[#8b95a1]">승인 {apt.yearBuilt.slice(0, 4)}</span>}
         </div>
       </div>
 

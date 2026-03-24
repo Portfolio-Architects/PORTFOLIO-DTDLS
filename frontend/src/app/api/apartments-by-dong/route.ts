@@ -3,7 +3,7 @@ import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { JWT } from 'google-auth-library';
 import { SHEET_ID, SHEET_TABS } from '@/lib/constants';
 
-export const revalidate = 0; // Disable static caching since data changes often
+export const revalidate = 0; // force-dynamic: Google Sheets 인증 실패 시 캐시된 에러 방지
 
 function parseCoordString(s: string): { lat: number; lng: number } | null {
   if (!s) return null;

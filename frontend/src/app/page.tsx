@@ -8,22 +8,24 @@ import {
 import Image from 'next/image';
 
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
-import WriteReviewModal from '@/components/WriteReviewModal';
 import ApartmentCard from '@/components/ApartmentCard';
 import DongFilterBar from '@/components/DongFilterBar';
-import { FieldReportModal } from '@/components/ApartmentModal';
+import dynamic from 'next/dynamic';
+
+// Heavy components — loaded on demand (saves ~200KB initial JS)
+const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').then(m => ({ default: m.FieldReportModal })), { ssr: false });
+const WriteReviewModal = dynamic(() => import('@/components/WriteReviewModal'), { ssr: false });
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
 import { ZONES } from '@/lib/zones';
 import { buildInitialApartments } from '@/lib/dong-apartments';
 
 interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }
-import type { AptTxSummary } from '@/lib/transaction-summary';
+import { TX_SUMMARY, type AptTxSummary } from '@/lib/transaction-summary';
 import { isSameApartment, normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import * as PurchaseRepo from '@/lib/repositories/purchase.repository';
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth, googleProvider, db } from '@/lib/firebaseConfig';
-import { doc, getDoc } from 'firebase/firestore';
+import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import type { UserProfile } from '@/lib/types/user.types';
@@ -56,11 +58,8 @@ export default function Dashboard() {
   const [commentsData, setCommentsData] = useState<Record<string, CommentData[]>>({});
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
 
-  // Lazy-loaded transaction summary (removes 129KB from client bundle)
-  const [txSummaryData, setTxSummaryData] = useState<Record<string, AptTxSummary>>({});
-  useEffect(() => {
-    fetch('/api/transaction-summary').then(r => r.json()).then(setTxSummaryData).catch(() => {});
-  }, []);
+  // Transaction summary — direct static import (no API fetch needed)
+  const txSummaryData: Record<string, AptTxSummary> = TX_SUMMARY;
 
   // Tab state
   const [activeTab, setActiveTab] = useState<'imjang' | 'lounge' | 'recommend'>('imjang');
@@ -111,24 +110,41 @@ export default function Dashboard() {
   const [typeMap, setTypeMap] = useState<Record<string, Record<string, { typeM2: string; typePyeong: string }>>>({});
   const [areaUnit, setAreaUnit] = useState<'m2' | 'pyeong'>('m2');
 
-  // Name mapping + public rental — Firestore 메타 보강
+  // Name mapping + public rental
   const [nameMapping, setNameMapping] = useState<Record<string, string> | undefined>(undefined);
   const [publicRentalSet, setPublicRentalSet] = useState<Set<string>>(new Set());
+
+  // Consolidated dashboard init — replaces 3 separate API calls + 1 Firestore read
   useEffect(() => {
-    const firestoreTimeout = setTimeout(() => {
+    const initTimeout = setTimeout(() => {
       setNameMapping(prev => prev === undefined ? {} : prev);
     }, 5000);
 
-    getDoc(doc(db, 'settings/apartmentMeta')).then(snap => {
-      clearTimeout(firestoreTimeout);
-      if (snap.exists()) {
-        const data = snap.data() as Record<string, any>;
+    fetch('/api/dashboard-init').then(r => r.json()).then(data => {
+      clearTimeout(initTimeout);
+
+      // Favorite counts
+      if (data.favoriteCounts) setFavoriteCounts(data.favoriteCounts);
+
+      // Type map
+      if (data.typeMap) {
+        const map: Record<string, Record<string, { typeM2: string; typePyeong: string }>> = {};
+        for (const e of data.typeMap) {
+          const key = normalizeAptName(e.aptName);
+          if (!map[key]) map[key] = {};
+          map[key][e.area] = { typeM2: e.typeM2, typePyeong: e.typePyeong };
+        }
+        setTypeMap(map);
+      }
+
+      // Apartment meta (name mapping + public rental)
+      if (data.apartmentMeta) {
         const mapping: Record<string, string> = {};
         const rentals = new Set<string>();
-        for (const [name, meta] of Object.entries(data)) {
-          if (!meta || typeof meta !== 'object' || !meta.dong) continue;
-          if (meta.txKey) mapping[name] = meta.txKey;
-          if (meta.isPublicRental) rentals.add(name);
+        for (const [name, meta] of Object.entries(data.apartmentMeta)) {
+          if (!meta || typeof meta !== 'object' || !(meta as any).dong) continue;
+          if ((meta as any).txKey) mapping[name] = (meta as any).txKey;
+          if ((meta as any).isPublicRental) rentals.add(name);
         }
         setNameMapping(mapping);
         setPublicRentalSet(rentals);
@@ -136,16 +152,9 @@ export default function Dashboard() {
         setNameMapping({});
       }
     }).catch(() => {
-      clearTimeout(firestoreTimeout);
+      clearTimeout(initTimeout);
       setNameMapping({});
     });
-  }, []);
-
-  // Fetch favorite counts on mount
-  useEffect(() => {
-    fetch('/api/favorite-counts').then(r => r.json()).then(data => {
-      if (data.counts) setFavoriteCounts(data.counts);
-    }).catch(() => {});
   }, []);
 
   // Auth & Profile State
@@ -265,20 +274,7 @@ export default function Dashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fieldReports]);
 
-  // Fetch type map data only (lightweight)
-  useEffect(() => {
-    fetch('/api/type-map').then(r => r.json()).then(tmData => {
-      if (tmData.entries) {
-        const map: Record<string, Record<string, { typeM2: string; typePyeong: string }>> = {};
-        for (const e of tmData.entries) {
-          const key = normalizeAptName(e.aptName);
-          if (!map[key]) map[key] = {};
-          map[key][e.area] = { typeM2: e.typeM2, typePyeong: e.typePyeong };
-        }
-        setTypeMap(map);
-      }
-    }).catch(err => console.warn('타입맵 로딩 실패:', err));
-  }, []);
+  // Type map is now loaded via /api/dashboard-init above
 
   // Fetch transactions from per-apartment JSON chunks (not 16MB import)
   const [modalTransactions, setModalTransactions] = useState<TransactionRecord[]>([]);
@@ -495,7 +491,7 @@ export default function Dashboard() {
             </div>
             {/* 2행: 서브타이틀 */}
             <p className="text-sm sm:text-base text-[#8b95a1] font-medium">
-              <span className="text-[#191f28] font-extrabold">D-VIEW</span> : <span className="text-[#191f28] font-bold">D</span>ongtan <span className="text-[#191f28] font-bold">V</span>alue <span className="text-[#191f28] font-bold">I</span>nsight &amp; <span className="text-[#191f28] font-bold">E</span>valuation <span className="text-[#191f28] font-bold">W</span>indow · 실거래가 · 가치측정 · 임장리포트
+              <span className="text-[#191f28] font-extrabold">D-VIEW</span> : <span className="text-[#191f28] font-bold">D</span>ongtan <span className="text-[#191f28] font-bold">V</span>alue <span className="text-[#191f28] font-bold">I</span>nsight &amp; <span className="text-[#191f28] font-bold">E</span>valuation <span className="text-[#191f28] font-bold">W</span>indow · 실거래가 · 가치측정 · 현장 검증 사진
             </p>
           </div>
 

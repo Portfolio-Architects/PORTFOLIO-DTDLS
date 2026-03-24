@@ -4,6 +4,7 @@ import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { useState, useRef, useEffect } from 'react';
 import { ImagePlus, Trash2, CheckCircle2, ArrowUpDown } from 'lucide-react';
 import { uploadImage, createScoutingReport, updateScoutingReport } from '@/lib/services/reportService';
+import { extractCapturedDate } from '@/lib/utils/exif';
 import { auth } from '@/lib/firebaseConfig';
 import { useRouter } from 'next/navigation';
 import { getPremiumScoresAction } from '@/app/actions/scoring';
@@ -14,7 +15,7 @@ type FormValues = {
   apartmentName: string;
   thumbnailUrl: string;
   scoutingDate: string;
-  images: { file?: File; previewUrl?: string; url: string; caption: string; locationTag: string; isPremium: boolean }[];
+  images: { file?: File; previewUrl?: string; url: string; caption: string; locationTag: string; isPremium: boolean; capturedAt?: string }[];
   metrics: {
     brand: string;
     householdCount: string;
@@ -289,7 +290,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{done: number, total: number} | null>(null);
 
-  const handleImageSelect = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (uploadedFileKeys.current.has(file.name)) {
@@ -299,14 +300,15 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
       }
       uploadedFileKeys.current.add(file.name);
       const previewUrl = URL.createObjectURL(file);
+      const capturedAt = await extractCapturedDate(file) || undefined;
       const currentVal = imageFields[index];
-      updateImage(index, { ...currentVal, file, previewUrl });
+      updateImage(index, { ...currentVal, file, previewUrl, capturedAt });
     }
     e.target.value = '';
   };
 
   // Batch upload: create one block per file — with ref-based duplicate detection (filename only)
-  const handleBatchFiles = (files: FileList | File[]) => {
+  const handleBatchFiles = async (files: FileList | File[]) => {
     const fileArr = Array.from(files).filter(f => f.type.startsWith('image/'));
     if (fileArr.length === 0) return;
 
@@ -323,10 +325,15 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
     if (dupCount > 0) alert(`중복 사진 ${dupCount}장이 제외되었습니다.`);
     if (unique.length === 0) return;
 
-    unique.forEach((file) => {
-      const previewUrl = URL.createObjectURL(file);
-      appendImage({ file, previewUrl, url: '', caption: '', locationTag: '', isPremium: false });
-    });
+    // Extract EXIF dates in parallel
+    const withDates = await Promise.all(
+      unique.map(async (file) => {
+        const previewUrl = URL.createObjectURL(file);
+        const capturedAt = await extractCapturedDate(file) || undefined;
+        return { file, previewUrl, url: '', caption: '', locationTag: '', isPremium: false, capturedAt };
+      })
+    );
+    withDates.forEach(item => appendImage(item));
   };
 
   const handleDropZone = (e: React.DragEvent) => {
@@ -344,7 +351,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
       }
 
       // 1. Upload Images to Firebase Storage
-      const uploadedImages: {url: string, caption: string, locationTag: string, isPremium: boolean}[] = [];
+      const uploadedImages: {url: string, caption: string, locationTag: string, isPremium: boolean, capturedAt?: string}[] = [];
       const imagesToProcess = data.images.filter(img => img.file || img.url);
       const totalImages = imagesToProcess.length;
       let uploadedCount = 0;
@@ -360,7 +367,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
             if (img.file) {
               finalUrl = await uploadImage(img.file, 'report_images');
             }
-            return finalUrl ? { url: finalUrl, caption: img.caption || '', locationTag: img.locationTag || '', isPremium: img.isPremium } : null;
+            return finalUrl ? { url: finalUrl, caption: img.caption || '', locationTag: img.locationTag || '', isPremium: img.isPremium, capturedAt: img.capturedAt } : null;
           })
         );
         results.forEach(r => { if (r) uploadedImages.push(r); });
@@ -778,6 +785,20 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
           <span className="w-6 h-6 rounded-full bg-[#f2f4f6] text-[#4e5968] flex items-center justify-center text-[12px]">3</span>
           현장 사진 데이터베이스
           <span className="text-[12px] font-medium text-[#8b95a1] ml-auto">{imageFields.length}장</span>
+          {imageFields.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                if (confirm(`사진 ${imageFields.length}장을 전부 삭제합니다. 계속할까요?`)) {
+                  replaceImages([]);
+                  uploadedFileKeys.current.clear();
+                }
+              }}
+              className="px-3 py-1.5 bg-[#ffebec] text-[#f04452] rounded-lg text-[11px] font-bold hover:bg-[#f04452] hover:text-white transition-colors"
+            >
+              전체 삭제
+            </button>
+          )}
         </h3>
 
         {/* Batch Drop Zone */}
@@ -838,6 +859,11 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                 {(field.previewUrl || field.url) ? (
                   <>
                     <img src={field.previewUrl || field.url} alt="Preview" className="w-full h-full object-cover" />
+                    {field.capturedAt && (
+                      <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
+                        {field.capturedAt}
+                      </span>
+                    )}
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
                       <span className="text-white text-[11px] font-bold">변경하기</span>
                     </div>

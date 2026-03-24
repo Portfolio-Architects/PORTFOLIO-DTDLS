@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FileText, Settings, Menu, X, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, FileText, Settings, Menu, X, ExternalLink, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
 import AdminGuard from '@/components/auth/AdminGuard';
 
@@ -12,6 +12,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navLinks = [
     { href: '/admin', label: '아파트 대시보드', icon: LayoutDashboard, section: 'Reports' },
+    { href: '/admin/traffic', label: '트래픽', icon: BarChart2, section: 'Reports' },
     { href: '/admin/report', label: '종합 보고서', icon: FileText, section: 'Reports' },
     { href: '/admin/settings', label: '설정 (준비중)', icon: Settings, section: 'System' },
   ];

@@ -146,6 +146,7 @@ export function FieldReportModal({
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [chartTimeframe, setChartTimeframe] = useState<'6M'|'1Y'|'3Y'|'ALL'>('ALL');
   const [isTxExpanded, setIsTxExpanded] = useState(false);
+  const [priceTypeFilter, setPriceTypeFilter] = useState<string>('ALL');
   const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: any } | null>(null);
   // TODO: 유료 모델 전환 시 아래 라인 복원
   // const isUnlocked = !!(isPurchased || isAdmin);
@@ -503,13 +504,13 @@ export function FieldReportModal({
 
           </div>
 
-          {/* ── 평형별 최근 거래가 · 트렌드 · 활성도 ── (Full-width below chart) */}
+          {/* ── 평형별 최근 거래가 + 기간별 평균 ── */}
           {transactions.length > 0 && (() => {
             const now = new Date();
             const aptNorm = normalizeAptName(report.apartmentName);
 
             // 1) 평형별 최근 거래가 그룹핑
-            const byArea = new Map<string, { label: string; price: string; count: number; latestYm: number }>();
+            const byArea = new Map<string, { label: string; price: string; rawPrice: number; count: number; latestYm: number; area: number; floor: number }>();
             transactions.forEach(tx => {
               const key = String(tx.area);
               const typeData = typeMap[aptNorm]?.[key];
@@ -518,7 +519,7 @@ export function FieldReportModal({
               const ym = parseInt(tx.contractYm);
               const existing = byArea.get(key);
               if (!existing || ym > existing.latestYm) {
-                byArea.set(key, { label, price: tx.priceEok, count: (existing?.count || 0) + 1, latestYm: ym });
+                byArea.set(key, { label, price: tx.priceEok, rawPrice: tx.price, count: (existing?.count || 0) + 1, latestYm: ym, area: tx.area, floor: tx.floor });
               } else {
                 existing.count++;
               }
@@ -531,79 +532,175 @@ export function FieldReportModal({
                 return a.label.localeCompare(b.label);
               });
 
-            // 2) 최근 3개월 vs 이전 3개월 트렌드
-            const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-            const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
-            const ymThree = threeMonthsAgo.getFullYear() * 100 + (threeMonthsAgo.getMonth() + 1);
-            const ymSix = sixMonthsAgo.getFullYear() * 100 + (sixMonthsAgo.getMonth() + 1);
-            const recent3 = transactions.filter(tx => parseInt(tx.contractYm) >= ymThree);
-            const prev3 = transactions.filter(tx => { const ym = parseInt(tx.contractYm); return ym >= ymSix && ym < ymThree; });
-            const avg3 = recent3.length > 0 ? recent3.reduce((s, t) => s + t.price, 0) / recent3.length : 0;
-            const avgPrev3 = prev3.length > 0 ? prev3.reduce((s, t) => s + t.price, 0) / prev3.length : 0;
-            const trendPct = avgPrev3 > 0 ? ((avg3 - avgPrev3) / avgPrev3 * 100) : null;
-            const avg3Eok = avg3 >= 10000
-              ? `${Math.floor(avg3 / 10000)}억${Math.round(avg3 % 10000) > 0 ? Math.round(avg3 % 10000).toLocaleString() : ''}`
-              : `${Math.round(avg3).toLocaleString()}만`;
+            // 2) 타입 필터 칩 목록 구성
+            const typeFilters: { key: string; label: string; area: number }[] = [
+              { key: 'ALL', label: '단지 전체', area: 0 },
+              ...areaCards.map(c => ({ key: String(c.area), label: c.label, area: c.area })),
+            ];
 
-            // 3) 최근 12개월 vs 전년 12개월 트렌드
-            const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 12, 1);
-            const twentyFourMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 24, 1);
-            const ymTwelve = twelveMonthsAgo.getFullYear() * 100 + (twelveMonthsAgo.getMonth() + 1);
-            const ymTwentyFour = twentyFourMonthsAgo.getFullYear() * 100 + (twentyFourMonthsAgo.getMonth() + 1);
-            const recent12 = transactions.filter(tx => parseInt(tx.contractYm) >= ymTwelve);
-            const prev12 = transactions.filter(tx => { const ym = parseInt(tx.contractYm); return ym >= ymTwentyFour && ym < ymTwelve; });
-            const avg12 = recent12.length > 0 ? recent12.reduce((s, t) => s + t.price, 0) / recent12.length : 0;
-            const avgPrev12 = prev12.length > 0 ? prev12.reduce((s, t) => s + t.price, 0) / prev12.length : 0;
-            const trendPct12 = avgPrev12 > 0 ? ((avg12 - avgPrev12) / avgPrev12 * 100) : null;
-            const avg12Eok = avg12 >= 10000
-              ? `${Math.floor(avg12 / 10000)}억${Math.round(avg12 % 10000) > 0 ? Math.round(avg12 % 10000).toLocaleString() : ''}`
-              : `${Math.round(avg12).toLocaleString()}만`;
+            // 3) 기간별 평균 산출 (1M, 3M, 6M, 1Y, 3Y, 5Y, ALL)
+            const periods = [
+              { key: '1M', label: '1개월', months: 1 },
+              { key: '3M', label: '3개월', months: 3 },
+              { key: '6M', label: '6개월', months: 6 },
+              { key: '1Y', label: '1년', months: 12 },
+              { key: '3Y', label: '3년', months: 36 },
+              { key: '5Y', label: '5년', months: 60 },
+              { key: 'ALL', label: '전체', months: 9999 },
+            ];
+
+            const getYm = (monthsAgo: number) => {
+              const d = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1);
+              return d.getFullYear() * 100 + (d.getMonth() + 1);
+            };
+
+            // Filter transactions by type if selected
+            const baseTx = priceTypeFilter === 'ALL'
+              ? transactions
+              : transactions.filter(tx => String(tx.area) === priceTypeFilter);
+
+            // Area pyeong for per-pyeong calc (type-specific or average)
+            const avgAreaPyeong = baseTx.length > 0
+              ? baseTx.reduce((s, tx) => s + (tx.area * 0.3025), 0) / baseTx.length
+              : 30;
+
+            const formatEok = (priceMan: number) => {
+              if (priceMan >= 10000) {
+                const eok = Math.floor(priceMan / 10000);
+                const rem = Math.round(priceMan % 10000);
+                return `${eok}억${rem > 0 ? rem.toLocaleString() : ''}`;
+              }
+              return `${Math.round(priceMan).toLocaleString()}만`;
+            };
+
+            const overallAvgPrice = baseTx.length > 0 ? baseTx.reduce((s, t) => s + t.price, 0) / baseTx.length : 0;
+
+            const periodData = periods.map(p => {
+              const cutoffYm = p.months >= 9999 ? 0 : getYm(p.months);
+              const filtered = baseTx.filter(tx => parseInt(tx.contractYm) >= cutoffYm);
+              const avgPrice = filtered.length > 0 ? filtered.reduce((s, t) => s + t.price, 0) / filtered.length : 0;
+              
+              // 변동률 전체기간(overallAvgPrice) 기준
+              const trendPct = overallAvgPrice > 0 && p.months < 9999 
+                ? ((avgPrice - overallAvgPrice) / overallAvgPrice * 100) 
+                : null;
+              const perPyeong = avgPrice > 0 && avgAreaPyeong > 0
+                ? Math.round(avgPrice / avgAreaPyeong)
+                : 0;
+              return {
+                ...p,
+                count: filtered.length,
+                avgPrice,
+                avgPriceEok: formatEok(avgPrice),
+                perPyeong,
+                perPyeongEok: formatEok(perPyeong),
+                trendPct,
+              };
+            }).filter(p => p.count > 0);
+
+            const activeFilterLabel = typeFilters.find(f => f.key === priceTypeFilter)?.label || '단지 전체';
 
             return (
               <div className="bg-white w-full px-4 md:px-10 pb-6 border-b border-[#e5e8eb]">
+                {/* --- 평형별 최근 거래가 --- */}
                 <h5 className="text-[13px] font-bold text-[#8b95a1] mb-3 flex items-center gap-1.5 mt-2">
                   평형별 최근 거래가
                 </h5>
                 <div className="flex flex-nowrap gap-3 overflow-x-auto pb-4 px-4 md:px-10 -mx-4 md:-mx-10 custom-scrollbar items-stretch p-1">
-                  {/* 평형별 카드 */}
                   {areaCards.map((c, i) => {
                     const [tc, bgc] = getBadgeColorClasses(c.label);
+                    const pyeong = c.area * 0.3025;
+                    const perPyeongMan = pyeong > 0 ? Math.round(c.rawPrice / pyeong) : 0;
+                    const perPyeongStr = perPyeongMan >= 10000
+                      ? `${Math.floor(perPyeongMan / 10000)}억${Math.round(perPyeongMan % 10000) > 0 ? Math.round(perPyeongMan % 10000).toLocaleString() : ''}`
+                      : `${perPyeongMan.toLocaleString()}만`;
                     return (
-                      <div key={i} className="flex flex-col bg-[#f9fafb] rounded-xl px-4 py-3 ring-1 ring-black/5 hover:ring-[#3182f6]/30 transition-all shrink-0 min-w-[110px] h-auto">
-                        <div className={`text-[11px] font-bold ${tc} ${bgc} inline-block px-2 py-0.5 rounded-md mb-1.5 w-fit`}>{c.label}</div>
-                        <div className="text-[15px] font-extrabold text-[#191f28] leading-tight">{c.price}</div>
-                        <div className="text-[11px] text-[#8b95a1] mt-0.5">{c.count}건</div>
+                      <div key={i} className="flex flex-col bg-[#f9fafb] rounded-xl px-5 py-4 ring-1 ring-black/5 hover:ring-[#3182f6]/30 transition-all shrink-0 w-[135px] h-auto">
+                        <div className={`text-[12px] font-bold ${tc} ${bgc} inline-block px-2 py-0.5 rounded-md mb-2 w-fit`}>{c.label}</div>
+                        <div className="text-[17px] font-extrabold text-[#191f28] leading-tight">{c.price}</div>
+                        {perPyeongMan > 0 && <div className="text-[12px] font-bold text-[#4e5968] mt-1">{perPyeongStr}<span className="text-[#8b95a1] font-medium">/평</span></div>}
+                        <div className="text-[11px] text-[#8b95a1] mt-1">{c.floor}층</div>
                       </div>
                     );
                   })}
-
-                  {/* 3개월 평균 카드 */}
-                  {recent3.length > 0 && (
-                    <div className="flex flex-col bg-[#f9fafb] rounded-xl px-4 py-3 ring-1 ring-black/5 shrink-0 min-w-[130px] h-auto">
-                      <div className="text-[11px] font-bold text-[#8b95a1] mb-1.5 w-fit">최근 3개월 평균</div>
-                      <div className="text-[15px] font-extrabold text-[#191f28] leading-tight">{avg3Eok}</div>
-                      {trendPct !== null && (
-                        <div className={`text-[11px] font-bold mt-1 ${trendPct >= 0 ? 'text-[#EF4444]' : 'text-[#3182f6]'}`}>
-                          직전 분기 대비 {trendPct > 0 ? '+' : ''}{trendPct.toFixed(1)}%
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* 12개월 평균 카드 */}
-                  {recent12.length > 0 && (
-                    <div className="flex flex-col bg-[#f9fafb] rounded-xl px-4 py-3 ring-1 ring-black/5 shrink-0 min-w-[130px] h-auto">
-                      <div className="text-[11px] font-bold text-[#8b95a1] mb-1.5 w-fit">최근 12개월 평균</div>
-                      <div className="text-[15px] font-extrabold text-[#191f28] leading-tight">{avg12Eok}</div>
-                      {trendPct12 !== null && (
-                        <div className={`text-[11px] font-bold mt-1 ${trendPct12 >= 0 ? 'text-[#EF4444]' : 'text-[#3182f6]'}`}>
-                          직전 1년 대비 {trendPct12 > 0 ? '+' : ''}{trendPct12.toFixed(1)}%
-                        </div>
-                      )}
-                    </div>
-                  )}
-
                 </div>
+
+                {/* --- 기간별 단지 평균 테이블 --- */}
+                {periodData.length > 0 && (
+                  <div className="mt-2 border-t border-[#e5e8eb] pt-4">
+                    <div className="flex items-center gap-2 mb-3 flex-wrap">
+                      <h5 className="text-[13px] font-bold text-[#8b95a1]">기간별 평균가격</h5>
+                      <span className="text-[10px] text-[#8b95a1] ml-auto">공급 {avgAreaPyeong.toFixed(1)}평 기준</span>
+                    </div>
+                    {/* Type filter chips */}
+                    <div className="flex flex-nowrap gap-1.5 overflow-x-auto custom-scrollbar pb-3 -mx-1 px-1">
+                      {typeFilters.map(f => {
+                        const isActive = priceTypeFilter === f.key;
+                        return (
+                          <button key={f.key} onClick={() => setPriceTypeFilter(f.key)}
+                            className={`shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                              isActive
+                                ? 'bg-[#191f28] text-white shadow-sm'
+                                : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb]'
+                            }`}
+                          >{f.label}</button>
+                        );
+                      })}
+                    </div>
+                      <div className="overflow-x-auto custom-scrollbar -mx-4 md:-mx-10 px-4 md:px-10 mt-1">
+                      <table className="w-full text-sm min-w-[600px] border-t border-[#f2f4f6]">
+                        <thead>
+                          <tr className="border-b border-[#e5e8eb] text-[#8b95a1] text-[11px] font-bold bg-[#f9fafb]">
+                            <th className="py-2.5 px-3 text-left w-[80px]">구분</th>
+                            {periodData.map(p => (
+                              <th key={`th-${p.key}`} className="py-2.5 px-3 text-right whitespace-nowrap">{p.label}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
+                            <td className="py-3 px-3 text-[12px] font-bold text-[#4e5968] bg-[#f9fafb]/50">평균가격</td>
+                            {periodData.map(p => (
+                              <td key={`price-${p.key}`} className="py-3 px-3 text-right">
+                                <span className="text-[13px] font-extrabold text-[#191f28]">{p.avgPriceEok}</span>
+                              </td>
+                            ))}
+                          </tr>
+                          <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
+                            <td className="py-3 px-3 text-[12px] font-bold text-[#4e5968] bg-[#f9fafb]/50">평당가격</td>
+                            {periodData.map(p => (
+                              <td key={`perpyeong-${p.key}`} className="py-3 px-3 text-right">
+                                <span className="text-[12px] font-bold text-[#4e5968]">{p.perPyeongEok}<span className="text-[10px] text-[#8b95a1] font-medium">/평</span></span>
+                              </td>
+                            ))}
+                          </tr>
+                          <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
+                            <td className="py-3 px-3 text-[12px] font-bold text-[#4e5968] bg-[#f9fafb]/50">거래건수</td>
+                            {periodData.map(p => (
+                              <td key={`count-${p.key}`} className="py-3 px-3 text-right">
+                                <span className="text-[12px] font-medium text-[#8b95a1]">{p.count}건</span>
+                              </td>
+                            ))}
+                          </tr>
+                          <tr className="hover:bg-[#f8faff] transition-colors">
+                            <td className="py-3 px-3 text-[12px] font-bold text-[#4e5968] bg-[#f9fafb]/50">변동률</td>
+                            {periodData.map(p => (
+                              <td key={`trend-${p.key}`} className="py-3 px-3 text-right">
+                                {p.trendPct !== null && p.trendPct !== undefined ? (
+                                  <span className={`text-[12px] font-bold ${p.trendPct >= 0 ? 'text-[#EF4444]' : 'text-[#3182f6]'}`}>
+                                    {p.trendPct > 0 ? '+' : ''}{p.trendPct.toFixed(1)}%
+                                  </span>
+                                ) : (
+                                  <span className="text-[11px] text-[#d1d6db]">—</span>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })()}
