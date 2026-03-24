@@ -21,16 +21,29 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
+    const isDev = process.env.NODE_ENV === 'development';
+    if (isDev) {
+      // 개발 모드: 모든 캐시 비활성화 → 항상 최신 코드 반영
+      return [
+        {
+          source: "/:path*",
+          headers: [
+            { key: "Cache-Control", value: "no-store, no-cache, must-revalidate, proxy-revalidate" },
+            { key: "Pragma", value: "no-cache" },
+            { key: "Expires", value: "0" },
+          ],
+        },
+      ];
+    }
+    // 프로덕션: 기존 캐시 정책 유지
     return [
       {
-        // Static assets (JS/CSS/fonts/images) — long-term immutable cache
         source: "/_next/static/:path*",
         headers: [
           { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
         ],
       },
       {
-        // API routes — default short cache (individual routes override this)
         source: "/api/:path*",
         headers: [
           { key: "Cache-Control", value: "public, s-maxage=60, stale-while-revalidate=300" },

@@ -37,7 +37,7 @@ interface TransactionRecord {
 }
 /** GalleryGrid — Horizontal Category-based Scroll for quick point-catching */
 function GalleryGrid({ images, tags, tagLabels, onImageClick }: {
-  images: {url: string; caption?: string; locationTag?: string; isPremium?: boolean}[];
+  images: {url: string; caption?: string; locationTag?: string; isPremium?: boolean; capturedAt?: string}[];
   tags: string[];
   tagLabels: Record<string, string>;
   onImageClick: (url: string) => void;
@@ -83,7 +83,7 @@ function GalleryGrid({ images, tags, tagLabels, onImageClick }: {
                     sizes="(max-width: 768px) 240px, 280px"
                     className="object-cover bg-[#f2f4f6]"
                   />
-                  {(img.caption || img.isPremium) && (
+                  {(img.caption || img.isPremium || img.capturedAt) && (
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-3.5 pt-8">
                       <div className="flex flex-col gap-1.5">
                         {img.isPremium && (
@@ -94,6 +94,11 @@ function GalleryGrid({ images, tags, tagLabels, onImageClick }: {
                         )}
                       </div>
                     </div>
+                  )}
+                  {img.capturedAt && (
+                    <span className="absolute top-2 right-2 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
+                      {img.capturedAt}
+                    </span>
                   )}
                 </div>
               ))}
@@ -148,6 +153,10 @@ export function FieldReportModal({
   const [isTxExpanded, setIsTxExpanded] = useState(false);
   const [priceTypeFilter, setPriceTypeFilter] = useState<string>('ALL');
   const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: any } | null>(null);
+  const [showPriceHelp, setShowPriceHelp] = useState(false);
+  const [txFilterArea, setTxFilterArea] = useState<string>('ALL');
+  const [txFilterFloor, setTxFilterFloor] = useState<string>('ALL');
+  const [txFilterDealType, setTxFilterDealType] = useState<string>('ALL');
   // TODO: 유료 모델 전환 시 아래 라인 복원
   // const isUnlocked = !!(isPurchased || isAdmin);
   const isUnlocked = true; // 프리미엄 콘텐츠 전면 개방 (Vercel Hobby Plan 대응)
@@ -198,10 +207,64 @@ export function FieldReportModal({
             <div className="w-full md:w-[40%] shrink-0 order-2 md:order-1 flex flex-col">
               {transactions.length > 0 ? (
                 <div className="bg-[#f9fafb] rounded-2xl p-4 ring-1 ring-black/5 h-full flex flex-col">
-                  <h4 className="text-sm font-bold text-[#8b95a1] mb-3 flex items-center gap-1.5 shrink-0">
-                    <TrendingUp size={16} className="text-[#03c75a]" />
-                    <span className="flex items-center gap-1.5">실거래가 내역 <span className="text-sm font-medium ml-0.5">총 {transactions.length.toLocaleString()}건</span></span>
-                  </h4>
+                  {/* 필터 영역 */}
+                  {(() => {
+                    // 고유 m² 타입 목록
+                    const areaTypes = Array.from(new Set(transactions.map(tx => {
+                      const norm = normalizeAptName(tx.aptName);
+                      const t = typeMap[norm]?.[String(tx.area)];
+                      return t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : String(tx.area);
+                    }))).sort();
+                    // 고유 유형 목록
+                    const dealTypes = Array.from(new Set(transactions.map(tx => tx.dealType))).sort();
+                    // 층 구간 (아파트별 최고층 기준 3등분)
+                    const floors = transactions.map(tx => Number(tx.floor)).filter(f => !Number.isNaN(f));
+                    const maxFloor = Math.max(...floors, 1);
+                    const lowCut = Math.floor(maxFloor / 3);
+                    const midCut = Math.floor(maxFloor * 2 / 3);
+                    const floorTiers = [
+                      { key: 'ALL', label: '전체' },
+                      { key: 'LOW', label: `저층(1~${lowCut}F)` },
+                      { key: 'MID', label: `중층(${lowCut + 1}~${midCut}F)` },
+                      { key: 'HIGH', label: `고층(${midCut + 1}F~)` },
+                    ];
+
+                    const chipClass = (active: boolean) => `shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
+                      active ? 'bg-[#191f28] text-white' : 'bg-white text-[#8b95a1] hover:bg-[#e5e8eb] ring-1 ring-black/5'
+                    }`;
+
+                    return (
+                      <div className="mb-2 space-y-1.5">
+                        <h4 className="text-sm font-bold text-[#8b95a1] flex items-center gap-1.5 shrink-0">
+                          <TrendingUp size={16} className="text-[#03c75a]" />
+                          <span className="flex items-center gap-1.5">실거래가 내역 <span className="text-sm font-medium ml-0.5">총 {transactions.length.toLocaleString()}건</span></span>
+                        </h4>
+                        {/* m² 필터 */}
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className="text-[10px] font-bold text-[#8b95a1] w-8 shrink-0">타입</span>
+                          <button className={chipClass(txFilterArea === 'ALL')} onClick={() => setTxFilterArea('ALL')}>전체</button>
+                          {areaTypes.map(a => (
+                            <button key={a} className={chipClass(txFilterArea === a)} onClick={() => setTxFilterArea(a)}>{a}</button>
+                          ))}
+                        </div>
+                        {/* 층 필터 */}
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className="text-[10px] font-bold text-[#8b95a1] w-8 shrink-0">층</span>
+                          {floorTiers.map(ft => (
+                            <button key={ft.key} className={chipClass(txFilterFloor === ft.key)} onClick={() => setTxFilterFloor(ft.key)}>{ft.label}</button>
+                          ))}
+                        </div>
+                        {/* 유형 필터 */}
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <span className="text-[10px] font-bold text-[#8b95a1] w-8 shrink-0">유형</span>
+                          <button className={chipClass(txFilterDealType === 'ALL')} onClick={() => setTxFilterDealType('ALL')}>전체</button>
+                          {dealTypes.map(dt => (
+                            <button key={dt} className={chipClass(txFilterDealType === dt)} onClick={() => setTxFilterDealType(dt)}>{dt}</button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
                   <div className="overflow-y-auto max-h-[460px]">
                     <table className="w-full text-sm">
                       <thead className="sticky top-0 bg-[#f9fafb]">
@@ -215,7 +278,31 @@ export function FieldReportModal({
                       </thead>
                       <tbody>
                         {(() => {
-                          return transactions.map((tx, idx) => {
+                          // 필터 적용
+                          const filtered = transactions.filter(tx => {
+                            // m² 타입 필터
+                            if (txFilterArea !== 'ALL') {
+                              const norm = normalizeAptName(tx.aptName);
+                              const t = typeMap[norm]?.[String(tx.area)];
+                              const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : String(tx.area);
+                              if (label !== txFilterArea) return false;
+                            }
+                            // 층 필터 (동적 기준)
+                            if (txFilterFloor !== 'ALL') {
+                              const f = parseInt(tx.floor);
+                              const allFloors = transactions.map(tt => Number(tt.floor)).filter(ff => !Number.isNaN(ff));
+                              const mxF = Math.max(...allFloors, 1);
+                              const lc = Math.floor(mxF / 3);
+                              const mc = Math.floor(mxF * 2 / 3);
+                              if (txFilterFloor === 'LOW' && f > lc) return false;
+                              if (txFilterFloor === 'MID' && (f <= lc || f > mc)) return false;
+                              if (txFilterFloor === 'HIGH' && f <= mc) return false;
+                            }
+                            // 유형 필터
+                            if (txFilterDealType !== 'ALL' && tx.dealType !== txFilterDealType) return false;
+                            return true;
+                          });
+                          return filtered.map((tx, idx) => {
                             const txDate = new Date(parseInt(tx.contractYm.slice(0, 4)), parseInt(tx.contractYm.slice(4)) - 1, parseInt(tx.contractDay) || 15);
                             const now = new Date();
                             const isRecent = txDate >= new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
@@ -367,7 +454,12 @@ export function FieldReportModal({
                      </div>
                      <div className="flex items-center gap-3 mb-4">
                        <span className="text-[24px] font-extrabold text-[#191f28]">
-                         {latestAvg >= 1 ? `${Math.floor(latestAvg)}억` : ''}{(() => { const rem = Math.round((latestAvg % 1) * 10000); return rem > 0 ? rem.toLocaleString() : ''; })()}
+                         {(() => {
+                           const roundedAvg = Math.round(latestAvg * 100) / 100;
+                           const eok = Math.floor(roundedAvg);
+                           const rem = Math.round((roundedAvg % 1) * 10000);
+                           return `${eok >= 1 ? `${eok}억` : ''}${rem > 0 ? rem.toLocaleString() : ''}`;
+                         })()}
                        </span>
                        <span className="text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-1 rounded-lg">
                          최근 1개월 평균
@@ -538,7 +630,7 @@ export function FieldReportModal({
               ...areaCards.map(c => ({ key: String(c.area), label: c.label, area: c.area })),
             ];
 
-            // 3) 기간별 평균 산출 (1M, 3M, 6M, 1Y, 3Y, 5Y, ALL)
+            // 3) 기간별 평균 산출 (1M, 3M, 6M, 1Y, 3Y, 5Y, 10Y, ALL)
             const periods = [
               { key: '1M', label: '1개월', months: 1 },
               { key: '3M', label: '3개월', months: 3 },
@@ -546,6 +638,7 @@ export function FieldReportModal({
               { key: '1Y', label: '1년', months: 12 },
               { key: '3Y', label: '3년', months: 36 },
               { key: '5Y', label: '5년', months: 60 },
+              { key: '10Y', label: '10년', months: 120 },
               { key: 'ALL', label: '전체', months: 9999 },
             ];
 
@@ -578,7 +671,8 @@ export function FieldReportModal({
             const periodData = periods.map(p => {
               const cutoffYm = p.months >= 9999 ? 0 : getYm(p.months);
               const filtered = baseTx.filter(tx => parseInt(tx.contractYm) >= cutoffYm);
-              const avgPrice = filtered.length > 0 ? filtered.reduce((s, t) => s + t.price, 0) / filtered.length : 0;
+              const rawAvgPrice = filtered.length > 0 ? filtered.reduce((s, t) => s + t.price, 0) / filtered.length : 0;
+              const avgPrice = Math.round(rawAvgPrice / 100) * 100;
               
               // 변동률 전체기간(overallAvgPrice) 기준
               const trendPct = overallAvgPrice > 0 && p.months < 9999 
@@ -629,7 +723,24 @@ export function FieldReportModal({
                 {periodData.length > 0 && (
                   <div className="mt-2 border-t border-[#e5e8eb] pt-4">
                     <div className="flex items-center gap-2 mb-3 flex-wrap">
-                      <h5 className="text-[13px] font-bold text-[#8b95a1]">기간별 평균가격</h5>
+                      <h5 className="text-[13px] font-bold text-[#8b95a1] flex items-center gap-1.5">기간별 평균가격
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setShowPriceHelp((prev: boolean) => !prev); }}
+                          className="w-4 h-4 rounded-full bg-[#d1d6db] hover:bg-[#8b95a1] text-[9px] font-extrabold text-white inline-flex items-center justify-center transition-colors leading-none flex-shrink-0"
+                          aria-label="기준 설명"
+                        >?</button>
+                      </h5>
+                      {showPriceHelp && (
+                        <>
+                          <div className="fixed inset-0 z-[9998]" onClick={() => setShowPriceHelp(false)} />
+                          <div className="absolute left-4 top-12 z-[9999] w-[260px] bg-[#1e293b] text-white text-[11px] leading-relaxed rounded-xl px-4 py-3 shadow-2xl">
+                            <div className="font-bold mb-1.5">📊 기간별 평균가격이란?</div>
+                            <p className="text-white/80">각 기간 내 실거래된 모든 매매가의 <span className="text-white font-bold">산술 평균</span>입니다.</p>
+                            <p className="text-white/80 mt-1">100만 원 단위로 반올림하여 표시합니다.</p>
+                            <p className="text-white/50 mt-1.5 text-[10px]">예: "1개월" = 최근 1개월간 거래된 가격의 평균</p>
+                          </div>
+                        </>
+                      )}
                       <span className="text-[10px] text-[#8b95a1] ml-auto">공급 {avgAreaPyeong.toFixed(1)}평 기준</span>
                     </div>
                     {/* Type filter chips */}
@@ -682,20 +793,7 @@ export function FieldReportModal({
                               </td>
                             ))}
                           </tr>
-                          <tr className="hover:bg-[#f8faff] transition-colors">
-                            <td className="py-3 px-3 text-[12px] font-bold text-[#4e5968] bg-[#f9fafb]/50">변동률</td>
-                            {periodData.map(p => (
-                              <td key={`trend-${p.key}`} className="py-3 px-3 text-right">
-                                {p.trendPct !== null && p.trendPct !== undefined ? (
-                                  <span className={`text-[12px] font-bold ${p.trendPct >= 0 ? 'text-[#EF4444]' : 'text-[#3182f6]'}`}>
-                                    {p.trendPct > 0 ? '+' : ''}{p.trendPct.toFixed(1)}%
-                                  </span>
-                                ) : (
-                                  <span className="text-[11px] text-[#d1d6db]">—</span>
-                                )}
-                              </td>
-                            ))}
-                          </tr>
+
                         </tbody>
                       </table>
                     </div>

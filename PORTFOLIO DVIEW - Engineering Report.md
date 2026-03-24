@@ -1,11 +1,6 @@
 # 📋 PORTFOLIO D-VIEW — Engineering Report
 > **Date**: 2026-03-24 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
 
-> [!CAUTION]
-> **🔧 TODO (다른 로컬 PC에서 작업)**: Google Sheets API 활성화 필요
-> - 링크: https://console.developers.google.com/apis/api/sheets.googleapis.com/overview?project=294879479843
-> - "Enable" 클릭 후 `apartments-sync` (통합 저장) 동작 확인
-> - 완료 후 이 블록 삭제
 
 ---
 

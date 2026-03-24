@@ -21,14 +21,14 @@ const txKeys = Object.keys(TX_SUMMARY).sort();
 
 // ── Image Category Groups (from ReportEditorForm) ──
 const IMAGE_CATEGORY_GROUPS: { group: string; items: string[] }[] = [
-  { group: '🏢 단지 전경', items: ['단지 전경 (메인)', '단지 전경 (항공/드론)', '단지 조감도'] },
+  { group: '🏢 단지 전경', items: ['단지 전경 (메인)', '단지 전경 (항공/드론)', '단지 조감도', '기타'] },
   { group: '🚪 문주·출입구', items: ['정문 (메인게이트)', '후문/측문', '차량 출입구', '보행자 출입구', '보안실', '기타'] },
-  { group: '🌿 조경·외부', items: ['중앙 조경', '산책로/보행로', '수경시설 (분수/연못)', '놀이터', '운동기구/트랙', '정원/화단', '단지 내 어린이집', '분리수거장/쓰레기', '단지 내 상가'] },
-  { group: '🅿 주차장', items: ['지하주차장 입구', '지하주차장 내부', '주차장 바닥/도색', '지상 주차', 'EV 충전기'] },
+  { group: '🌿 조경·외부', items: ['중앙 조경', '산책로/보행로', '수경시설 (분수/연못)', '놀이터', '운동기구/트랙', '정원/화단', '야외 카페', '경로당', '단지 내 어린이집', '분리수거장/쓰레기', '단지 내 상가', '기타'] },
+  { group: '🅿 주차장', items: ['지하주차장 입구', '지하주차장 내부', '주차장 바닥/도색', '지상 주차', 'EV 충전기', '기타'] },
   { group: '🏋️ 커뮤니티', items: ['커뮤니티 외관/입구', '피트니스센터 (헬스장)', '골프연습장', '실내 수영장', '키즈카페/놀이방', '독서실/스터디룸', '사우나/찜질방', '기타 커뮤니티'] },
-  { group: '🏠 동별·세대', items: ['동 외관', '엘리베이터/로비', '복도/계단', '택배함/무인택배'] },
-  { group: '🪟 실내', items: ['거실/리빙', '주방', '욕실/화장실', '발코니/베란다', '현관', '조망/뷰 (창문)', '채광/향 (일조량)'] },
-  { group: '🏙️ 주변 환경', items: ['역세권/교통 접근성', '통학로/학교', '주변 상권', '공원', '소음 환경 (도로)', '기타'] },
+  { group: '🏠 동별·세대', items: ['동 외관', '엘리베이터/로비', '복도/계단', '택배함/무인택배', '기타'] },
+  { group: '🪟 실내', items: ['거실/리빙', '주방', '욕실/화장실', '발코니/베란다', '현관', '조망/뷰 (창문)', '채광/향 (일조량)', '기타'] },
+  { group: '🏙️ 주변 환경', items: ['역세권/교통 접근성', '통학로/학교', '주변 상권', '공원', '소음 환경 (도로)', '어린이집', '유치원', '기타'] },
 ];
 
 // ── Auto-suggest TX key matching ──
@@ -812,21 +812,90 @@ export default function ApartmentInfoPage() {
                   {/* Fields */}
                   <div className="flex-1 space-y-3">
                     <div className="flex gap-3">
-                      {/* Category Picker */}
-                      <select value={photo.locationTag}
-                        onChange={e => {
-                          const updated = [...photos];
-                          updated[index] = { ...updated[index], locationTag: e.target.value };
-                          setPhotos(updated);
-                        }}
-                        className="w-[220px] px-3 py-2 bg-[#f9fafb] border border-[#e5e8eb] rounded-lg text-[13px] font-bold outline-none focus:border-[#3182f6] transition-colors">
-                        <option value="">카테고리 선택</option>
-                        {IMAGE_CATEGORY_GROUPS.map(g => (
-                          <optgroup key={g.group} label={g.group}>
-                            {g.items.map(item => <option key={item} value={item}>{item}</option>)}
-                          </optgroup>
-                        ))}
-                      </select>
+                      {/* Category Picker — 2-level popover */}
+                      {(() => {
+                        const currentTag = photo.locationTag;
+                        const currentGroup = IMAGE_CATEGORY_GROUPS.find(g => g.items.includes(currentTag));
+                        return (
+                          <div className="relative w-[220px]">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const el = document.getElementById(`cat-popover-${index}`);
+                                if (el) el.classList.toggle('hidden');
+                              }}
+                              className="w-full px-3 py-2 bg-[#f9fafb] border border-[#e5e8eb] rounded-lg text-[13px] font-bold text-left cursor-pointer hover:border-[#3182f6] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-colors text-[#191f28] flex items-center justify-between"
+                            >
+                              <span className="truncate">{currentTag || '카테고리 선택'}</span>
+                              <svg width="12" height="12" viewBox="0 0 12 12" className="shrink-0 ml-1 text-[#8b95a1]"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>
+                            </button>
+                            <div
+                              id={`cat-popover-${index}`}
+                              className="hidden absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-xl border border-[#e5e8eb] w-[380px] md:w-[560px] max-h-[280px] overflow-hidden"
+                            >
+                              {/* Group tabs */}
+                              <div className="flex gap-1 p-2 overflow-x-auto border-b border-[#f2f4f6] bg-[#fafbfc]">
+                                {IMAGE_CATEGORY_GROUPS.map((g, gIdx) => (
+                                  <button
+                                    key={g.group}
+                                    type="button"
+                                    onClick={() => {
+                                      const container = document.getElementById(`cat-popover-${index}`);
+                                      if (!container) return;
+                                      container.querySelectorAll('[data-cat-group]').forEach(el => el.classList.add('hidden'));
+                                      container.querySelector(`[data-cat-group="${gIdx}"]`)?.classList.remove('hidden');
+                                      container.querySelectorAll('[data-cat-tab]').forEach(el => {
+                                        el.classList.remove('bg-[#191f28]', 'text-white');
+                                        el.classList.add('bg-[#f2f4f6]', 'text-[#4e5968]');
+                                      });
+                                      container.querySelector(`[data-cat-tab="${gIdx}"]`)?.classList.remove('bg-[#f2f4f6]', 'text-[#4e5968]');
+                                      container.querySelector(`[data-cat-tab="${gIdx}"]`)?.classList.add('bg-[#191f28]', 'text-white');
+                                    }}
+                                    data-cat-tab={gIdx}
+                                    className={`shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                                      (currentGroup === g || (!currentGroup && gIdx === 0))
+                                        ? 'bg-[#191f28] text-white'
+                                        : 'bg-[#f2f4f6] text-[#4e5968] hover:bg-[#e5e8eb]'
+                                    }`}
+                                  >
+                                    {g.group.replace(/[^\w가-힣·\s]/g, '').trim()}
+                                  </button>
+                                ))}
+                              </div>
+                              {/* Items per group */}
+                              {IMAGE_CATEGORY_GROUPS.map((g, gIdx) => (
+                                <div
+                                  key={g.group}
+                                  data-cat-group={gIdx}
+                                  className={`p-2 flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto ${
+                                    (currentGroup === g || (!currentGroup && gIdx === 0)) ? '' : 'hidden'
+                                  }`}
+                                >
+                                  {g.items.map(item => (
+                                    <button
+                                      key={item}
+                                      type="button"
+                                      onClick={() => {
+                                        const updated = [...photos];
+                                        updated[index] = { ...updated[index], locationTag: item };
+                                        setPhotos(updated);
+                                        document.getElementById(`cat-popover-${index}`)?.classList.add('hidden');
+                                      }}
+                                      className={`px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-all ${
+                                        currentTag === item
+                                          ? 'bg-[#e8f3ff] text-[#3182f6] border-[#3182f6] font-bold'
+                                          : 'bg-white text-[#4e5968] border-[#e5e8eb] hover:bg-[#f2f4f6] hover:border-[#3182f6]'
+                                      }`}
+                                    >
+                                      {item}
+                                    </button>
+                                  ))}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
                       <input type="text" value={photo.caption}
                         onChange={e => {
                           const updated = [...photos];

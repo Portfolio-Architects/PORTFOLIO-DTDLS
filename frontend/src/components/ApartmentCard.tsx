@@ -86,7 +86,16 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
         {txSummary ? (
           <div className="text-right min-w-[80px]">
             <div className="text-base font-extrabold text-[#191f28] tabular-nums leading-none mb-1">
-              {txSummary.avg1MPriceEok}
+              {(() => {
+                if (!txSummary.avg1MPrice) return txSummary.avg1MPriceEok;
+                const roundedMan = Math.round(txSummary.avg1MPrice / 100) * 100;
+                if (roundedMan >= 10000) {
+                  const eok = Math.floor(roundedMan / 10000);
+                  const rem = roundedMan % 10000;
+                  return `${eok}억${rem > 0 ? rem.toLocaleString() : ''}`;
+                }
+                return `${roundedMan.toLocaleString()}만`;
+              })()}
             </div>
             <div className="flex items-center justify-end gap-1.5">
               {(() => {
