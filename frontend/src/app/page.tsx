@@ -87,6 +87,9 @@ export default function Dashboard() {
   // Mobile modal: only open when user explicitly taps an apartment
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
 
+  // Track explicit user selection to prevent auto-select override
+  const userHasSelected = useRef(false);
+
   // Favorites state
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
   const [favoriteCounts, setFavoriteCounts] = useState<Record<string, number>>({});
@@ -229,8 +232,9 @@ export default function Dashboard() {
   // Skip on mobile (<768px) to prevent the full-screen modal from auto-opening
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 768) return;
-    // Allow re-selection if current is a stub (no real data yet)
-    if (selectedReport && !selectedReport.id.startsWith('stub-')) return;
+    // Skip if user has explicitly clicked an apartment
+    if (userHasSelected.current) return;
+    if (selectedReport) return;
     const allApts = Object.values(sheetApartments).flat();
     if (allApts.length === 0) return;
     // Don't auto-select until viewCount data is loaded (prevents wrong-apartment flash)
@@ -471,10 +475,10 @@ export default function Dashboard() {
         {mounted && activeTab === 'imjang' && (
         <section>
           {/* 1. Section Header */}
-          <div className="mb-3">
+          <div className="mb-6">
             {/* 1행: 로고 + 타이틀 + 배지 */}
-            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 mb-1.5">
-              <img src="/dsq-icon.png" alt="DSQ" className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-sm shrink-0" />
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-2.5">
+              <img src="/dsq-icon.png" alt="DSQ" className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shadow-sm shrink-0" />
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#191f28] tracking-tight">
                 동탄 아파트 가치 분석
               </h1>
@@ -489,7 +493,7 @@ export default function Dashboard() {
                 </span>
               )}
             </div>
-            {/* 2행: 서브타이틀 — 로고 좌측으로 정렬 (margin 제거) */}
+            {/* 2행: 서브타이틀 */}
             <p className="text-sm sm:text-base text-[#8b95a1] font-medium">
               <span className="text-[#191f28] font-extrabold">D-VIEW</span> : <span className="text-[#191f28] font-bold">D</span>ongtan <span className="text-[#191f28] font-bold">V</span>alue <span className="text-[#191f28] font-bold">I</span>nsight &amp; <span className="text-[#191f28] font-bold">E</span>valuation <span className="text-[#191f28] font-bold">W</span>indow · 실거래가 · 가치측정 · 임장리포트
             </p>
@@ -566,6 +570,7 @@ export default function Dashboard() {
                             favoriteCount={favoriteCounts[apt.name] || 0}
                             onToggleFavorite={() => handleToggleFavorite(apt.name)}
                             onClick={() => {
+                              userHasSelected.current = true;
                               if (report) {
                                 setSelectedReport(report);
                               } else {

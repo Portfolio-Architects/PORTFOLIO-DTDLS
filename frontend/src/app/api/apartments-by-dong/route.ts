@@ -31,14 +31,28 @@ export interface SheetApartment {
 
 export async function GET() {
   try {
-    const { GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY } = process.env;
-    if (!GOOGLE_SERVICE_ACCOUNT_EMAIL || !GOOGLE_PRIVATE_KEY) {
+    let email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    let privateKey = process.env.GOOGLE_PRIVATE_KEY;
+
+    // Fallback: read from serviceAccountKey.json (same as firebaseAdmin.ts)
+    if (!email || !privateKey) {
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        const saPath = path.default.resolve(process.cwd(), 'serviceAccountKey.json');
+        const sa = JSON.parse(fs.default.readFileSync(saPath, 'utf-8'));
+        email = sa.client_email;
+        privateKey = sa.private_key;
+      } catch { /* no local file */ }
+    }
+
+    if (!email || !privateKey) {
       return NextResponse.json({ error: 'Server is missing Google Service Account credentials' }, { status: 500 });
     }
 
-    const formattedKey = GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/"/g, '');
+    const formattedKey = privateKey.replace(/\\n/g, '\n').replace(/"/g, '');
     const serviceAccountAuth = new JWT({
-      email: GOOGLE_SERVICE_ACCOUNT_EMAIL,
+      email: email,
       key: formattedKey,
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
     });
@@ -121,6 +135,7 @@ export async function GET() {
       byDong,
     });
   } catch (err: any) {
+    console.error('[apartments-by-dong] Error:', err.message, err.stack?.split('\n')[1]);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

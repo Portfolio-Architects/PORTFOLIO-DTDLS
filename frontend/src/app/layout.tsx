@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { PieChart, LayoutDashboard, Building2, Newspaper, MessageSquare, Search, Bell } from 'lucide-react';
 import './globals.css';
-import MapProvider from '@/components/map/MapProvider';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import OfflineBanner from '@/components/OfflineBanner';
 
@@ -32,10 +31,8 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <body className="antialiased">
         <OfflineBanner />
-        <MapProvider>
-          <FloatingUserBar />
-          {children}
-        </MapProvider>
+        <FloatingUserBar />
+        {children}
       </body>
     </html>
   );

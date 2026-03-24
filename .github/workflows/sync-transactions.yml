@@ -1,0 +1,58 @@
+name: Sync Transactions
+
+on:
+  schedule:
+    # 매일 KST 06:00 (UTC 21:00) 실행
+    - cron: '0 21 * * *'
+  workflow_dispatch: # 수동 실행 지원
+
+jobs:
+  sync:
+    name: 국토부 API → Firestore → Static Files
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Step 1: 국토부 API → Firestore
+      - name: Fetch transactions from 국토부 API
+        if: ${{ secrets.BUILDING_API_KEY != '' }}
+        run: node scripts/fetch-transactions.js
+        env:
+          BUILDING_API_KEY: ${{ secrets.BUILDING_API_KEY }}
+
+      # Step 2: Firestore → Static files (transaction-summary.ts + tx-data/*.json)
+      - name: Generate static transaction files
+        run: node scripts/sync-transactions.js
+
+      # Step 3: Commit & Push if changes exist
+      - name: Commit and push changes
+        run: |
+          cd ..
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "✅ No changes to commit"
+          else
+            TODAY=$(date +%Y-%m-%d)
+            git commit -m "data: auto-sync transactions ($TODAY)"
+            git push
+            echo "🚀 Changes pushed — Vercel will auto-deploy"
+          fi

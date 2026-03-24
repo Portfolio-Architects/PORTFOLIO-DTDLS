@@ -1,18 +1,13 @@
 'use client';
 
-import { APIProvider } from '@vis.gl/react-google-maps';
-import { MapComponent } from './GoogleMap';
-
+/**
+ * MapProvider — 하위 호환용 래퍼 (Maps Embed API 전환으로 APIProvider 제거)
+ * 필요한 곳에서 <MapComponent />를 직접 사용하세요.
+ */
 export default function MapProvider({
   children,
 }: {
   children?: React.ReactNode;
 }) {
-  const googleApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
-
-  return (
-    <APIProvider apiKey={googleApiKey}>
-      {children || <MapComponent />}
-    </APIProvider>
-  );
+  return <>{children}</>;
 }

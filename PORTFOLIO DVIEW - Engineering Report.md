@@ -1,33 +1,5 @@
 # 📋 PORTFOLIO D-VIEW — Engineering Report
-> **Date**: 2026-03-23 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
-
----
-
-## 📝 Patch Notes (변경 이력)
-
-| 일시 | 항목 | 내용 |
-|:---|:---|:---|
-| 2026-03-23 23:38 | **현장 촬영 일자 독립 적용** | 리포트 작성일과 분리된 `scoutingDate` DB 스키마 및 어드민 입력 폼 추가, 갤러리 헤더에 타임존 에러 없는 기준일자 표기 |
-| 2026-03-23 23:29 | **PWA & Favicon 웹 표준 대응** | Next.js 14 `manifest.ts` 신규 생성 및 `layout.tsx` 명시적 메타데이터/뷰포트 선언 |
-| 2026-03-23 23:25 | **이미지 CDN 렌더링 최적화** | Firebase 갤러리/풀스크린 이미지들에 `next/image` 컴포넌트 전면 도입 (자동 WebP 변환 및 지연 로딩) |
-| 2026-03-23 18:30 | **밸류에이션 UI 통합 및 갤러리 개편** | 퀀트 애널리틱스와 폭포수 차트 탭 병합/경량화, 세로형 사진 갤러리를 카테고리별 가로 스와이프(Snap) UX로 전면 개편 |
-| 2026-03-23 17:19 | **보고서 이름 변경** | `PORTFOLIO_DTDLS_REPORT.md` → `PORTFOLIO DVIEW - Engineering Report.md` |
-| 2026-03-23 17:03 | **관리자 트래픽 분석 탭** | Admin 페이지에 `트래픽` 탭 신규 — scoutingReports 기반 단지별 조회수·관심 집계, 바 차트 + 정렬 기능 |
-| 2026-03-23 16:52 | **면적 컬럼 헤더 동적 전환** | `ApartmentModal` 거래 테이블 헤더 `m²/평` 토글에 따라 동적 변경 |
-| 2026-03-23 16:50 | **임장 배지 통일** | 카드 배지 `✅` → `FileText` 아이콘 + 앰버 스타일 (`bg-[#fff8e1]`), 헤더 `2개 리포트` 배지와 통일 |
-| 2026-03-23 16:46 | **평당가격 공급면적 기준 수정** | `typeM2` 숫자 파싱 → 공급m² × 0.3025 = 공급평형 → `avg1MPrice / supplyPyeong` 재계산, `typeMap·areaUnit` props 전달 누락 수정 |
-| 2026-03-23 16:35 | **D-VIEW 서브타이틀 강조** | `D-VIEW` 파란 볼드 + `Dongtan Value Insight & Evaluation Window` 각 이니셜 동일 색상 강조 |
-| 2026-03-23 16:34 | **면적 토글 표기 변경** | 토글 버튼 `면적 → m²`, 거래 테이블 헤더 `m²` 고정 적용 |
-| 2026-03-23 13:10 | **테스트 커버리지 확충** | 16→45 assertions (5 suites), haversine·valuation·dongs·scoring 테스트 신규, stale 테스트 수정 |
-| 2026-03-23 12:45 | **D-VIEW 브랜딩** | 아이콘 생성 (D + 상승 바차트), favicon·헤더 적용, 메타데이터 업데이트, 여백 축소 |
-| 2026-03-23 12:33 | **UI 수정 + 모바일 모달 버그 수정** | 'by 임장크루' 삭제, D-VIEW 타이틀 적용, 모바일 풀스크린 모달 오버레이 추가 |
-| 2026-03-23 12:27 | **실거래가 데이터 업데이트** | CSV 48건 import (3/17~3/20), Firestore + transaction-summary.ts 재생성 (146개 아파트, 63,233건) |
-| 2026-03-23 12:17 | **CI/CD 파이프라인** | GitHub Actions CI workflow 신규 (린트 → 타입체크 → Jest → 빌드) |
-| 2026-03-23 12:10 | **Google Sheets Write 고도화** | apartments-sync API 전체 필드 쓰기 확장, Admin 상세 페이지에 세대수/시공사/용적률/건폐율/주차/좌표 에디터 추가 |
-| 2026-03-23 12:00 | **Anchor Tenant Metrics** | AnchorTenantCard 컴포넌트 신규, 앵커 테넌트 근접도 시각화 (바 차트 + 등급 + 종합 점수) |
-| 2026-03-23 11:50 | **결제 기능 비활성화** | TossPayments SDK 제거, 프리미엄 콘텐츠 전면 공개 (Vercel Hobby Plan 대응) |
-| 2026-03-23 11:47 | **구글 시트 자동 동기화** | 정적 dong-apartments.ts 대신 /api/apartments-by-dong API 연동, 정적 데이터는 폴백 유지 |
-| 2026-03-23 11:47 | **정렬 로직 안정화** | 조회수/관심 정렬 시 같은 값에 가나다순 2차 정렬 추가, 여울동 힐스테이트 동탄역 데이터 삭제 |
+> **Date**: 2026-03-24 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
 
 ---
 
@@ -50,20 +22,20 @@
 | **External Data** | Google Sheets API | SSOT |
 | **Visualization** | Recharts, 3d-force-graph | 차트 + 3D 매핑 |
 | **State** | React Hooks, Singleton Facade | globalThis 패턴 |
-| **Testing** | Jest, ts-jest | 16 assertions |
+| **Testing** | Jest, ts-jest | 45 assertions / 5 suites |
 | **Markdown** | react-markdown, remark-gfm, mermaid | Admin 보고서 |
 
 ---
 
 ## 3. Codebase Metrics
 
-- **Source Files**: ~80-100개 (src/)
-- **LOC**: ~15,000-20,000
-- **Components**: 35+ (Card, Modal, Chart, Layout 등)
-- **API Routes**: 10개
-- **Repositories**: 6개 핵심 모듈
+- **Source Files**: 96개 (src/)
+- **LOC**: ~18,400
+- **Components**: 21개 (Card, Modal, Chart, Consumer, Admin 등)
+- **API Routes**: 12개
+- **Repositories**: 7개 핵심 모듈 (apartment·comment·post·purchase·report·review·user)
 - **Admin Pages**: 3개 (대시보드, 아파트 상세, 종합 보고서)
-- **Test Suites**: 2개 / 16 assertions 전수 통과
+- **Test Suites**: 5개 / 45 assertions 전수 통과
 
 ---
 
@@ -101,9 +73,10 @@ src/
 │   ├── admin/            # 관리자 (대시보드, report)
 │   └── page.tsx          # 메인 페이지
 ├── components/
+│   ├── admin/            # ReportEditorForm 등 관리자 전용
+│   ├── consumer/         # AdvancedValuationMetrics, DynamicSimulator, PropertyScoreChart 등
 │   ├── dashboard/        # 대시보드 위젯
-│   ├── features/         # ApartmentModal, Card, Filter, Comment
-│   └── ui/               # 공통 UI
+│   └── ui/               # ApartmentModal, Card, Filter, Comment
 └── lib/
     ├── repositories/     # Firebase DAO
     ├── services/         # KPI, Logger
@@ -141,9 +114,9 @@ src/
 | 에러 처리 | **B+** | Hydration 방어 (`suppressHydrationWarning`), 정규화 엔진 방어 코드, undefined 세이프가드 |
 | 타입 안전성 | **A** | 전용 인터페이스 (StaticApartment·AptTxSummary·PremiumScores), strict null 체크 |
 | 테스트 | **B+** | Jest 45 assertions / 5 suites (apartmentMapping·haversine·valuation·dongs·scoring) |
-| 보안 | **B** | Firebase Auth (Google OAuth), Admin 권한 분리, credentials.json gitignore |
+| 보안 | **B+** | Firebase Auth (Google OAuth), Admin 권한 분리, CSP Report-Only 헤더, credentials.json gitignore |
 | DevOps / CI | **B+** | GitHub Actions CI (Lint→TypeCheck→Jest→Build), Vercel 자동 배포 |
-| 컴포넌트 크기 | **B+** | page.tsx 889줄 (리팩토링 필요), ApartmentModal·ApartmentCard 컴포넌트 분리 완료 |
+| 컴포넌트 크기 | **A-** | page.tsx 853줄, ApartmentModal 1,087줄 (consumer 서브 컴포넌트 5개 분리 완료) |
 
 ---
 
@@ -160,7 +133,7 @@ src/
 ### Phase 1 (단기)
 - [x] ~~테스트 커버리지 확충~~ (16→45 assertions, 5 suites — haversine·valuation·dongs·scoring·apartmentMapping)
 - [x] ~~데이터 검증 레이어~~ (가격 IQR 이상치·미등록 단지·면적/층수 범위·중복 탐지, 검증 리포트 자동 생성)
-- [ ] 실거래가 자동 수집 자동화 (GitHub Actions cron → 국토부 API → Firestore)
+- [x] ~~실거래가 자동 수집 자동화~~ (GitHub Actions cron → 국토부 API → Firestore → 정적 파일 → Vercel 재배포, 매일 KST 06:00)
 - [x] ~~리스트 가상화~~ (react-window FixedSizeList — 179개 → ~17개 DOM 노드, 체감 속도 2~3배 향상)
 - [ ] 동탄 아파트 관계도 구축 (3D Force Graph — 단지 간 거리·가격 상관관계 시각화)
 - [ ] 아파트 비교 기능 (2~3개 단지 나란히 비교 — 가격·세대수·인프라 대시보드)
@@ -188,3 +161,33 @@ src/
 
 ## 9. Maintenance Policy
 본 문서는 살아있는 SSOT입니다. 메이저 업데이트 시 지표를 갱신하고 패치노트를 기록합니다.
+
+## 📝 Patch Notes (변경 이력)
+
+| 일시 | 항목 | 내용 |
+|:---|:---|:---|
+| 2026-03-24 13:17 | **AdvancedValuationMetrics 컴포넌트 신규** | 퀀트 애널리틱스·폭포수 차트를 통합한 `AdvancedValuationMetrics.tsx`(179줄) 신규 생성, 탭 병합으로 밸류에이션 UX 경량화 |
+| 2026-03-24 13:17 | **ApartmentModal next/image 전환 및 리팩토링** | 갤러리 이미지 `next/image` 전면 도입, 카테고리별 가로 스와이프(Snap) UX 개편, 모달 전체 385줄 변경 |
+| 2026-03-24 13:17 | **CSP Report-Only 헤더 적용** | `next.config.ts`에 Content-Security-Policy-Report-Only 헤더 추가, XSS·인젝션 사전 탐지 |
+| 2026-03-24 13:17 | **page.tsx 서비스 레이어 격리** | 메인 페이지 데이터 패칭 로직 정리, 853줄로 경량화 |
+| 2026-03-23 23:38 | **현장 촬영 일자 독립 적용** | 리포트 작성일과 분리된 `scoutingDate` DB 스키마 및 어드민 입력 폼 추가, 갤러리 헤더에 타임존 에러 없는 기준일자 표기 |
+| 2026-03-23 23:29 | **PWA & Favicon 웹 표준 대응** | Next.js 14 `manifest.ts` 신규 생성 및 `layout.tsx` 명시적 메타데이터/뷰포트 선언 |
+| 2026-03-23 23:25 | **이미지 CDN 렌더링 최적화** | Firebase 갤러리/풀스크린 이미지들에 `next/image` 컴포넌트 전면 도입 (자동 WebP 변환 및 지연 로딩) |
+| 2026-03-23 18:30 | **밸류에이션 UI 통합 및 갤러리 개편** | 퀀트 애널리틱스와 폭포수 차트 탭 병합/경량화, 세로형 사진 갤러리를 카테고리별 가로 스와이프(Snap) UX로 전면 개편 |
+| 2026-03-23 17:19 | **보고서 이름 변경** | `PORTFOLIO_DTDLS_REPORT.md` → `PORTFOLIO DVIEW - Engineering Report.md` |
+| 2026-03-23 17:03 | **관리자 트래픽 분석 탭** | Admin 페이지에 `트래픽` 탭 신규 — scoutingReports 기반 단지별 조회수·관심 집계, 바 차트 + 정렬 기능 |
+| 2026-03-23 16:52 | **면적 컬럼 헤더 동적 전환** | `ApartmentModal` 거래 테이블 헤더 `m²/평` 토글에 따라 동적 변경 |
+| 2026-03-23 16:50 | **임장 배지 통일** | 카드 배지 `✅` → `FileText` 아이콘 + 앰버 스타일 (`bg-[#fff8e1]`), 헤더 `2개 리포트` 배지와 통일 |
+| 2026-03-23 16:46 | **평당가격 공급면적 기준 수정** | `typeM2` 숫자 파싱 → 공급m² × 0.3025 = 공급평형 → `avg1MPrice / supplyPyeong` 재계산, `typeMap·areaUnit` props 전달 누락 수정 |
+| 2026-03-23 16:35 | **D-VIEW 서브타이틀 강조** | `D-VIEW` 파란 볼드 + `Dongtan Value Insight & Evaluation Window` 각 이니셜 동일 색상 강조 |
+| 2026-03-23 16:34 | **면적 토글 표기 변경** | 토글 버튼 `면적 → m²`, 거래 테이블 헤더 `m²` 고정 적용 |
+| 2026-03-23 13:10 | **테스트 커버리지 확충** | 16→45 assertions (5 suites), haversine·valuation·dongs·scoring 테스트 신규, stale 테스트 수정 |
+| 2026-03-23 12:45 | **D-VIEW 브랜딩** | 아이콘 생성 (D + 상승 바차트), favicon·헤더 적용, 메타데이터 업데이트, 여백 축소 |
+| 2026-03-23 12:33 | **UI 수정 + 모바일 모달 버그 수정** | 'by 임장크루' 삭제, D-VIEW 타이틀 적용, 모바일 풀스크린 모달 오버레이 추가 |
+| 2026-03-23 12:27 | **실거래가 데이터 업데이트** | CSV 48건 import (3/17~3/20), Firestore + transaction-summary.ts 재생성 (146개 아파트, 63,233건) |
+| 2026-03-23 12:17 | **CI/CD 파이프라인** | GitHub Actions CI workflow 신규 (린트 → 타입체크 → Jest → 빌드) |
+| 2026-03-23 12:10 | **Google Sheets Write 고도화** | apartments-sync API 전체 필드 쓰기 확장, Admin 상세 페이지에 세대수/시공사/용적률/건폐율/주차/좌표 에디터 추가 |
+| 2026-03-23 12:00 | **Anchor Tenant Metrics** | AnchorTenantCard 컴포넌트 신규, 앵커 테넌트 근접도 시각화 (바 차트 + 등급 + 종합 점수) |
+| 2026-03-23 11:50 | **결제 기능 비활성화** | TossPayments SDK 제거, 프리미엄 콘텐츠 전면 공개 (Vercel Hobby Plan 대응) |
+| 2026-03-23 11:47 | **구글 시트 자동 동기화** | 정적 dong-apartments.ts 대신 /api/apartments-by-dong API 연동, 정적 데이터는 폴백 유지 |
+| 2026-03-23 11:47 | **정렬 로직 안정화** | 조회수/관심 정렬 시 같은 값에 가나다순 2차 정렬 추가, 여울동 힐스테이트 동탄역 데이터 삭제 |
