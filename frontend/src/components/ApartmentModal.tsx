@@ -289,7 +289,7 @@ export function FieldReportModal({
                             }
                             // 층 필터 (동적 기준)
                             if (txFilterFloor !== 'ALL') {
-                              const f = parseInt(tx.floor);
+                              const f = Number(tx.floor);
                               const allFloors = transactions.map(tt => Number(tt.floor)).filter(ff => !Number.isNaN(ff));
                               const mxF = Math.max(...allFloors, 1);
                               const lc = Math.floor(mxF / 3);
