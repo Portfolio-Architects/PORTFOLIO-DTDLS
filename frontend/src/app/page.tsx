@@ -3,7 +3,7 @@
 import { 
   Building, MapPin, Map as MapIcon, Compass, MessageSquare, Heart, X, FileText,
   LayoutDashboard, UserCircle, Star, Link2, Trash2, LogOut,
-  Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil
+  Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil, ChevronDown
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -82,6 +82,23 @@ export default function Dashboard() {
   // Dong filter state
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
   const [listSort, setListSort] = useState<'views' | 'likes' | 'name'>('views');
+  const [showFullName, setShowFullName] = useState(false);
+  const [listHeight, setListHeight] = useState(600);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const updateHeight = () => {
+        if (window.innerWidth >= 768) {
+          setListHeight(Math.max(400, window.innerHeight - 128 - 65)); // 100vh - 8rem(128px) - filterBar(65px)
+        } else {
+          setListHeight(600);
+        }
+      };
+      updateHeight();
+      window.addEventListener('resize', updateHeight);
+      return () => window.removeEventListener('resize', updateHeight);
+    }
+  }, []);
 
   // Mobile modal: only open when user explicitly taps an apartment
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
@@ -357,11 +374,22 @@ export default function Dashboard() {
         setIsLoadingDetail(false);
       });
       // Track view (fire-and-forget, non-blocking)
-      fetch('/api/report-view', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reportId: selectedReport.id, userEmail: user?.email }),
-      }).catch(() => {}); // silently ignore errors
+      const trackView = () => {
+        fetch('/api/report-view', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reportId: selectedReport.id, userEmail: user?.email }),
+        }).catch(() => {}); // silently ignore errors
+      };
+
+      if (user) {
+        user.getIdTokenResult().then(idTokenResult => {
+          // 관리자 권한(admin claim)이 있으면 조회수 집계를 건너뜀
+          if (!idTokenResult.claims.admin) trackView();
+        }).catch(() => trackView());
+      } else {
+        trackView();
+      }
     } else {
       setFullReportData(null);
       setIsLoadingDetail(false);
@@ -490,18 +518,32 @@ export default function Dashboard() {
               )}
             </div>
             {/* 2행: 서브타이틀 */}
-            <p className="text-sm sm:text-base text-[#8b95a1] font-medium">
-              <span className="text-[#191f28] font-extrabold">D-VIEW</span> : <span className="text-[#191f28] font-bold">D</span>ongtan <span className="text-[#191f28] font-bold">V</span>alue <span className="text-[#191f28] font-bold">I</span>nsight &amp; <span className="text-[#191f28] font-bold">E</span>valuation <span className="text-[#191f28] font-bold">W</span>indow · 실거래가 · 가치측정 · 현장 검증 사진
-            </p>
+            <div className="text-sm sm:text-base text-[#8b95a1] font-medium flex items-center gap-1 flex-wrap">
+              <button 
+                onClick={() => setShowFullName(!showFullName)} 
+                className="text-[#191f28] font-extrabold hover:text-[#3182f6] transition-colors focus:outline-none flex items-center gap-1 group"
+                aria-expanded={showFullName}
+              >
+                D-VIEW
+                <ChevronDown size={14} className={`transition-transform duration-300 text-[#d1d6db] group-hover:text-[#3182f6] ${showFullName ? 'rotate-180' : ''}`} />
+              </button>
+              <span className="mx-0.5">:</span>
+              <div 
+                className={`overflow-hidden transition-[max-width,opacity,margin] duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] whitespace-nowrap flex items-center h-full ${showFullName ? 'max-w-[500px] opacity-100 mr-1' : 'max-w-0 opacity-0 mr-0'}`}
+              >
+                <span className="text-[#191f28] font-bold">D</span>ongtan <span className="text-[#191f28] font-bold px-[0.5px]">V</span>alue <span className="text-[#191f28] font-bold px-[0.5px]">I</span>nsight &amp; <span className="text-[#191f28] font-bold px-[0.5px]">E</span>valuation <span className="text-[#191f28] font-bold px-[0.5px]">W</span>indow
+              </div>
+              <span className="shrink-0">{showFullName ? '· ' : ''}실거래가 · 가치측정 · 현장 검증 사진</span>
+            </div>
           </div>
 
 
 
 
           {/* ── 마스터-디테일 레이아웃 ── */}
-          <div className="flex flex-col md:flex-row">
+          <div className="flex flex-col md:flex-row md:bg-white md:rounded-2xl md:border md:border-[#e5e8eb] md:shadow-sm">
             {/* LEFT: 아파트 리스트 (1/3) */}
-            <div className="w-full md:w-[380px] md:shrink-0 md:sticky md:top-16 md:self-start md:max-h-[calc(100vh-8rem)] md:overflow-y-auto md:overflow-x-hidden custom-scrollbar [&::-webkit-scrollbar]:hidden md:border-r md:border-[#e5e8eb] md:rounded-tl-2xl md:rounded-bl-2xl">
+            <div className="w-full md:w-[380px] md:shrink-0 md:sticky md:top-16 md:self-start md:h-[calc(100vh-8rem)] md:border-r md:border-[#e5e8eb] flex flex-col overflow-hidden bg-white rounded-2xl md:rounded-l-2xl md:rounded-r-none">
           {(() => {
             // 전체: 모든 아파트 플랫 리스트 / 특정 동: 해당 동만
             const allApts = selectedDong 
@@ -527,7 +569,7 @@ export default function Dashboard() {
             return (
               <>
                 {/* 아파트 리스트 */}
-                <div className="bg-white md:rounded-none md:border-0 rounded-2xl border border-[#e5e8eb] overflow-hidden">
+                <div className="bg-white md:rounded-none md:border-0 border border-[#e5e8eb] overflow-hidden flex-1 flex flex-col">
                   {/* 통합 필터 바 — 리스트 상단에 고정 */}
                   <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-[#f2f4f6] px-3 py-2.5">
                     <DongFilterBar
@@ -541,7 +583,7 @@ export default function Dashboard() {
                     />
                   </div>
                   <FixedSizeList
-                    height={Math.min(sorted.length * 72, 600)}
+                    height={typeof window !== 'undefined' && window.innerWidth >= 768 ? listHeight : Math.min(sorted.length * 72, 600)}
                     itemCount={sorted.length}
                     itemSize={72}
                     width="100%"
@@ -599,7 +641,7 @@ export default function Dashboard() {
             </div>
 
             {/* RIGHT: 인라인 디테일 패널 (2/3, 데스크톱 전용) */}
-            <div className="hidden md:block flex-1 md:sticky md:top-16 md:self-start md:h-[calc(100vh-8rem)] md:rounded-r-2xl md:overflow-hidden">
+            <div className="hidden md:block flex-1 md:sticky md:top-16 md:self-start md:h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden rounded-tr-2xl rounded-br-2xl custom-scrollbar">
               {selectedReport ? (
                 <FieldReportModal 
                   report={fullReportData || selectedReport} 

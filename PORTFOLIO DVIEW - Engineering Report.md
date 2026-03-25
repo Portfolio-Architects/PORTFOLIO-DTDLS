@@ -1,5 +1,5 @@
 # 📋 PORTFOLIO D-VIEW — Engineering Report
-> **Date**: 2026-03-24 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
+> **Date**: 2026-03-25 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
 
 
 ---
@@ -30,10 +30,10 @@
 
 ## 3. Codebase Metrics
 
-- **Source Files**: 96개 (src/)
-- **LOC**: ~18,400
-- **Components**: 21개 (Card, Modal, Chart, Consumer, Admin 등)
-- **API Routes**: 12개
+- **Source Files**: 101개 (src/)
+- **LOC**: ~19,200
+- **Components**: 23개 (Card, Modal, Chart, Consumer, Admin, Map 등)
+- **API Routes**: 13개
 - **Repositories**: 7개 핵심 모듈 (apartment·comment·post·purchase·report·review·user)
 - **Admin Pages**: 3개 (대시보드, 아파트 상세, 종합 보고서)
 - **Test Suites**: 5개 / 45 assertions 전수 통과
@@ -75,8 +75,8 @@ src/
 │   └── page.tsx          # 메인 페이지
 ├── components/
 │   ├── admin/            # ReportEditorForm 등 관리자 전용
-│   ├── consumer/         # AdvancedValuationMetrics, DynamicSimulator, PropertyScoreChart 등
-│   ├── dashboard/        # 대시보드 위젯
+│   ├── consumer/         # AdvancedValuationMetrics, RawMetricsSection, DynamicSimulator 등
+│   ├── map/              # GoogleMap, MapProvider
 │   └── ui/               # ApartmentModal, Card, Filter, Comment
 └── lib/
     ├── repositories/     # Firebase DAO
@@ -98,6 +98,7 @@ src/
 | **Admin** | Sheets 동기화 | /api/admin/* | 일괄 업데이트 |
 | **Admin** | 종합 보고서 | /admin/report | SSOT 리포트 |
 | **Admin** | 트래픽 분석 탭 | scoutingReports | 단지별 조회수·관심 집계 |
+| **Inspection** | Raw 인프라 메트릭스 | scoutingReports | 반경 500m 실측 거리 데이터 전수 공개 |
 | **Analytics** | Signal Map | MindMap3D | 3D 지식 그래프 |
 
 ---
@@ -117,7 +118,7 @@ src/
 | 테스트 | **B+** | Jest 45 assertions / 5 suites (apartmentMapping·haversine·valuation·dongs·scoring) |
 | 보안 | **B+** | Firebase Auth (Google OAuth), Admin 권한 분리, CSP Report-Only 헤더, credentials.json gitignore |
 | DevOps / CI | **B+** | GitHub Actions CI (Lint→TypeCheck→Jest→Build), Vercel 자동 배포 |
-| 컴포넌트 크기 | **A-** | page.tsx 853줄, ApartmentModal 1,087줄 (consumer 서브 컴포넌트 5개 분리 완료) |
+| 컴포넌트 크기 | **A-** | page.tsx 853줄, ApartmentModal 1,087줄 (consumer 서브 컴포넌트 7개 분리 완료) |
 
 ---
 
@@ -169,6 +170,9 @@ src/
 
 | 일시 | 항목 | 내용 |
 |:---|:---|:---|
+| 2026-03-25 16:50 | **단지 상세 레이아웃 통합 개편** | 기본정보+입지인프라+앵커테넌트 → 상단 Hero 블록 통합, 스티키 탭 네비 [AI 밸류에이션·현장사진·이야기] 재구성, 준공연도 YYYY년 MM월 포맷, 주차 소수점 2자리 |
+| 2026-03-25 16:50 | **Raw 인프라 메트릭스 소비자 공개** | LocationPremiumSection 삭제 → RawMetricsSection 신규 (report.metrics 반경 500m 실측 거리 전수 공개) |
+| 2026-03-25 17:45 | **개발 서버 사내망 노출 차단** | `package.json` dev 스크립트에 `-H 127.0.0.1` 옵션 추가 (사내망 IP 바인딩 방지 및 추적 불가 목적) |
 | 2026-03-24 17:48 | **가치분석 가격 테이블 및 평형별 UI 고도화** | 1M~ALL 기간별 평균가/변동률 가로 테이블 개편(전체기간 평균 기준), 평형별 최근 거래가 카드 층수/평당가 추가 및 디자인 통일, D-VIEW 타이틀 부제 변경 |
 | 2026-03-24 16:45 | **단지 상세 통합 폼 리팩터링** | Meta + ReportEditorForm을 3섹션(기본정보·입지분석·현장사진) 통합 폼으로 병합, 6개 중복 필드 제거, 통합 저장(Sheets+Firestore) |
 | 2026-03-24 16:38 | **비용 모니터링 패널** | 트래픽 탭에 Google Maps·Firebase·Vercel 비용 콘솔 바로가기 + 무료 한도 표시 추가 |

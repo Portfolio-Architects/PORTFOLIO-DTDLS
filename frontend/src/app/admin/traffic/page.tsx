@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Eye, Heart, BarChart2, ExternalLink, CreditCard } from 'lucide-react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 
 interface TrafficRow {
@@ -15,6 +15,7 @@ interface TrafficRow {
 export default function TrafficPage() {
   const [trafficData, setTrafficData] = useState<TrafficRow[]>([]);
   const [trafficSort, setTrafficSort] = useState<'viewCount' | 'likes'>('viewCount');
+  const [selectedDong, setSelectedDong] = useState<string>('전체');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -59,15 +60,51 @@ export default function TrafficPage() {
     })();
   }, []);
 
-  const sortedData = useMemo(() =>
-    [...trafficData].sort((a, b) => b[trafficSort] - a[trafficSort]),
-    [trafficData, trafficSort]
-  );
+  const handleReset = async () => {
+    if (!confirm('경고: 정말 모든 단지의 조회수와 관심 기록을 0으로 초기화하시겠습니까?')) return;
+    setLoading(true);
+    try {
+      const batch = writeBatch(db);
+      
+      // 1. Reset scoutingReports
+      const snap = await getDocs(collection(db, 'scoutingReports'));
+      snap.docs.forEach(d => {
+        batch.update(d.ref, { viewCount: 0, likes: 0 });
+      });
 
-  const maxViews = Math.max(...trafficData.map(r => r.viewCount), 1);
-  const maxLikes = Math.max(...trafficData.map(r => r.likes), 1);
-  const totalViews = trafficData.reduce((s, r) => s + r.viewCount, 0);
-  const totalLikes = trafficData.reduce((s, r) => s + r.likes, 0);
+      // 2. Delete apartmentViews documents
+      const aptViewSnap = await getDocs(collection(db, 'apartmentViews')).catch(() => null);
+      if (aptViewSnap) {
+        aptViewSnap.docs.forEach(d => batch.delete(d.ref));
+      }
+
+      await batch.commit();
+
+      // Reset local state
+      setTrafficData(prev => prev.map(r => ({ ...r, viewCount: 0, likes: 0 })));
+      alert('모든 트래픽 데이터가 초기화되었습니다.');
+    } catch (e: any) {
+      console.error(e);
+      alert('초기화 중 오류 발생: ' + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const dongs = useMemo(() => Array.from(new Set(trafficData.map(r => r.dong))).filter(Boolean).sort(), [trafficData]);
+
+  const sortedData = useMemo(() => {
+    let base = trafficData;
+    if (selectedDong !== '전체') {
+      base = base.filter(r => r.dong === selectedDong);
+    }
+    return [...base].sort((a, b) => b[trafficSort] - a[trafficSort]);
+  }, [trafficData, trafficSort, selectedDong]);
+
+  const maxViews = Math.max(...sortedData.map(r => r.viewCount), 1);
+  const maxLikes = Math.max(...sortedData.map(r => r.likes), 1);
+  const totalViews = sortedData.reduce((s, r) => s + r.viewCount, 0);
+  const totalLikes = sortedData.reduce((s, r) => s + r.likes, 0);
 
   return (
     <div className="animate-in fade-in duration-300">
@@ -77,16 +114,35 @@ export default function TrafficPage() {
           <h1 className="text-2xl md:text-3xl font-bold text-[#191f28] tracking-tight mb-2">트래픽 분석</h1>
           <p className="text-[#4e5968] text-[14px]">임장 리포트 기반 조회수 · 관심 수 집계</p>
         </div>
-        <div className="flex gap-1.5">
-          {(['viewCount', 'likes'] as const).map(k => (
-            <button key={k} onClick={() => setTrafficSort(k)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all ${
-                trafficSort === k ? 'bg-[#191f28] text-white shadow-sm' : 'bg-white border border-[#e5e8eb] text-[#4e5968] hover:bg-[#f2f4f6]'
-              }`}>
-              {k === 'viewCount' ? <><Eye size={14}/> 조회수</> : <><Heart size={14}/> 관심</>}
-            </button>
-          ))}
+        <div className="flex items-center gap-4">
+          <button onClick={handleReset} className="px-3 py-2 text-[12px] font-bold text-[#f04452] bg-[#ffebec] hover:bg-[#f04452] hover:text-white rounded-lg transition-colors shadow-sm">
+            데이터 전체 초기화
+          </button>
+          <div className="flex gap-1.5 border-l border-[#e5e8eb] pl-4">
+            {(['viewCount', 'likes'] as const).map(k => (
+              <button key={k} onClick={() => setTrafficSort(k)}
+                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all ${
+                  trafficSort === k ? 'bg-[#191f28] text-white shadow-sm' : 'bg-white border border-[#e5e8eb] text-[#4e5968] hover:bg-[#f2f4f6]'
+                }`}>
+                {k === 'viewCount' ? <><Eye size={14}/> 조회수</> : <><Heart size={14}/> 관심</>}
+              </button>
+            ))}
+          </div>
         </div>
+      </div>
+
+      {/* Dong Tabs */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <button onClick={() => setSelectedDong('전체')} 
+          className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${selectedDong === '전체' ? 'bg-[#3182f6] text-white shadow-sm' : 'bg-white border border-[#e5e8eb] text-[#4e5968] hover:bg-[#f2f4f6]'}`}>
+          전체
+        </button>
+        {dongs.map(dong => (
+          <button key={dong} onClick={() => setSelectedDong(dong)} 
+            className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${selectedDong === dong ? 'bg-[#3182f6] text-white shadow-sm' : 'bg-white border border-[#e5e8eb] text-[#4e5968] hover:bg-[#f2f4f6]'}`}>
+            {dong}
+          </button>
+        ))}
       </div>
 
       {/* Summary Cards */}
@@ -94,9 +150,9 @@ export default function TrafficPage() {
         <div className="bg-white p-4 rounded-2xl border border-[#e5e8eb] shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-1.5 rounded-lg bg-[#e8f3ff] text-[#3182f6]"><BarChart2 size={14}/></div>
-            <span className="text-[11px] font-bold text-[#8b95a1]">전체 단지</span>
+            <span className="text-[11px] font-bold text-[#8b95a1]">선택 단지</span>
           </div>
-          <div className="text-[26px] font-extrabold text-[#3182f6]">{trafficData.length}</div>
+          <div className="text-[26px] font-extrabold text-[#3182f6]">{sortedData.length}</div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-[#e5e8eb] shadow-sm">
           <div className="flex items-center gap-2 mb-2">
@@ -117,7 +173,7 @@ export default function TrafficPage() {
             <div className="p-1.5 rounded-lg bg-[#fff4e6] text-[#ff8a3d]"><Eye size={14}/></div>
             <span className="text-[11px] font-bold text-[#8b95a1]">활성 단지</span>
           </div>
-          <div className="text-[26px] font-extrabold text-[#ff8a3d]">{trafficData.filter(r => r.viewCount > 0 || r.likes > 0).length}</div>
+          <div className="text-[26px] font-extrabold text-[#ff8a3d]">{sortedData.filter(r => r.viewCount > 0 || r.likes > 0).length}</div>
         </div>
       </div>
 

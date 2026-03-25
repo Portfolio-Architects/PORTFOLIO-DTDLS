@@ -483,13 +483,18 @@ export default function ApartmentInfoPage() {
           clean[newName] = {
             dong: meta.dong, txKey: meta.txKey, maxFloor: meta.maxFloor,
             isPublicRental: meta.isPublicRental, ticker: initialMeta.ticker,
+            householdCount: meta.householdCount, yearBuilt: meta.yearBuilt,
+            brand: meta.brand, far: meta.far, bcr: meta.bcr,
+            parkingCount: meta.parkingCount, parkingPerHousehold: meta.parkingPerHousehold,
+            coordinates: meta.coordinates
           };
           await setDoc(doc(db, FIRESTORE_DOC), clean);
         }
       } catch { /* Firestore cache update non-critical */ }
 
       // 3. Upload photos & save scouting report to Firestore
-      if (photos.length > 0 || existingReport) {
+      // 무조건 scoutingReport 문서를 업데이트/생성해야 메트릭이 저장됨
+      if (true) {
         if (!auth.currentUser) throw new Error('로그인이 필요합니다.');
 
         const uploadedImages: ImageMeta[] = [];
@@ -558,7 +563,7 @@ export default function ApartmentInfoPage() {
 
         if (existingReport?.id) {
           await updateScoutingReport(existingReport.id, reportData);
-        } else if (uploadedImages.length > 0) {
+        } else {
           await createScoutingReport(reportData);
         }
         setUploadProgress(null);

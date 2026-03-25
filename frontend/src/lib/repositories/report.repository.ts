@@ -95,6 +95,7 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
     commentCount: data.commentCount || 0,
     imageUrl: data.thumbnailUrl || data.imageUrl,
     images: data.images || [],
+    metrics: data.metrics,
     scoutingDate: data.scoutingDate || '',
     createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
   };
