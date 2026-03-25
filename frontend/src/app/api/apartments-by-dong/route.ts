@@ -66,7 +66,7 @@ export async function GET() {
     const apartments: SheetApartment[] = [];
 
     // Helper to safely extract properties matching header variations
-    const getVal = (row: any, keys: string[]) => {
+    const getVal = (row: { get: (k: string) => string } & Record<string, string>, keys: string[]) => {
       for (const k of keys) {
         // Case-insensitive exactly
         const exact = sheet.headerValues.find(h => h.toLowerCase().trim() === k.toLowerCase().trim());
@@ -134,8 +134,8 @@ export async function GET() {
       dongCount: Object.keys(byDong).length,
       byDong,
     });
-  } catch (err: any) {
-    console.error('[apartments-by-dong] Error:', err.message, err.stack?.split('\n')[1]);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    console.error('[apartments-by-dong] Error:', (err as Error).message, err.stack?.split('\n')[1]);
+    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }
 }

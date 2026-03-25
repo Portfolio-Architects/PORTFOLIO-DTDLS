@@ -42,7 +42,6 @@ async function loadAllCached(): Promise<CachedData> {
     return _cache;
   }
 
-  console.log('[LOCATION_SCORES] Cache miss — fetching all sheets...');
   const [apartments, schools, stations, academies, restaurants] = await Promise.all([
     loadApartments(),
     loadSchools(),
@@ -53,7 +52,6 @@ async function loadAllCached(): Promise<CachedData> {
 
   _cache = { apartments, schools, stations, academies, restaurants };
   _cacheTimestamp = now;
-  console.log(`[LOCATION_SCORES] Cache populated: ${apartments.length} apts, ${academies.length} academies, ${restaurants.length} restaurants`);
   return _cache;
 }
 
@@ -231,7 +229,6 @@ export async function GET(request: NextRequest) {
     if (forceRefresh) {
       _cache = null;
       _cacheTimestamp = 0;
-      console.log('[LOCATION_SCORES] Cache forcefully invalidated by refresh param');
     }
 
     // Load from cache (or fetch & cache if stale/empty)
@@ -354,7 +351,7 @@ export async function GET(request: NextRequest) {
       headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=172800' },
     });
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Unknown error';
+    const msg = error instanceof Error ? (error as Error).message : 'Unknown error';
     console.error('[LOCATION_SCORES] Error:', msg);
     return NextResponse.json(
       { error: 'Failed to calculate location scores', detail: msg },

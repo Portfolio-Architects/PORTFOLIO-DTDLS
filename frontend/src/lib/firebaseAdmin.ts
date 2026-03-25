@@ -13,13 +13,11 @@ if (!admin.apps.length) {
     const serviceAccount = JSON.parse(serviceAccountRaw);
     
     credential = admin.credential.cert(serviceAccount);
-    console.log('Firebase Admin initialized with local serviceAccountKey.json');
   } catch (error) {
     // 2. Fallback to an environment variable (for production/Vercel)
     if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
       try {
         credential = admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY));
-        console.log('Firebase Admin initialized with FIREBASE_SERVICE_ACCOUNT_KEY env var.');
       } catch (parseError) {
         console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY JSON.');
       }

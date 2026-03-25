@@ -49,7 +49,7 @@ export default function TrafficPage() {
         // Merge with apartment list
         const rows = Object.keys(aptMeta).map(name => ({
           name,
-          dong: (aptMeta[name] as any)?.dong || '',
+          dong: (aptMeta[name] as Record<string, unknown>)?.dong || '',
           viewCount: viewMap[name] || 0,
           likes: likeMap[name] || 0,
         }));
@@ -83,9 +83,9 @@ export default function TrafficPage() {
       // Reset local state
       setTrafficData(prev => prev.map(r => ({ ...r, viewCount: 0, likes: 0 })));
       alert('모든 트래픽 데이터가 초기화되었습니다.');
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      alert('초기화 중 오류 발생: ' + e.message);
+      alert('초기화 중 오류 발생: ' + (e as Error).message);
     } finally {
       setLoading(false);
     }

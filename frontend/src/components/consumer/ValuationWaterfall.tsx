@@ -56,7 +56,8 @@ export default function ValuationWaterfall({ scores, price84Man }: Props) {
                 <YAxis tick={{ fill: '#8b95a1', fontSize: 10 }} axisLine={false} tickLine={false} width={32} domain={[0, 'auto']} />
                 <Tooltip
                   contentStyle={{ borderRadius: 10, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontSize: 13, fontWeight: 700 }}
-                  formatter={(value: any, name: any, entry: any) => {
+                  // @ts-expect-error recharts type match
+              formatter={(value: number | string | undefined, name: string | undefined, entry: unknown) => {
                     const d = entry.payload;
                     if (d.isTotal) return [`${value}점 (종합)`, ''];
                     return [`${value}점 (가중치 ${Math.round((d.rawWeight || 0) * 100)}%)`, ''];

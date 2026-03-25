@@ -113,16 +113,16 @@ export default function AdminDashboard() {
         // Parse the grouped byDong data
         if (data.byDong) {
           for (const [dong, apts] of Object.entries(data.byDong)) {
-            (apts as any[]).forEach(apt => {
+            (apts as Record<string, unknown>[]).forEach(apt => {
               sheetMap[apt.name] = {
-                dong: apt.dong,
-                txKey: apt.txKey || autoSuggest(apt.name) || undefined,
-                maxFloor: apt.maxFloor || 0,
-                isPublicRental: apt.isPublicRental || false,
-                householdCount: apt.householdCount,
-                yearBuilt: apt.yearBuilt,
-                brand: apt.brand,
-                ticker: apt.ticker, // Crucial for Write API
+                dong: (apt as Record<string, string>)?.dong,
+                txKey: (apt as Record<string, string>)?.txKey || autoSuggest(apt.name) || undefined,
+                maxFloor: (apt as Record<string, number>)?.maxFloor || 0,
+                isPublicRental: (apt as Record<string, boolean>)?.isPublicRental || false,
+                householdCount: (apt as Record<string, number>)?.householdCount,
+                yearBuilt: (apt as Record<string, string>)?.yearBuilt,
+                brand: (apt as Record<string, string>)?.brand,
+                ticker: (apt as Record<string, string>)?.ticker, // Crucial for Write API
               };
             });
           }
@@ -136,7 +136,7 @@ export default function AdminDashboard() {
         try {
           const metaDoc = await getDoc(doc(db, 'settings/apartmentMeta'));
           if (metaDoc.exists()) {
-            const data = metaDoc.data() as Record<string, any>;
+            const data = metaDoc.data() as Record<string, unknown>;
             const fbMap: MetaMap = {};
             for (const [name, m] of Object.entries(data)) {
               if (m && typeof m === 'object' && m.dong) {
@@ -183,7 +183,7 @@ export default function AdminDashboard() {
     setSaving(true);
     try {
       // 1. Calculate diffs for Google Sheets
-      const syncPayload: { updates: any[], adds: any[], deletes: string[] } = {
+      const syncPayload: { updates: unknown[], adds: unknown[], deletes: string[] } = {
         updates: [],
         adds: [],
         deletes: Array.from(deletedApts)
@@ -302,9 +302,9 @@ export default function AdminDashboard() {
       setDeletedApts(new Set());
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Save failed:', e);
-      alert('저장에 실패했습니다: ' + e.message);
+      alert('저장에 실패했습니다: ' + (e as Error).message);
     }
     setSaving(false);
   };

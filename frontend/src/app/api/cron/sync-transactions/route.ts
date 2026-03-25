@@ -78,7 +78,7 @@ export async function GET() {
     for (const ym of Array.from(monthsToSync).sort()) {
       let page = 1;
       let totalCount = 0;
-      const monthRecords: any[] = [];
+      const monthRecords: unknown[] = [];
 
       do {
         const url = `${API_BASE}?serviceKey=${API_KEY}&LAWD_CD=${LAWD_CD}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000`;
@@ -170,8 +170,8 @@ export async function GET() {
       months: Array.from(monthsToSync),
       log: syncLog,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Sync error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }

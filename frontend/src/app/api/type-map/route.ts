@@ -52,8 +52,8 @@ export async function GET() {
     return NextResponse.json({ entries, source: 'sheet' }, {
       headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=172800' },
     });
-  } catch (error: any) {
-    console.error('[TYPE_MAP] Error:', error.message);
+  } catch (error: unknown) {
+    console.error('[TYPE_MAP] Error:', (error as Error).message);
     return NextResponse.json({ entries: FALLBACK_MAP, source: 'fallback' });
   }
 }

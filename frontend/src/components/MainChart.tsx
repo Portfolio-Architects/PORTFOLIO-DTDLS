@@ -74,7 +74,8 @@ export default function MainChart() {
             contentStyle={{ backgroundColor: 'rgba(25, 31, 40, 0.9)', borderRadius: '8px', border: 'none', color: '#fff' }}
             itemStyle={{ color: '#fff' }}
             labelStyle={{ color: '#8b95a1', marginBottom: '4px' }}
-            formatter={(value: any) => [`${Number(value).toLocaleString()} 만원`, '실거래가']}
+            // @ts-expect-error recharts type match
+              formatter={(value: number | string | undefined) => [`${Number(value).toLocaleString()} 만원`, '실거래가']}
           />
           <Area 
             type="monotone" 

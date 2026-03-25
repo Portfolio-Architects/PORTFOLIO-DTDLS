@@ -5,6 +5,7 @@ import {
   LayoutDashboard, UserCircle, Star, Link2, Trash2, LogOut,
   Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil, ChevronDown
 } from 'lucide-react';
+import { logger } from '@/lib/services/logger';
 import Image from 'next/image';
 
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
@@ -120,7 +121,7 @@ export default function Dashboard() {
           setSheetApartments(data.byDong);
         }
       })
-      .catch(() => {}); // 실패 시 정적 폴백 유지
+      .catch((err) => { logger.warn('Dashboard', 'Failed to fetch apartments, falling back to static', {}, err); }); // 실패 시 정적 폴백 유지
   }, []);
 
   // 거래내역, 평/면적 토글 상태
@@ -159,9 +160,9 @@ export default function Dashboard() {
         const mapping: Record<string, string> = {};
         const rentals = new Set<string>();
         for (const [name, meta] of Object.entries(data.apartmentMeta)) {
-          if (!meta || typeof meta !== 'object' || !(meta as any).dong) continue;
-          if ((meta as any).txKey) mapping[name] = (meta as any).txKey;
-          if ((meta as any).isPublicRental) rentals.add(name);
+          if (!meta || typeof meta !== 'object' || !(meta as Record<string, unknown>).dong) continue;
+          if ((meta as Record<string, string>).txKey) mapping[name] = (meta as Record<string, string>).txKey;
+          if ((meta as Record<string, unknown>).isPublicRental) rentals.add(name);
         }
         setNameMapping(mapping);
         setPublicRentalSet(rentals);
@@ -207,7 +208,7 @@ export default function Dashboard() {
     if (user) {
       fetch(`/api/favorite?userId=${user.uid}`).then(r => r.json()).then(data => {
         if (data.favorites) setUserFavorites(new Set(data.favorites));
-      }).catch(() => {});
+      }).catch((err) => { logger.warn('Dashboard', 'Failed to fetch favorites', { userId: user.uid }, err); });
     } else {
       setUserFavorites(new Set());
     }
@@ -379,7 +380,7 @@ export default function Dashboard() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ reportId: selectedReport.id, userEmail: user?.email }),
-        }).catch(() => {}); // silently ignore errors
+        }).catch((err) => { logger.error('Dashboard', 'View tracking failed', { reportId: selectedReport.id }, err); }); // silently ignore errors
       };
 
       if (user) {

@@ -12,7 +12,7 @@ export async function GET() {
       dong: doc.data().dong
     }));
     return NextResponse.json({ count: reports.length, reports });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }

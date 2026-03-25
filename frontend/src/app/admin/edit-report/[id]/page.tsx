@@ -11,7 +11,7 @@ import { MapPin } from 'lucide-react';
 export default function EditReportPage() {
   const params = useParams();
   const id = params.id as string;
-  const [initialData, setInitialData] = useState<any>(null);
+  const [initialData, setInitialData] = useState<FormValues | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

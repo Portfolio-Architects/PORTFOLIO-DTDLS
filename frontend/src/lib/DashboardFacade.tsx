@@ -48,7 +48,7 @@ export interface DashboardDataStrategy {
   getAdBanner(): AdBannerData;
   subscribe?(callback: () => void): () => void;
   addPost?(title: string, category: string, authorUid: string, imageFile?: File): Promise<void>;
-  addFieldReport?(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void): Promise<void>;
+  addFieldReport?(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number>, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void): Promise<void>;
   addFieldReportComment?(reportId: string, text: string, authorUid: string): Promise<void>;
   incrementLike?(postId: string): Promise<void>;
   incrementFieldReportLike?(reportId: string): Promise<void>;
@@ -98,9 +98,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     this.cleanupFns.push(stopPosts);
 
     const stopReports = ReportRepo.listenToReports((reports) => {
-      console.log(`[DashboardFacade] received ${reports?.length} reports from Repo`);
       this.fieldReports = reports;
-      console.log(`[DashboardFacade] updated this.fieldReports to ${this.fieldReports?.length}. Listeners count: ${this.listeners.length}`);
       this.notifyListeners();
     });
     this.cleanupFns.push(stopReports);
@@ -163,13 +161,13 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     try {
       await PostService.createPost(title, category, authorUid, imageFile);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = e instanceof Error ? (e as Error).message : String(e);
       logger.error('DashboardFacade.addPost', 'Post creation failed', { title }, e);
       alert("글 저장 실패! 이유: " + msg);
     }
   }
 
-  async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) {
+  async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number>, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) {
     try {
       const profile = await UserRepo.getOrCreateProfile(authorUid);
       const total = imageEntries.length;
@@ -219,8 +217,8 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
         const mapping = SECTION_MAP[img.category];
         if (mapping) {
           const [section, field] = mapping;
-          if (!(mergedSections[section] as any)[field]) {
-            (mergedSections[section] as any)[field] = img.url;
+          if (!(mergedSections[section] as Record<string, string>)[field]) {
+            (mergedSections[section] as Record<string, string>)[field] = img.url;
           }
         }
       }
@@ -240,7 +238,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
       });
       logger.info('DashboardFacade.addFieldReport', 'Field report created', { apartmentName, imageCount: images.length });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = e instanceof Error ? (e as Error).message : String(e);
       logger.error('DashboardFacade.addFieldReport', 'Failed', { apartmentName }, e);
       alert('임장기 저장 실패! 이유: ' + msg);
     }
@@ -251,7 +249,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
       const profile = await UserRepo.getOrCreateProfile(authorUid);
       await CommentRepo.addComment(reportId, text, profile.nickname, authorUid);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = e instanceof Error ? (e as Error).message : String(e);
       logger.error('DashboardFacade.addFieldReportComment', 'Comment failed', { reportId }, e);
       alert("댓글 저장 실패! 이유: " + msg);
     }
@@ -286,7 +284,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
         profile.verifiedApartment, profile.verificationLevel, imageFile
       );
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const msg = e instanceof Error ? (e as Error).message : String(e);
       logger.error('DashboardFacade.addUserReview', 'Review failed', { apartmentName }, e);
       alert('리뷰 저장 실패! 이유: ' + msg);
     }
@@ -330,7 +328,7 @@ export class DashboardFacade {
   public getUserReviews(): UserReview[] { return this.strategy.getUserReviews ? this.strategy.getUserReviews() : []; }
   public getAdBanner(): AdBannerData { return this.strategy.getAdBanner(); }
   public async addPost(title: string, category: string, authorUid: string, imageFile?: File) { if (this.strategy.addPost) await this.strategy.addPost(title, category, authorUid, imageFile); }
-  public async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: any, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) { if (this.strategy.addFieldReport) await this.strategy.addFieldReport(apartmentName, sections, premiumScores, authorUid, imageEntries, onProgress); }
+  public async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number>, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) { if (this.strategy.addFieldReport) await this.strategy.addFieldReport(apartmentName, sections, premiumScores, authorUid, imageEntries, onProgress); }
   public async addFieldReportComment(reportId: string, text: string, authorUid: string) { if (this.strategy.addFieldReportComment) await this.strategy.addFieldReportComment(reportId, text, authorUid); }
   public async addUserReview(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File) { if (this.strategy.addUserReview) await this.strategy.addUserReview(apartmentName, rating, content, authorUid, imageFile); }
   public listenToComments(reportId: string, callback: (comments: CommentData[]) => void) { return this.strategy.listenToComments ? this.strategy.listenToComments(reportId, callback) : () => {}; }

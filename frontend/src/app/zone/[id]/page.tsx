@@ -22,7 +22,7 @@ export default function ZoneDetailPage() {
   const [user, setUser] = useState<User | null>(null);
 
   // Comments state for modal
-  const [commentsData, setCommentsData] = useState<Record<string, any[]>>({});
+  const [commentsData, setCommentsData] = useState<Record<string, unknown[]>>({});
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
 
   useEffect(() => {

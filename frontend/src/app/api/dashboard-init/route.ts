@@ -18,7 +18,7 @@ export async function GET() {
   const result: {
     favoriteCounts: Record<string, number>;
     typeMap: { aptName: string; area: string; typeM2: string; typePyeong: string }[];
-    apartmentMeta: Record<string, any>;
+    apartmentMeta: Record<string, unknown>;
   } = {
     favoriteCounts: {},
     typeMap: [],

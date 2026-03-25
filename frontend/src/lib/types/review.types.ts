@@ -29,5 +29,5 @@ export interface UserReview {
   /** 좋아요 수 */
   likes: number;
   /** 작성 시각 */
-  createdAt: any;
+  createdAt?: unknown;
 }

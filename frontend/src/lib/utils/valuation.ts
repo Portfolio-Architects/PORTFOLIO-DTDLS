@@ -150,7 +150,7 @@ export function getValuationBreakdown(
   brandName?: string,
 ): ValuationBreakdown {
   const items: WaterfallItem[] = AREA_CONFIG.map(area => {
-    const rawScore = (scores as any)[area.key] ?? 0;
+    const rawScore = (scores as unknown as Record<string, number>)[area.key] ?? 0;
     const weight = customWeights?.[area.key] ?? area.weight;
     return {
       name: area.name,

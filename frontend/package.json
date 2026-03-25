@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -H 127.0.0.1",
+    "dev": "next dev -H localhost -p 3001",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -35,6 +35,8 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -43,6 +45,7 @@
     "eslint-config-next": "16.1.6",
     "iconv-lite": "^0.7.2",
     "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0",
     "tailwindcss": "^4.2.1",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",

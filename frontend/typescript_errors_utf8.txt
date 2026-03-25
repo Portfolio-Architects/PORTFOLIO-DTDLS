@@ -1,0 +1,217 @@
+﻿src/app/admin/apartments/[name]/page.tsx(205,47): error TS2339: Property 'dong' does not exist on type 'object'.
+src/app/admin/apartments/[name]/page.tsx(207,23): error TS2339: Property 'dong' does not exist on type 'object'.
+src/app/admin/apartments/[name]/page.tsx(207,38): error TS2339: Property 'txKey' does not exist on type 'object'.
+src/app/admin/apartments/[name]/page.tsx(208,27): error TS2339: Property 'maxFloor' does not exist on type 'object'.
+src/app/admin/apartments/[name]/page.tsx(208,60): error TS2339: Property 'isPublicRental' does not exist on type 'object'.
+src/app/admin/apartments/[name]/page.tsx(209,33): error TS2339: Property 'householdCount' does not exist on type 'object'.
+src/app/admin/apartments/[name]/page.tsx(209,62): error TS2339: Property 'yearBuilt' does not exist on type 'object'.
+src/app/admin/apartments/[name]/page.tsx(210,24): error TS2339: Property 'brand' does not exist on type 'object'.
+src/app/admin/apartments/[name]/page.tsx(210,41): error TS2339: Property 'ticker' does not exist on type 'object'.
+src/app/admin/apartments/[name]/page.tsx(211,22): error TS2339: Property 'far' does not exist on type 'object'.
+src/app/admin/apartments/[name]/page.tsx(211,34): error TS2339: Property 'bcr' does not exist on type 'object'.
+src/app/admin/apartments/[name]/page.tsx(211,55): error TS2339: Property 'parkingCount' does not exist on type 'object'.
+src/app/admin/apartments/[name]/page.tsx(212,38): error TS2339: Property 'parkingPerHousehold' does not exist on type 'object'.
+src/app/admin/apartments/[name]/page.tsx(212,74): error TS2339: Property 'coordinates' does not exist on type 'object'.
+src/app/admin/apartments/[name]/page.tsx(235,27): error TS2339: Property 'dong' does not exist on type '{ name: string; }'.
+src/app/admin/apartments/[name]/page.tsx(235,44): error TS2339: Property 'txKey' does not exist on type '{ name: string; }'.
+src/app/admin/apartments/[name]/page.tsx(235,78): error TS2339: Property 'maxFloor' does not exist on type '{ name: string; }'.
+src/app/admin/apartments/[name]/page.tsx(236,37): error TS2339: Property 'isPublicRental' does not exist on type '{ name: string; }'.
+src/app/admin/apartments/[name]/page.tsx(236,82): error TS2339: Property 'householdCount' does not exist on type '{ name: string; }'.
+src/app/admin/apartments/[name]/page.tsx(237,32): error TS2339: Property 'yearBuilt' does not exist on type '{ name: string; }'.
+src/app/admin/apartments/[name]/page.tsx(237,54): error TS2339: Property 'brand' does not exist on type '{ name: string; }'.
+src/app/admin/apartments/[name]/page.tsx(237,73): error TS2339: Property 'ticker' does not exist on type '{ name: string; }'.
+src/app/admin/apartments/[name]/page.tsx(238,26): error TS2339: Property 'far' does not exist on type '{ name: string; }'.
+src/app/admin/apartments/[name]/page.tsx(238,40): error TS2339: Property 'bcr' does not exist on type '{ name: string; }'.
+src/app/admin/apartments/[name]/page.tsx(238,63): error TS2339: Property 'parkingCount' does not exist on type '{ name: string; }'.
+src/app/admin/apartments/[name]/page.tsx(239,35): error TS2339: Property 'lat' does not exist on type '{ name: string; }'.
+src/app/admin/apartments/[name]/page.tsx(239,46): error TS2339: Property 'lng' does not exist on type '{ name: string; }'.
+src/app/admin/apartments/[name]/page.tsx(239,60): error TS2339: Property 'lat' does not exist on type '{ name: string; }'.
+src/app/admin/apartments/[name]/page.tsx(239,72): error TS2339: Property 'lng' does not exist on type '{ name: string; }'.
+src/app/admin/apartments/[name]/page.tsx(290,59): error TS2352: Conversion of type 'ObjectiveMetrics' to type 'Record<string, number>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'ObjectiveMetrics'.
+src/app/admin/apartments/[name]/page.tsx(299,16): error TS2352: Conversion of type 'ObjectiveMetrics' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'ObjectiveMetrics'.
+src/app/admin/apartments/[name]/page.tsx(300,30): error TS2345: Argument of type '(prev: { academyCategories?: Record<string, number> | undefined; restaurantCategories?: Record<string, number> | undefined; nearestSchoolNames?: { elementary?: string | undefined; middle?: string | undefined; high?: string | undefined; } | undefined; nearestStationName?: string | undefined; }) => { ...; }' is not assignable to parameter of type 'SetStateAction<{ academyCategories?: Record<string, number> | undefined; restaurantCategories?: Record<string, number> | undefined; nearestSchoolNames?: { elementary?: string | undefined; middle?: string | undefined; high?: string | undefined; } | undefined; nearestStationName?: string | undefined; }>'.
+  Type '(prev: { academyCategories?: Record<string, number> | undefined; restaurantCategories?: Record<string, number> | undefined; nearestSchoolNames?: { elementary?: string | undefined; middle?: string | undefined; high?: string | undefined; } | undefined; nearestStationName?: string | undefined; }) => { ...; }' is not assignable to type '(prevState: { academyCategories?: Record<string, number> | undefined; restaurantCategories?: Record<string, number> | undefined; nearestSchoolNames?: { elementary?: string | undefined; middle?: string | undefined; high?: string | undefined; } | undefined; nearestStationName?: string | undefined; }) => { ...; }'.
+    Call signature return types '{ academyCategories: unknown; restaurantCategories: unknown; nearestSchoolNames: unknown; nearestStationName: unknown; }' and '{ academyCategories?: Record<string, number> | undefined; restaurantCategories?: Record<string, number> | undefined; nearestSchoolNames?: { elementary?: string | undefined; middle?: string | undefined; high?: string | undefined; } | undefined; nearestStationName?: string | undefined; }' are incompatible.
+      The types of 'academyCategories' are incompatible between these types.
+        Type 'unknown' is not assignable to type 'Record<string, number> | undefined'.
+src/app/admin/apartments/[name]/page.tsx(302,35): error TS2352: Conversion of type 'ObjectiveMetrics' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'ObjectiveMetrics'.
+src/app/admin/apartments/[name]/page.tsx(303,38): error TS2352: Conversion of type 'ObjectiveMetrics' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'ObjectiveMetrics'.
+src/app/admin/apartments/[name]/page.tsx(304,36): error TS2352: Conversion of type 'ObjectiveMetrics' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'ObjectiveMetrics'.
+src/app/admin/apartments/[name]/page.tsx(305,36): error TS2352: Conversion of type 'ObjectiveMetrics' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'ObjectiveMetrics'.
+src/app/admin/apartments/[name]/page.tsx(471,19): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(471,43): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(472,19): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(472,45): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(473,19): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(473,51): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(474,19): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(474,63): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(475,19): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(475,63): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(476,19): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(476,53): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(477,19): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(477,45): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(478,19): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(478,47): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(479,21): error TS18046: 'a' is of type 'unknown'.
+src/app/admin/apartments/[name]/page.tsx(590,30): error TS18046: 'e' is of type 'unknown'.
+src/app/admin/edit-report/[id]/page.tsx(74,64): error TS2339: Property 'dong' does not exist on type '{}'.
+src/app/admin/edit-report/[id]/page.tsx(77,32): error TS2339: Property 'apartmentName' does not exist on type '{}'.
+src/app/admin/edit-report/[id]/page.tsx(86,27): error TS2740: Type '{}' is missing the following properties from type 'FormValues': dong, apartmentName, thumbnailUrl, scoutingDate, and 4 more.
+src/app/admin/page.tsx(117,24): error TS18046: 'apt' is of type 'unknown'.
+src/app/admin/page.tsx(118,23): error TS18046: 'apt' is of type 'unknown'.
+src/app/admin/page.tsx(119,24): error TS18046: 'apt' is of type 'unknown'.
+src/app/admin/page.tsx(119,49): error TS18046: 'apt' is of type 'unknown'.
+src/app/admin/page.tsx(120,27): error TS18046: 'apt' is of type 'unknown'.
+src/app/admin/page.tsx(121,33): error TS18046: 'apt' is of type 'unknown'.
+src/app/admin/page.tsx(122,33): error TS18046: 'apt' is of type 'unknown'.
+src/app/admin/page.tsx(123,28): error TS18046: 'apt' is of type 'unknown'.
+src/app/admin/page.tsx(124,24): error TS18046: 'apt' is of type 'unknown'.
+src/app/admin/page.tsx(125,25): error TS18046: 'apt' is of type 'unknown'.
+src/app/admin/page.tsx(142,51): error TS2339: Property 'dong' does not exist on type 'object'.
+src/app/admin/page.tsx(144,27): error TS2339: Property 'dong' does not exist on type 'object'.
+src/app/admin/page.tsx(145,28): error TS2339: Property 'txKey' does not exist on type 'object'.
+src/app/admin/page.tsx(146,31): error TS2339: Property 'maxFloor' does not exist on type 'object'.
+src/app/admin/page.tsx(147,37): error TS2339: Property 'isPublicRental' does not exist on type 'object'.
+src/app/admin/page.tsx(148,37): error TS2339: Property 'householdCount' does not exist on type 'object'.
+src/app/admin/page.tsx(149,32): error TS2339: Property 'yearBuilt' does not exist on type 'object'.
+src/app/admin/page.tsx(150,28): error TS2339: Property 'brand' does not exist on type 'object'.
+src/app/admin/page.tsx(151,29): error TS2339: Property 'ticker' does not exist on type 'object'.
+src/app/admin/page.tsx(307,30): error TS18046: 'e' is of type 'unknown'.
+src/app/admin/traffic/page.tsx(56,24): error TS2345: Argument of type '{ name: string; dong: {}; viewCount: number; likes: number; }[]' is not assignable to parameter of type 'SetStateAction<TrafficRow[]>'.
+  Type '{ name: string; dong: {}; viewCount: number; likes: number; }[]' is not assignable to type 'TrafficRow[]'.
+    Type '{ name: string; dong: {}; viewCount: number; likes: number; }' is not assignable to type 'TrafficRow'.
+      Types of property 'dong' are incompatible.
+        Type '{}' is not assignable to type 'string'.
+src/app/admin/traffic/page.tsx(88,31): error TS18046: 'e' is of type 'unknown'.
+src/app/api/apartments-by-dong/route.ts(74,25): error TS2339: Property 'get' does not exist on type 'unknown[]'.
+src/app/api/apartments-by-dong/route.ts(82,27): error TS2345: Argument of type 'GoogleSpreadsheetRow<Record<string, any>>' is not assignable to parameter of type 'unknown[]'.
+  Type 'GoogleSpreadsheetRow<Record<string, any>>' is missing the following properties from type 'unknown[]': length, pop, push, concat, and 35 more.
+src/app/api/apartments-by-dong/route.ts(83,27): error TS2345: Argument of type 'GoogleSpreadsheetRow<Record<string, any>>' is not assignable to parameter of type 'unknown[]'.
+  Type 'GoogleSpreadsheetRow<Record<string, any>>' is missing the following properties from type 'unknown[]': length, pop, push, concat, and 35 more.
+src/app/api/apartments-by-dong/route.ts(86,31): error TS2345: Argument of type 'GoogleSpreadsheetRow<Record<string, any>>' is not assignable to parameter of type 'unknown[]'.
+  Type 'GoogleSpreadsheetRow<Record<string, any>>' is missing the following properties from type 'unknown[]': length, pop, push, concat, and 35 more.
+src/app/api/apartments-by-dong/route.ts(89,25): error TS2345: Argument of type 'GoogleSpreadsheetRow<Record<string, any>>' is not assignable to parameter of type 'unknown[]'.
+  Type 'GoogleSpreadsheetRow<Record<string, any>>' is missing the following properties from type 'unknown[]': length, pop, push, concat, and 35 more.
+src/app/api/apartments-by-dong/route.ts(90,27): error TS2345: Argument of type 'GoogleSpreadsheetRow<Record<string, any>>' is not assignable to parameter of type 'unknown[]'.
+  Type 'GoogleSpreadsheetRow<Record<string, any>>' is missing the following properties from type 'unknown[]': length, pop, push, concat, and 35 more.
+src/app/api/apartments-by-dong/route.ts(91,29): error TS2345: Argument of type 'GoogleSpreadsheetRow<Record<string, any>>' is not assignable to parameter of type 'unknown[]'.
+  Type 'GoogleSpreadsheetRow<Record<string, any>>' is missing the following properties from type 'unknown[]': length, pop, push, concat, and 35 more.
+src/app/api/apartments-by-dong/route.ts(92,29): error TS2345: Argument of type 'GoogleSpreadsheetRow<Record<string, any>>' is not assignable to parameter of type 'unknown[]'.
+  Type 'GoogleSpreadsheetRow<Record<string, any>>' is missing the following properties from type 'unknown[]': length, pop, push, concat, and 35 more.
+src/app/api/apartments-by-dong/route.ts(93,30): error TS2345: Argument of type 'GoogleSpreadsheetRow<Record<string, any>>' is not assignable to parameter of type 'unknown[]'.
+  Type 'GoogleSpreadsheetRow<Record<string, any>>' is missing the following properties from type 'unknown[]': length, pop, push, concat, and 35 more.
+src/app/api/apartments-by-dong/route.ts(94,28): error TS2345: Argument of type 'GoogleSpreadsheetRow<Record<string, any>>' is not assignable to parameter of type 'unknown[]'.
+  Type 'GoogleSpreadsheetRow<Record<string, any>>' is missing the following properties from type 'unknown[]': length, pop, push, concat, and 35 more.
+src/app/api/apartments-by-dong/route.ts(95,31): error TS2345: Argument of type 'GoogleSpreadsheetRow<Record<string, any>>' is not assignable to parameter of type 'unknown[]'.
+  Type 'GoogleSpreadsheetRow<Record<string, any>>' is missing the following properties from type 'unknown[]': length, pop, push, concat, and 35 more.
+src/app/api/apartments-by-dong/route.ts(96,28): error TS2345: Argument of type 'GoogleSpreadsheetRow<Record<string, any>>' is not assignable to parameter of type 'unknown[]'.
+  Type 'GoogleSpreadsheetRow<Record<string, any>>' is missing the following properties from type 'unknown[]': length, pop, push, concat, and 35 more.
+src/app/api/apartments-by-dong/route.ts(97,32): error TS2345: Argument of type 'GoogleSpreadsheetRow<Record<string, any>>' is not assignable to parameter of type 'unknown[]'.
+  Type 'GoogleSpreadsheetRow<Record<string, any>>' is missing the following properties from type 'unknown[]': length, pop, push, concat, and 35 more.
+src/app/api/apartments-by-dong/route.ts(98,29): error TS2345: Argument of type 'GoogleSpreadsheetRow<Record<string, any>>' is not assignable to parameter of type 'unknown[]'.
+  Type 'GoogleSpreadsheetRow<Record<string, any>>' is missing the following properties from type 'unknown[]': length, pop, push, concat, and 35 more.
+src/app/api/apartments-by-dong/route.ts(138,50): error TS18046: 'err' is of type 'unknown'.
+src/app/api/apartments-by-dong/route.ts(138,63): error TS18046: 'err' is of type 'unknown'.
+src/app/api/apartments-by-dong/route.ts(139,39): error TS18046: 'err' is of type 'unknown'.
+src/app/api/apartments-sync/route.ts(119,39): error TS18046: 'err' is of type 'unknown'.
+src/app/api/cron/sync-transactions/route.ts(155,36): error TS18046: 'r' is of type 'unknown'.
+src/app/api/cron/sync-transactions/route.ts(155,45): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'Partial<unknown>'.
+src/app/api/cron/sync-transactions/route.ts(175,39): error TS18046: 'error' is of type 'unknown'.
+src/app/api/debug-reports/route.ts(16,39): error TS18046: 'error' is of type 'unknown'.
+src/app/api/test-names/route.ts(17,39): error TS18046: 'error' is of type 'unknown'.
+src/app/api/type-map/route.ts(56,40): error TS18046: 'error' is of type 'unknown'.
+src/app/lounge/[id]/page.tsx(154,31): error TS2339: Property 'authorUid' does not exist on type '{}'.
+src/app/lounge/[id]/page.tsx(177,106): error TS2339: Property 'category' does not exist on type '{}'.
+src/app/lounge/[id]/page.tsx(179,98): error TS2339: Property 'title' does not exist on type '{}'.
+src/app/lounge/[id]/page.tsx(182,76): error TS2339: Property 'author' does not exist on type '{}'.
+src/app/lounge/[id]/page.tsx(183,50): error TS2339: Property 'verifiedApartment' does not exist on type '{}'.
+src/app/lounge/[id]/page.tsx(183,81): error TS2339: Property 'verificationLevel' does not exist on type '{}'.
+src/app/lounge/[id]/page.tsx(184,66): error TS2339: Property 'createdAt' does not exist on type '{}'.
+src/app/lounge/[id]/page.tsx(188,61): error TS2339: Property 'likes' does not exist on type '{}'.
+src/app/page.tsx(163,56): error TS2322: Type 'unknown' is not assignable to type 'string'.
+src/app/write-report/page.tsx(223,9): error TS2345: Argument of type 'null' is not assignable to parameter of type 'Record<string, number>'.
+src/app/write-report/page.tsx(262,23): error TS2365: Operator '>' cannot be applied to types 'string | number' and 'number'.
+src/app/write-report/page.tsx(281,12): error TS2365: Operator '>' cannot be applied to types 'string | number' and 'number'.
+src/app/write-report/page.tsx(283,55): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/app/zone/[id]/page.tsx(181,11): error TS2322: Type 'unknown[]' is not assignable to type 'CommentData[]'.
+  Type 'unknown' is not assignable to type 'CommentData'.
+src/components/admin/ReportEditorForm.tsx(196,26): error TS2345: Argument of type '(prev: { academyCategories?: Record<string, number> | undefined; restaurantDensity?: number | undefined; restaurantCategories?: Record<string, number> | undefined; nearestSchoolNames?: { ...; } | undefined; nearestStationName?: string | undefined; }) => { ...; }' is not assignable to parameter of type 'SetStateAction<{ academyCategories?: Record<string, number> | undefined; restaurantDensity?: number | undefined; restaurantCategories?: Record<string, number> | undefined; nearestSchoolNames?: { ...; } | undefined; nearestStationName?: string | undefined; }>'.
+  Type '(prev: { academyCategories?: Record<string, number> | undefined; restaurantDensity?: number | undefined; restaurantCategories?: Record<string, number> | undefined; nearestSchoolNames?: { ...; } | undefined; nearestStationName?: string | undefined; }) => { ...; }' is not assignable to type '(prevState: { academyCategories?: Record<string, number> | undefined; restaurantDensity?: number | undefined; restaurantCategories?: Record<string, number> | undefined; nearestSchoolNames?: { ...; } | undefined; nearestStationName?: string | undefined; }) => { ...; }'.
+    Call signature return types '{ nearestStationName?: {} | undefined; nearestSchoolNames?: {} | undefined; restaurantDensity?: {} | undefined; restaurantCategories?: {} | undefined; academyCategories?: {} | undefined; }' and '{ academyCategories?: Record<string, number> | undefined; restaurantDensity?: number | undefined; restaurantCategories?: Record<string, number> | undefined; nearestSchoolNames?: { ...; } | undefined; nearestStationName?: string | undefined; }' are incompatible.
+      The types of 'academyCategories' are incompatible between these types.
+        Type '{} | undefined' is not assignable to type 'Record<string, number> | undefined'.
+          Type '{}' is not assignable to type 'Record<string, number>'.
+            Index signature for type 'string' is missing in type '{}'.
+src/components/admin/ReportEditorForm.tsx(449,28): error TS18046: 'error' is of type 'unknown'.
+src/components/admin/ReportEditorForm.tsx(463,24): error TS2345: Argument of type 'string' is not assignable to parameter of type '"dong" | "apartmentName" | "premiumContent" | "metrics" | "thumbnailUrl" | "images" | "scoutingDate" | "isPremium" | "metrics.far" | "metrics.bcr" | "metrics.brand" | "metrics.distanceToElementary" | ... 22 more ... | `images.${number}.capturedAt`'.
+src/components/admin/ReportEditorForm.tsx(476,22): error TS2345: Argument of type 'string' is not assignable to parameter of type '"dong" | "apartmentName" | "premiumContent" | "metrics" | "thumbnailUrl" | "images" | "scoutingDate" | "isPremium" | "metrics.far" | "metrics.bcr" | "metrics.brand" | "metrics.distanceToElementary" | ... 22 more ... | `images.${number}.capturedAt`'.
+src/components/admin/ReportEditorForm.tsx(1037,49): error TS2345: Argument of type '(img: { url: string; file?: File; category: string; }) => { url: string; previewUrl: any; caption: any; locationTag: any; }' is not assignable to parameter of type '(value: { file?: File | undefined; previewUrl?: string | undefined; url: string; caption: string; locationTag: string; isPremium: boolean; capturedAt?: string | undefined; }, index: number, array: { ...; }[]) => { ...; }'.
+  Types of parameters 'img' and 'value' are incompatible.
+    Property 'category' is missing in type '{ file?: File | undefined; previewUrl?: string | undefined; url: string; caption: string; locationTag: string; isPremium: boolean; capturedAt?: string | undefined; }' but required in type '{ url: string; file?: File | undefined; category: string; }'.
+src/components/admin/ReportEditorForm.tsx(1039,35): error TS2339: Property 'previewUrl' does not exist on type '{ url: string; file?: File | undefined; category: string; }'.
+src/components/admin/ReportEditorForm.tsx(1040,32): error TS2339: Property 'caption' does not exist on type '{ url: string; file?: File | undefined; category: string; }'.
+src/components/admin/ReportEditorForm.tsx(1041,36): error TS2339: Property 'locationTag' does not exist on type '{ url: string; file?: File | undefined; category: string; }'.
+src/components/ApartmentModal.tsx(527,40): error TS2339: Property 'xAxisMap' does not exist on type 'unknown'.
+src/components/ApartmentModal.tsx(527,50): error TS2339: Property 'yAxisMap' does not exist on type 'unknown'.
+src/components/ApartmentModal.tsx(531,42): error TS2339: Property 'scale' does not exist on type '{}'.
+src/components/ApartmentModal.tsx(531,57): error TS2339: Property 'scale' does not exist on type '{}'.
+src/components/ApartmentModal.tsx(535,53): error TS2339: Property 'scale' does not exist on type '{}'.
+src/components/ApartmentModal.tsx(536,53): error TS2339: Property 'scale' does not exist on type '{}'.
+src/components/ApartmentModal.tsx(562,68): error TS18046: 'd' is of type 'unknown'.
+src/components/ApartmentModal.tsx(572,110): error TS18046: 'd' is of type 'unknown'.
+src/components/ApartmentModal.tsx(574,33): error TS18046: 'd' is of type 'unknown'.
+src/components/ApartmentModal.tsx(574,50): error TS18046: 'd' is of type 'unknown'.
+src/components/ApartmentModal.tsx(577,123): error TS18046: 'd' is of type 'unknown'.
+src/components/ApartmentModal.tsx(578,82): error TS18046: 'd' is of type 'unknown'.
+src/components/ApartmentModal.tsx(578,95): error TS18046: 'd' is of type 'unknown'.
+src/components/ApartmentModal.tsx(579,33): error TS18046: 'd' is of type 'unknown'.
+src/components/ApartmentModal.tsx(579,70): error TS18046: 'd' is of type 'unknown'.
+src/components/ApartmentModal.tsx(1119,25): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+src/components/ApartmentModal.tsx(1123,42): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'string | number'.
+src/components/CommentSection.tsx(115,56): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+src/components/consumer/DynamicSimulator.tsx(56,8): error TS2352: Conversion of type 'PremiumScores' to type 'Record<string, number>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'PremiumScores'.
+src/components/consumer/DynamicSimulator.tsx(56,73): error TS2352: Conversion of type 'PremiumScores' to type 'Record<string, number>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'PremiumScores'.
+src/components/consumer/DynamicSimulator.tsx(64,16): error TS2352: Conversion of type 'PremiumScores' to type 'Record<string, number>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'PremiumScores'.
+src/components/consumer/DynamicSimulator.tsx(65,17): error TS2352: Conversion of type 'PremiumScores' to type 'Record<string, number>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'PremiumScores'.
+src/components/consumer/PropertyScoreChart.tsx(92,17): error TS2322: Type '(value: number | string) => [string, string]' is not assignable to type 'Formatter<ValueType, NameType> & ((value: ValueType, name: NameType, item: TooltipPayloadEntry, index: number, payload: TooltipPayload) => ReactNode | [...])'.
+  Type '(value: number | string) => [string, string]' is not assignable to type 'Formatter<ValueType, NameType>'.
+    Types of parameters 'value' and 'value' are incompatible.
+      Type 'ValueType | undefined' is not assignable to type 'string | number'.
+        Type 'undefined' is not assignable to type 'string | number'.
+src/components/consumer/ValuationWaterfall.tsx(59,19): error TS2322: Type '(value: number, name: string, entry: unknown) => [string, string]' is not assignable to type 'Formatter<ValueType, NameType> & ((value: ValueType, name: NameType, item: TooltipPayloadEntry, index: number, payload: TooltipPayload) => ReactNode | [...])'.
+  Type '(value: number, name: string, entry: unknown) => [string, string]' is not assignable to type 'Formatter<ValueType, NameType>'.
+    Types of parameters 'value' and 'value' are incompatible.
+      Type 'ValueType | undefined' is not assignable to type 'number'.
+        Type 'undefined' is not assignable to type 'number'.
+src/components/consumer/ValuationWaterfall.tsx(60,31): error TS18046: 'entry' is of type 'unknown'.
+src/components/EduBubbleChart.tsx(26,20): error TS2571: Object is of type 'unknown'.
+src/components/MainChart.tsx(77,13): error TS2322: Type '(value: number | string) => [string, string]' is not assignable to type 'Formatter<ValueType, NameType> & ((value: ValueType, name: NameType, item: TooltipPayloadEntry, index: number, payload: TooltipPayload) => ReactNode | [...])'.
+  Type '(value: number | string) => [string, string]' is not assignable to type 'Formatter<ValueType, NameType>'.
+    Types of parameters 'value' and 'value' are incompatible.
+      Type 'ValueType | undefined' is not assignable to type 'string | number'.
+        Type 'undefined' is not assignable to type 'string | number'.
+src/components/PaymentButton.tsx(64,18): error TS2339: Property 'code' does not exist on type '{}'.
+src/lib/repositories/report.repository.ts(22,5): error TS18046: 'snapshot' is of type 'unknown'.
+src/lib/repositories/report.repository.ts(23,20): error TS18046: 'docSnap' is of type 'unknown'.
+src/lib/repositories/report.repository.ts(25,13): error TS18046: 'docSnap' is of type 'unknown'.
+src/lib/repositories/report.repository.ts(45,25): error TS2345: Argument of type '(a: { _rawTimestamp: number; }, b: { _rawTimestamp: number; }) => number' is not assignable to parameter of type '(a: FieldReportData, b: FieldReportData) => number'.
+  Types of parameters 'a' and 'a' are incompatible.
+    Property '_rawTimestamp' is missing in type 'FieldReportData' but required in type '{ _rawTimestamp: number; }'.
+src/lib/utils/valuation.ts(153,23): error TS2352: Conversion of type 'PremiumScores' to type 'Record<string, number>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'PremiumScores'.

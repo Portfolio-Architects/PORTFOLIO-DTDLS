@@ -45,7 +45,7 @@ describe('ApartmentMapping Unit Tests', () => {
     it('should safely handle undefined or empty inputs without crashing', () => {
       // Function signature takes string, but for raw data defense:
       expect(isSameApartment('', '테스트')).toBe(false);
-      expect(isSameApartment(undefined as any, '테스트')).toBe(false);
+      expect(isSameApartment(undefined as unknown as string, '테스트')).toBe(false);
     });
   });
 

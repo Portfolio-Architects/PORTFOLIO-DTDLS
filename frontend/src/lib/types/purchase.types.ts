@@ -24,7 +24,7 @@ export interface Purchase {
   /** 결제 상태 */
   status: PurchaseStatus;
   /** 구매 시각 */
-  purchasedAt?: any;
+  purchasedAt?: unknown;
 }
 
 /** 결제 요청 파라미터 */

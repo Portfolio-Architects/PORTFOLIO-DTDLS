@@ -53,7 +53,7 @@ export default function DynamicSimulator({ scores, price84Man }: Props) {
     const event = FUTURE_EVENTS.find(e => e.id === eventId);
     if (!event) return;
     Object.entries(event.boost).forEach(([key, val]) => {
-      (adjustedScores as any)[key] = Math.min(100, ((adjustedScores as any)[key] ?? 0) + val);
+      (adjustedScores as unknown as Record<string, number>)[key] = Math.min(100, ((adjustedScores as unknown as Record<string, number>)[key] ?? 0) + val);
     });
   });
 
@@ -61,8 +61,8 @@ export default function DynamicSimulator({ scores, price84Man }: Props) {
 
   const radarData = AREA_CONFIG.map(a => ({
     subject: a.name,
-    original: (scores as any)[a.key] ?? 0,
-    simulated: (adjustedScores as any)[a.key] ?? 0,
+    original: (scores as unknown as Record<string, number>)[a.key] ?? 0,
+    simulated: (adjustedScores as unknown as Record<string, number>)[a.key] ?? 0,
     fullMark: 100,
   }));
 

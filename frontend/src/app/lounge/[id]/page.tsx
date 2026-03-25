@@ -28,7 +28,7 @@ export default function PostDetailPage() {
 
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [post, setPost] = useState<any>(null);
+  const [post, setPost] = useState<Record<string, unknown> | null>(null);
   const [comments, setComments] = useState<PostComment[]>([]);
   const [commentText, setCommentText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -93,7 +93,7 @@ export default function PostDetailPage() {
   const handleLike = async () => {
     if (!postId) return;
     await updateDoc(doc(db, 'posts', postId), { likes: increment(1) });
-    setPost((prev: any) => prev ? { ...prev, likes: (prev.likes || 0) + 1 } : prev);
+    setPost((prev: { likes?: number } | null) => prev ? { ...prev, likes: (prev.likes || 0) + 1 } : prev);
   };
 
   const handleComment = async () => {
@@ -174,18 +174,18 @@ export default function PostDetailPage() {
         {/* Post Card */}
         <div className="bg-white rounded-2xl border border-[#e5e8eb] p-6 mb-6 shadow-sm">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[12px] font-bold text-white bg-[#191f28] px-2 py-0.5 rounded-md">{post.category}</span>
+            <span className="text-[12px] font-bold text-white bg-[#191f28] px-2 py-0.5 rounded-md">{(post as Record<string, string>)?.category || ""}</span>
           </div>
-          <h2 className="text-[20px] font-extrabold text-[#191f28] leading-snug mt-3 mb-4">{post.title}</h2>
+          <h2 className="text-[20px] font-extrabold text-[#191f28] leading-snug mt-3 mb-4">{(post as Record<string, string>)?.title || ""}</h2>
           <div className="flex items-center justify-between border-t border-[#f2f4f6] pt-3">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[13px] font-bold text-[#4e5968]">{post.author}</span>
-              <VerificationBadge apartment={post.verifiedApartment} level={post.verificationLevel} />
-              <span className="text-[12px] text-[#8b95a1]">{post.createdAt}</span>
+              <span className="text-[13px] font-bold text-[#4e5968]">{(post as Record<string, string>)?.author || ""}</span>
+              <VerificationBadge apartment={String((post as Record<string, string>)?.verifiedApartment || "")} level={String((post as Record<string, string>)?.verificationLevel || "")} />
+              <span className="text-[12px] text-[#8b95a1]">{String((post as Record<string, string>)?.createdAt || "")}</span>
             </div>
             <button onClick={handleLike} className="flex items-center gap-1.5 text-[#8b95a1] hover:text-[#f04452] transition-colors">
               <Heart size={16} />
-              <span className="text-[13px] font-bold">{post.likes}</span>
+              <span className="text-[13px] font-bold">{Number((post as Record<string, number>)?.likes || 0)}</span>
             </button>
           </div>
         </div>

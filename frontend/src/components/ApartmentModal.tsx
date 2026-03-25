@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo } from 'react';
 import {
   MapPin, X, TrendingUp, Camera, Maximize2,
-  MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar
+  MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar, ChevronDown
 } from 'lucide-react';
 import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Bar, Customized, Line, Legend } from 'recharts';
 import dynamic from 'next/dynamic';
@@ -152,11 +152,17 @@ export function FieldReportModal({
   const [chartTimeframe, setChartTimeframe] = useState<'6M'|'1Y'|'3Y'|'ALL'>('ALL');
   const [isTxExpanded, setIsTxExpanded] = useState(false);
   const [priceTypeFilter, setPriceTypeFilter] = useState<string>('ALL');
-  const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: any } | null>(null);
+  const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: { name: string, value: number, price?: number } } | null>(null);
   const [showPriceHelp, setShowPriceHelp] = useState(false);
   const [txFilterArea, setTxFilterArea] = useState<string>('ALL');
   const [txFilterFloor, setTxFilterFloor] = useState<string>('ALL');
   const [txFilterDealType, setTxFilterDealType] = useState<string>('ALL');
+  const [txSort, setTxSort] = useState<{key: string, dir: 'asc'|'desc'}>({key: 'date', dir: 'desc'});
+  const [activeDropdown, setActiveDropdown] = useState<string|null>(null);
+
+  const handleTxSort = (key: string) => {
+    setTxSort(prev => ({ key, dir: prev.key === key && prev.dir === 'desc' ? 'asc' : 'desc' }));
+  };
   // TODO: 유료 모델 전환 시 아래 라인 복원
   // const isUnlocked = !!(isPurchased || isAdmin);
   const isUnlocked = true; // 프리미엄 콘텐츠 전면 개방 (Vercel Hobby Plan 대응)
@@ -198,9 +204,33 @@ export function FieldReportModal({
     return typeBadgeColors[cIdx];
   };
 
+  // 고유 m² 타입 목록
+  const areaTypes = Array.from(new Set(transactions.map(tx => {
+    const norm = normalizeAptName(tx.aptName);
+    const t = typeMap[norm]?.[String(tx.area)];
+    return t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : String(tx.area);
+  }))).sort();
+  // 고유 유형 목록
+  const dealTypes = Array.from(new Set(transactions.map(tx => tx.dealType))).sort();
+  // 층 구간 (아파트별 최고층 기준 3등분)
+  const floors = transactions.map(tx => Number(tx.floor)).filter(f => !Number.isNaN(f));
+  const maxFloor = Math.max(...floors, 1);
+  const lowCut = Math.floor(maxFloor / 3);
+  const midCut = Math.floor(maxFloor * 2 / 3);
+  const floorTiers = [
+    { key: 'ALL', label: '전체' },
+    { key: 'LOW', label: `저층(1~${lowCut}F)` },
+    { key: 'MID', label: `중층(${lowCut + 1}~${midCut}F)` },
+    { key: 'HIGH', label: `고층(${midCut + 1}F~)` },
+  ];
+
+  const chipClass = (active: boolean) => `w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+    active ? 'bg-[#e8f3ff] text-[#3182f6]' : 'bg-transparent text-[#4e5968] hover:bg-[#f2f4f6]'
+  }`;
+
   const content = (
     <>
-          {/* Hero Section — Layout: 40% table / 60% chart */}
+      {/* Hero Section — Layout: 40% table / 60% chart */}
           <div className={`bg-white w-full flex flex-col md:flex-row p-4 ${inline ? 'md:p-6' : 'md:p-10'} gap-4 md:gap-8 ${inline ? '' : 'rounded-t-3xl'} shrink-0 pt-4 md:pt-8 ${inline ? 'border-b border-[#f2f4f6]' : 'border-b border-[#e5e8eb]'}`}>
             
             {/* Left: 실거래가 전체 리스트 — mobile: 2번째, desktop: 1번째 (40%) */}
@@ -209,72 +239,112 @@ export function FieldReportModal({
                 <div className="bg-[#f9fafb] rounded-2xl p-4 ring-1 ring-black/5 h-full flex flex-col">
                   {/* 필터 영역 */}
                   {(() => {
-                    // 고유 m² 타입 목록
-                    const areaTypes = Array.from(new Set(transactions.map(tx => {
-                      const norm = normalizeAptName(tx.aptName);
-                      const t = typeMap[norm]?.[String(tx.area)];
-                      return t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : String(tx.area);
-                    }))).sort();
-                    // 고유 유형 목록
-                    const dealTypes = Array.from(new Set(transactions.map(tx => tx.dealType))).sort();
-                    // 층 구간 (아파트별 최고층 기준 3등분)
-                    const floors = transactions.map(tx => Number(tx.floor)).filter(f => !Number.isNaN(f));
-                    const maxFloor = Math.max(...floors, 1);
-                    const lowCut = Math.floor(maxFloor / 3);
-                    const midCut = Math.floor(maxFloor * 2 / 3);
-                    const floorTiers = [
-                      { key: 'ALL', label: '전체' },
-                      { key: 'LOW', label: `저층(1~${lowCut}F)` },
-                      { key: 'MID', label: `중층(${lowCut + 1}~${midCut}F)` },
-                      { key: 'HIGH', label: `고층(${midCut + 1}F~)` },
-                    ];
-
-                    const chipClass = (active: boolean) => `shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer ${
-                      active ? 'bg-[#191f28] text-white' : 'bg-white text-[#8b95a1] hover:bg-[#e5e8eb] ring-1 ring-black/5'
-                    }`;
-
                     return (
                       <div className="mb-2 space-y-1.5">
                         <h4 className="text-sm font-bold text-[#8b95a1] flex items-center gap-1.5 shrink-0">
                           <TrendingUp size={16} className="text-[#03c75a]" />
                           <span className="flex items-center gap-1.5">실거래가 내역 <span className="text-sm font-medium ml-0.5">총 {transactions.length.toLocaleString()}건</span></span>
                         </h4>
-                        {/* m² 필터 */}
-                        <div className="flex items-center gap-1 flex-wrap">
-                          <span className="text-[10px] font-bold text-[#8b95a1] w-8 shrink-0">타입</span>
-                          <button className={chipClass(txFilterArea === 'ALL')} onClick={() => setTxFilterArea('ALL')}>전체</button>
-                          {areaTypes.map(a => (
-                            <button key={a} className={chipClass(txFilterArea === a)} onClick={() => setTxFilterArea(a)}>{a}</button>
-                          ))}
-                        </div>
-                        {/* 층 필터 */}
-                        <div className="flex items-center gap-1 flex-wrap">
-                          <span className="text-[10px] font-bold text-[#8b95a1] w-8 shrink-0">층</span>
-                          {floorTiers.map(ft => (
-                            <button key={ft.key} className={chipClass(txFilterFloor === ft.key)} onClick={() => setTxFilterFloor(ft.key)}>{ft.label}</button>
-                          ))}
-                        </div>
-                        {/* 유형 필터 */}
-                        <div className="flex items-center gap-1 flex-wrap">
-                          <span className="text-[10px] font-bold text-[#8b95a1] w-8 shrink-0">유형</span>
-                          <button className={chipClass(txFilterDealType === 'ALL')} onClick={() => setTxFilterDealType('ALL')}>전체</button>
-                          {dealTypes.map(dt => (
-                            <button key={dt} className={chipClass(txFilterDealType === dt)} onClick={() => setTxFilterDealType(dt)}>{dt}</button>
-                          ))}
-                        </div>
+                        
+                        {/* 팝업 오버레이 닫기용 투명 배경 */}
+                        {activeDropdown && (
+                          <div className="fixed inset-0 z-40" onClick={() => setActiveDropdown(null)} />
+                        )}
                       </div>
                     );
                   })()}
                   <div className="overflow-y-auto max-h-[460px]">
                     <table className="w-full text-sm">
                       <thead className="sticky top-0 bg-[#f9fafb]">
-                        <tr className="border-b border-[#e5e8eb] text-[#8b95a1]">
-                          <th className="py-3 pl-2 text-left font-bold">거래일</th>
-                          <th className="py-3 pr-2 text-right font-bold w-[25%]">금액</th>
-                          <th className="py-3 text-center font-bold w-[18%]">{areaUnit === 'm2' ? 'm²' : '평'}</th>
-                          <th className="py-3 text-center font-bold w-[15%]">층</th>
-                          <th className="py-3 pr-2 text-right font-bold w-[18%]">유형</th>
-                        </tr>
+                        {(() => {
+                          const renderSortIcon = (key: string, hasFilter: boolean = false) => (
+                            <div className={`p-1 -m-1 rounded cursor-pointer flex items-center justify-center transition-colors ${activeDropdown === key ? 'bg-[#e5e8eb]' : 'hover:bg-[#e5e8eb]'}`} onClick={(e) => {
+                              e.stopPropagation();
+                              if (hasFilter) {
+                                setActiveDropdown(activeDropdown === key ? null : key);
+                              } else {
+                                handleTxSort(key);
+                              }
+                            }}>
+                              <ChevronDown size={14} className={`transition-transform duration-200 ${(txSort.key === key && !hasFilter) ? 'text-[#191f28] ' + (txSort.dir === 'asc' ? 'rotate-180' : '') : (activeDropdown === key ? 'text-[#191f28]' : 'text-[#d1d6db] group-hover:text-[#8b95a1]')}`} />
+                            </div>
+                          );
+                          return (
+                            <tr className="border-b border-[#e5e8eb] text-[#8b95a1]">
+                              <th className="py-3 pl-2 text-left font-bold group hover:bg-[#f2f4f6] transition-colors rounded-tl-lg">
+                                <div className="flex items-center gap-1 w-fit relative">
+                                  <span className="cursor-pointer" onClick={() => handleTxSort('date')}>거래일</span>
+                                  {renderSortIcon('date')}
+                                </div>
+                              </th>
+                              <th className="py-3 pr-2 text-right font-bold w-[25%] group hover:bg-[#f2f4f6] transition-colors">
+                                <div className="flex items-center justify-end gap-1 relative">
+                                  <span className="cursor-pointer" onClick={() => handleTxSort('price')}>금액</span>
+                                  {renderSortIcon('price')}
+                                </div>
+                              </th>
+                              <th className="py-3 text-center font-bold w-[18%] group hover:bg-[#f2f4f6] transition-colors">
+                                <div className="flex items-center justify-center gap-1 relative">
+                                  <span className="cursor-pointer" onClick={() => handleTxSort('area')}>{areaUnit === 'm2' ? 'm²' : '평'}</span>
+                                  {renderSortIcon('area', true)}
+                                  
+                                  {activeDropdown === 'area' && (
+                                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 flex justify-center z-50">
+                                      <div className="mt-3 bg-white ring-1 ring-black/5 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex flex-col min-w-[140px] font-normal" onClick={e => e.stopPropagation()}>
+                                        <div className="text-[11px] font-bold text-[#8b95a1] mb-2 px-3 pt-1 text-left">타입 필터</div>
+                                        <div className="flex flex-col items-stretch max-h-[200px] overflow-y-auto">
+                                          <button className={chipClass(txFilterArea === 'ALL')} onClick={() => {setTxFilterArea('ALL'); setActiveDropdown(null);}}>전체보기</button>
+                                          {areaTypes.map(a => (
+                                            <button key={a} className={chipClass(txFilterArea === a)} onClick={() => {setTxFilterArea(a); setActiveDropdown(null);}}>{a}</button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </th>
+                              <th className="py-3 text-center font-bold w-[15%] group hover:bg-[#f2f4f6] transition-colors">
+                                <div className="flex items-center justify-center gap-1 relative">
+                                  <span className="cursor-pointer" onClick={() => handleTxSort('floor')}>층</span>
+                                  {renderSortIcon('floor', true)}
+                                  
+                                  {activeDropdown === 'floor' && (
+                                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 flex justify-center z-50">
+                                      <div className="mt-3 bg-white ring-1 ring-black/5 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex flex-col min-w-[140px] font-normal" onClick={e => e.stopPropagation()}>
+                                        <div className="text-[11px] font-bold text-[#8b95a1] mb-2 px-3 pt-1 text-left">층수 필터</div>
+                                        <div className="flex flex-col items-stretch">
+                                          {floorTiers.map(ft => (
+                                            <button key={ft.key} className={chipClass(txFilterFloor === ft.key)} onClick={() => {setTxFilterFloor(ft.key); setActiveDropdown(null);}}>{ft.label}</button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </th>
+                              <th className="py-3 pr-2 text-right font-bold w-[18%] group hover:bg-[#f2f4f6] transition-colors rounded-tr-lg">
+                                <div className="flex items-center justify-end gap-1 relative">
+                                  <span className="cursor-pointer" onClick={() => handleTxSort('type')}>유형</span>
+                                  {renderSortIcon('type', true)}
+                                  
+                                  {activeDropdown === 'type' && (
+                                    <div className="absolute top-full right-0 w-0 h-0 flex justify-end z-50">
+                                      <div className="mt-3 bg-white ring-1 ring-black/5 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex flex-col min-w-[140px] font-normal" onClick={e => e.stopPropagation()}>
+                                        <div className="text-[11px] font-bold text-[#8b95a1] mb-2 px-3 pt-1 text-left">거래 유형</div>
+                                        <div className="flex flex-col items-stretch">
+                                          <button className={chipClass(txFilterDealType === 'ALL')} onClick={() => {setTxFilterDealType('ALL'); setActiveDropdown(null);}}>전체보기</button>
+                                          {dealTypes.map(dt => (
+                                            <button key={dt} className={chipClass(txFilterDealType === dt)} onClick={() => {setTxFilterDealType(dt); setActiveDropdown(null);}}>{dt}</button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </th>
+                            </tr>
+                          );
+                        })()}
                       </thead>
                       <tbody>
                         {(() => {
@@ -302,7 +372,28 @@ export function FieldReportModal({
                             if (txFilterDealType !== 'ALL' && tx.dealType !== txFilterDealType) return false;
                             return true;
                           });
-                          return filtered.map((tx, idx) => {
+                          
+                          const sortedFiltered = [...filtered].sort((a, b) => {
+                            let cmp = 0;
+                            if (txSort.key === 'date') {
+                              const aDate = parseInt(a.contractYm) * 100 + (parseInt(a.contractDay) || 15);
+                              const bDate = parseInt(b.contractYm) * 100 + (parseInt(b.contractDay) || 15);
+                              cmp = aDate - bDate;
+                            } else if (txSort.key === 'price') {
+                              cmp = a.price - b.price;
+                            } else if (txSort.key === 'area') {
+                              cmp = a.area - b.area;
+                            } else if (txSort.key === 'floor') {
+                              const af = Number(a.floor) || 0;
+                              const bf = Number(b.floor) || 0;
+                              cmp = af - bf;
+                            } else if (txSort.key === 'type') {
+                              cmp = (a.dealType || '').localeCompare(b.dealType || '');
+                            }
+                            return txSort.dir === 'asc' ? cmp : -cmp;
+                          });
+
+                          return sortedFiltered.map((tx, idx) => {
                             const txDate = new Date(parseInt(tx.contractYm.slice(0, 4)), parseInt(tx.contractYm.slice(4)) - 1, parseInt(tx.contractDay) || 15);
                             const now = new Date();
                             const isRecent = txDate >= new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
@@ -523,11 +614,11 @@ export function FieldReportModal({
                            <Line type="monotone" dataKey="highAvg" yAxisId="price" stroke="#FF6B6B" strokeWidth={2} dot={false} activeDot={false} connectNulls isAnimationActive={false} />
                            {/* 산점도 — 층수별 색상 */}
                            <Customized
-                             component={(rechartProps: any) => {
+                             component={(rechartProps: Record<string, unknown>) => {
                                const { xAxisMap, yAxisMap } = rechartProps;
                                if (!xAxisMap || !yAxisMap) return null;
-                               const xAx = Object.values(xAxisMap)[0] as any;
-                               const yAx = Object.values(yAxisMap)[0] as any;
+                               const xAx = Object.values((rechartProps as { xAxisMap?: Record<string, unknown>; yAxisMap?: Record<string, unknown> }).xAxisMap || {})[0] as Record<string, unknown>;
+                               const yAx = Object.values((rechartProps as { xAxisMap?: Record<string, unknown>; yAxisMap?: Record<string, unknown> }).yAxisMap || {})[0] as Record<string, unknown>;
                                if (!xAx?.scale || !yAx?.scale) return null;
                                return (
                                  <g>

@@ -17,9 +17,9 @@ import type { FieldReportData } from '@/lib/types/report.types';
 export function listenToReports(callback: (reports: FieldReportData[]) => void): () => void {
   const q = query(collection(db, 'scoutingReports'), limit(30));
 
-  const mapSnapshot = (snapshot: any): FieldReportData[] => {
+  const mapSnapshot = (snapshot: unknown): FieldReportData[] => {
     const reports: FieldReportData[] = [];
-    snapshot.forEach((docSnap: any) => {
+    snapshot.forEach((docSnap: FirebaseFirestore.QueryDocumentSnapshot) => {
       const data = docSnap.data();
       reports.push({
         id: docSnap.id,
@@ -40,15 +40,13 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
         createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
         // keep raw timestamp for sorting
         _rawTimestamp: data.createdAt?.toDate ? data.createdAt.toDate().getTime() : 0, 
-      } as any);
+      } as unknown as FieldReportData);
     });
-    return reports.sort((a: any, b: any) => b._rawTimestamp - a._rawTimestamp);
+    return reports.sort((a: FieldReportData, b: FieldReportData) => (b as unknown as { _rawTimestamp: number })._rawTimestamp - (a as unknown as { _rawTimestamp: number })._rawTimestamp);
   };
 
   return onSnapshot(q, (snapshot) => {
-    console.log('[ReportRepo] onSnapshot fired! size:', snapshot.size, 'empty:', snapshot.empty);
     const mapped = mapSnapshot(snapshot);
-    console.log('[ReportRepo] mapSnapshot produced:', mapped.length, 'reports');
     console.trace('[ReportRepo] Invoking callback with mapped.length:', mapped.length);
     callback(mapped);
   }, (error) => {

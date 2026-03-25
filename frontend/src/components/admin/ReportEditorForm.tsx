@@ -191,7 +191,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
     if (initialData) {
       reset(initialData);
       // Preserve existing category data so editing doesn't drop them
-      const m = initialData.metrics as any;
+      const m = initialData.metrics as Record<string, unknown>;
       if (m) {
         setApiCategories(prev => ({
           ...prev,
@@ -444,16 +444,16 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
       } else {
         router.push('/admin'); // Redirect to dashboard
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      alert(`오류가 발생했습니다: ${error.message}`);
+      alert(`오류가 발생했습니다: ${(error as Error).message}`);
     } finally {
       setIsSubmitting(false);
       setUploadProgress(null);
     }
   };
 
-  const NumberInput = ({ name, label, placeholder, unit }: { name: any, label: string, placeholder: string, unit: string }) => (
+  const NumberInput = ({ name, label, placeholder, unit }: { name: string, label: string, placeholder: string, unit: string }) => (
     <div className="mb-4">
       <label className="block text-[14px] font-bold text-[#4e5968] mb-2">{label}</label>
       <div className="relative">
@@ -469,7 +469,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
     </div>
   );
 
-  const SelectInput = ({ name, label, options }: { name: any, label: string, options: string[] }) => (
+  const SelectInput = ({ name, label, options }: { name: string, label: string, options: string[] }) => (
     <div className={label ? "mb-4" : ""}>
       {label && <label className="block text-[14px] font-bold text-[#4e5968] mb-2">{label}</label>}
       <select 
@@ -1034,7 +1034,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
               // Strip non-serializable File/Blob objects from images
               const safeData = {
                 ...data,
-                images: (data.images || []).map((img: any) => ({
+                images: (data.images || []).map((img: { url: string; file?: File; category: string }) => ({
                   url: img.url || '',
                   previewUrl: img.previewUrl || '',
                   caption: img.caption || '',

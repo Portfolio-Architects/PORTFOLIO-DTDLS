@@ -1,0 +1,172 @@
+FAIL src/components/DongFilterBar.test.tsx
+  DongFilterBar
+    × renders correctly with default props (38 ms)
+    × calls onSelectDong when a dong button is clicked (6 ms)
+
+  ● DongFilterBar › renders correctly with default props
+
+    TestingLibraryElementError: Unable to find an element with the text: 동탄 전체. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+    Ignored nodes: comments, script, style
+    [36m<body>[39m
+      [36m<div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center justify-between gap-3"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13px] font-bold transition-all border border-[#e5e8eb] bg-white hover:border-[#d1d6db] shadow-sm"[39m
+              [33mstyle[39m=[32m"color: rgb(25, 31, 40);"[39m
+            [36m>[39m
+              [0m전체[0m
+              [36m<span[39m
+                [33mclass[39m=[32m"text-[#8b95a1] font-medium"[39m
+              [36m>[39m
+                [0m([0m
+                [0m100[0m
+                [0m)[0m
+              [36m</span>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-chevron-down text-[#8b95a1] transition-transform"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"14"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"14"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"m6 9 6 6 6-6"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-1 bg-[#f2f4f6] rounded-lg p-1"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"px-2.5 py-1 rounded-md text-[11px] font-bold transition-all bg-white text-[#191f28] shadow-sm"[39m
+            [36m>[39m
+              [0m조회수[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"px-2.5 py-1 rounded-md text-[11px] font-bold transition-all text-[#8b95a1] hover:text-[#4e5968]"[39m
+            [36m>[39m
+              [0m관심[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"px-2.5 py-1 rounded-md text-[11px] font-bold transition-all text-[#8b95a1] hover:text-[#4e5968]"[39m
+            [36m>[39m
+              [0m가나다[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</body>[39m
+
+    [0m [90m 22 |[39m       [33m/[39m[33m>[39m
+     [90m 23 |[39m     )[33m;[39m
+    [31m[1m>[22m[39m[90m 24 |[39m     expect(screen[33m.[39mgetByText([32m'동탄 전체'[39m))[33m.[39mtoBeInTheDocument()[33m;[39m
+     [90m    |[39m                   [31m[1m^[22m[39m
+     [90m 25 |[39m     expect(screen[33m.[39mgetByText([32m'100'[39m))[33m.[39mtoBeInTheDocument()[33m;[39m
+     [90m 26 |[39m   })[33m;[39m
+     [90m 27 |[39m[0m
+
+      at Object.getElementError (node_modules/@testing-library/dom/dist/config.js:37:19)
+      at node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+      at node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+      at node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+      at Object.<anonymous> (src/components/DongFilterBar.test.tsx:24:19)
+
+  ● DongFilterBar › calls onSelectDong when a dong button is clicked
+
+    TestingLibraryElementError: Unable to find an element with the text: 청계동. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+    Ignored nodes: comments, script, style
+    [36m<body>[39m
+      [36m<div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center justify-between gap-3"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13px] font-bold transition-all border border-[#e5e8eb] bg-white hover:border-[#d1d6db] shadow-sm"[39m
+              [33mstyle[39m=[32m"color: rgb(25, 31, 40);"[39m
+            [36m>[39m
+              [0m전체[0m
+              [36m<span[39m
+                [33mclass[39m=[32m"text-[#8b95a1] font-medium"[39m
+              [36m>[39m
+                [0m([0m
+                [0m10[0m
+                [0m)[0m
+              [36m</span>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-chevron-down text-[#8b95a1] transition-transform"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"14"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"14"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"m6 9 6 6 6-6"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-1 bg-[#f2f4f6] rounded-lg p-1"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"px-2.5 py-1 rounded-md text-[11px] font-bold transition-all bg-white text-[#191f28] shadow-sm"[39m
+            [36m>[39m
+              [0m조회수[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"px-2.5 py-1 rounded-md text-[11px] font-bold transition-all text-[#8b95a1] hover:text-[#4e5968]"[39m
+            [36m>[39m
+              [0m관심[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"px-2.5 py-1 rounded-md text-[11px] font-bold transition-all text-[#8b95a1] hover:text-[#4e5968]"[39m
+            [36m>[39m
+              [0m가나다[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</body>[39m
+
+    [0m [90m 39 |[39m     )[33m;[39m
+     [90m 40 |[39m     
+    [31m[1m>[22m[39m[90m 41 |[39m     [36mconst[39m button [33m=[39m getByText([32m'청계동'[39m)[33m;[39m
+     [90m    |[39m                    [31m[1m^[22m[39m
+     [90m 42 |[39m     fireEvent[33m.[39mclick(button)[33m;[39m
+     [90m 43 |[39m     expect(mockOnSelectDong)[33m.[39mtoHaveBeenCalledWith([32m'청계동'[39m)[33m;[39m
+     [90m 44 |[39m   })[33m;[39m[0m
+
+      at Object.getElementError (node_modules/@testing-library/dom/dist/config.js:37:19)
+      at node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+      at node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+      at node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+      at Object.<anonymous> (src/components/DongFilterBar.test.tsx:41:20)
+
+Test Suites: 1 failed, 1 total
+Tests:       2 failed, 2 total
+Snapshots:   0 total
+Time:        1.256 s
+Ran all test suites matching src/components/DongFilterBar.test.tsx.

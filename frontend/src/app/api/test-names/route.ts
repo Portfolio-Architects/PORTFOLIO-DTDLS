@@ -13,7 +13,7 @@ export async function GET() {
     }));
     fs.writeFileSync('C:\\tmp\\test-names-node.json', JSON.stringify(names, null, 2), 'utf8');
     return NextResponse.json(names);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }

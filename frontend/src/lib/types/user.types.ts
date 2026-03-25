@@ -20,7 +20,7 @@ export interface UserProfile {
   /** 인증 등급 */
   verificationLevel?: VerificationLevel;
   /** 프로필 생성 시각 */
-  createdAt?: any;
+  createdAt?: unknown;
 }
 
 /** 전체 표시 이름 조합 */

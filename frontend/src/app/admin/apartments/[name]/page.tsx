@@ -200,7 +200,7 @@ export default function ApartmentInfoPage() {
       try {
         const metaDoc = await getDoc(doc(db, 'settings/apartmentMeta'));
         if (metaDoc.exists()) {
-          const allMeta = metaDoc.data() as Record<string, any>;
+          const allMeta = metaDoc.data() as Record<string, unknown>;
           const m = allMeta[originalName];
           if (m && typeof m === 'object' && m.dong) {
             const foundMeta: AptMeta = {
@@ -229,13 +229,13 @@ export default function ApartmentInfoPage() {
         let foundMeta: AptMeta | null = null;
         if (data.byDong) {
           for (const [, apts] of Object.entries(data.byDong)) {
-            const apt = (apts as any[]).find(a => a.name === originalName);
+            const apt = (apts as { name: string; [key: string]: unknown }[]).find(a => a.name === originalName);
             if (apt) {
               foundMeta = {
-                dong: apt.dong, txKey: apt.txKey || undefined, maxFloor: apt.maxFloor || 0,
-                isPublicRental: apt.isPublicRental || false, householdCount: apt.householdCount,
-                yearBuilt: apt.yearBuilt, brand: apt.brand, ticker: apt.ticker,
-                far: apt.far, bcr: apt.bcr, parkingCount: apt.parkingCount,
+                dong: (apt as Record<string, string | number | boolean>)?.dong, txKey: (apt as Record<string, string | number | boolean>)?.txKey || undefined, maxFloor: (apt as Record<string, string | number | boolean>)?.maxFloor || 0,
+                isPublicRental: (apt as Record<string, string | number | boolean>)?.isPublicRental || false, householdCount: (apt as Record<string, string | number | boolean>)?.householdCount,
+                yearBuilt: (apt as Record<string, string | number | boolean>)?.yearBuilt, brand: (apt as Record<string, string | number | boolean>)?.brand, ticker: (apt as Record<string, string | number | boolean>)?.ticker,
+                far: (apt as Record<string, string | number | boolean>)?.far, bcr: (apt as Record<string, string | number | boolean>)?.bcr, parkingCount: (apt as Record<string, string | number | boolean>)?.parkingCount,
                 coordinates: (apt.lat && apt.lng) ? `${apt.lat}, ${apt.lng}` : undefined,
               };
               break;
@@ -287,7 +287,7 @@ export default function ApartmentInfoPage() {
             distanceToDaiso: prev.distanceToDaiso ?? m.distanceToDaiso,
             distanceToSupermarket: prev.distanceToSupermarket ?? m.distanceToSupermarket,
             academyDensity: prev.academyDensity ?? m.academyDensity,
-            restaurantDensity: prev.restaurantDensity ?? (m as any).restaurantDensity,
+            restaurantDensity: prev.restaurantDensity ?? (m as unknown as Record<string, number>).restaurantDensity,
             brand: prev.brand || m.brand,
             householdCount: prev.householdCount ?? m.householdCount,
             far: prev.far ?? m.far,
@@ -296,13 +296,13 @@ export default function ApartmentInfoPage() {
             yearBuilt: prev.yearBuilt || String(m.yearBuilt || ''),
           }) : prev);
           // Restore API categories
-          if ((m as any).academyCategories) {
+          if ((m as Record<string, string | number | boolean>).academyCategories) {
             setApiCategories(prev => ({
               ...prev,
-              academyCategories: (m as any).academyCategories,
-              restaurantCategories: (m as any).restaurantCategories,
-              nearestSchoolNames: (m as any).nearestSchoolNames,
-              nearestStationName: (m as any).nearestStationName,
+              academyCategories: (m as Record<string, string | number | boolean>).academyCategories,
+              restaurantCategories: (m as Record<string, string | number | boolean>).restaurantCategories,
+              nearestSchoolNames: (m as Record<string, string | number | boolean>).nearestSchoolNames,
+              nearestStationName: (m as Record<string, string | number | boolean>).nearestStationName,
             }));
           }
         }
@@ -427,7 +427,7 @@ export default function ApartmentInfoPage() {
       if (!newName) throw new Error('아파트 이름을 입력해주세요.');
 
       // 1. Google Sheets sync
-      const syncPayload: { updates: any[]; adds: any[]; deletes: string[] } = { updates: [], adds: [], deletes: [] };
+      const syncPayload: { updates: Record<string, unknown>[]; adds: Record<string, unknown>[]; deletes: string[] } = { updates: [], adds: [], deletes: [] };
       if (!initialMeta.ticker) {
         syncPayload.adds.push({ name: newName, dong: meta.dong, txKey: meta.txKey || '' });
       } else {
@@ -466,7 +466,7 @@ export default function ApartmentInfoPage() {
           const data = await resMeta.json();
           const clean: Record<string, Record<string, unknown>> = {};
           for (const [, apts] of Object.entries(data.byDong || {})) {
-            (apts as any[]).forEach(a => {
+            (apts as Record<string, unknown>[]).forEach(a => {
               const entry: Record<string, unknown> = {};
               if (a.dong) entry['dong'] = a.dong;
               if (a.txKey) entry['txKey'] = a.txKey;
@@ -585,9 +585,9 @@ export default function ApartmentInfoPage() {
       } else {
         setInitialMeta(JSON.parse(JSON.stringify(meta)));
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Save failed:', e);
-      alert('저장에 실패했습니다: ' + e.message);
+      alert('저장에 실패했습니다: ' + (e as Error).message);
     }
     setSaving(false);
   };
