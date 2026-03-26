@@ -3,14 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -H localhost -p 3001",
+    "dev": "next dev -H 0.0.0.0 -p 3001",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "sync-apartments": "node scripts/sync-apartments.js",
     "sync-transactions": "node scripts/sync-transactions.js",
     "sync-all": "node scripts/sync-apartments.js && node scripts/sync-transactions.js",
-    "test": "jest"
+    "test": "jest",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@tosspayments/tosspayments-sdk": "^2.6.0",
@@ -34,6 +35,7 @@
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4.2.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

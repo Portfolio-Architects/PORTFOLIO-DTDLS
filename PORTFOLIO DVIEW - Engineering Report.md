@@ -1,5 +1,5 @@
 # 📋 PORTFOLIO D-VIEW — Engineering Report
-> **Date**: 2026-03-25 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
+> **Date**: 2026-03-26 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
 
 
 ---
@@ -105,7 +105,7 @@ src/
 
 ## 6. 엔지니어링 품질 평가
 
-> **📊 Engineering Quality Evaluation Framework (지표 기반 정량 평가 기준)**
+> **Engineering Quality Evaluation Framework (지표 기반 정량 평가 기준)**
 > 
 > 본 레포트의 모든 등급 판정은 작성자의 주관을 배제하고, 엔터프라이즈 정적 분석(Static Context Analysis) 논리와 실제 측정 가능한 컴파일/런타임 메트릭에 전적으로 의존합니다.
 > 
@@ -156,7 +156,7 @@ src/
 - [ ] 전월세 가치평가 시스템 (적정 전세가율·월세 수익률 산출)
 
 ### Phase 2 (중장기)
-- [ ] Server Components 부분 도입 (page.tsx SSR 전환 → TTFB 감소, 초기 JS 축소)
+- [x] ~~Server Components 부분 도입 (page.tsx SSR 전환 → TTFB 감소, 초기 JS 축소)~~
 - [ ] Streaming + Suspense 경계 추가 (점진적 렌더링 → 체감 속도 개선)
 - [ ] Edge Runtime 전환 (일부 API → Cold Start 제거)
 - [ ] E2E 테스트 (Playwright — 모달·정렬·필터 자동 검증)
@@ -177,40 +177,15 @@ src/
 ## 9. Maintenance Policy
 본 문서는 살아있는 SSOT입니다. 메이저 업데이트 시 지표를 갱신하고 패치노트를 기록합니다.
 
-## 📝 Patch Notes (변경 이력)
+## 📝 Patch Notes (변경 이력 요약)
+*중요 마일스톤 및 핵심 기능 단위로 압축된 변경 이력입니다.*
 
-| 일시 | 항목 | 내용 |
+| 일시 | 주요 항목 | 요약 내용 |
 |:---|:---|:---|
-| 2026-03-25 16:50 | **단지 상세 레이아웃 통합 개편** | 기본정보+입지인프라+앵커테넌트 → 상단 Hero 블록 통합, 스티키 탭 네비 [AI 밸류에이션·현장사진·이야기] 재구성, 준공연도 YYYY년 MM월 포맷, 주차 소수점 2자리 |
-| 2026-03-25 16:50 | **Raw 인프라 메트릭스 소비자 공개** | LocationPremiumSection 삭제 → RawMetricsSection 신규 (report.metrics 반경 500m 실측 거리 전수 공개) |
-| 2026-03-25 17:45 | **개발 서버 사내망 노출 차단** | `package.json` dev 스크립트에 `-H 127.0.0.1` 옵션 추가 (사내망 IP 바인딩 방지 및 추적 불가 목적) |
-| 2026-03-24 17:48 | **가치분석 가격 테이블 및 평형별 UI 고도화** | 1M~ALL 기간별 평균가/변동률 가로 테이블 개편(전체기간 평균 기준), 평형별 최근 거래가 카드 층수/평당가 추가 및 디자인 통일, D-VIEW 타이틀 부제 변경 |
-| 2026-03-24 16:45 | **단지 상세 통합 폼 리팩터링** | Meta + ReportEditorForm을 3섹션(기본정보·입지분석·현장사진) 통합 폼으로 병합, 6개 중복 필드 제거, 통합 저장(Sheets+Firestore) |
-| 2026-03-24 16:38 | **비용 모니터링 패널** | 트래픽 탭에 Google Maps·Firebase·Vercel 비용 콘솔 바로가기 + 무료 한도 표시 추가 |
-| 2026-03-24 16:25 | **사진 전체 삭제 기능** | 현장 사진 섹션에 "전체 삭제" 버튼 추가 (confirm + 중복감지 초기화) |
-| 2026-03-24 16:16 | **EXIF 촬영일 자동 감지** | `exif.ts` 유틸 신규, 사진 업로드 시 EXIF DateTimeOriginal 추출 → `ImageMeta.capturedAt` 저장, 사진 카드에 날짜 뱃지 표시 |
-| 2026-03-24 13:17 | **AdvancedValuationMetrics 컴포넌트 신규** | 퀀트 애널리틱스·폭포수 차트를 통합한 `AdvancedValuationMetrics.tsx`(179줄) 신규 생성, 탭 병합으로 밸류에이션 UX 경량화 |
-| 2026-03-24 13:17 | **ApartmentModal next/image 전환 및 리팩토링** | 갤러리 이미지 `next/image` 전면 도입, 카테고리별 가로 스와이프(Snap) UX 개편, 모달 전체 385줄 변경 |
-| 2026-03-24 13:17 | **CSP Report-Only 헤더 적용** | `next.config.ts`에 Content-Security-Policy-Report-Only 헤더 추가, XSS·인젝션 사전 탐지 |
-| 2026-03-24 13:17 | **page.tsx 서비스 레이어 격리** | 메인 페이지 데이터 패칭 로직 정리, 853줄로 경량화 |
-| 2026-03-23 23:38 | **현장 촬영 일자 독립 적용** | 리포트 작성일과 분리된 `scoutingDate` DB 스키마 및 어드민 입력 폼 추가, 갤러리 헤더에 타임존 에러 없는 기준일자 표기 |
-| 2026-03-23 23:29 | **PWA & Favicon 웹 표준 대응** | Next.js 14 `manifest.ts` 신규 생성 및 `layout.tsx` 명시적 메타데이터/뷰포트 선언 |
-| 2026-03-23 23:25 | **이미지 CDN 렌더링 최적화** | Firebase 갤러리/풀스크린 이미지들에 `next/image` 컴포넌트 전면 도입 (자동 WebP 변환 및 지연 로딩) |
-| 2026-03-23 18:30 | **밸류에이션 UI 통합 및 갤러리 개편** | 퀀트 애널리틱스와 폭포수 차트 탭 병합/경량화, 세로형 사진 갤러리를 카테고리별 가로 스와이프(Snap) UX로 전면 개편 |
-| 2026-03-23 17:19 | **보고서 이름 변경** | `PORTFOLIO_DTDLS_REPORT.md` → `PORTFOLIO DVIEW - Engineering Report.md` |
-| 2026-03-23 17:03 | **관리자 트래픽 분석 탭** | Admin 페이지에 `트래픽` 탭 신규 — scoutingReports 기반 단지별 조회수·관심 집계, 바 차트 + 정렬 기능 |
-| 2026-03-23 16:52 | **면적 컬럼 헤더 동적 전환** | `ApartmentModal` 거래 테이블 헤더 `m²/평` 토글에 따라 동적 변경 |
-| 2026-03-23 16:50 | **임장 배지 통일** | 카드 배지 `✅` → `FileText` 아이콘 + 앰버 스타일 (`bg-[#fff8e1]`), 헤더 `2개 리포트` 배지와 통일 |
-| 2026-03-23 16:46 | **평당가격 공급면적 기준 수정** | `typeM2` 숫자 파싱 → 공급m² × 0.3025 = 공급평형 → `avg1MPrice / supplyPyeong` 재계산, `typeMap·areaUnit` props 전달 누락 수정 |
-| 2026-03-23 16:35 | **D-VIEW 서브타이틀 강조** | `D-VIEW` 파란 볼드 + `Dongtan Value Insight & Evaluation Window` 각 이니셜 동일 색상 강조 |
-| 2026-03-23 16:34 | **면적 토글 표기 변경** | 토글 버튼 `면적 → m²`, 거래 테이블 헤더 `m²` 고정 적용 |
-| 2026-03-23 13:10 | **테스트 커버리지 확충** | 16→45 assertions (5 suites), haversine·valuation·dongs·scoring 테스트 신규, stale 테스트 수정 |
-| 2026-03-23 12:45 | **D-VIEW 브랜딩** | 아이콘 생성 (D + 상승 바차트), favicon·헤더 적용, 메타데이터 업데이트, 여백 축소 |
-| 2026-03-23 12:33 | **UI 수정 + 모바일 모달 버그 수정** | 'by 임장크루' 삭제, D-VIEW 타이틀 적용, 모바일 풀스크린 모달 오버레이 추가 |
-| 2026-03-23 12:27 | **실거래가 데이터 업데이트** | CSV 48건 import (3/17~3/20), Firestore + transaction-summary.ts 재생성 (146개 아파트, 63,233건) |
-| 2026-03-23 12:17 | **CI/CD 파이프라인** | GitHub Actions CI workflow 신규 (린트 → 타입체크 → Jest → 빌드) |
-| 2026-03-23 12:10 | **Google Sheets Write 고도화** | apartments-sync API 전체 필드 쓰기 확장, Admin 상세 페이지에 세대수/시공사/용적률/건폐율/주차/좌표 에디터 추가 |
-| 2026-03-23 12:00 | **Anchor Tenant Metrics** | AnchorTenantCard 컴포넌트 신규, 앵커 테넌트 근접도 시각화 (바 차트 + 등급 + 종합 점수) |
-| 2026-03-23 11:50 | **결제 기능 비활성화** | TossPayments SDK 제거, 프리미엄 콘텐츠 전면 공개 (Vercel Hobby Plan 대응) |
-| 2026-03-23 11:47 | **구글 시트 자동 동기화** | 정적 dong-apartments.ts 대신 /api/apartments-by-dong API 연동, 정적 데이터는 폴백 유지 |
-| 2026-03-23 11:47 | **정렬 로직 안정화** | 조회수/관심 정렬 시 같은 값에 가나다순 2차 정렬 추가, 여울동 힐스테이트 동탄역 데이터 삭제 |
+| 2026-03-26 | **React Server Components 도입** | `page.tsx` SSR 전환 및 `DashboardClient` 분리로 초기 데이터 패칭 최적화 (TTFB 감소, 렌더링 폭포수 제거) |
+| 2026-03-26 | **거래내역 엑셀 스타일 필터 적용** | 실거래 테이블 헤더에 양방향 바인딩 드롭다운 필터 적용 |
+| 2026-03-25 | **개발 서버 사내망 노출 차단** | `package.json` dev 스크립트에 `-H 127.0.0.1` 옵션 추가 (사내망 IP 바인딩 방지 및 추적 불가 목적) |
+| 2026-03-25 | **단지 상세 통합 레이아웃 개편** | 3단 레이아웃 통합 폼 병합, 사진 갤러리 2-level 팝오버 및 카테고리 필터 칩 도입 |
+| 2026-03-24 | **가치분석 및 사진 메타데이터 고도화** | `AdvancedValuationMetrics` 컴포넌트로 퀀트 애널리틱스·폭포수 차트 통합, EXIF 기반 촬영일 자동 추출 |
+| 2026-03-23 | **테스트/CI·CD 및 보안 강화** | Jest 45 assertions 커버리지 달성, Vercel 자동 배포 연동 및 CSP 헤더 추가 |
+| 2026-03-23 | **UI 반응형 및 성능 최적화** | Next.js Image 도입으로 CDN 렌더링 최적화, PWA Manifest 규격화, 메인 렌더링 방식 경량화 |

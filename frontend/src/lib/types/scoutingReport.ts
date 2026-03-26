@@ -11,8 +11,11 @@ export interface ObjectiveMetrics {
   householdCount: number; // 세대수 - e.g., 1200
   far: number; // 용적률
   bcr: number; // 건폐율
+  parkingCount?: number; // 총 주차대수
   parkingPerHousehold: number; // 세대당 주차대수
   yearBuilt: number; // 준공연도
+  maxFloor?: number; // 최고층
+  coordinates?: string; // 좌표 (위도, 경도)
   distanceToElementary: number; // 초등학교까지의 거리 (미터)
   distanceToMiddle: number; // 중학교까지의 거리 (미터)
   distanceToHigh: number; // 고등학교까지의 거리 (미터)

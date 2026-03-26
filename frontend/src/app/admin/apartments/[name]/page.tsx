@@ -525,7 +525,8 @@ export default function ApartmentInfoPage() {
         const metricsPayload = {
           brand: meta.brand || '', householdCount: meta.householdCount || 0,
           far: meta.far || 0, bcr: meta.bcr || 0,
-          parkingPerHousehold: meta.parkingPerHousehold || 0,
+          parkingCount: meta.parkingCount, parkingPerHousehold: meta.parkingPerHousehold || 0,
+          maxFloor: meta.maxFloor, coordinates: meta.coordinates,
           yearBuilt: Number(meta.yearBuilt) || 0,
           distanceToElementary: meta.distanceToElementary || 0,
           distanceToMiddle: meta.distanceToMiddle || 0,

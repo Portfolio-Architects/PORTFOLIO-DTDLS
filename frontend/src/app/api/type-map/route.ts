@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+export const runtime = 'edge';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 
 const TYPE_MAP_TAB = SHEET_TABS.TYPE_MAP;

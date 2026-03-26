@@ -159,6 +159,7 @@ export function FieldReportModal({
   const [txFilterDealType, setTxFilterDealType] = useState<string>('ALL');
   const [txSort, setTxSort] = useState<{key: string, dir: 'asc'|'desc'}>({key: 'date', dir: 'desc'});
   const [activeDropdown, setActiveDropdown] = useState<string|null>(null);
+  const [activeTab, setActiveTab] = useState('sec-summary');
 
   const handleTxSort = (key: string) => {
     setTxSort(prev => ({ key, dir: prev.key === key && prev.dir === 'desc' ? 'asc' : 'desc' }));
@@ -169,13 +170,35 @@ export function FieldReportModal({
   const isStub = report.id.startsWith('stub-');
   const modalRef = useRef<HTMLDivElement>(null);
   const scrollToSection = (id: string) => {
+    setActiveTab(id);
     if (id === 'sec-summary' && modalRef.current) {
       // Summary = first section, just scroll modal to top
       modalRef.current.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     const el = modalRef.current?.querySelector(`#${id}`);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (el && modalRef.current) {
+      const topPos = el.getBoundingClientRect().top + modalRef.current.scrollTop - modalRef.current.getBoundingClientRect().top - 60;
+      modalRef.current.scrollTo({ top: topPos, behavior: 'smooth' });
+    }
+  };
+
+  const handleScroll = () => {
+    if (!modalRef.current) return;
+    const sections = ['sec-summary', 'sec-infra-metrics', 'sec-premium', 'sec-photos', 'sec-comments'];
+    let current = 'sec-summary';
+    for (const id of sections) {
+      if (id === 'sec-summary') continue;
+      const el = modalRef.current.querySelector(`#${id}`);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const containerRect = modalRef.current.getBoundingClientRect();
+        if (rect.top - containerRect.top < 300) {
+          current = id;
+        }
+      }
+    }
+    setActiveTab(current);
   };
 
   const s = report.sections;
@@ -228,6 +251,51 @@ export function FieldReportModal({
     active ? 'bg-[#e8f3ff] text-[#3182f6]' : 'bg-transparent text-[#4e5968] hover:bg-[#f2f4f6]'
   }`;
 
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter(tx => {
+      if (txFilterArea !== 'ALL') {
+        const norm = normalizeAptName(tx.aptName);
+        const t = typeMap[norm]?.[String(tx.area)];
+        const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : String(tx.area);
+        if (label !== txFilterArea) return false;
+      }
+      if (txFilterFloor !== 'ALL') {
+        const f = Number(tx.floor);
+        const allFloors = transactions.map(tt => Number(tt.floor)).filter(ff => !Number.isNaN(ff));
+        const mxF = Math.max(...allFloors, 1);
+        const lc = Math.floor(mxF / 3);
+        const mc = Math.floor(mxF * 2 / 3);
+        if (txFilterFloor === 'LOW' && f > lc) return false;
+        if (txFilterFloor === 'MID' && (f <= lc || f > mc)) return false;
+        if (txFilterFloor === 'HIGH' && f <= mc) return false;
+      }
+      if (txFilterDealType !== 'ALL' && tx.dealType !== txFilterDealType) return false;
+      return true;
+    });
+  }, [transactions, txFilterArea, txFilterFloor, txFilterDealType, typeMap, areaUnit]);
+
+  const sortedFilteredTransactions = useMemo(() => {
+    return [...filteredTransactions].sort((a, b) => {
+      let cmp = 0;
+      if (txSort.key === 'date') {
+        const aDate = parseInt(a.contractYm) * 100 + (parseInt(a.contractDay) || 15);
+        const bDate = parseInt(b.contractYm) * 100 + (parseInt(b.contractDay) || 15);
+        cmp = aDate - bDate;
+      } else if (txSort.key === 'price') {
+        cmp = a.price - b.price;
+      } else if (txSort.key === 'area') {
+        cmp = a.area - b.area;
+      } else if (txSort.key === 'floor') {
+        const af = Number(a.floor) || 0;
+        const bf = Number(b.floor) || 0;
+        cmp = af - bf;
+      } else if (txSort.key === 'type') {
+        cmp = (a.dealType || '').localeCompare(b.dealType || '');
+      }
+      return txSort.dir === 'asc' ? cmp : -cmp;
+    });
+  }, [filteredTransactions, txSort]);
+
   const content = (
     <>
       {/* Hero Section — Layout: 40% table / 60% chart */}
@@ -238,24 +306,24 @@ export function FieldReportModal({
               {transactions.length > 0 ? (
                 <div className="bg-[#f9fafb] rounded-2xl p-4 ring-1 ring-black/5 h-full flex flex-col">
                   {/* 필터 영역 */}
-                  {(() => {
-                    return (
-                      <div className="mb-2 space-y-1.5">
-                        <h4 className="text-sm font-bold text-[#8b95a1] flex items-center gap-1.5 shrink-0">
-                          <TrendingUp size={16} className="text-[#03c75a]" />
-                          <span className="flex items-center gap-1.5">실거래가 내역 <span className="text-sm font-medium ml-0.5">총 {transactions.length.toLocaleString()}건</span></span>
-                        </h4>
-                        
-                        {/* 팝업 오버레이 닫기용 투명 배경 */}
-                        {activeDropdown && (
-                          <div className="fixed inset-0 z-40" onClick={() => setActiveDropdown(null)} />
-                        )}
-                      </div>
-                    );
-                  })()}
+                  <div className="mb-2 flex items-center justify-between px-1">
+                    <h4 className="text-sm font-bold text-[#8b95a1] flex items-center gap-1.5 shrink-0">
+                      <TrendingUp size={16} className="text-[#03c75a]" />
+                      <span className="flex items-center gap-1.5">실거래가 내역 <span className="text-sm font-medium ml-0.5">총 {filteredTransactions.length.toLocaleString()}건</span></span>
+                    </h4>
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-0.5 rounded-md">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3182f6]" />
+                      <span>최근 1개월</span>
+                    </div>
+                  </div>
+                  
+                  {/* 팝업 오버레이 닫기용 투명 배경 - 레이아웃 간섭(Layout Shift) 방지를 위해 독립 배치 */}
+                  {activeDropdown && (
+                    <div className="fixed inset-0 z-40" onClick={() => setActiveDropdown(null)} />
+                  )}
                   <div className="overflow-y-auto max-h-[460px]">
                     <table className="w-full text-sm">
-                      <thead className="sticky top-0 bg-[#f9fafb]">
+                      <thead className="sticky top-0 bg-[#f9fafb] z-50">
                         {(() => {
                           const renderSortIcon = (key: string, hasFilter: boolean = false) => (
                             <div className={`p-1 -m-1 rounded cursor-pointer flex items-center justify-center transition-colors ${activeDropdown === key ? 'bg-[#e5e8eb]' : 'hover:bg-[#e5e8eb]'}`} onClick={(e) => {
@@ -271,76 +339,65 @@ export function FieldReportModal({
                           );
                           return (
                             <tr className="border-b border-[#e5e8eb] text-[#8b95a1]">
-                              <th className="py-3 pl-2 text-left font-bold group hover:bg-[#f2f4f6] transition-colors rounded-tl-lg">
-                                <div className="flex items-center gap-1 w-fit relative">
-                                  <span className="cursor-pointer" onClick={() => handleTxSort('date')}>거래일</span>
-                                  {renderSortIcon('date')}
+                              <th className="py-3 text-center font-bold rounded-tl-lg">
+                                <div className="flex items-center justify-center gap-1 w-full relative">
+                                  <span>거래일</span>
                                 </div>
                               </th>
-                              <th className="py-3 pr-2 text-right font-bold w-[25%] group hover:bg-[#f2f4f6] transition-colors">
-                                <div className="flex items-center justify-end gap-1 relative">
-                                  <span className="cursor-pointer" onClick={() => handleTxSort('price')}>금액</span>
-                                  {renderSortIcon('price')}
+                              <th className="py-3 text-center font-bold w-[25%]">
+                                <div className="flex items-center justify-center gap-1 w-full">
+                                  <span>금액</span>
                                 </div>
                               </th>
-                              <th className="py-3 text-center font-bold w-[18%] group hover:bg-[#f2f4f6] transition-colors">
-                                <div className="flex items-center justify-center gap-1 relative">
+                              <th className="py-3 text-center font-bold w-[18%] group hover:bg-[#f2f4f6] transition-colors relative">
+                                <div className="flex items-center justify-center gap-1">
                                   <span className="cursor-pointer" onClick={() => handleTxSort('area')}>{areaUnit === 'm2' ? 'm²' : '평'}</span>
                                   {renderSortIcon('area', true)}
-                                  
-                                  {activeDropdown === 'area' && (
-                                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 flex justify-center z-50">
-                                      <div className="mt-3 bg-white ring-1 ring-black/5 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex flex-col min-w-[140px] font-normal" onClick={e => e.stopPropagation()}>
-                                        <div className="text-[11px] font-bold text-[#8b95a1] mb-2 px-3 pt-1 text-left">타입 필터</div>
-                                        <div className="flex flex-col items-stretch max-h-[200px] overflow-y-auto">
-                                          <button className={chipClass(txFilterArea === 'ALL')} onClick={() => {setTxFilterArea('ALL'); setActiveDropdown(null);}}>전체보기</button>
-                                          {areaTypes.map(a => (
-                                            <button key={a} className={chipClass(txFilterArea === a)} onClick={() => {setTxFilterArea(a); setActiveDropdown(null);}}>{a}</button>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
                                 </div>
+                                {activeDropdown === 'area' && (
+                                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white ring-1 ring-black/5 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex flex-col min-w-[150px] font-normal z-50 text-left" onClick={e => e.stopPropagation()}>
+                                    <div className="text-[11px] font-bold text-[#8b95a1] mb-2 px-3 pt-1">타입 필터</div>
+                                    <div className="flex flex-col items-stretch max-h-[250px] overflow-y-auto custom-scrollbar">
+                                      <button className={chipClass(txFilterArea === 'ALL')} onClick={() => {setTxFilterArea('ALL'); setActiveDropdown(null);}}>전체보기</button>
+                                      {areaTypes.map(a => (
+                                        <button key={a} className={chipClass(txFilterArea === a)} onClick={() => {setTxFilterArea(a); setActiveDropdown(null);}}>{a}</button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                               </th>
-                              <th className="py-3 text-center font-bold w-[15%] group hover:bg-[#f2f4f6] transition-colors">
-                                <div className="flex items-center justify-center gap-1 relative">
+                              <th className="py-3 text-center font-bold w-[15%] group hover:bg-[#f2f4f6] transition-colors relative">
+                                <div className="flex items-center justify-center gap-1">
                                   <span className="cursor-pointer" onClick={() => handleTxSort('floor')}>층</span>
                                   {renderSortIcon('floor', true)}
-                                  
-                                  {activeDropdown === 'floor' && (
-                                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 flex justify-center z-50">
-                                      <div className="mt-3 bg-white ring-1 ring-black/5 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex flex-col min-w-[140px] font-normal" onClick={e => e.stopPropagation()}>
-                                        <div className="text-[11px] font-bold text-[#8b95a1] mb-2 px-3 pt-1 text-left">층수 필터</div>
-                                        <div className="flex flex-col items-stretch">
-                                          {floorTiers.map(ft => (
-                                            <button key={ft.key} className={chipClass(txFilterFloor === ft.key)} onClick={() => {setTxFilterFloor(ft.key); setActiveDropdown(null);}}>{ft.label}</button>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
                                 </div>
+                                {activeDropdown === 'floor' && (
+                                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white ring-1 ring-black/5 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex flex-col min-w-[150px] font-normal z-50 text-left" onClick={e => e.stopPropagation()}>
+                                    <div className="text-[11px] font-bold text-[#8b95a1] mb-2 px-3 pt-1">층수 필터</div>
+                                    <div className="flex flex-col items-stretch max-h-[250px] overflow-y-auto custom-scrollbar">
+                                      {floorTiers.map(ft => (
+                                        <button key={ft.key} className={chipClass(txFilterFloor === ft.key)} onClick={() => {setTxFilterFloor(ft.key); setActiveDropdown(null);}}>{ft.label}</button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                               </th>
-                              <th className="py-3 pr-2 text-right font-bold w-[18%] group hover:bg-[#f2f4f6] transition-colors rounded-tr-lg">
-                                <div className="flex items-center justify-end gap-1 relative">
+                              <th className="py-3 pr-2 text-right font-bold w-[18%] group hover:bg-[#f2f4f6] transition-colors rounded-tr-lg relative">
+                                <div className="flex items-center justify-end gap-1">
                                   <span className="cursor-pointer" onClick={() => handleTxSort('type')}>유형</span>
                                   {renderSortIcon('type', true)}
-                                  
-                                  {activeDropdown === 'type' && (
-                                    <div className="absolute top-full right-0 w-0 h-0 flex justify-end z-50">
-                                      <div className="mt-3 bg-white ring-1 ring-black/5 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex flex-col min-w-[140px] font-normal" onClick={e => e.stopPropagation()}>
-                                        <div className="text-[11px] font-bold text-[#8b95a1] mb-2 px-3 pt-1 text-left">거래 유형</div>
-                                        <div className="flex flex-col items-stretch">
-                                          <button className={chipClass(txFilterDealType === 'ALL')} onClick={() => {setTxFilterDealType('ALL'); setActiveDropdown(null);}}>전체보기</button>
-                                          {dealTypes.map(dt => (
-                                            <button key={dt} className={chipClass(txFilterDealType === dt)} onClick={() => {setTxFilterDealType(dt); setActiveDropdown(null);}}>{dt}</button>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
                                 </div>
+                                {activeDropdown === 'type' && (
+                                  <div className="absolute top-full right-0 mt-2 bg-white ring-1 ring-black/5 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex flex-col min-w-[150px] font-normal z-50 text-left" onClick={e => e.stopPropagation()}>
+                                    <div className="text-[11px] font-bold text-[#8b95a1] mb-2 px-3 pt-1">거래 유형</div>
+                                    <div className="flex flex-col items-stretch max-h-[250px] overflow-y-auto custom-scrollbar">
+                                      <button className={chipClass(txFilterDealType === 'ALL')} onClick={() => {setTxFilterDealType('ALL'); setActiveDropdown(null);}}>전체보기</button>
+                                      {dealTypes.map(dt => (
+                                        <button key={dt} className={chipClass(txFilterDealType === dt)} onClick={() => {setTxFilterDealType(dt); setActiveDropdown(null);}}>{dt}</button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                               </th>
                             </tr>
                           );
@@ -348,52 +405,7 @@ export function FieldReportModal({
                       </thead>
                       <tbody>
                         {(() => {
-                          // 필터 적용
-                          const filtered = transactions.filter(tx => {
-                            // m² 타입 필터
-                            if (txFilterArea !== 'ALL') {
-                              const norm = normalizeAptName(tx.aptName);
-                              const t = typeMap[norm]?.[String(tx.area)];
-                              const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : String(tx.area);
-                              if (label !== txFilterArea) return false;
-                            }
-                            // 층 필터 (동적 기준)
-                            if (txFilterFloor !== 'ALL') {
-                              const f = Number(tx.floor);
-                              const allFloors = transactions.map(tt => Number(tt.floor)).filter(ff => !Number.isNaN(ff));
-                              const mxF = Math.max(...allFloors, 1);
-                              const lc = Math.floor(mxF / 3);
-                              const mc = Math.floor(mxF * 2 / 3);
-                              if (txFilterFloor === 'LOW' && f > lc) return false;
-                              if (txFilterFloor === 'MID' && (f <= lc || f > mc)) return false;
-                              if (txFilterFloor === 'HIGH' && f <= mc) return false;
-                            }
-                            // 유형 필터
-                            if (txFilterDealType !== 'ALL' && tx.dealType !== txFilterDealType) return false;
-                            return true;
-                          });
-                          
-                          const sortedFiltered = [...filtered].sort((a, b) => {
-                            let cmp = 0;
-                            if (txSort.key === 'date') {
-                              const aDate = parseInt(a.contractYm) * 100 + (parseInt(a.contractDay) || 15);
-                              const bDate = parseInt(b.contractYm) * 100 + (parseInt(b.contractDay) || 15);
-                              cmp = aDate - bDate;
-                            } else if (txSort.key === 'price') {
-                              cmp = a.price - b.price;
-                            } else if (txSort.key === 'area') {
-                              cmp = a.area - b.area;
-                            } else if (txSort.key === 'floor') {
-                              const af = Number(a.floor) || 0;
-                              const bf = Number(b.floor) || 0;
-                              cmp = af - bf;
-                            } else if (txSort.key === 'type') {
-                              cmp = (a.dealType || '').localeCompare(b.dealType || '');
-                            }
-                            return txSort.dir === 'asc' ? cmp : -cmp;
-                          });
-
-                          return sortedFiltered.map((tx, idx) => {
+                          return sortedFilteredTransactions.map((tx, idx) => {
                             const txDate = new Date(parseInt(tx.contractYm.slice(0, 4)), parseInt(tx.contractYm.slice(4)) - 1, parseInt(tx.contractDay) || 15);
                             const now = new Date();
                             const isRecent = txDate >= new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
@@ -693,16 +705,23 @@ export function FieldReportModal({
             const aptNorm = normalizeAptName(report.apartmentName);
 
             // 1) 평형별 최근 거래가 그룹핑
-            const byArea = new Map<string, { label: string; price: string; rawPrice: number; count: number; latestYm: number; area: number; floor: number }>();
+            const byArea = new Map<string, { label: string; price: string; rawPrice: number; count: number; latestYm: number; area: number; floor: number; supplyPyeong?: number }>();
             transactions.forEach(tx => {
               const key = String(tx.area);
               const typeData = typeMap[aptNorm]?.[key];
               const typeName = typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
               const label = typeName || `${tx.areaPyeong}평`;
+              
+              let supplyPyeong: number | undefined;
+              if (typeData?.typeM2) {
+                const supplyM2Match = typeData.typeM2.match(/\d+(\.\d+)?/);
+                if (supplyM2Match) supplyPyeong = parseFloat(supplyM2Match[0]) * 0.3025;
+              }
+
               const ym = parseInt(tx.contractYm);
               const existing = byArea.get(key);
               if (!existing || ym > existing.latestYm) {
-                byArea.set(key, { label, price: tx.priceEok, rawPrice: tx.price, count: (existing?.count || 0) + 1, latestYm: ym, area: tx.area, floor: tx.floor });
+                byArea.set(key, { label, price: tx.priceEok, rawPrice: tx.price, count: (existing?.count || 0) + 1, latestYm: ym, area: tx.area, floor: tx.floor, supplyPyeong });
               } else {
                 existing.count++;
               }
@@ -743,9 +762,21 @@ export function FieldReportModal({
               ? transactions
               : transactions.filter(tx => String(tx.area) === priceTypeFilter);
 
+            // Calculate supply pyeong for a transaction
+            const getTxSupplyPyeong = (tx: TransactionRecord) => {
+              const key = String(tx.area);
+              const typeData = typeMap[aptNorm]?.[key];
+              if (typeData?.typeM2) {
+                const supplyM2Match = typeData.typeM2.match(/\d+(\.\d+)?/);
+                if (supplyM2Match) return parseFloat(supplyM2Match[0]) * 0.3025;
+              }
+              // fallback to roughly estimating supply area if not in typeMap
+              return tx.area * 0.3025 * 1.33; 
+            };
+
             // Area pyeong for per-pyeong calc (type-specific or average)
             const avgAreaPyeong = baseTx.length > 0
-              ? baseTx.reduce((s, tx) => s + (tx.area * 0.3025), 0) / baseTx.length
+              ? baseTx.reduce((s, tx) => s + getTxSupplyPyeong(tx), 0) / baseTx.length
               : 30;
 
             const formatEok = (priceMan: number) => {
@@ -794,7 +825,8 @@ export function FieldReportModal({
                 <div className="flex flex-nowrap gap-3 overflow-x-auto pb-4 px-4 md:px-10 -mx-4 md:-mx-10 custom-scrollbar items-stretch p-1">
                   {areaCards.map((c, i) => {
                     const [tc, bgc] = getBadgeColorClasses(c.label);
-                    const pyeong = c.area * 0.3025;
+                    // Use supplyPyeong if available, fallback to approx
+                    const pyeong = c.supplyPyeong || (c.area * 0.3025 * 1.33);
                     const perPyeongMan = pyeong > 0 ? Math.round(c.rawPrice / pyeong) : 0;
                     const perPyeongStr = perPyeongMan >= 10000
                       ? `${Math.floor(perPyeongMan / 10000)}억${Math.round(perPyeongMan % 10000) > 0 ? Math.round(perPyeongMan % 10000).toLocaleString() : ''}`
@@ -896,17 +928,23 @@ export function FieldReportModal({
 
           {/* Sticky Section Nav — stub이면 숨김 */}
           {!isStub && (
-          <nav className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] px-4 pt-4 pb-0">
-            <div className="flex gap-6 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden max-w-[1000px] mx-auto">
-              {['밸류에이션', '현장 사진', '이 아파트 이야기'].map((label, idx) => {
-                const ids = ['sec-premium', 'sec-photos', 'sec-comments'];
+          <nav className="sticky top-0 z-[60] bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] px-4 md:px-8 pt-3 pb-0 shadow-sm shadow-[#191f28]/5">
+            <div className="flex gap-6 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full relative">
+              {['단지 기본정보', '단지 입지정보', '밸류에이션 분석', '현장 검증 사진', '아파트 이야기'].map((label, idx) => {
+                const ids = ['sec-summary', 'sec-infra-metrics', 'sec-premium', 'sec-photos', 'sec-comments'];
+                const isActive = activeTab === ids[idx];
                 return (
                   <button
                     key={ids[idx]}
                     onClick={() => scrollToSection(ids[idx])}
-                    className="shrink-0 pb-3 text-[14px] font-bold text-[#8b95a1] hover:text-[#191f28] border-b-2 border-transparent hover:border-[#191f28] transition-all duration-200"
+                    className={`relative shrink-0 pb-3 text-[14px] font-bold transition-all duration-200 outline-none ${
+                       isActive ? 'text-[#191f28]' : 'text-[#8b95a1] hover:text-[#191f28]'
+                    }`}
                   >
                     {label}
+                    {isActive && (
+                      <span className="absolute bottom-0 left-0 w-full h-[3px] bg-[#191f28] rounded-t-sm" />
+                    )}
                   </button>
                 );
               })}
@@ -918,30 +956,99 @@ export function FieldReportModal({
           {!isStub && (
           <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4' : 'px-2 py-2 md:px-3 md:py-3'} flex flex-col gap-8 w-full`}>
 
-
+            {/* 1. 단지 기본 명세 (Specs) */}
+            {report.metrics && (
+              <div id="sec-specs" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#e5e8eb]">
+                 <h2 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2 mb-5 border-b border-[#e5e8eb] pb-3">
+                   <Building size={18} className="text-[#3182f6]"/> 단지 건물 상세
+                 </h2>
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
+                      <p className="text-[12px] text-[#8b95a1] font-bold mb-1">단지명 / 시공사</p>
+                      <p className="text-[15px] text-[#191f28] font-bold">{report.apartmentName} <span className="text-[13px] text-[#4e5968] font-medium ml-1">{report.metrics.brand ? `(${report.metrics.brand})` : ''}</span></p>
+                    </div>
+                    <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
+                      <p className="text-[12px] text-[#8b95a1] font-bold mb-1">사용승인일 (연차)</p>
+                      <p className="text-[15px] text-[#191f28] font-bold">
+                        {report.metrics.yearBuilt ? (() => {
+                          const ybStr = String(report.metrics.yearBuilt);
+                          const now = new Date();
+                          const currentYear = now.getFullYear();
+                          const currentMonth = now.getMonth() + 1;
+                          
+                          if (ybStr.length >= 6) {
+                            const year = parseInt(ybStr.substring(0, 4));
+                            const month = parseInt(ybStr.substring(4, 6));
+                            const elapsedMonths = (currentYear - year) * 12 + (currentMonth - month);
+                            
+                            let ageStr = '';
+                            if (elapsedMonths < 0) {
+                              ageStr = '입주 전';
+                            } else if (elapsedMonths === 0) {
+                              ageStr = '신축 1개월 미만';
+                            } else {
+                              const y = Math.floor(elapsedMonths / 12);
+                              const m = elapsedMonths % 12;
+                              if (y > 0 && m > 0) ageStr = `${y}년 ${m}개월차`;
+                              else if (y > 0) ageStr = `${y}년차`;
+                              else ageStr = `${m}개월차`;
+                            }
+                            return <>{year}년 {month}월 <span className="text-[13px] text-[#3182f6] font-medium ml-0.5">({ageStr})</span></>;
+                          }
+                          
+                          const year = parseInt(ybStr);
+                          const age = currentYear - year + 1;
+                          return <>{year}년 <span className="text-[13px] text-[#3182f6] font-medium ml-0.5">({age}년차)</span></>;
+                        })() : '-'}
+                      </p>
+                    </div>
+                    <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
+                      <p className="text-[12px] text-[#8b95a1] font-bold mb-1">규모 (세대/층)</p>
+                      <p className="text-[15px] text-[#191f28] font-bold">{report.metrics.householdCount ? `${report.metrics.householdCount}세대` : '-'} <span className="text-[#8b95a1] text-[13px] font-medium ml-0.5 whitespace-nowrap">/ {report.metrics.maxFloor ? `최고 ${report.metrics.maxFloor}층` : '-'}</span></p>
+                    </div>
+                    <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
+                      <p className="text-[12px] text-[#8b95a1] font-bold mb-1">용적률 / 건폐율</p>
+                      <p className="text-[15px] text-[#191f28] font-bold">{report.metrics.far ? `${report.metrics.far}%` : '-'} <span className="text-[#8b95a1] text-[13px] font-medium ml-1 whitespace-nowrap">/ {report.metrics.bcr ? `${report.metrics.bcr}%` : '-'}</span></p>
+                    </div>
+                    <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
+                      <p className="text-[12px] text-[#8b95a1] font-bold mb-1">주차대수 (세대당)</p>
+                      <p className="text-[15px] text-[#191f28] font-bold">{report.metrics.parkingCount ? `${report.metrics.parkingCount}대` : '-'} <span className="text-[#8b95a1] text-[13px] font-medium ml-0.5 whitespace-nowrap">/ {report.metrics.parkingPerHousehold ? `${report.metrics.parkingPerHousehold}대` : '-'}</span></p>
+                    </div>
+                    <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb] md:col-span-2">
+                      <p className="text-[12px] text-[#8b95a1] font-bold mb-1">단지 위치 (지도 보기)</p>
+                      {report.metrics.coordinates ? (
+                        <a 
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(report.metrics.coordinates)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[13px] text-[#3182f6] font-medium mt-0.5 tracking-tight truncate hover:underline flex items-center gap-1"
+                          title="구글 지도에서 보기"
+                        >
+                          <MapPin size={12} />
+                          {report.metrics.coordinates}
+                        </a>
+                      ) : (
+                        <p className="text-[13px] text-[#4e5968] mt-0.5 tracking-tight truncate">-</p>
+                      )}
+                    </div>
+                 </div>
+              </div>
+            )}
 
             {/* ── PAYWALL GATE — 비활성화 (프리미엄 콘텐츠 전면 공개 중) ──
              * TODO: 유료 모델 전환 시 이 블록 복원
              * 원본: isPurchased/isAdmin 체크 후 PaymentButton 표시
              */}
 
-            {/* 밸류에이션 퀀트 수치 — 무료 티어 개방 */}
-            {report.premiumScores && transactions.length > 0 && (() => {
-              // 84㎡ 기준 가격 산출
-              const tx84 = transactions.find(t => t.area >= 80 && t.area <= 88) || transactions[0];
-              const price84 = tx84 ? normalize84Price(tx84.price, tx84.area) : 0;
-              return price84 > 0 ? (
-                <div id="sec-premium" className="mb-2 scroll-mt-14 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#e5e8eb]">
-                  <AdvancedValuationMetrics price84Man={price84} />
-                </div>
-              ) : null;
-            })()}
 
 
 
+
+          {/* 단지 입지정보 컨테이너 (인프라 + 앵커 테넌트 묶음) */}
+          <div id="sec-infra-metrics" className="flex flex-col gap-6 scroll-mt-14">
             {/* Location Infrastructure Info — Enhanced with categories + raw data */}
             {report.metrics && (report.metrics.distanceToElementary || report.metrics.distanceToSubway || report.metrics.academyDensity) && (
-              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#e5e8eb]">
                 <h2 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2 mb-5 border-b border-[#e5e8eb] pb-3">
                   <MapPin size={18} className="text-[#3182f6]"/> 학군·교통·생활 인프라
                 </h2>
@@ -1017,7 +1124,7 @@ export function FieldReportModal({
                   {/* Restaurant/Cafe Density with Category Breakdown */}
                   {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
                     <div className="bg-[#fffbeb] rounded-2xl p-4 text-center col-span-1">
-                      <div className="text-[11px] font-bold text-[#f59e0b] mb-1">🍽️ 음식점·카페 (500m)</div>
+                      <div className="text-[11px] font-bold text-[#f59e0b] mb-1">음식점·카페 (500m)</div>
                       <div className="text-[22px] font-extrabold text-[#f59e0b]">{report.metrics.restaurantDensity}<span className="text-[13px] text-[#f59e0b]/70 ml-0.5">개</span></div>
                       {report.metrics.restaurantCategories && Object.keys(report.metrics.restaurantCategories).length > 0 && (
                         <div className="mt-2 pt-2 border-t border-[#fde68a]">
@@ -1122,7 +1229,7 @@ export function FieldReportModal({
                         {/* 생활 인프라 */}
                         {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
                           <div>
-                            <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">🍽️ 생활 인프라</h4>
+                            <h4 className="text-[12px] font-bold text-[#8b95a1] mb-2 flex items-center gap-1.5">생활 인프라</h4>
                             <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-[13px]">
                               <div className="flex justify-between py-1.5 border-b border-[#f2f4f6]">
                                 <span className="text-[#4e5968]">음식점·카페 (500m)</span>
@@ -1192,6 +1299,19 @@ export function FieldReportModal({
                 distanceToMcDonalds={report.metrics.distanceToMcDonalds}
               />
             )}
+          </div>
+
+            {/* 밸류에이션 퀀트 수치 — 무료 티어 개방 */}
+            {report.premiumScores && transactions.length > 0 && (() => {
+              // 84㎡ 기준 가격 산출
+              const tx84 = transactions.find(t => t.area >= 80 && t.area <= 88) || transactions[0];
+              const price84 = tx84 ? normalize84Price(tx84.price, tx84.area) : 0;
+              return price84 > 0 ? (
+                <div id="sec-premium" className="mb-2 scroll-mt-14 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#e5e8eb]">
+                  <AdvancedValuationMetrics price84Man={price84} />
+                </div>
+              ) : null;
+            })()}
 
             {/* Photo Gallery — Category Tab Grid (100+ photos) */}
             {report.images && report.images.length > 0 && (() => {
@@ -1343,14 +1463,16 @@ export function FieldReportModal({
             )}
 
             {/* Comments Section */}
-            <CommentSection
-              comments={comments}
-              commentInput={commentInput}
-              onCommentChange={onCommentChange}
-              onSubmitComment={onSubmitComment}
-              user={user}
-              isUnlocked={isUnlocked}
-            />
+            <div id="sec-comments">
+              <CommentSection
+                comments={comments}
+                commentInput={commentInput}
+                onCommentChange={onCommentChange}
+                onSubmitComment={onSubmitComment}
+                user={user}
+                isUnlocked={isUnlocked}
+              />
+            </div>
 
           </div>
           )}
@@ -1360,7 +1482,7 @@ export function FieldReportModal({
   // ── Return: inline panel vs modal overlay ──
   if (inline) {
     return (
-      <div ref={modalRef} className="bg-white h-full flex flex-col overflow-y-auto overflow-x-hidden">
+      <div ref={modalRef} onScroll={handleScroll} className="bg-white h-full flex flex-col overflow-y-auto overflow-x-hidden">
         {content}
         {/* Fullscreen Image Overlay */}
         {fullscreenImage && (
@@ -1394,7 +1516,7 @@ export function FieldReportModal({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 md:p-12 animate-in fade-in duration-200">
         <div className="absolute inset-0 bg-[#191f28]/60 backdrop-blur-sm" onClick={onClose} />
         
-        <div ref={modalRef} className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] max-h-[90vh] rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden shadow-2xl transition-all duration-300 ring-1 ring-black/5`}>
+        <div ref={modalRef} onScroll={handleScroll} className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] max-h-[90vh] rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden shadow-2xl transition-all duration-300 ring-1 ring-black/5`}>
           <button onClick={onClose} className="sticky top-4 z-20 ml-auto mr-4 mt-4 -mb-14 bg-[#191f28]/80 hover:bg-[#191f28] text-white w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0">
             <X size={20} />
           </button>
