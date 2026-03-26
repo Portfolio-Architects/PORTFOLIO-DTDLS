@@ -91,11 +91,11 @@ async function main() {
   const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
 
   for (const [aptName, txs] of Object.entries(byApt)) {
-    // 매매와 전월세 분리
-    const saleTxs = txs.filter(t => t.dealType === '매매' || t.dealType === '');
+    // 매매와 전월세 분리 ('전세', '월세'가 명시된 것만 임대차 거래로 치고 나머지는 모두 매매로 취급)
     const rentTxs = txs.filter(t => t.dealType === '전세' || t.dealType === '월세');
+    const saleTxs = txs.filter(t => t.dealType !== '전세' && t.dealType !== '월세');
     
-    // 매매 거래가 없는 아파트도 전세가 있으면 처리하기 위함이나, 기본적으로 매매가 기준
+    // 매매/임대 데이터가 둘 다 없으면 스킵
     if (saleTxs.length === 0 && rentTxs.length === 0) continue;
 
     // --- 매매 요약 ---
