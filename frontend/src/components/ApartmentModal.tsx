@@ -152,7 +152,7 @@ export function FieldReportModal({
   const [chartTimeframe, setChartTimeframe] = useState<'6M'|'1Y'|'3Y'|'ALL'>('ALL');
   const [isTxExpanded, setIsTxExpanded] = useState(false);
   const [priceTypeFilter, setPriceTypeFilter] = useState<string>('ALL');
-  const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: { name: string, value: number, price?: number } } | null>(null);
+  const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: any } | null>(null);
   const [showPriceHelp, setShowPriceHelp] = useState(false);
   const [txFilterArea, setTxFilterArea] = useState<string>('ALL');
   const [txFilterFloor, setTxFilterFloor] = useState<string>('ALL');
@@ -626,11 +626,11 @@ export function FieldReportModal({
                            <Line type="monotone" dataKey="highAvg" yAxisId="price" stroke="#FF6B6B" strokeWidth={2} dot={false} activeDot={false} connectNulls isAnimationActive={false} />
                            {/* 산점도 — 층수별 색상 */}
                            <Customized
-                             component={(rechartProps: Record<string, unknown>) => {
+                             component={(rechartProps: any) => {
                                const { xAxisMap, yAxisMap } = rechartProps;
                                if (!xAxisMap || !yAxisMap) return null;
-                               const xAx = Object.values((rechartProps as { xAxisMap?: Record<string, unknown>; yAxisMap?: Record<string, unknown> }).xAxisMap || {})[0] as Record<string, unknown>;
-                               const yAx = Object.values((rechartProps as { xAxisMap?: Record<string, unknown>; yAxisMap?: Record<string, unknown> }).yAxisMap || {})[0] as Record<string, unknown>;
+                                const xAx = Object.values((rechartProps as any).xAxisMap || {})[0] as any;
+                                const yAx = Object.values((rechartProps as any).yAxisMap || {})[0] as any;
                                if (!xAx?.scale || !yAx?.scale) return null;
                                return (
                                  <g>
