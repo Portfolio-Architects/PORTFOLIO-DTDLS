@@ -30,11 +30,7 @@ function getGrade(distance: number): { label: string; color: string; bg: string 
   return { label: '10분+', color: '#8b95a1', bg: '#f2f4f6' };
 }
 
-/** 거리 → 0~100 점수 (1000m 이상은 0점) */
-function distanceToScore(distance: number | undefined): number {
-  if (distance == null) return 0;
-  return Math.max(0, Math.round(100 - (distance / 10)));
-}
+
 
 export default function AnchorTenantCard(props: AnchorTenantCardProps) {
   const anchors: AnchorItem[] = [
@@ -48,34 +44,15 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
   const available = anchors.filter(a => a.distance != null);
   if (available.length === 0) return null;
 
-  // 종합 점수 계산
-  const totalScore = Math.round(
-    available.reduce((sum, a) => sum + distanceToScore(a.distance), 0) / available.length
-  );
   const maxDistance = Math.max(...available.map(a => a.distance!), 1000);
-
-  // 종합 등급
-  const overallGrade = totalScore >= 80 ? { label: 'S', color: '#03c75a' }
-    : totalScore >= 60 ? { label: 'A', color: '#3182f6' }
-    : totalScore >= 40 ? { label: 'B', color: '#f59e0b' }
-    : { label: 'C', color: '#8b95a1' };
 
   return (
     <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between mb-5 border-b border-[#e5e8eb] pb-3">
         <h2 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2">
-          앵커 테넌트 인접도
+          주요 편의시설 접근성
         </h2>
-        <div className="flex items-center gap-2">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center font-extrabold text-[15px] text-white"
-            style={{ backgroundColor: overallGrade.color }}
-          >
-            {overallGrade.label}
-          </div>
-          <span className="text-[13px] font-bold text-[#8b95a1]">{totalScore}점</span>
-        </div>
       </div>
 
       {/* Anchor List */}

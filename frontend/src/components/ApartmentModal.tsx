@@ -1196,7 +1196,7 @@ export function FieldReportModal({
               </div>
             )}
 
-            {/* Anchor Tenant Metrics — 앵커 테넌트 인접도 시각화 */}
+            {/* Anchor Tenant Metrics — 주요 편의시설 접근성 시각화 */}
             {report.metrics && (
               <AnchorTenantCard
                 distanceToStarbucks={report.metrics.distanceToStarbucks}

@@ -16,6 +16,7 @@ export const SHEET_TABS = {
   STATIONS: 'stations',
   APARTMENTS: 'apartments',
   RESTAURANTS: 'restaurants',
+  SBOYDS: 'SBOYDS',
 } as const;
 
 /** CSV line parser (shared between transaction and type-map routes) */

@@ -32,6 +32,7 @@ interface CachedData {
   stations: StationPOI[];
   academies: AcademyPOI[];
   restaurants: RestaurantPOI[];
+  sboyds: RestaurantPOI[];
 }
 
 let _cache: CachedData | null = null;
@@ -44,15 +45,16 @@ async function loadAllCached(): Promise<CachedData> {
     return _cache;
   }
 
-  const [apartments, schools, stations, academies, restaurants] = await Promise.all([
+  const [apartments, schools, stations, academies, restaurants, sboyds] = await Promise.all([
     loadApartments(),
     loadSchools(),
     loadStations(),
     loadAcademies(),
     loadRestaurants(),
+    loadSboyds(),
   ]);
 
-  _cache = { apartments, schools, stations, academies, restaurants };
+  _cache = { apartments, schools, stations, academies, restaurants, sboyds };
   _cacheTimestamp = now;
   return _cache;
 }
@@ -186,6 +188,22 @@ async function loadRestaurants(): Promise<RestaurantPOI[]> {
   return result;
 }
 
+/** SBOYDS 시트: 사용자가 직접 정밀 조사한 앵커테넌트 데이터 */
+async function loadSboyds(): Promise<RestaurantPOI[]> {
+  const rows = await fetchSheetCSV(SHEET_TABS.SBOYDS);
+  const result: RestaurantPOI[] = [];
+  for (let i = 1; i < rows.length; i++) {
+    const cols = rows[i];
+    if (cols.length < 3) continue;
+    const lat = parseFloat(cols[1]);
+    const lng = parseFloat(cols[2]);
+    if (!isNaN(lat) && !isNaN(lng) && lat > 0 && lng > 0 && cols[0]) {
+      result.push({ lat, lng, name: cols[0].trim(), category: (cols[3] || '기타').trim() });
+    }
+  }
+  return result;
+}
+
 // ── Apartment Resolver ─────────────────────────────
 
 /** Resolves apartment coordinates and building info by name. */
@@ -234,7 +252,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Load from cache (or fetch & cache if stale/empty)
-    const { apartments, schools, stations, academies, restaurants } = await loadAllCached();
+    const { apartments, schools, stations, academies, restaurants, sboyds } = await loadAllCached();
 
     const apt = resolveApartment(apartment, apartments);
     if (!apt) {
@@ -287,6 +305,11 @@ export async function GET(request: NextRequest) {
 
     // Anchor Tenants Distance calculations (Search from ALL restaurants/academies, not just 500m)
     const findAnchor = (keywords: string[]) => {
+      // 1순위: 사용자가 정밀 수급한 SBOYDS 데이터에서 먼저 찾는다.
+      const sboydsMatches = sboyds.filter(r => keywords.some(k => r.name.includes(k)));
+      if (sboydsMatches.length > 0) return findNearest(aptCoord, sboydsMatches);
+
+      // 2순위: 기존 상권 데이터에서 검색
       const matches = restaurants.filter(r => keywords.some(k => r.name.includes(k)));
       return matches.length > 0 ? findNearest(aptCoord, matches) : null;
     };

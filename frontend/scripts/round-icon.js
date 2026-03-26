@@ -4,7 +4,7 @@ const path = require('path');
 
 async function processIcon(inputPath, outputPath, size) {
   try {
-    const radius = Math.round(size * 0.225); // Apple iOS style squircle radius (~22.5%)
+    const radius = Math.round(size * 0.42); // Galaxy style squircle (almost circle)
     
     // Create an SVG mask with rounded corners
     const roundedCorners = Buffer.from(

@@ -8,9 +8,9 @@ export const metadata: Metadata = {
   title: 'D-VIEW | 동탄 아파트 가치분석',
   description: 'D-VIEW — 동탄 179개 아파트의 실거래가·인프라·현장 검증 사진을 한눈에.',
   icons: {
-    icon: '/icon.png',
-    shortcut: '/favicon.ico',
-    apple: '/icon.png',
+    icon: '/icon.png?v=3',
+    shortcut: '/favicon.ico?v=3',
+    apple: '/icon.png?v=3',
   },
   manifest: '/manifest.webmanifest',
 };
