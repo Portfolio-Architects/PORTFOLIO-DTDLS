@@ -25,7 +25,7 @@ export default function CommentSection({
     <div id="sec-comments" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
       <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3">
         <MessageSquare size={20} className="text-[#3182f6]"/> 
-        이 아파트 이야기 <span className="text-[#3182f6] text-[16px] ml-1">{comments.length}</span>
+        아파트 이야기 <span className="text-[#3182f6] text-[16px] ml-1">{comments.length}</span>
       </h2>
       
       <div className="flex flex-col gap-6">

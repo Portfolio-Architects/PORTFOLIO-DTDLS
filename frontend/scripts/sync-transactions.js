@@ -72,11 +72,14 @@ async function main() {
       contractDay: d.contractDay || '',
       price: d.price || 0,
       priceEok: formatPriceEok(d.price || 0),
+      deposit: d.deposit || 0,
+      monthlyRent: d.monthlyRent || 0,
       area: d.area || 0,
       areaPyeong: d.areaPyeong || 0,
       floor: d.floor || 0,
       dong: d.dong || '',
-      dealType: d.dealType || '',
+      dealType: d.dealType || '매매',
+      contractDate: `${d.contractYm}${String(d.contractDay).padStart(2, '0')}`,
     });
   });
 
@@ -88,15 +91,23 @@ async function main() {
   const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
 
   for (const [aptName, txs] of Object.entries(byApt)) {
-    const prices = txs.map(t => t.price).filter(p => p > 0);
-    if (prices.length === 0) continue;
+    // 매매와 전월세 분리
+    const saleTxs = txs.filter(t => t.dealType === '매매' || t.dealType === '');
+    const rentTxs = txs.filter(t => t.dealType === '전세' || t.dealType === '월세');
+    
+    // 매매 거래가 없는 아파트도 전세가 있으면 처리하기 위함이나, 기본적으로 매매가 기준
+    if (saleTxs.length === 0 && rentTxs.length === 0) continue;
 
-    const maxPrice = Math.max(...prices);
-    const minPrice = Math.min(...prices);
-    const latestTx = txs[0]; // already sorted by contractDate desc
+    // --- 매매 요약 ---
+    const prices = saleTxs.map(t => t.price).filter(p => p > 0);
+    const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+    const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+    
+    // contractDate 기준으로 내림차순 정렬
+    saleTxs.sort((a, b) => b.contractDate.localeCompare(a.contractDate));
+    const latestTx = saleTxs.length > 0 ? saleTxs[0] : null;
 
-    // 최근 1개월 거래 필터
-    const recentMonth = txs.filter(t => {
+    const recentMonthSale = saleTxs.filter(t => {
       if (!t.contractYm || t.contractYm.length < 6) return false;
       const y = parseInt(t.contractYm.slice(0, 4));
       const m = parseInt(t.contractYm.slice(4, 6));
@@ -105,45 +116,72 @@ async function main() {
       return txDate >= oneMonthAgo && t.price > 0 && t.areaPyeong > 0;
     });
 
-    const avg1MPrice = recentMonth.length > 0
-      ? Math.round(recentMonth.reduce((s, t) => s + t.price, 0) / recentMonth.length)
-      : latestTx.price;
-    const avg1MPerPyeong = recentMonth.length > 0
-      ? Math.round(recentMonth.reduce((s, t) => s + t.price / t.areaPyeong, 0) / recentMonth.length)
-      : (latestTx.areaPyeong > 0 ? Math.round(latestTx.price / latestTx.areaPyeong) : 0);
+    const avg1MPrice = recentMonthSale.length > 0
+      ? Math.round(recentMonthSale.reduce((s, t) => s + t.price, 0) / recentMonthSale.length)
+      : (latestTx ? latestTx.price : 0);
     
+    const avg1MPerPyeong = recentMonthSale.length > 0
+      ? Math.round(recentMonthSale.reduce((s, t) => s + t.price / t.areaPyeong, 0) / recentMonthSale.length)
+      : (latestTx && latestTx.areaPyeong > 0 ? Math.round(latestTx.price / latestTx.areaPyeong) : 0);
+
+    // --- 전월세 요약 ---
+    rentTxs.sort((a, b) => b.contractDate.localeCompare(a.contractDate));
+    const latestRentTx = rentTxs.filter(t => t.deposit > 0)[0];
+    
+    const recentMonthRent = rentTxs.filter(t => {
+      if (!t.contractYm || t.contractYm.length < 6) return false;
+      const y = parseInt(t.contractYm.slice(0, 4));
+      const m = parseInt(t.contractYm.slice(4, 6));
+      const d = parseInt(t.contractDay) || 1;
+      const txDate = new Date(y, m - 1, d);
+      return txDate >= oneMonthAgo && t.deposit > 0; // 전세 위주
+    });
+
+    const avg1MDeposit = recentMonthRent.length > 0
+      ? Math.round(recentMonthRent.reduce((s, t) => s + t.deposit, 0) / recentMonthRent.length)
+      : (latestRentTx ? latestRentTx.deposit : 0);
+
     summaries[aptName] = {
-      latestPrice: latestTx.price,
-      latestPriceEok: latestTx.priceEok,
-      latestArea: latestTx.areaPyeong,
-      latestFloor: latestTx.floor,
-      latestDate: `${latestTx.contractYm}${latestTx.contractDay}`,
+      // 매매 데이터
+      latestPrice: latestTx ? latestTx.price : 0,
+      latestPriceEok: latestTx ? latestTx.priceEok : "0",
+      latestArea: latestTx ? latestTx.areaPyeong : 0,
+      latestFloor: latestTx ? latestTx.floor : 0,
+      latestDate: latestTx ? `${latestTx.contractYm}${latestTx.contractDay}` : "",
       maxPrice,
-      maxPriceEok: formatPriceEok(maxPrice),
+      maxPriceEok: maxPrice > 0 ? formatPriceEok(maxPrice) : "0",
       minPrice,
-      minPriceEok: formatPriceEok(minPrice),
-      txCount: txs.length,
+      minPriceEok: minPrice > 0 ? formatPriceEok(minPrice) : "0",
+      txCount: saleTxs.length,
       avg1MPrice,
       avg1MPriceEok: formatPriceEok(avg1MPrice),
       avg1MPerPyeong,
-      avg1MTxCount: recentMonth.length,
-      // 최근 4건 (카드 미리보기용)
-      recent: txs.slice(0, 4).map(t => ({
+      avg1MTxCount: recentMonthSale.length,
+      recent: saleTxs.slice(0, 4).map(t => ({
         date: `${t.contractYm.slice(4)}.${t.contractDay}`,
         priceEok: t.priceEok,
         areaPyeong: t.areaPyeong,
         floor: t.floor,
         area: t.area,
       })),
+      
+      // 전월세 데이터
+      rentTxCount: rentTxs.length,
+      latestRentDeposit: latestRentTx ? latestRentTx.deposit : 0,
+      latestRentDepositEok: latestRentTx ? formatPriceEok(latestRentTx.deposit) : "0",
+      latestRentMonthly: latestRentTx ? latestRentTx.monthlyRent : 0,
+      latestRentDate: latestRentTx ? `${latestRentTx.contractYm}${latestRentTx.contractDay}` : "",
+      avg1MRentDeposit: avg1MDeposit,
+      avg1MRentDepositEok: formatPriceEok(avg1MDeposit),
     };
     aptCount++;
   }
 
-  console.log(`\n✅ 요약 완료: ${aptCount}개 아파트`);
+  console.log(`\n✅ 요약 완료: ${aptCount}개 아파트 (매매+전월세 통합)`);
 
   // TypeScript 파일 생성
   let ts = `/**
- * 실거래가 요약 데이터 — 빌드 타임에 포함, API 호출 0
+ * 실거래가 및 전월세 요약 데이터 — 빌드 타임에 포함, API 호출 0
  * 
  * ⚠️ 이 파일은 자동 생성됩니다. 직접 수정하지 마세요!
  * 동기화: npm run sync-transactions
@@ -159,6 +197,7 @@ export interface RecentTx {
 }
 
 export interface AptTxSummary {
+  // 매매 (Sale)
   latestPrice: number;
   latestPriceEok: string;
   latestArea: number;
@@ -174,6 +213,15 @@ export interface AptTxSummary {
   avg1MPerPyeong: number;
   avg1MTxCount: number;
   recent: RecentTx[];
+  
+  // 전월세 (Rent/Jeonse)
+  rentTxCount?: number;
+  latestRentDeposit?: number;
+  latestRentDepositEok?: string;
+  latestRentMonthly?: number;
+  latestRentDate?: string;
+  avg1MRentDeposit?: number;
+  avg1MRentDepositEok?: string;
 }
 
 /** 아파트명 → 거래 요약 */

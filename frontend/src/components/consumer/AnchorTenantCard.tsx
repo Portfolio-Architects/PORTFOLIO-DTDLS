@@ -65,7 +65,7 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
       {/* Header */}
       <div className="flex items-center justify-between mb-5 border-b border-[#e5e8eb] pb-3">
         <h2 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2">
-          🎯 앵커 테넌트 인접도
+          앵커 테넌트 인접도
         </h2>
         <div className="flex items-center gap-2">
           <div
@@ -88,8 +88,7 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
           return (
             <div key={anchor.name} className="flex items-center gap-3">
               {/* Icon + Name */}
-              <div className="flex items-center gap-2 w-[90px] shrink-0">
-                <span className="text-[16px]">{anchor.icon}</span>
+              <div className="flex items-center gap-2 w-[70px] shrink-0">
                 <span className="text-[13px] font-bold text-[#191f28]">{anchor.name}</span>
               </div>
 

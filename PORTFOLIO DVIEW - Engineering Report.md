@@ -93,6 +93,7 @@ src/
 |:---|:---|:---|:---|
 | **Property** | 아파트 검색 | /api/apartments-by-dong | 동 단위 필터링 |
 | **Market** | 실거래가 | /api/transaction-summary | 신고가, 차트 |
+| **Valuation**| 상대가치 평가 | /components/consumer | Utility Score 및 실거주 PER 대시보드 |
 | **Validation** | 임장 리포트 | scoutingReports | 현장 팩트체크 |
 | **Community** | 댓글/리뷰 | comments, reviews | 유저 피드백 |
 | **Admin** | Sheets 동기화 | /api/admin/* | 일괄 업데이트 |
@@ -141,7 +142,25 @@ src/
 
 ---
 
-## 8. Roadmap
+## 8. Performance Optimization Strategy (앱 구동 속도 극대화 전략)
+
+스케일링 과정에서 맞닥뜨릴 수 있는 **FCP(초기 렌더링 속도)** 및 **TTFB(초기 응답 속도)** 병목을 해결하고 구동 속도를 한계까지 끌어올리기 위한 중장기 엔지니어링 전략입니다.
+
+### 1) Next.js App Router 아키텍처 한계 돌파
+- **Edge Runtime + Redis Cache 도입**: 기존 Node.js 런타임에서 발생하는 Cold Start 지연을 해소하기 위해 조회 빈도가 높은 API(예: 실거래가 캐싱 요약본)를 **Edge Functions** 파이프라인으로 이관. 데이터 영속성은 Firebase에 두되, `Upstash Redis`를 엣지 캐시 레이어로 둬서 50ms 이내의 응답 속도를 달성.
+- **RSC(React Server Components) 범위 극대화**: 현재 거대한 덩어리인 `DashboardClient` 내에서 상호작용(Interactive)이 불필요한 메트릭스 UI, 정적 차트 영역을 Server Component로 쪼개어 Hydration을 위한 클라이언트 JavaScript 번들 사이즈를 최소 40% 이상 다이어트.
+
+### 2) 렌더링 폭포수(Waterfall) 방어 및 Lazy Loading
+- **Streaming & Suspense 바운더리 마이크로화**: 아파트 상세 API, 가격 차트, 앵커 테넌트 평가 등 비동기 로딩 영역을 독립적인 `<Suspense>`로 감싸고, 점진적 렌더링(Streaming)을 지원해 유저가 체감하는 TTFB 지연을 없앰. 
+- **무거운 의존성 라이브러리의 동적 임포트**: `recharts` 및 `3d-force-graph`와 같은 Heavy Module은 무조건 `next/dynamic (ssr: false)`로 지연 로딩 처리하여, 메인 쓰레드 블로킹 타임을 최소화함.
+
+### 3) DOM 스크롤 가상화 및 Intersection Observer
+- **무한 이미지 갤러리 Lazy Load**: 100~200장에 달하는 현장 검증 사진이 초기에 전부 DOM 노드로 로딩되지 않도록 화면에 노출되는 시점(Intersection Observer)에 맞추어 렌더링.
+- **가상화 리스트(Virtualization) 고도화**: 현재 179개 단지 리스트에 적용된 `react-window`를 아파트별 방대한 댓글 및 거래내역 테이블에도 일괄 적용. 보이지 않는 행은 메모리에서 제거(Unmount)하여 브라우저 JS 힙 메모리를 타이트하게 관리.
+
+---
+
+## 9. Roadmap
 
 ### Phase 1 (단기)
 - [x] ~~테스트 커버리지 확충~~ (16→45 assertions, 5 suites — haversine·valuation·dongs·scoring·apartmentMapping)
@@ -174,7 +193,7 @@ src/
 
 ---
 
-## 9. Maintenance Policy
+## 10. Maintenance Policy
 본 문서는 살아있는 SSOT입니다. 메이저 업데이트 시 지표를 갱신하고 패치노트를 기록합니다.
 
 ## 📝 Patch Notes (변경 이력 요약)
@@ -182,6 +201,7 @@ src/
 
 | 일시 | 주요 항목 | 요약 내용 |
 |:---|:---|:---|
+| 2026-03-26 | **신규 밸류에이션(Utility Score) 도입** | 복잡한 기존 퀀트 지표를 폐기하고, 아파트 스펙 및 인프라를 100점 만점으로 계량화한 종합 상품성 지수(Utility Score), P/U Ratio, 전월세 API 연계형 실거주 PER 대시보드 구축 |
 | 2026-03-26 | **React Server Components 도입** | `page.tsx` SSR 전환 및 `DashboardClient` 분리로 초기 데이터 패칭 최적화 (TTFB 감소, 렌더링 폭포수 제거) |
 | 2026-03-26 | **거래내역 엑셀 스타일 필터 적용** | 실거래 테이블 헤더에 양방향 바인딩 드롭다운 필터 적용 |
 | 2026-03-25 | **개발 서버 사내망 노출 차단** | `package.json` dev 스크립트에 `-H 127.0.0.1` 옵션 추가 (사내망 IP 바인딩 방지 및 추적 불가 목적) |
