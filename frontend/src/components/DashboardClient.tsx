@@ -534,16 +534,18 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#191f28] tracking-tight">
                 동탄 아파트 가치 분석
               </h1>
-              <span suppressHydrationWarning className="inline-flex items-center gap-1.5 bg-[#e8f3ff] text-[#3182f6] text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
-                <Building size={14} />
-                {Object.values(sheetApartments).flat().length}개 단지
-              </span>
-              {fieldReports.length > 0 && (
-                <span className="inline-flex items-center gap-1.5 bg-[#fff8e1] text-[#f59e0b] text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
-                  <FileText size={14} />
-                  {fieldReports.length}개 리포트
+              <div className="flex items-center gap-2">
+                <span suppressHydrationWarning className="inline-flex items-center gap-1.5 bg-[#e8f3ff] text-[#3182f6] text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
+                  <Building size={14} />
+                  {Object.values(sheetApartments).flat().length}개 단지
                 </span>
-              )}
+                {fieldReports.length > 0 && (
+                  <span className="inline-flex items-center gap-1.5 bg-[#fff8e1] text-[#f59e0b] text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
+                    <FileText size={14} />
+                    {fieldReports.length}개 리포트
+                  </span>
+                )}
+              </div>
             </div>
             {/* 2행: 서브타이틀 */}
             <div className="text-sm sm:text-base text-[#8b95a1] font-medium flex items-center gap-1 flex-wrap">

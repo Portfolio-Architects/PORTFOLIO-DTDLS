@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo } from 'react';
 import {
   MapPin, X, TrendingUp, Camera, Maximize2,
-  MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar, ChevronDown
+  MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeftRight
 } from 'lucide-react';
 import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Bar, Customized, Line, Legend } from 'recharts';
 import dynamic from 'next/dynamic';
@@ -317,12 +317,20 @@ export function FieldReportModal({
                     </div>
                   </div>
                   
+                  {/* 좌우 스와이프 힌트 (모바일 전용) */}
+                  <div className="md:hidden flex items-center justify-end px-1 pb-2">
+                    <span className="flex items-center gap-1 text-[#8b95a1] bg-[#f2f4f6] px-2 py-1 rounded-md text-[11px] font-bold">
+                      <ArrowLeftRight size={12} className="animate-pulse" />
+                      표를 좌우로 넘겨서 확인하세요
+                    </span>
+                  </div>
+                  
                   {/* 팝업 오버레이 닫기용 투명 배경 - 레이아웃 간섭(Layout Shift) 방지를 위해 독립 배치 */}
                   {activeDropdown && (
                     <div className="fixed inset-0 z-40" onClick={() => setActiveDropdown(null)} />
                   )}
-                  <div className="overflow-y-auto max-h-[460px]">
-                    <table className="w-full text-sm">
+                  <div className="overflow-x-auto overflow-y-auto max-h-[460px] custom-scrollbar">
+                    <table className="w-full min-w-[460px] text-sm">
                       <thead className="sticky top-0 bg-[#f9fafb] z-50">
                         {(() => {
                           const renderSortIcon = (key: string, hasFilter: boolean = false) => (
@@ -419,14 +427,16 @@ export function FieldReportModal({
                             })();
                             return (
                               <tr key={idx} className={`border-b border-[#f2f4f6] hover:bg-white/60 transition-colors ${isRecent ? 'bg-[#f0f7ff]' : ''}`}>
-                                <td className={`py-3 pl-2 whitespace-nowrap flex items-center h-full ${isRecent ? 'text-[#191f28] font-bold' : 'text-[#4e5968]'}`}>
-                                  {isRecent && <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3182f6] mr-1.5" />}
-                                  {tx.contractYm.slice(0,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}
+                                <td className={`py-3 pl-2 whitespace-nowrap align-middle ${isRecent ? 'text-[#191f28] font-bold' : 'text-[#4e5968]'}`}>
+                                  <div className="flex items-center w-full">
+                                    {isRecent ? <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3182f6] mr-1.5 shrink-0" /> : <span className="inline-block w-1.5 h-1.5 mr-1.5 shrink-0" />}
+                                    <span>{tx.contractYm.slice(0,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}</span>
+                                  </div>
                                 </td>
-                                <td className={`py-3 pr-2 text-right font-extrabold ${isRecent ? 'text-[#3182f6]' : 'text-[#191f28]'}`}>{tx.priceEok}</td>
-                                <td className="py-3 text-center">{badgeEl}</td>
-                                <td className="py-3 text-center text-[#4e5968]">{tx.floor}층</td>
-                                <td className="py-3 pr-2 text-right text-[#8b95a1]">{tx.dealType}</td>
+                                <td className={`py-3 pr-2 text-right font-extrabold align-middle whitespace-nowrap ${isRecent ? 'text-[#3182f6]' : 'text-[#191f28]'}`}>{tx.priceEok}</td>
+                                <td className="py-3 text-center align-middle">{badgeEl}</td>
+                                <td className="py-3 text-center text-[#4e5968] align-middle">{tx.floor}층</td>
+                                <td className="py-3 pr-2 text-right text-[#8b95a1] align-middle whitespace-nowrap">{tx.dealType}</td>
                               </tr>
                             );
                           });
@@ -686,11 +696,11 @@ export function FieldReportModal({
                        })()}
                      </div>
                      {/* 범례 */}
-                     <div className="flex items-center gap-4 mt-2 px-1 text-[13px] font-bold text-[#8b95a1]">
-                       <span className="flex items-center gap-1.5"><span className="w-6 border-t-[1.5px] border-dotted border-[#20C997]"/>저층 (1~{lowCut - 1}F)</span>
-                       <span className="flex items-center gap-1.5"><span className="w-6 border-t-[1.5px] border-dashed border-[#3182f6]"/>중층 ({lowCut}~{midCut - 1}F)</span>
-                       <span className="flex items-center gap-1.5"><span className="w-6 h-[1.5px] bg-[#FF6B6B] rounded"/>고층 ({midCut}F~)</span>
-                       <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 bg-[#e5e8eb] rounded-sm"/>거래량</span>
+                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 px-1 text-[12px] sm:text-[13px] font-bold text-[#8b95a1]">
+                       <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 border-t-[1.5px] border-dotted border-[#20C997]"/>저층 (1~{lowCut - 1}F)</span>
+                       <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 border-t-[1.5px] border-dashed border-[#3182f6]"/>중층 ({lowCut}~{midCut - 1}F)</span>
+                       <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[1.5px] bg-[#FF6B6B] rounded"/>고층 ({midCut}F~)</span>
+                       <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-3.5 h-3.5 bg-[#e5e8eb] rounded-sm"/>거래량</span>
                      </div>
                    </div>
                  );
