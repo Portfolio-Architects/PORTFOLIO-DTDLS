@@ -31,6 +31,8 @@ interface TransactionRecord {
   contractDay: string;
   price: number;
   priceEok: string;
+  deposit?: number;
+  monthlyRent?: number;
   floor: number;
   buildYear: number;
   dealType: string;
@@ -158,8 +160,11 @@ export function FieldReportModal({
   const [txFilterFloor, setTxFilterFloor] = useState<string>('ALL');
   const [txFilterDealType, setTxFilterDealType] = useState<string>('ALL');
   const [txSort, setTxSort] = useState<{key: string, dir: 'asc'|'desc'}>({key: 'date', dir: 'desc'});
-  const [activeDropdown, setActiveDropdown] = useState<string|null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<'floor' | 'type' | null>(null);
   const [activeTab, setActiveTab] = useState('sec-summary');
+
+  // 차트 매매/전월세 토글
+  const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
 
   const handleTxSort = (key: string) => {
     setTxSort(prev => ({ key, dir: prev.key === key && prev.dir === 'desc' ? 'asc' : 'desc' }));
@@ -253,6 +258,9 @@ export function FieldReportModal({
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(tx => {
+      // 차트 토글 연동 필터
+      if (chartType === 'sale' && (tx.dealType === '전세' || tx.dealType === '월세')) return false;
+      if (chartType === 'jeonse' && tx.dealType !== '전세' && tx.dealType !== '월세') return false;
       if (txFilterArea !== 'ALL') {
         const norm = normalizeAptName(tx.aptName);
         const t = typeMap[norm]?.[String(tx.area)];
@@ -272,7 +280,7 @@ export function FieldReportModal({
       if (txFilterDealType !== 'ALL' && tx.dealType !== txFilterDealType) return false;
       return true;
     });
-  }, [transactions, txFilterArea, txFilterFloor, txFilterDealType, typeMap, areaUnit]);
+  }, [transactions, txFilterArea, txFilterFloor, txFilterDealType, typeMap, areaUnit, chartType]);
 
   const sortedFilteredTransactions = useMemo(() => {
     return [...filteredTransactions].sort((a, b) => {
@@ -460,11 +468,31 @@ export function FieldReportModal({
                </div>
                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-[#191f28]">{report.apartmentName}</h1>
 
-               {/* 매매가 추이 차트 — 산점도(층수별) + 거래량 막대 + 이동평균선 */}
+               {/* 매매가/전세가 추이 차트 — 산점도(층수별) + 거래량 막대 + 이동평균선 */}
                {transactions.length > 0 && (() => {
-                 const rawData = transactions.map((tx) => {
-                   let priceEokNum = tx.price / 10000;
-                   if (priceEokNum > 100) priceEokNum = tx.price / 100000000;
+                 const relevantTxs = transactions.filter(tx => 
+                   chartType === 'sale' 
+                     ? (tx.dealType !== '전세' && tx.dealType !== '월세') 
+                     : (tx.dealType === '전세' || tx.dealType === '월세')
+                 );
+
+                 if (relevantTxs.length === 0) {
+                   return (
+                     <div className="bg-[#f9fafb] rounded-2xl p-8 flex items-center justify-center ring-1 ring-black/5 mt-4 min-h-[300px]">
+                       <span className="text-[#8b95a1] text-sm font-bold">해당 유형의 거래 기록이 없습니다</span>
+                     </div>
+                   );
+                 }
+
+                 const rawData = relevantTxs.map((tx) => {
+                   let rawPrice = tx.price;
+                   // 월세 -> 전세 환산 공식 (전월세전환율 약 5.5% 가정)
+                   if (chartType === 'jeonse') {
+                     rawPrice = (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
+                   }
+
+                   let priceEokNum = rawPrice / 10000;
+                   if (priceEokNum > 100) priceEokNum = rawPrice / 100000000;
                    const ym = tx.contractYm;
                    const year = parseInt(ym.slice(0, 4));
                    const month = parseInt(ym.slice(4));
@@ -552,19 +580,27 @@ export function FieldReportModal({
 
                  return (
                    <div className="mt-4 bg-white rounded-2xl p-5 ring-1 ring-black/5 flex-1">
-                     <div className="flex items-center justify-between mb-3">
-                       <h4 className="text-[14px] font-extrabold text-[#191f28] flex items-center gap-1.5">
-                         <TrendingUp size={15} className="text-[#3182f6]" /> 매매가 추이
-                       </h4>
-                       <div className="flex items-center gap-1">
-                         {(['6M','1Y','3Y','ALL'] as const).map(tf => (
-                           <button key={tf} onClick={() => setChartTimeframe(tf)}
-                             className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                               chartTimeframe === tf ? 'bg-[#191f28] text-white' : 'text-[#8b95a1] hover:bg-[#f2f4f6]'
-                             }`}>{tf}</button>
-                         ))}
-                       </div>
-                     </div>
+                      <div className="flex items-center justify-between mb-3 w-full">
+                        <h4 className="text-[14px] font-extrabold text-[#191f28] flex items-center gap-1.5 shrink-0">
+                          <TrendingUp size={15} className="text-[#3182f6]" /> {chartType === 'sale' ? '매매가 추이' : '전월세 추이'}
+                        </h4>
+                        <div className="flex items-center gap-3">
+                          {/* Toggle Jeonse/Sale */}
+                          <div className="bg-[#f2f4f6] p-0.5 rounded-lg flex items-center shadow-inner hidden sm:flex">
+                            <button onClick={() => setChartType('sale')} className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${chartType === 'sale' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>매매</button>
+                            <button onClick={() => setChartType('jeonse')} className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>전월세</button>
+                          </div>
+                          {/* Timeframe Toggles */}
+                          <div className="flex items-center gap-0.5 bg-[#f2f4f6] p-0.5 rounded-lg shadow-inner">
+                            {(['6M','1Y','3Y','ALL'] as const).map(tf => (
+                              <button key={tf} onClick={() => setChartTimeframe(tf)}
+                                className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
+                                  chartTimeframe === tf ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:bg-[#e5e8eb]'
+                                }`}>{tf}</button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                      <div className="flex items-center gap-3 mb-4">
                        <span className="text-[24px] font-extrabold text-[#191f28]">
                          {(() => {
@@ -611,14 +647,14 @@ export function FieldReportModal({
                                const item = payload[0]?.payload;
                                const vol = item?.volume;
                                return (
-                                 <div style={{ background: '#1e293b', borderRadius: 10, padding: '8px 12px', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', border: 'none' }}>
-                                   <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>
+                                 <div style={{ background: '#ffffff', borderRadius: 10, padding: '8px 12px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', border: '1px solid #f2f4f6' }}>
+                                   <div style={{ color: '#8b95a1', fontSize: 11, marginBottom: 4 }}>
                                      {new Date(item?.ts).getFullYear()}.{String(new Date(item?.ts).getMonth()+1).padStart(2,'0')}월
                                    </div>
                                    {item?.highAvg && <div style={{ color: '#FF6B6B', fontSize: 12, fontWeight: 700 }}>고층 {item.highAvg.toFixed(2)}억</div>}
                                    {item?.midAvg && <div style={{ color: '#3182f6', fontSize: 12, fontWeight: 700 }}>중층 {item.midAvg.toFixed(2)}억</div>}
                                    {item?.lowAvg && <div style={{ color: '#20C997', fontSize: 12, fontWeight: 700 }}>저층 {item.lowAvg.toFixed(2)}억</div>}
-                                   {vol != null && <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2 }}>거래 {vol}건</div>}
+                                   {vol != null && <div style={{ color: '#8b95a1', fontSize: 11, marginTop: 2 }}>거래 {vol}건</div>}
                                  </div>
                                );
                              }}
@@ -678,16 +714,16 @@ export function FieldReportModal({
                            <div style={{
                              position: 'absolute', left: hoveredDot.x + 48, top: hoveredDot.y + 10,
                              transform: 'translate(-50%, -100%) translateY(-12px)',
-                             background: '#1e293b', borderRadius: 10, padding: '10px 14px',
-                             boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+                             background: '#ffffff', borderRadius: 10, padding: '10px 14px', border: '1px solid #f2f4f6',
+                             boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                              pointerEvents: 'none', zIndex: 10, whiteSpace: 'nowrap',
                            }}>
-                             <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>{d.fullDate}</div>
-                             <div style={{ color: '#fff', fontSize: 16, fontWeight: 800, marginBottom: 3 }}>
+                             <div style={{ color: '#8b95a1', fontSize: 11, marginBottom: 4 }}>{d.fullDate}</div>
+                             <div style={{ color: '#191f28', fontSize: 16, fontWeight: 800, marginBottom: 3 }}>
                                {d.priceEok || `${d.price.toFixed(2)}억`}
                              </div>
-                             <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, display: 'flex', gap: 6, alignItems: 'center' }}>
-                               {typeName ? <span style={{ color: '#93c5fd', fontWeight: 600 }}>{typeName}</span> : <span>{d.area}평</span>}
+                             <div style={{ color: '#8b95a1', fontSize: 11, display: 'flex', gap: 6, alignItems: 'center' }}>
+                               {typeName ? <span style={{ color: '#3182f6', fontWeight: 600 }}>{typeName}</span> : <span>{d.area}평</span>}
                                <span>·</span><span style={{ color: getFloorColor(d.floor) }}>{d.floor}층</span>
                                {d.dealType && <><span>·</span><span>{d.dealType}</span></>}
                              </div>
@@ -715,8 +751,13 @@ export function FieldReportModal({
             const aptNorm = normalizeAptName(report.apartmentName);
 
             // 1) 평형별 최근 거래가 그룹핑
+            const cardTransactions = transactions.filter(tx => {
+              if (chartType === 'sale' && (tx.dealType === '전세' || tx.dealType === '월세')) return false;
+              if (chartType === 'jeonse' && tx.dealType !== '전세' && tx.dealType !== '월세') return false;
+              return true;
+            });
             const byArea = new Map<string, { label: string; price: string; rawPrice: number; count: number; latestYm: number; area: number; floor: number; supplyPyeong?: number }>();
-            transactions.forEach(tx => {
+            cardTransactions.forEach(tx => {
               const key = String(tx.area);
               const typeData = typeMap[aptNorm]?.[key];
               const typeName = typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
@@ -829,9 +870,15 @@ export function FieldReportModal({
             return (
               <div className="bg-white w-full px-4 md:px-10 pb-6 border-b border-[#e5e8eb]">
                 {/* --- 평형별 최근 거래가 --- */}
-                <h5 className="text-[13px] font-bold text-[#8b95a1] mb-3 flex items-center gap-1.5 mt-2">
-                  평형별 최근 거래가
-                </h5>
+                <div className="flex items-center justify-between mb-3 mt-2 pr-1">
+                  <h5 className="text-[13px] font-bold text-[#8b95a1] flex items-center gap-1.5">
+                    평형별 최근 거래가
+                  </h5>
+                  <div className="bg-[#f2f4f6] p-0.5 rounded-lg flex items-center shadow-inner">
+                    <button onClick={() => setChartType('sale')} className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${chartType === 'sale' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>매매</button>
+                    <button onClick={() => setChartType('jeonse')} className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>전월세</button>
+                  </div>
+                </div>
                 <div className="flex flex-nowrap gap-3 overflow-x-auto pb-4 px-4 md:px-10 -mx-4 md:-mx-10 custom-scrollbar items-stretch p-1">
                   {areaCards.map((c, i) => {
                     const [tc, bgc] = getBadgeColorClasses(c.label);
@@ -1221,7 +1268,7 @@ export function FieldReportModal({
             {/* 밸류에이션 리포트 (P/U Ratio & PER) */}
             {transactions.length > 0 && (
               <div id="sec-valuation" className="mb-2 scroll-mt-14 scroll-mb-6">
-                <AdvancedValuationMetrics report={report} transactions={sortedFilteredTransactions} />
+                <AdvancedValuationMetrics report={report} transactions={transactions} />
               </div>
             )}
 

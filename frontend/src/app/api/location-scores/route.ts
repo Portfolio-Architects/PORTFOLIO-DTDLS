@@ -39,19 +39,19 @@ let _cache: CachedData | null = null;
 let _cacheTimestamp = 0;
 const CACHE_TTL_MS = 3600_000; // 1 hour
 
-async function loadAllCached(): Promise<CachedData> {
+async function loadAllCached(forceRefresh = false): Promise<CachedData> {
   const now = Date.now();
-  if (_cache && (now - _cacheTimestamp) < CACHE_TTL_MS) {
+  if (!forceRefresh && _cache && (now - _cacheTimestamp) < CACHE_TTL_MS) {
     return _cache;
   }
 
   const [apartments, schools, stations, academies, restaurants, sboyds] = await Promise.all([
-    loadApartments(),
-    loadSchools(),
-    loadStations(),
-    loadAcademies(),
-    loadRestaurants(),
-    loadSboyds(),
+    loadApartments(forceRefresh),
+    loadSchools(forceRefresh),
+    loadStations(forceRefresh),
+    loadAcademies(forceRefresh),
+    loadRestaurants(forceRefresh),
+    loadSboyds(forceRefresh),
   ]);
 
   _cache = { apartments, schools, stations, academies, restaurants, sboyds };
@@ -76,9 +76,13 @@ function filterByBBox<T extends Coord>(origin: Coord, pois: T[]): T[] {
 // ── Google Sheet Loaders ───────────────────────────
 
 /** Fetches CSV data from a Google Sheet tab. */
-async function fetchSheetCSV(tabName: string): Promise<string[][]> {
+async function fetchSheetCSV(tabName: string, forceRefresh = false): Promise<string[][]> {
   const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`;
-  const res = await fetch(csvUrl, { next: { revalidate: 86400 } });
+  const fetchOptions: RequestInit = forceRefresh 
+    ? { cache: 'no-store' } 
+    : { next: { revalidate: 86400 } };
+  
+  const res = await fetch(csvUrl, fetchOptions);
   if (!res.ok) return [];
   const csvText = await res.text();
   const lines = csvText.split('\n').filter(l => l.trim());
@@ -86,8 +90,8 @@ async function fetchSheetCSV(tabName: string): Promise<string[][]> {
 }
 
 /** apartments 시트 — 헤더 기반 자동 감지 (컬럼 순서 무관) */
-async function loadApartments(): Promise<ApartmentPOI[]> {
-  const rows = await fetchSheetCSV(SHEET_TABS.APARTMENTS);
+async function loadApartments(forceRefresh = false): Promise<ApartmentPOI[]> {
+  const rows = await fetchSheetCSV(SHEET_TABS.APARTMENTS, forceRefresh);
   if (rows.length < 2) return [];
 
   const header = rows[0].map(h => h.toLowerCase().trim());
@@ -131,8 +135,8 @@ async function loadApartments(): Promise<ApartmentPOI[]> {
 }
 
 /** schools 시트: 학교명 | 좌표 | 구분 */
-async function loadSchools(): Promise<SchoolPOI[]> {
-  const rows = await fetchSheetCSV(SHEET_TABS.SCHOOLS);
+async function loadSchools(forceRefresh = false): Promise<SchoolPOI[]> {
+  const rows = await fetchSheetCSV(SHEET_TABS.SCHOOLS, forceRefresh);
   const result: SchoolPOI[] = [];
   for (let i = 1; i < rows.length; i++) {
     const [name, coordStr, type] = rows[i];
@@ -144,8 +148,8 @@ async function loadSchools(): Promise<SchoolPOI[]> {
 }
 
 /** stations 시트: 역명 | 좌표 | 노선 */
-async function loadStations(): Promise<StationPOI[]> {
-  const rows = await fetchSheetCSV(SHEET_TABS.STATIONS);
+async function loadStations(forceRefresh = false): Promise<StationPOI[]> {
+  const rows = await fetchSheetCSV(SHEET_TABS.STATIONS, forceRefresh);
   const result: StationPOI[] = [];
   for (let i = 1; i < rows.length; i++) {
     const cols = rows[i];
@@ -157,8 +161,8 @@ async function loadStations(): Promise<StationPOI[]> {
 }
 
 /** academies 시트: 상호명 | 위도 | 경도 | 업종소분류 | 행정동 | 주소 */
-async function loadAcademies(): Promise<AcademyPOI[]> {
-  const rows = await fetchSheetCSV(SHEET_TABS.ACADEMIES);
+async function loadAcademies(forceRefresh = false): Promise<AcademyPOI[]> {
+  const rows = await fetchSheetCSV(SHEET_TABS.ACADEMIES, forceRefresh);
   const result: AcademyPOI[] = [];
   for (let i = 1; i < rows.length; i++) {
     const cols = rows[i];
@@ -173,8 +177,8 @@ async function loadAcademies(): Promise<AcademyPOI[]> {
 }
 
 /** restaurants 시트: 상호명 | 위도 | 경도 | 업종소분류 | 행정동 | 주소 */
-async function loadRestaurants(): Promise<RestaurantPOI[]> {
-  const rows = await fetchSheetCSV(SHEET_TABS.RESTAURANTS);
+async function loadRestaurants(forceRefresh = false): Promise<RestaurantPOI[]> {
+  const rows = await fetchSheetCSV(SHEET_TABS.RESTAURANTS, forceRefresh);
   const result: RestaurantPOI[] = [];
   for (let i = 1; i < rows.length; i++) {
     const cols = rows[i];
@@ -189,8 +193,8 @@ async function loadRestaurants(): Promise<RestaurantPOI[]> {
 }
 
 /** SBOYDS 시트: 사용자가 직접 정밀 조사한 앵커테넌트 데이터 */
-async function loadSboyds(): Promise<RestaurantPOI[]> {
-  const rows = await fetchSheetCSV(SHEET_TABS.SBOYDS);
+async function loadSboyds(forceRefresh = false): Promise<RestaurantPOI[]> {
+  const rows = await fetchSheetCSV(SHEET_TABS.SBOYDS, forceRefresh);
   const result: RestaurantPOI[] = [];
   for (let i = 1; i < rows.length; i++) {
     const cols = rows[i];
@@ -252,7 +256,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Load from cache (or fetch & cache if stale/empty)
-    const { apartments, schools, stations, academies, restaurants, sboyds } = await loadAllCached();
+    const { apartments, schools, stations, academies, restaurants, sboyds } = await loadAllCached(forceRefresh);
 
     const apt = resolveApartment(apartment, apartments);
     if (!apt) {

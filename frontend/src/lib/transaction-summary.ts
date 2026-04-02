@@ -3,7 +3,7 @@
  * 
  * ⚠️ 이 파일은 자동 생성됩니다. 직접 수정하지 마세요!
  * 동기화: npm run sync-transactions
- * 마지막 동기화: 2026-03-26
+ * 마지막 동기화: 2026-04-02
  */
 
 export interface RecentTx {
@@ -55,10 +55,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 30100,
     "minPriceEok": "3억100",
     "txCount": 359,
-    "avg1MPrice": 53373,
-    "avg1MPriceEok": "5억3,373",
-    "avg1MPerPyeong": 2851,
-    "avg1MTxCount": 11,
+    "avg1MPrice": 53633,
+    "avg1MPriceEok": "5억3,633",
+    "avg1MPerPyeong": 2847,
+    "avg1MTxCount": 9,
     "recent": [
       {
         "date": "03.23",
@@ -142,13 +142,13 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
         "area": 54.5533
       }
     ],
-    "rentTxCount": 0,
-    "latestRentDeposit": 0,
-    "latestRentDepositEok": "0",
+    "rentTxCount": 5,
+    "latestRentDeposit": 40000,
+    "latestRentDepositEok": "4억",
     "latestRentMonthly": 0,
-    "latestRentDate": "",
-    "avg1MRentDeposit": 0,
-    "avg1MRentDepositEok": "0만"
+    "latestRentDate": "20260315",
+    "avg1MRentDeposit": 40000,
+    "avg1MRentDepositEok": "4억"
   },
   "중흥에스클래스에듀하이": {
     "latestPrice": 71800,
@@ -161,10 +161,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 54766,
     "minPriceEok": "5억4,766",
     "txCount": 62,
-    "avg1MPrice": 67217,
-    "avg1MPriceEok": "6억7,217",
-    "avg1MPerPyeong": 2674,
-    "avg1MTxCount": 6,
+    "avg1MPrice": 67950,
+    "avg1MPriceEok": "6억7,950",
+    "avg1MPerPyeong": 2702,
+    "avg1MTxCount": 4,
     "recent": [
       {
         "date": "03.22",
@@ -267,10 +267,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 29000,
     "minPriceEok": "2억9,000",
     "txCount": 386,
-    "avg1MPrice": 69791,
-    "avg1MPriceEok": "6억9,791",
-    "avg1MPerPyeong": 3696,
-    "avg1MTxCount": 11,
+    "avg1MPrice": 69156,
+    "avg1MPriceEok": "6억9,156",
+    "avg1MPerPyeong": 3722,
+    "avg1MTxCount": 9,
     "recent": [
       {
         "date": "03.22",
@@ -320,10 +320,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 25000,
     "minPriceEok": "2억5,000",
     "txCount": 455,
-    "avg1MPrice": 75980,
-    "avg1MPriceEok": "7억5,980",
-    "avg1MPerPyeong": 3257,
-    "avg1MTxCount": 15,
+    "avg1MPrice": 75142,
+    "avg1MPriceEok": "7억5,142",
+    "avg1MPerPyeong": 3267,
+    "avg1MTxCount": 12,
     "recent": [
       {
         "date": "03.21",
@@ -373,10 +373,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 36000,
     "minPriceEok": "3억6,000",
     "txCount": 260,
-    "avg1MPrice": 87945,
-    "avg1MPriceEok": "8억7,945",
-    "avg1MPerPyeong": 3533,
-    "avg1MTxCount": 11,
+    "avg1MPrice": 87656,
+    "avg1MPriceEok": "8억7,656",
+    "avg1MPerPyeong": 3543,
+    "avg1MTxCount": 9,
     "recent": [
       {
         "date": "03.21",
@@ -479,10 +479,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 15625,
     "minPriceEok": "1억5,625",
     "txCount": 1418,
-    "avg1MPrice": 55383,
-    "avg1MPriceEok": "5억5,383",
-    "avg1MPerPyeong": 2355,
-    "avg1MTxCount": 6,
+    "avg1MPrice": 55660,
+    "avg1MPriceEok": "5억5,660",
+    "avg1MPerPyeong": 2360,
+    "avg1MTxCount": 5,
     "recent": [
       {
         "date": "03.21",
@@ -585,10 +585,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 15900,
     "minPriceEok": "1억5,900",
     "txCount": 2071,
-    "avg1MPrice": 50500,
-    "avg1MPriceEok": "5억500",
-    "avg1MPerPyeong": 2350,
-    "avg1MTxCount": 14,
+    "avg1MPrice": 51442,
+    "avg1MPriceEok": "5억1,442",
+    "avg1MPerPyeong": 2329,
+    "avg1MTxCount": 12,
     "recent": [
       {
         "date": "03.21",
@@ -797,10 +797,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 23171,
     "minPriceEok": "2억3,171",
     "txCount": 292,
-    "avg1MPrice": 44600,
-    "avg1MPriceEok": "4억4,600",
-    "avg1MPerPyeong": 2314,
-    "avg1MTxCount": 9,
+    "avg1MPrice": 44700,
+    "avg1MPriceEok": "4억4,700",
+    "avg1MPerPyeong": 2306,
+    "avg1MTxCount": 7,
     "recent": [
       {
         "date": "03.21",
@@ -850,10 +850,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 34200,
     "minPriceEok": "3억4,200",
     "txCount": 353,
-    "avg1MPrice": 55600,
-    "avg1MPriceEok": "5억5,600",
-    "avg1MPerPyeong": 2355,
-    "avg1MTxCount": 6,
+    "avg1MPrice": 56120,
+    "avg1MPriceEok": "5억6,120",
+    "avg1MPerPyeong": 2357,
+    "avg1MTxCount": 5,
     "recent": [
       {
         "date": "03.21",
@@ -903,10 +903,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 54600,
     "minPriceEok": "5억4,600",
     "txCount": 214,
-    "avg1MPrice": 79950,
-    "avg1MPriceEok": "7억9,950",
-    "avg1MPerPyeong": 2630,
-    "avg1MTxCount": 6,
+    "avg1MPrice": 80540,
+    "avg1MPriceEok": "8억540",
+    "avg1MPerPyeong": 2647,
+    "avg1MTxCount": 5,
     "recent": [
       {
         "date": "03.21",
@@ -1009,10 +1009,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 24980,
     "minPriceEok": "2억4,980",
     "txCount": 606,
-    "avg1MPrice": 64280,
-    "avg1MPriceEok": "6억4,280",
-    "avg1MPerPyeong": 3114,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 65975,
+    "avg1MPriceEok": "6억5,975",
+    "avg1MPerPyeong": 3098,
+    "avg1MTxCount": 4,
     "recent": [
       {
         "date": "03.21",
@@ -1115,10 +1115,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 43501,
     "minPriceEok": "4억3,501",
     "txCount": 497,
-    "avg1MPrice": 106429,
-    "avg1MPriceEok": "10억6,429",
+    "avg1MPrice": 107360,
+    "avg1MPriceEok": "10억7,360",
     "avg1MPerPyeong": 4050,
-    "avg1MTxCount": 7,
+    "avg1MTxCount": 5,
     "recent": [
       {
         "date": "03.21",
@@ -1221,10 +1221,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 53000,
     "minPriceEok": "5억3,000",
     "txCount": 199,
-    "avg1MPrice": 75500,
-    "avg1MPriceEok": "7억5,500",
-    "avg1MPerPyeong": 3064,
-    "avg1MTxCount": 6,
+    "avg1MPrice": 75600,
+    "avg1MPriceEok": "7억5,600",
+    "avg1MPerPyeong": 3093,
+    "avg1MTxCount": 5,
     "recent": [
       {
         "date": "03.21",
@@ -1327,10 +1327,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 46000,
     "minPriceEok": "4억6,000",
     "txCount": 772,
-    "avg1MPrice": 146383,
-    "avg1MPriceEok": "14억6,383",
-    "avg1MPerPyeong": 5141,
-    "avg1MTxCount": 6,
+    "avg1MPrice": 151825,
+    "avg1MPriceEok": "15억1,825",
+    "avg1MPerPyeong": 5420,
+    "avg1MTxCount": 4,
     "recent": [
       {
         "date": "03.21",
@@ -1433,10 +1433,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 15860,
     "minPriceEok": "1억5,860",
     "txCount": 1263,
-    "avg1MPrice": 55000,
-    "avg1MPriceEok": "5억5,000",
-    "avg1MPerPyeong": 2789,
-    "avg1MTxCount": 8,
+    "avg1MPrice": 55429,
+    "avg1MPriceEok": "5억5,429",
+    "avg1MPerPyeong": 2781,
+    "avg1MTxCount": 7,
     "recent": [
       {
         "date": "03.21",
@@ -1539,10 +1539,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 32050,
     "minPriceEok": "3억2,050",
     "txCount": 469,
-    "avg1MPrice": 56271,
-    "avg1MPriceEok": "5억6,271",
-    "avg1MPerPyeong": 2444,
-    "avg1MTxCount": 7,
+    "avg1MPrice": 56317,
+    "avg1MPriceEok": "5억6,317",
+    "avg1MPerPyeong": 2439,
+    "avg1MTxCount": 6,
     "recent": [
       {
         "date": "03.21",
@@ -1645,10 +1645,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 27468,
     "minPriceEok": "2억7,468",
     "txCount": 513,
-    "avg1MPrice": 55500,
-    "avg1MPriceEok": "5억5,500",
-    "avg1MPerPyeong": 3426,
-    "avg1MTxCount": 14,
+    "avg1MPrice": 55883,
+    "avg1MPriceEok": "5억5,883",
+    "avg1MPerPyeong": 3450,
+    "avg1MTxCount": 12,
     "recent": [
       {
         "date": "03.21",
@@ -1698,10 +1698,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 29000,
     "minPriceEok": "2억9,000",
     "txCount": 357,
-    "avg1MPrice": 53258,
-    "avg1MPriceEok": "5억3,258",
-    "avg1MPerPyeong": 2556,
-    "avg1MTxCount": 12,
+    "avg1MPrice": 53029,
+    "avg1MPriceEok": "5억3,029",
+    "avg1MPerPyeong": 2621,
+    "avg1MTxCount": 7,
     "recent": [
       {
         "date": "03.21",
@@ -1804,10 +1804,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 62500,
     "minPriceEok": "6억2,500",
     "txCount": 171,
-    "avg1MPrice": 97460,
-    "avg1MPriceEok": "9억7,460",
-    "avg1MPerPyeong": 3745,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 98075,
+    "avg1MPriceEok": "9억8,075",
+    "avg1MPerPyeong": 3754,
+    "avg1MTxCount": 4,
     "recent": [
       {
         "date": "03.21",
@@ -1910,10 +1910,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 30200,
     "minPriceEok": "3억200",
     "txCount": 261,
-    "avg1MPrice": 60600,
-    "avg1MPriceEok": "6억600",
-    "avg1MPerPyeong": 3108,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 60775,
+    "avg1MPriceEok": "6억775",
+    "avg1MPerPyeong": 3058,
+    "avg1MTxCount": 4,
     "recent": [
       {
         "date": "03.21",
@@ -1963,10 +1963,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 22400,
     "minPriceEok": "2억2,400",
     "txCount": 683,
-    "avg1MPrice": 80500,
-    "avg1MPriceEok": "8억500",
-    "avg1MPerPyeong": 2537,
-    "avg1MTxCount": 2,
+    "avg1MPrice": 86000,
+    "avg1MPriceEok": "8억6,000",
+    "avg1MPerPyeong": 2515,
+    "avg1MTxCount": 1,
     "recent": [
       {
         "date": "03.21",
@@ -2016,10 +2016,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 10300,
     "minPriceEok": "1억300",
     "txCount": 841,
-    "avg1MPrice": 42700,
-    "avg1MPriceEok": "4억2,700",
-    "avg1MPerPyeong": 1941,
-    "avg1MTxCount": 7,
+    "avg1MPrice": 42333,
+    "avg1MPriceEok": "4억2,333",
+    "avg1MPerPyeong": 1924,
+    "avg1MTxCount": 6,
     "recent": [
       {
         "date": "03.20",
@@ -2069,10 +2069,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 32938,
     "minPriceEok": "3억2,938",
     "txCount": 1025,
-    "avg1MPrice": 126533,
-    "avg1MPriceEok": "12억6,533",
-    "avg1MPerPyeong": 6212,
-    "avg1MTxCount": 6,
+    "avg1MPrice": 126900,
+    "avg1MPriceEok": "12억6,900",
+    "avg1MPerPyeong": 6077,
+    "avg1MTxCount": 5,
     "recent": [
       {
         "date": "03.20",
@@ -2122,10 +2122,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 17320,
     "minPriceEok": "1억7,320",
     "txCount": 491,
-    "avg1MPrice": 53320,
-    "avg1MPriceEok": "5억3,320",
-    "avg1MPerPyeong": 2260,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 52900,
+    "avg1MPriceEok": "5억2,900",
+    "avg1MPerPyeong": 2230,
+    "avg1MTxCount": 4,
     "recent": [
       {
         "date": "03.20",
@@ -2175,10 +2175,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 29800,
     "minPriceEok": "2억9,800",
     "txCount": 1089,
-    "avg1MPrice": 73283,
-    "avg1MPriceEok": "7억3,283",
+    "avg1MPrice": 73409,
+    "avg1MPriceEok": "7억3,409",
     "avg1MPerPyeong": 3981,
-    "avg1MTxCount": 12,
+    "avg1MTxCount": 11,
     "recent": [
       {
         "date": "03.20",
@@ -2228,10 +2228,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 28000,
     "minPriceEok": "2억8,000",
     "txCount": 466,
-    "avg1MPrice": 61286,
-    "avg1MPriceEok": "6억1,286",
-    "avg1MPerPyeong": 2385,
-    "avg1MTxCount": 7,
+    "avg1MPrice": 61360,
+    "avg1MPriceEok": "6억1,360",
+    "avg1MPerPyeong": 2388,
+    "avg1MTxCount": 5,
     "recent": [
       {
         "date": "03.20",
@@ -2281,10 +2281,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 26000,
     "minPriceEok": "2억6,000",
     "txCount": 620,
-    "avg1MPrice": 44090,
-    "avg1MPriceEok": "4억4,090",
-    "avg1MPerPyeong": 2193,
-    "avg1MTxCount": 10,
+    "avg1MPrice": 43433,
+    "avg1MPriceEok": "4억3,433",
+    "avg1MPerPyeong": 2220,
+    "avg1MTxCount": 9,
     "recent": [
       {
         "date": "03.20",
@@ -2334,10 +2334,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 16570,
     "minPriceEok": "1억6,570",
     "txCount": 1428,
-    "avg1MPrice": 47840,
-    "avg1MPriceEok": "4억7,840",
-    "avg1MPerPyeong": 2192,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 46550,
+    "avg1MPriceEok": "4억6,550",
+    "avg1MPerPyeong": 2217,
+    "avg1MTxCount": 4,
     "recent": [
       {
         "date": "03.19",
@@ -2440,10 +2440,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 27903,
     "minPriceEok": "2억7,903",
     "txCount": 652,
-    "avg1MPrice": 68680,
-    "avg1MPriceEok": "6억8,680",
-    "avg1MPerPyeong": 3352,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 70350,
+    "avg1MPriceEok": "7억350",
+    "avg1MPerPyeong": 3333,
+    "avg1MTxCount": 4,
     "recent": [
       {
         "date": "03.19",
@@ -2493,10 +2493,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 14012,
     "minPriceEok": "1억4,012",
     "txCount": 1796,
-    "avg1MPrice": 45650,
-    "avg1MPriceEok": "4억5,650",
-    "avg1MPerPyeong": 2335,
-    "avg1MTxCount": 4,
+    "avg1MPrice": 43700,
+    "avg1MPriceEok": "4억3,700",
+    "avg1MPerPyeong": 2432,
+    "avg1MTxCount": 3,
     "recent": [
       {
         "date": "03.19",
@@ -2599,10 +2599,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 33000,
     "minPriceEok": "3억3,000",
     "txCount": 70,
-    "avg1MPrice": 48975,
-    "avg1MPriceEok": "4억8,975",
-    "avg1MPerPyeong": 2425,
-    "avg1MTxCount": 4,
+    "avg1MPrice": 45200,
+    "avg1MPriceEok": "4억5,200",
+    "avg1MPerPyeong": 2259,
+    "avg1MTxCount": 2,
     "recent": [
       {
         "date": "03.18",
@@ -2652,10 +2652,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 27300,
     "minPriceEok": "2억7,300",
     "txCount": 520,
-    "avg1MPrice": 55836,
-    "avg1MPriceEok": "5억5,836",
-    "avg1MPerPyeong": 3055,
-    "avg1MTxCount": 11,
+    "avg1MPrice": 55033,
+    "avg1MPriceEok": "5억5,033",
+    "avg1MPerPyeong": 3092,
+    "avg1MTxCount": 9,
     "recent": [
       {
         "date": "03.18",
@@ -2705,10 +2705,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 50000,
     "minPriceEok": "5억",
     "txCount": 30,
-    "avg1MPrice": 120750,
-    "avg1MPriceEok": "12억750",
-    "avg1MPerPyeong": 4597,
-    "avg1MTxCount": 2,
+    "avg1MPrice": 129500,
+    "avg1MPriceEok": "12억9,500",
+    "avg1MPerPyeong": 4642,
+    "avg1MTxCount": 1,
     "recent": [
       {
         "date": "03.18",
@@ -2811,10 +2811,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 40500,
     "minPriceEok": "4억500",
     "txCount": 141,
-    "avg1MPrice": 91100,
-    "avg1MPriceEok": "9억1,100",
-    "avg1MPerPyeong": 3548,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 90875,
+    "avg1MPriceEok": "9억875",
+    "avg1MPerPyeong": 3540,
+    "avg1MTxCount": 4,
     "recent": [
       {
         "date": "03.18",
@@ -2917,10 +2917,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 17500,
     "minPriceEok": "1억7,500",
     "txCount": 2376,
-    "avg1MPrice": 77167,
-    "avg1MPriceEok": "7억7,167",
-    "avg1MPerPyeong": 3790,
-    "avg1MTxCount": 3,
+    "avg1MPrice": 70000,
+    "avg1MPriceEok": "7억",
+    "avg1MPerPyeong": 3911,
+    "avg1MTxCount": 1,
     "recent": [
       {
         "date": "03.17",
@@ -3182,10 +3182,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 35700,
     "minPriceEok": "3억5,700",
     "txCount": 137,
-    "avg1MPrice": 54000,
-    "avg1MPriceEok": "5억4,000",
-    "avg1MPerPyeong": 2030,
-    "avg1MTxCount": 4,
+    "avg1MPrice": 54333,
+    "avg1MPriceEok": "5억4,333",
+    "avg1MPerPyeong": 2019,
+    "avg1MTxCount": 3,
     "recent": [
       {
         "date": "03.15",
@@ -3235,10 +3235,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 16440,
     "minPriceEok": "1억6,440",
     "txCount": 754,
-    "avg1MPrice": 59567,
-    "avg1MPriceEok": "5억9,567",
-    "avg1MPerPyeong": 2491,
-    "avg1MTxCount": 3,
+    "avg1MPrice": 60350,
+    "avg1MPriceEok": "6억350",
+    "avg1MPerPyeong": 2482,
+    "avg1MTxCount": 2,
     "recent": [
       {
         "date": "03.14",
@@ -3288,10 +3288,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 27500,
     "minPriceEok": "2억7,500",
     "txCount": 930,
-    "avg1MPrice": 63143,
-    "avg1MPriceEok": "6억3,143",
-    "avg1MPerPyeong": 2596,
-    "avg1MTxCount": 7,
+    "avg1MPrice": 63300,
+    "avg1MPriceEok": "6억3,300",
+    "avg1MPerPyeong": 2653,
+    "avg1MTxCount": 5,
     "recent": [
       {
         "date": "03.14",
@@ -3394,10 +3394,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 31000,
     "minPriceEok": "3억1,000",
     "txCount": 1169,
-    "avg1MPrice": 80733,
-    "avg1MPriceEok": "8억733",
-    "avg1MPerPyeong": 4226,
-    "avg1MTxCount": 6,
+    "avg1MPrice": 82480,
+    "avg1MPriceEok": "8억2,480",
+    "avg1MPerPyeong": 4271,
+    "avg1MTxCount": 5,
     "recent": [
       {
         "date": "03.14",
@@ -3500,10 +3500,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 45000,
     "minPriceEok": "4억5,000",
     "txCount": 667,
-    "avg1MPrice": 112040,
-    "avg1MPriceEok": "11억2,040",
-    "avg1MPerPyeong": 4360,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 111400,
+    "avg1MPriceEok": "11억1,400",
+    "avg1MPerPyeong": 4335,
+    "avg1MTxCount": 3,
     "recent": [
       {
         "date": "03.14",
@@ -3606,10 +3606,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 37000,
     "minPriceEok": "3억7,000",
     "txCount": 150,
-    "avg1MPrice": 62617,
-    "avg1MPriceEok": "6억2,617",
-    "avg1MPerPyeong": 2493,
-    "avg1MTxCount": 6,
+    "avg1MPrice": 62400,
+    "avg1MPriceEok": "6억2,400",
+    "avg1MPerPyeong": 2486,
+    "avg1MTxCount": 3,
     "recent": [
       {
         "date": "03.14",
@@ -3712,10 +3712,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 30000,
     "minPriceEok": "3억",
     "txCount": 425,
-    "avg1MPrice": 73800,
-    "avg1MPriceEok": "7억3,800",
-    "avg1MPerPyeong": 2906,
-    "avg1MTxCount": 4,
+    "avg1MPrice": 75500,
+    "avg1MPriceEok": "7억5,500",
+    "avg1MPerPyeong": 2972,
+    "avg1MTxCount": 3,
     "recent": [
       {
         "date": "03.13",
@@ -3765,10 +3765,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 28000,
     "minPriceEok": "2억8,000",
     "txCount": 734,
-    "avg1MPrice": 71900,
-    "avg1MPriceEok": "7억1,900",
-    "avg1MPerPyeong": 3972,
-    "avg1MTxCount": 2,
+    "avg1MPrice": 67500,
+    "avg1MPriceEok": "6억7,500",
+    "avg1MPerPyeong": 3729,
+    "avg1MTxCount": 1,
     "recent": [
       {
         "date": "03.13",
@@ -3871,10 +3871,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 26000,
     "minPriceEok": "2억6,000",
     "txCount": 594,
-    "avg1MPrice": 66840,
-    "avg1MPriceEok": "6억6,840",
-    "avg1MPerPyeong": 2611,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 68600,
+    "avg1MPriceEok": "6억8,600",
+    "avg1MPerPyeong": 2680,
+    "avg1MTxCount": 2,
     "recent": [
       {
         "date": "03.13",
@@ -3924,10 +3924,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 16200,
     "minPriceEok": "1억6,200",
     "txCount": 1373,
-    "avg1MPrice": 60250,
-    "avg1MPriceEok": "6억250",
-    "avg1MPerPyeong": 3151,
-    "avg1MTxCount": 8,
+    "avg1MPrice": 61000,
+    "avg1MPriceEok": "6억1,000",
+    "avg1MPerPyeong": 3165,
+    "avg1MTxCount": 7,
     "recent": [
       {
         "date": "03.12",
@@ -3977,10 +3977,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 37465,
     "minPriceEok": "3억7,465",
     "txCount": 309,
-    "avg1MPrice": 68163,
-    "avg1MPriceEok": "6억8,163",
-    "avg1MPerPyeong": 2766,
-    "avg1MTxCount": 4,
+    "avg1MPrice": 68117,
+    "avg1MPriceEok": "6억8,117",
+    "avg1MPerPyeong": 2703,
+    "avg1MTxCount": 3,
     "recent": [
       {
         "date": "03.11",
@@ -4062,10 +4062,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 55000,
     "minPriceEok": "5억5,000",
     "txCount": 27,
-    "avg1MPrice": 58367,
-    "avg1MPriceEok": "5억8,367",
-    "avg1MPerPyeong": 2466,
-    "avg1MTxCount": 3,
+    "avg1MPrice": 60050,
+    "avg1MPriceEok": "6억50",
+    "avg1MPerPyeong": 2488,
+    "avg1MTxCount": 2,
     "recent": [
       {
         "date": "03.11",
@@ -4115,10 +4115,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 39000,
     "minPriceEok": "3억9,000",
     "txCount": 151,
-    "avg1MPrice": 77625,
-    "avg1MPriceEok": "7억7,625",
-    "avg1MPerPyeong": 3253,
-    "avg1MTxCount": 6,
+    "avg1MPrice": 78350,
+    "avg1MPriceEok": "7억8,350",
+    "avg1MPerPyeong": 3234,
+    "avg1MTxCount": 5,
     "recent": [
       {
         "date": "03.11",
@@ -4168,10 +4168,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 34500,
     "minPriceEok": "3억4,500",
     "txCount": 546,
-    "avg1MPrice": 57200,
-    "avg1MPriceEok": "5억7,200",
-    "avg1MPerPyeong": 2406,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 56500,
+    "avg1MPriceEok": "5억6,500",
+    "avg1MPerPyeong": 2632,
+    "avg1MTxCount": 2,
     "recent": [
       {
         "date": "03.10",
@@ -4221,10 +4221,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 19700,
     "minPriceEok": "1억9,700",
     "txCount": 212,
-    "avg1MPrice": 54671,
-    "avg1MPriceEok": "5억4,671",
-    "avg1MPerPyeong": 2245,
-    "avg1MTxCount": 7,
+    "avg1MPrice": 54367,
+    "avg1MPriceEok": "5억4,367",
+    "avg1MPerPyeong": 2253,
+    "avg1MTxCount": 6,
     "recent": [
       {
         "date": "03.10",
@@ -4327,10 +4327,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 53600,
     "minPriceEok": "5억3,600",
     "txCount": 141,
-    "avg1MPrice": 77500,
-    "avg1MPriceEok": "7억7,500",
-    "avg1MPerPyeong": 2753,
-    "avg1MTxCount": 3,
+    "avg1MPrice": 83250,
+    "avg1MPriceEok": "8억3,250",
+    "avg1MPerPyeong": 3004,
+    "avg1MTxCount": 2,
     "recent": [
       {
         "date": "03.10",
@@ -4380,10 +4380,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 50000,
     "minPriceEok": "5억",
     "txCount": 126,
-    "avg1MPrice": 71529,
-    "avg1MPriceEok": "7억1,529",
-    "avg1MPerPyeong": 4037,
-    "avg1MTxCount": 7,
+    "avg1MPrice": 72750,
+    "avg1MPriceEok": "7억2,750",
+    "avg1MPerPyeong": 4097,
+    "avg1MTxCount": 4,
     "recent": [
       {
         "date": "03.10",
@@ -4433,10 +4433,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 48106,
     "minPriceEok": "4억8,106",
     "txCount": 379,
-    "avg1MPrice": 160500,
-    "avg1MPriceEok": "16억500",
-    "avg1MPerPyeong": 5536,
-    "avg1MTxCount": 3,
+    "avg1MPrice": 139000,
+    "avg1MPriceEok": "13억9,000",
+    "avg1MPerPyeong": 5451,
+    "avg1MTxCount": 1,
     "recent": [
       {
         "date": "03.10",
@@ -4539,10 +4539,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 104000,
     "minPriceEok": "10억4,000",
     "txCount": 54,
-    "avg1MPrice": 143667,
-    "avg1MPriceEok": "14억3,667",
-    "avg1MPerPyeong": 4957,
-    "avg1MTxCount": 3,
+    "avg1MPrice": 133000,
+    "avg1MPriceEok": "13억3,000",
+    "avg1MPerPyeong": 5195,
+    "avg1MTxCount": 1,
     "recent": [
       {
         "date": "03.08",
@@ -4592,10 +4592,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 19950,
     "minPriceEok": "1억9,950",
     "txCount": 290,
-    "avg1MPrice": 50333,
-    "avg1MPriceEok": "5억333",
-    "avg1MPerPyeong": 2227,
-    "avg1MTxCount": 3,
+    "avg1MPrice": 50500,
+    "avg1MPriceEok": "5억500",
+    "avg1MPerPyeong": 2235,
+    "avg1MTxCount": 2,
     "recent": [
       {
         "date": "03.08",
@@ -4645,10 +4645,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 21500,
     "minPriceEok": "2억1,500",
     "txCount": 866,
-    "avg1MPrice": 87860,
-    "avg1MPriceEok": "8억7,860",
-    "avg1MPerPyeong": 3419,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 91500,
+    "avg1MPriceEok": "9억1,500",
+    "avg1MPerPyeong": 3560,
+    "avg1MTxCount": 3,
     "recent": [
       {
         "date": "03.07",
@@ -5016,10 +5016,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 38500,
     "minPriceEok": "3억8,500",
     "txCount": 261,
-    "avg1MPrice": 70300,
-    "avg1MPriceEok": "7억300",
-    "avg1MPerPyeong": 3221,
-    "avg1MTxCount": 4,
+    "avg1MPrice": 72467,
+    "avg1MPriceEok": "7억2,467",
+    "avg1MPerPyeong": 3132,
+    "avg1MTxCount": 3,
     "recent": [
       {
         "date": "03.06",
@@ -5069,10 +5069,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 12000,
     "minPriceEok": "1억2,000",
     "txCount": 1006,
-    "avg1MPrice": 55075,
-    "avg1MPriceEok": "5억5,075",
-    "avg1MPerPyeong": 2215,
-    "avg1MTxCount": 4,
+    "avg1MPrice": 53300,
+    "avg1MPriceEok": "5억3,300",
+    "avg1MPerPyeong": 2401,
+    "avg1MTxCount": 1,
     "recent": [
       {
         "date": "03.05",
@@ -5599,10 +5599,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 40000,
     "minPriceEok": "4억",
     "txCount": 134,
-    "avg1MPrice": 74333,
-    "avg1MPriceEok": "7억4,333",
-    "avg1MPerPyeong": 3178,
-    "avg1MTxCount": 3,
+    "avg1MPrice": 75500,
+    "avg1MPriceEok": "7억5,500",
+    "avg1MPerPyeong": 3160,
+    "avg1MTxCount": 2,
     "recent": [
       {
         "date": "03.02",
@@ -5811,10 +5811,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 38000,
     "minPriceEok": "3억8,000",
     "txCount": 358,
-    "avg1MPrice": 71200,
-    "avg1MPriceEok": "7억1,200",
-    "avg1MPerPyeong": 2787,
-    "avg1MTxCount": 2,
+    "avg1MPrice": 72000,
+    "avg1MPriceEok": "7억2,000",
+    "avg1MPerPyeong": 2813,
+    "avg1MTxCount": 1,
     "recent": [
       {
         "date": "03.02",
@@ -5864,10 +5864,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 60000,
     "minPriceEok": "6억",
     "txCount": 159,
-    "avg1MPrice": 123500,
-    "avg1MPriceEok": "12억3,500",
-    "avg1MPerPyeong": 5122,
-    "avg1MTxCount": 2,
+    "avg1MPrice": 127500,
+    "avg1MPriceEok": "12억7,500",
+    "avg1MPerPyeong": 4885,
+    "avg1MTxCount": 1,
     "recent": [
       {
         "date": "03.02",
@@ -6023,10 +6023,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 38375,
     "minPriceEok": "3억8,375",
     "txCount": 329,
-    "avg1MPrice": 99850,
-    "avg1MPriceEok": "9억9,850",
-    "avg1MPerPyeong": 3885,
-    "avg1MTxCount": 2,
+    "avg1MPrice": 100000,
+    "avg1MPriceEok": "10억",
+    "avg1MPerPyeong": 3891,
+    "avg1MTxCount": 0,
     "recent": [
       {
         "date": "03.01",
@@ -6079,7 +6079,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "avg1MPrice": 70000,
     "avg1MPriceEok": "7억",
     "avg1MPerPyeong": 2734,
-    "avg1MTxCount": 1,
+    "avg1MTxCount": 0,
     "recent": [
       {
         "date": "02.28",
@@ -6132,7 +6132,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "avg1MPrice": 65000,
     "avg1MPriceEok": "6억5,000",
     "avg1MPerPyeong": 1786,
-    "avg1MTxCount": 1,
+    "avg1MTxCount": 0,
     "recent": [
       {
         "date": "02.28",
@@ -6185,7 +6185,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "avg1MPrice": 83800,
     "avg1MPriceEok": "8억3,800",
     "avg1MPerPyeong": 2712,
-    "avg1MTxCount": 1,
+    "avg1MTxCount": 0,
     "recent": [
       {
         "date": "02.28",
@@ -6238,7 +6238,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "avg1MPrice": 105000,
     "avg1MPriceEok": "10억5,000",
     "avg1MPerPyeong": 4086,
-    "avg1MTxCount": 1,
+    "avg1MTxCount": 0,
     "recent": [
       {
         "date": "02.28",
@@ -6291,7 +6291,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "avg1MPrice": 67500,
     "avg1MPriceEok": "6억7,500",
     "avg1MPerPyeong": 2626,
-    "avg1MTxCount": 1,
+    "avg1MTxCount": 0,
     "recent": [
       {
         "date": "02.28",
@@ -6344,7 +6344,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "avg1MPrice": 53500,
     "avg1MPriceEok": "5억3,500",
     "avg1MPerPyeong": 1967,
-    "avg1MTxCount": 1,
+    "avg1MTxCount": 0,
     "recent": [
       {
         "date": "02.28",
@@ -6397,7 +6397,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "avg1MPrice": 121000,
     "avg1MPriceEok": "12억1,000",
     "avg1MPerPyeong": 4708,
-    "avg1MTxCount": 1,
+    "avg1MTxCount": 0,
     "recent": [
       {
         "date": "02.27",
@@ -6450,7 +6450,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "avg1MPrice": 96500,
     "avg1MPriceEok": "9억6,500",
     "avg1MPerPyeong": 2287,
-    "avg1MTxCount": 1,
+    "avg1MTxCount": 0,
     "recent": [
       {
         "date": "02.27",
@@ -6503,7 +6503,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "avg1MPrice": 75000,
     "avg1MPriceEok": "7억5,000",
     "avg1MPerPyeong": 2930,
-    "avg1MTxCount": 1,
+    "avg1MTxCount": 0,
     "recent": [
       {
         "date": "02.26",

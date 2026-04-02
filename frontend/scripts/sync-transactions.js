@@ -83,6 +83,39 @@ async function main() {
     });
   });
 
+  console.log('📡 Firestore transactionSync (임대차 등) 로딩 중...');
+  const syncSnap = await getDocs(query(collection(db, 'transactionSync'), orderBy('contractYm', 'desc')));
+  console.log(`📋 transactionSync 컬렉션에서 ${syncSnap.size}건 로드 완료`);
+
+  syncSnap.forEach((docSnap) => {
+    const d = docSnap.data();
+    const aptName = d.apartmentName || d.aptName || '';
+    if (!aptName) return;
+
+    const key = normalizeAptName(aptName);
+    if (!byApt[key]) byApt[key] = [];    
+    
+    const cDate = d.contractDate || `${d.contractYm || ''}${String(d.contractDay || '').padStart(2, '0')}`;
+    // simple deduplication (skip if exactly same dealType, area, price/deposit)
+    const isDup = byApt[key].some(t => t.contractDate === cDate && t.area === d.area && t.dealType === d.dealType && (t.price === d.price || t.deposit === d.deposit));
+    if (!isDup) {
+      byApt[key].push({
+        contractYm: d.contractYm || '',
+        contractDay: d.contractDay || '',
+        price: d.price || 0,
+        priceEok: formatPriceEok((d.dealType === '매매' ? d.price : d.deposit) || 0),
+        deposit: d.deposit || 0,
+        monthlyRent: d.monthlyRent || 0,
+        area: d.area || 0,
+        areaPyeong: d.areaPyeong || 0,
+        floor: d.floor || 0,
+        dong: d.dong || '',
+        dealType: d.dealType || '매매',
+        contractDate: cDate,
+      });
+    }
+  });
+
   // 아파트별 요약 계산
   const summaries = {};
   let aptCount = 0;
@@ -254,6 +287,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = `;
       contractYm: t.contractYm,
       contractDay: t.contractDay,
       price: t.price,
+      deposit: t.deposit || 0,
+      monthlyRent: t.monthlyRent || 0,
       area: t.area,
       areaPyeong: t.areaPyeong,
       floor: t.floor,

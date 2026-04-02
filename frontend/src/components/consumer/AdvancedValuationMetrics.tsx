@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Target, Building, Info, ChevronDown, Users, Car, Calendar, Train, GraduationCap, Store, TreePine, Award } from 'lucide-react';
+import { Target, Building, Info, ChevronDown, Users, Car, Calendar, Train, GraduationCap, Store, TreePine, Award, ShieldCheck, TrendingUp } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Cell } from 'recharts';
 import type { FieldReportData } from '@/lib/DashboardFacade';
 import { getBrandMultiplier } from '@/lib/utils/scoring';
@@ -165,29 +165,64 @@ function calculateUtilityScoreV2(report: FieldReportData) {
 }
 
 export default function AdvancedValuationMetrics({ report, transactions }: Props) {
-  const [showScoreDetail, setShowScoreDetail] = useState(false);
-
-  // 1. Transaction 분리 (매매 vs 전세)
-  const sales = useMemo(() => transactions.filter(t => t.dealType === '매매' || !t.dealType), [transactions]);
-  const rents = useMemo(() => transactions.filter(t => t.dealType === '전세'), [transactions]);
-
-  // 최근 시세 버퍼
-  const latestSale = sales.length > 0 ? sales[0].price : 0;
-  const latestRent = rents.length > 0 ? rents[0].deposit || rents[0].price : 0;
+  // 1. Transaction 분리  // 2. Fetch the latest Sale and Jeonse from props
+  // Any dealType that is not 전세 or 월세 is considered a Sale (e.g. 중개거래, 직거래)
+  const sales = transactions.filter(t => t.dealType !== '전세' && t.dealType !== '월세').sort((a,b) => b.contractDate.localeCompare(a.contractDate));
+  const rents = transactions.filter(t => t.dealType === '전세' || t.dealType === '월세').sort((a,b) => b.contractDate.localeCompare(a.contractDate));
   
-  // 2. Utility Score 산출 (V2)
-  const scoreData = useMemo(() => calculateUtilityScoreV2(report), [report]);
-  const utilityScore = scoreData.total;
+  const latestSale = sales.length > 0 ? sales[0].price : 0;
+  
+  // For rent, we convert Wolse to Jeonse equiv (deposit + rent * 12 / 0.055)
+  const latestRentTx = rents.length > 0 ? rents[0] : null;
+  const latestRent = latestRentTx 
+    ? (latestRentTx.dealType === '월세' 
+        ? (latestRentTx.deposit || 0) + Math.round((latestRentTx.monthlyRent || 0) * 12 / 0.055) 
+        : (latestRentTx.deposit || latestRentTx.price)) 
+    : 0;
 
-  // 3. Valuation 모델 (P/U & PER)
-  const puRatio = latestSale > 0 ? Math.round(latestSale / utilityScore) : 0;
+  // 2. 실사용 PER 계산
+  const realEstatePER = (latestSale > 0 && latestRent > 0) ? (latestSale / latestRent) : 0;
   const jeonseRatio = (latestSale > 0 && latestRent > 0) ? (latestRent / latestSale) * 100 : 0;
-  const realEstatePER = (latestSale > 0 && latestRent > 0) ? (latestSale / latestRent).toFixed(2) : 'N/A';
 
-  const chartData = [
-    { name: '본 단지', puRatio: puRatio, color: '#3182f6' },
-    { name: '동탄 평균 (가정)', puRatio: 1350, color: '#e5e8eb' },
-  ];
+  // 3. 상태 평가 로직
+  let statusText = '데이터 부족';
+  let statusColor = 'text-[#8b95a1]';
+  let statusBg = 'bg-[#f2f4f6]';
+  let StatusIcon = Info;
+  let descriptionText = '최근 매매/전세 실거래가 데이터가 부족하여 분석할 수 없습니다.';
+
+  if (realEstatePER > 0) {
+    if (realEstatePER < 1.6) {
+      statusText = '강력한 하방 경직성 (안전마진 확보)';
+      statusColor = 'text-[#03c75a]';
+      statusBg = 'bg-[#03c75a]/10 border-[#03c75a]/20';
+      StatusIcon = ShieldCheck;
+      descriptionText = '사용 가치(전세금) 기반의 자본환원율이 높습니다. 하락장에서도 하방 방어력이 우수하며 투자가치가 돋보입니다.';
+    } else if (realEstatePER <= 2.0) {
+      statusText = '적정 수준의 프리미엄 (시장 평균)';
+      statusColor = 'text-[#3182f6]';
+      statusBg = 'bg-[#3182f6]/10 border-[#3182f6]/20';
+      StatusIcon = Target;
+      descriptionText = '실거주 가치에 적정 수준의 미래 가치 프리미엄이 반영되어 있는 현재 시장의 보편적 형태입니다.';
+    } else {
+      statusText = '고평가 / 미래 기대감 과다 반영';
+      statusColor = 'text-[#f04452]';
+      statusBg = 'bg-[#f04452]/10 border-[#f04452]/20';
+      StatusIcon = TrendingUp; // Using TrendingUp for "Premium"
+      descriptionText = '사용 가치 대비 매매가가 매우 높게 형성되어 있습니다. 금리 인상 등 유동성 충격 시 가격 변동성이 높습니다.';
+    }
+  }
+
+  // 가격 포맷 헬퍼
+  const formatPrice = (p: number) => {
+    if (p === 0) return '정보 없음';
+    if (p >= 10000) {
+      const eok = Math.floor(p / 10000);
+      const man = p % 10000;
+      return man > 0 ? `${eok}억 ${man.toLocaleString()}만` : `${eok}억`;
+    }
+    return `${p.toLocaleString()}만`;
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -195,191 +230,89 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
       <div className="flex flex-col gap-1">
         <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2">
           <Target size={22} className="text-[#3182f6]" strokeWidth={2.5} />
-          AI 상대가치 평가 (Valuation)
+          밸류에이션 분석
         </h2>
-        <p className="text-[13px] text-[#8b95a1] ml-7 leading-relaxed">
-          단지 스펙과 입지를 수치화한 <strong>상품성(Utility Score)</strong> 대비 <strong>현재 가격</strong>의 적정성을 분석합니다.
+        <p className="text-[13px] text-[#8b95a1] ml-7 leading-relaxed flex items-center gap-2">
+          <span className="font-bold text-[#191f28] bg-[#f2f4f6] px-1.5 py-0.5 rounded text-[11px] uppercase tracking-wider">Metric 1</span>
+          시장이 인정하는 100% 순수 거주 가치(전세금) 기반의 금융 가치 평가 지표입니다.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Left: Utility Score Board V2 */}
-        <div className="bg-[#f9fafb] border border-[#e5e8eb] p-6 rounded-3xl flex flex-col justify-between transition-all duration-300">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[15px] font-bold text-[#4e5968] flex items-center gap-1.5">
-                <Building size={18} className="text-[#3182f6]" /> 종합 상품성 지수 (V2)
-              </h3>
-              <span className="text-[11px] font-bold text-white bg-gradient-to-r from-[#3182f6] to-[#1b64da] px-2.5 py-1 rounded-md shadow-sm">100점 만점</span>
+      <div className="flex flex-col lg:flex-row gap-5">
+        {/* Left: Main PER Metric Box */}
+        <div className="flex-1 bg-white border border-[#e5e8eb] p-6 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between border-b border-[#f2f4f6] pb-4 mb-4">
+            <h3 className="text-[15px] font-extrabold text-[#4e5968] flex items-center gap-1.5">
+              실사용 PER <span className="font-medium text-[#8b95a1] text-[13px]">(Price to Jeonse)</span>
+            </h3>
+            <span className="text-[9px] font-bold text-[#3182f6] bg-[#3182f6]/10 px-2 py-0.5 rounded-sm uppercase tracking-wider">
+              Fundamental Value
+            </span>
+          </div>
+          
+          <div className="flex flex-col items-center justify-center pt-3 pb-7">
+            <div className="text-[12px] font-bold text-[#8b95a1] mb-1">매매가 ÷ 전세가 배수</div>
+            {realEstatePER > 0 ? (
+              <div className="flex items-end gap-1.5">
+                <span className="text-[56px] font-black text-[#191f28] leading-none tracking-tighter">
+                  {realEstatePER.toFixed(2)}
+                </span>
+                <span className="text-[18px] font-extrabold text-[#8b95a1] mb-2">배</span>
+              </div>
+            ) : (
+              <div className="text-[24px] font-bold text-[#b0b8c1] my-4">N/A</div>
+            )}
+          </div>
+
+          {/* Status Alert inside the box */}
+          {realEstatePER > 0 && (
+            <div className={`mt-2 p-3.5 rounded-xl border flex gap-3 items-start ${statusBg}`}>
+              <StatusIcon size={18} className={`${statusColor} shrink-0 mt-0.5`} />
+              <div className="flex flex-col gap-1.5">
+                <h4 className={`text-[13px] font-extrabold ${statusColor}`}>{statusText}</h4>
+                <p className="text-[11.5px] text-[#4e5968] leading-relaxed font-medium">
+                  {descriptionText}
+                </p>
+              </div>
             </div>
+          )}
+        </div>
+
+        {/* Right: Data Components & Description */}
+        <div className="flex-1 flex flex-col gap-4">
+          <div className="bg-[#f9fafb] border border-[#e5e8eb] rounded-2xl p-5 flex flex-col justify-center gap-5 flex-1">
+            <h4 className="text-[13px] font-bold text-[#4e5968]">기준 실거래 데이터</h4>
             
-            <div className="text-center my-6">
-              {utilityScore > 0 ? (
-                <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-[52px] font-extrabold text-[#191f28] tracking-tighter drop-shadow-sm">{utilityScore}</span>
-                  <span className="text-[20px] font-bold text-[#8b95a1]">점</span>
-                </div>
-              ) : (
-                <span className="text-[20px] text-[#8b95a1]">데이터 부족</span>
-              )}
-            </div>
-            
-            {/* Break Down Toggle */}
-            <div className="mt-4">
-              <button 
-                onClick={() => setShowScoreDetail(!showScoreDetail)}
-                className={`w-full flex items-center justify-center gap-1.5 py-3 border rounded-xl text-[13px] font-bold transition-all duration-200 ${
-                  showScoreDetail 
-                    ? 'bg-[#3182f6]/5 border-[#3182f6]/20 text-[#3182f6]' 
-                    : 'bg-white border-[#e5e8eb] hover:bg-[#f2f4f6] text-[#4e5968]'
-                }`}
-              >
-                진단 레포트 상세 보기
-                <ChevronDown size={14} className={`transition-transform duration-300 ${showScoreDetail ? 'rotate-180 text-[#3182f6]' : ''}`} />
-              </button>
+            <div className="flex flex-col gap-3.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[13px] text-[#8b95a1] font-medium">최근 매매가 (Price)</span>
+                <span className="text-[15px] font-extrabold text-[#191f28]">{formatPrice(latestSale)}</span>
+              </div>
               
-              <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showScoreDetail ? 'max-h-[1200px] mt-4 opacity-100' : 'max-h-0 opacity-0'}`}>
-                <div className="bg-white border border-[#f2f4f6] rounded-2xl p-5 flex flex-col gap-6 shadow-sm ring-1 ring-[#f2f4f6]/50">
-                  
-                  {/* 단지 기본 스펙 */}
-                  <div className="flex flex-col gap-4">
-                    <h4 className="text-[13px] font-extrabold text-[#191f28] flex items-center justify-between border-b-2 border-[#191f28] pb-1.5">
-                      <span>단지 펀더멘탈 (Max 40점)</span>
-                      <span className="text-[#3182f6]">{scoreData.breakDown.specs}점</span>
-                    </h4>
-                    <div className="flex flex-col gap-3.5">
-                    {scoreData.logs.filter(l => !l.isInfra).map((log, i) => {
-                      const IconComponent = log.icon;
-                      return (
-                      <div key={i} className="flex items-center justify-between group">
-                        <div className="flex items-center gap-3">
-                          <div className="p-1.5 bg-[#f2f4f6] rounded-lg text-[#8b95a1] group-hover:bg-[#3182f6]/10 group-hover:text-[#3182f6] transition-colors">
-                            <IconComponent size={15} />
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-[12.5px] font-bold text-[#4e5968]">{log.category}</span>
-                            <span className="text-[11.5px] text-[#8b95a1] leading-tight font-medium">{log.label}</span>
-                          </div>
-                        </div>
-                        <GaugeBar score={log.score} max={log.max} />
-                      </div>
-                      )
-                    })}
-                    </div>
-                  </div>
-
-                  {/* 외부 입지 인프라 */}
-                  <div className="flex flex-col gap-4">
-                    <h4 className="text-[13px] font-extrabold text-[#191f28] flex items-center justify-between border-b-2 border-[#191f28] pb-1.5">
-                      <span>외부 입지 인프라 (Max 60점)</span>
-                      <span className="text-[#3182f6]">{scoreData.breakDown.infra}점</span>
-                    </h4>
-                    <div className="flex flex-col gap-3.5">
-                    {scoreData.logs.filter(l => l.isInfra).map((log, i) => {
-                      const IconComponent = log.icon;
-                      return (
-                      <div key={i} className="flex items-center justify-between group">
-                        <div className="flex items-center gap-3">
-                          <div className="p-1.5 bg-[#f2f4f6] rounded-lg text-[#8b95a1] group-hover:bg-[#3182f6]/10 group-hover:text-[#3182f6] transition-colors">
-                            <IconComponent size={15} />
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-[12.5px] font-bold text-[#4e5968]">{log.category}</span>
-                            <span className="text-[11.5px] text-[#8b95a1] leading-tight font-medium">{log.label}</span>
-                          </div>
-                        </div>
-                        <GaugeBar score={log.score} max={log.max} />
-                      </div>
-                      )
-                    })}
-                    </div>
-                  </div>
-
-                  {scoreData.isCapped && (
-                    <div className="bg-amber-50/80 rounded-xl p-3 flex items-start gap-2.5 border border-amber-100">
-                      <Info size={16} className="text-amber-500 shrink-0 mt-0.5" />
-                      <p className="text-[11.5px] text-amber-700 leading-relaxed font-medium">
-                        진단 합산 지수는 <strong>{scoreData.rawScore}점</strong>으로 산출되었으나, 동탄 신도시 인프라 하한선 보정(Floor Limit)에 의해 <strong>최소 55점</strong>으로 상향 보정되었습니다.
-                      </p>
-                    </div>
-                  )}
-                </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[13px] text-[#8b95a1] font-medium">최근 전세가 (Jeonse)</span>
+                <span className="text-[15px] font-extrabold text-[#3182f6]">{formatPrice(latestRent)}</span>
               </div>
-            </div>
 
-          </div>
-        </div>
-
-        {/* Right: P/U & PER Metrics */}
-        <div className="bg-white border border-[#e5e8eb] p-6 rounded-3xl flex flex-col gap-5 shadow-sm shadow-[#3182f6]/5 ring-1 ring-[#3182f6]/5">
-          <div className="flex flex-col gap-2 border-b border-[#f2f4f6] pb-4">
-            <h3 className="text-[14px] font-bold text-[#4e5968] flex items-center justify-between">
-              <span>P/U 지수 (Price to Utility)</span>
-              <span className="text-[#3182f6] bg-[#3182f6]/10 font-medium text-[10px] px-2 py-0.5 rounded-full">낮을수록 저평가</span>
-            </h3>
-            <div className="flex items-end justify-between mt-1">
-              <div>
-                {puRatio > 0 ? (
-                  <>
-                    <span className="text-[30px] font-extrabold text-[#191f28] tracking-tight">{puRatio.toLocaleString()}</span>
-                    <span className="text-[13px] font-medium text-[#8b95a1] ml-1.5">만원 / 1점</span>
-                  </>
-                ) : (
-                  <span className="text-[20px] font-extrabold text-[#8b95a1]">거래 없음</span>
-                )}
-              </div>
-              <div className="h-[40px] w-[80px]">
-                {puRatio > 0 && (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} layout="vertical" margin={{ top:0, right:0, left:0, bottom:0 }}>
-                      <XAxis type="number" hide />
-                      <YAxis type="category" dataKey="name" hide />
-                      <Bar dataKey="puRatio" radius={[3,3,3,3]} barSize={14}>
-                        {chartData.map((entry, index) => (
-                          <Cell key={index} fill={entry.color} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
+              <div className="h-px w-full bg-[#e5e8eb] my-1" />
+              
+              <div className="flex items-center justify-between">
+                <span className="text-[13px] text-[#8b95a1] font-bold">도출된 전세가율</span>
+                <span className="text-[15px] font-extrabold text-[#191f28] bg-white px-2 py-0.5 rounded shadow-sm border border-[#e5e8eb]">
+                  {jeonseRatio > 0 ? `${jeonseRatio.toFixed(1)}%` : '-'}
+                </span>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 pt-1">
-            <h3 className="text-[14px] font-bold text-[#4e5968] flex items-center justify-between">
-              <span>실사용 PER (매매가 / 전세가 배수)</span>
-              <span className="text-[#f59e0b] bg-[#f59e0b]/10 font-medium text-[10px] px-2 py-0.5 rounded-full">낮을수록 배당 매력</span>
-            </h3>
-            <div className="flex items-end justify-between mt-1">
-              <div>
-                {realEstatePER !== 'N/A' ? (
-                  <>
-                    <span className="text-[30px] font-extrabold text-[#191f28] tracking-tight">{realEstatePER}</span>
-                    <span className="text-[13px] font-medium text-[#8b95a1] ml-1.5">배</span>
-                  </>
-                ) : (
-                  <span className="text-[20px] font-extrabold text-[#8b95a1]">N/A</span>
-                )}
-              </div>
-              <div className="text-right flex flex-col items-end">
-                <div className="text-[11px] font-medium text-[#8b95a1] uppercase tracking-wider mb-0.5">전세가율</div>
-                <div className="text-[15px] font-extrabold text-[#191f28] bg-[#f2f4f6] px-2 py-0.5 rounded">{jeonseRatio.toFixed(1)}%</div>
-              </div>
-            </div>
+          <div className="bg-[#f2f4f6]/50 rounded-2xl p-4 flex gap-3 text-[12px] text-[#4e5968] leading-relaxed">
+            <Info size={16} className="text-[#8b95a1] shrink-0 mt-0.5" />
+            <p>
+              <strong>실사용 PER(Price to Jeonse)</strong>은 기관투자자 및 프랍트레이더가 채택하는 <strong>자본환원율(Cap Rate)</strong> 평가 방식의 한국형 대체 지표입니다. 배수가 낮을수록 100% 거주 가치 대비 거품이 적어 하락장에서도 뛰어난 가격 방어력을 보입니다.
+            </p>
           </div>
         </div>
       </div>
-      
-      {/* Alert / Explanation */}
-      <div className="bg-[#f2f4f6]/50 rounded-2xl p-4 flex gap-3 mt-1 text-[12.5px] text-[#4e5968] leading-relaxed">
-        <Info size={18} className="text-[#8b95a1] shrink-0 mt-0.5" />
-        <p>
-          <strong>P/U 지수</strong>는 단지의 입지·스펙을 100점 만점으로 환산 후 1점당 지불 여력을 뜻합니다. 평균치 대비 점수가 낮으면 저평가입니다.<br/>
-          <strong>PER 배수</strong>는 주식의 기업 이익 대신 실거주 가치(전세보증금)를 대입한 지표입니다. 낮을수록 방어력(투자 가치 대비 실사용 가치)이 높습니다.
-        </p>
-      </div>
-
     </div>
   );
 }

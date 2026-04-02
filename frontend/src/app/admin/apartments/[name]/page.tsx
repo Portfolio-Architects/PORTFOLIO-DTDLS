@@ -268,62 +268,75 @@ export default function ApartmentInfoPage() {
       fetched.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
       setReports(fetched);
 
-      // Populate metrics + photos from existing report
+      // Populate photos from existing report safely (only initialize if empty)
       if (fetched.length > 0) {
         const r = fetched[0];
-        const m = r.metrics;
-        if (m) {
-          setMeta(prev => prev ? ({
-            ...prev,
-            distanceToElementary: prev.distanceToElementary ?? m.distanceToElementary,
-            distanceToMiddle: prev.distanceToMiddle ?? m.distanceToMiddle,
-            distanceToHigh: prev.distanceToHigh ?? m.distanceToHigh,
-            distanceToSubway: prev.distanceToSubway ?? m.distanceToSubway,
-            distanceToIndeokwon: prev.distanceToIndeokwon ?? m.distanceToIndeokwon,
-            distanceToTram: prev.distanceToTram ?? m.distanceToTram,
-            distanceToStarbucks: prev.distanceToStarbucks ?? m.distanceToStarbucks,
-            distanceToMcDonalds: prev.distanceToMcDonalds ?? m.distanceToMcDonalds,
-            distanceToOliveYoung: prev.distanceToOliveYoung ?? m.distanceToOliveYoung,
-            distanceToDaiso: prev.distanceToDaiso ?? m.distanceToDaiso,
-            distanceToSupermarket: prev.distanceToSupermarket ?? m.distanceToSupermarket,
-            academyDensity: prev.academyDensity ?? m.academyDensity,
-            restaurantDensity: prev.restaurantDensity ?? (m as unknown as Record<string, number>).restaurantDensity,
-            brand: prev.brand || m.brand,
-            householdCount: prev.householdCount ?? m.householdCount,
-            far: prev.far ?? m.far,
-            bcr: prev.bcr ?? m.bcr,
-            parkingPerHousehold: prev.parkingPerHousehold ?? m.parkingPerHousehold,
-            yearBuilt: prev.yearBuilt || String(m.yearBuilt || ''),
-          }) : prev);
-          // Restore API categories
-          if ((m as Record<string, string | number | boolean>).academyCategories) {
-            setApiCategories(prev => ({
-              ...prev,
-              academyCategories: (m as Record<string, string | number | boolean>).academyCategories,
-              restaurantCategories: (m as Record<string, string | number | boolean>).restaurantCategories,
-              nearestSchoolNames: (m as Record<string, string | number | boolean>).nearestSchoolNames,
-              nearestStationName: (m as Record<string, string | number | boolean>).nearestStationName,
-            }));
-          }
-        }
-        // Populate photos
         if (r.images && r.images.length > 0) {
-          setPhotos(r.images.map(img => ({
-            url: img.url, caption: img.caption || '', locationTag: img.locationTag || '',
-            isPremium: img.isPremium || false, capturedAt: img.capturedAt,
-          })));
-          r.images.forEach(img => {
-            try {
-              const decoded = decodeURIComponent(img.url);
-              const match = decoded.match(/\/([^/?]+)\?/);
-              if (match) uploadedFileKeys.current.add(match[1]);
-            } catch { /* ignore */ }
+          setPhotos(prev => {
+            if (prev.length > 0) return prev; // Prevent overwriting during active editing
+            r.images.forEach(img => {
+              try {
+                const decoded = decodeURIComponent(img.url);
+                const match = decoded.match(/\/([^/?]+)\?/);
+                if (match) uploadedFileKeys.current.add(match[1]);
+              } catch { /* ignore */ }
+            });
+            return r.images.map(img => ({
+              url: img.url, caption: img.caption || '', locationTag: img.locationTag || '',
+              isPremium: img.isPremium || false, capturedAt: img.capturedAt,
+            }));
           });
         }
       }
     });
     return () => unsub();
   }, [originalName]);
+
+  // ── Sync Scouting Report Metrics (Race Condition Fix) ──
+  useEffect(() => {
+    // Only attempt to merge after Google Sheets initial load is done to prevent complete overwrite
+    if (!loaded || reports.length === 0) return;
+    const r = reports[0];
+    const m = r.metrics;
+    if (m) {
+      setMeta(prev => prev ? ({
+        ...prev,
+        distanceToElementary: prev.distanceToElementary ?? m.distanceToElementary,
+        distanceToMiddle: prev.distanceToMiddle ?? m.distanceToMiddle,
+        distanceToHigh: prev.distanceToHigh ?? m.distanceToHigh,
+        distanceToSubway: prev.distanceToSubway ?? m.distanceToSubway,
+        distanceToIndeokwon: prev.distanceToIndeokwon ?? m.distanceToIndeokwon,
+        distanceToTram: prev.distanceToTram ?? m.distanceToTram,
+        distanceToStarbucks: prev.distanceToStarbucks ?? m.distanceToStarbucks,
+        distanceToMcDonalds: prev.distanceToMcDonalds ?? m.distanceToMcDonalds,
+        distanceToOliveYoung: prev.distanceToOliveYoung ?? m.distanceToOliveYoung,
+        distanceToDaiso: prev.distanceToDaiso ?? m.distanceToDaiso,
+        distanceToSupermarket: prev.distanceToSupermarket ?? m.distanceToSupermarket,
+        academyDensity: prev.academyDensity ?? m.academyDensity,
+        restaurantDensity: prev.restaurantDensity ?? (m as unknown as Record<string, number>).restaurantDensity,
+        brand: prev.brand || m.brand,
+        householdCount: prev.householdCount ?? m.householdCount,
+        far: prev.far ?? m.far,
+        bcr: prev.bcr ?? m.bcr,
+        parkingPerHousehold: prev.parkingPerHousehold ?? m.parkingPerHousehold,
+        yearBuilt: prev.yearBuilt || String(m.yearBuilt || ''),
+      }) : prev);
+
+      // Restore API categories
+      if ((m as Record<string, string | number | boolean>).academyCategories) {
+        setApiCategories(prev => {
+          if (Object.keys(prev.academyCategories || {}).length > 0) return prev;
+          return {
+            ...prev,
+            academyCategories: (m as Record<string, any>).academyCategories,
+            restaurantCategories: (m as Record<string, any>).restaurantCategories,
+            nearestSchoolNames: (m as Record<string, any>).nearestSchoolNames,
+            nearestStationName: (m as Record<string, any>).nearestStationName,
+          };
+        });
+      }
+    }
+  }, [loaded, reports]);
 
   // ── Photo handlers ──
   const handleBatchFiles = useCallback(async (files: FileList | File[]) => {
@@ -495,8 +508,6 @@ export default function ApartmentInfoPage() {
       // 3. Upload photos & save scouting report to Firestore
       // 무조건 scoutingReport 문서를 업데이트/생성해야 메트릭이 저장됨
       if (true) {
-        if (!auth.currentUser) throw new Error('로그인이 필요합니다.');
-
         const uploadedImages: ImageMeta[] = [];
         const imagesToUpload = photos.filter(p => p.file || p.url);
         const total = imagesToUpload.length;
@@ -532,13 +543,13 @@ export default function ApartmentInfoPage() {
           distanceToMiddle: meta.distanceToMiddle || 0,
           distanceToHigh: meta.distanceToHigh || 0,
           distanceToSubway: meta.distanceToSubway || 0,
-          distanceToIndeokwon: meta.distanceToIndeokwon || 0,
-          distanceToTram: meta.distanceToTram || 0,
-          distanceToStarbucks: meta.distanceToStarbucks || 0,
-          distanceToMcDonalds: meta.distanceToMcDonalds || 0,
-          distanceToOliveYoung: meta.distanceToOliveYoung || 0,
-          distanceToDaiso: meta.distanceToDaiso || 0,
-          distanceToSupermarket: meta.distanceToSupermarket || 0,
+          distanceToIndeokwon: meta.distanceToIndeokwon ?? undefined,
+          distanceToTram: meta.distanceToTram ?? undefined,
+          distanceToStarbucks: meta.distanceToStarbucks ?? undefined,
+          distanceToMcDonalds: meta.distanceToMcDonalds ?? undefined,
+          distanceToOliveYoung: meta.distanceToOliveYoung ?? undefined,
+          distanceToDaiso: meta.distanceToDaiso ?? undefined,
+          distanceToSupermarket: meta.distanceToSupermarket ?? undefined,
           academyDensity: meta.academyDensity || 0,
           ...(apiCategories.academyCategories ? { academyCategories: apiCategories.academyCategories } : {}),
           ...(meta.restaurantDensity ? { restaurantDensity: meta.restaurantDensity } : {}),
@@ -559,7 +570,7 @@ export default function ApartmentInfoPage() {
           premiumScores,
           isPremium: existingReport?.isPremium ?? true,
           premiumContent: existingReport?.premiumContent || '',
-          authorUid: auth.currentUser.uid,
+          authorUid: auth.currentUser?.uid || 'ADMIN',
         };
 
         if (existingReport?.id) {

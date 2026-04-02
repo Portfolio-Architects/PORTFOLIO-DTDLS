@@ -13,7 +13,7 @@ const { initializeApp } = require('firebase/app');
 const { getFirestore, collection, doc, writeBatch, query, orderBy, limit, getDocs, where } = require('firebase/firestore');
 
 const API_KEY = process.env.BUILDING_API_KEY || '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
-const LAWD_CD = '41590'; // 화성시 전체 (동탄 필터링은 코드에서 진행)
+const LAWD_CD = '41597'; // 동탄구
 const API_BASE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent';
 
 // Firebase config (public)
@@ -39,26 +39,14 @@ async function main() {
   const db = getFirestore(app);
   const collRef = collection(db, 'transactions');
 
-  // 1. 최신 전월세 데이터의 연월 확인
-  const latestQ = query(collRef, where('dealType', 'in', ['전세', '월세']), orderBy('contractDate', 'desc'), limit(1));
-  const latestSnap = await getDocs(latestQ);
-  let latestYm = '';
-  if (!latestSnap.empty) {
-    latestYm = latestSnap.docs[0].data().contractYm || '';
-    console.log(`   최신 Firestore 전월세 데이터: ${latestYm}`);
-  } else {
-    console.log(`   최신 Firestore 전월세 데이터: 없음`);
-  }
-  
-  // 2. 동기화할 월 결정 (최근 3개월치 기본 동기화)
+  // 1. 최신 전월세 데이터 연월 대신 고정 6개월치 스캔 (인덱스 에러 회피)
   const now = new Date();
   const monthsToSync = new Set();
   
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 6; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     monthsToSync.add(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`);
   }
-  if (latestYm) monthsToSync.add(latestYm);
 
   console.log(`   동기화 대상 월: ${Array.from(monthsToSync).sort().join(', ')}`);
 

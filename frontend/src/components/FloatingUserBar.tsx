@@ -65,17 +65,7 @@ export default function FloatingUserBar() {
               </div>
               <span className="text-[11px] sm:text-[12px] font-bold text-[#191f28] hidden sm:inline">{anonProfile?.nickname || user.displayName || user.email?.split('@')[0] || '사용자'}</span>
             </button>
-            {dashboardFacade.isAdmin(user.email) && (
-              <button 
-                onClick={() => router.push('/admin')}
-                className="bg-[#191f28] text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-[12px] font-bold transition-colors">
-                관리자
-              </button>
-            )}
-            <button onClick={handleLogout} className="bg-[#ffebec] text-[#f04452] hover:bg-[#f04452] hover:text-white px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[12px] font-bold transition-colors">
-              로그아웃
-            </button>
-          </div>
+                      </div>
         ) : (
           <button onClick={handleLogin} className="flex items-center gap-1.5 bg-white/90 backdrop-blur-xl hover:bg-white text-[#191f28] text-[11px] sm:text-[13px] font-bold py-1 sm:py-2 px-3 sm:px-5 rounded-full shadow-lg border border-[#e5e8eb]/50 transition-colors">
             로그인
@@ -165,39 +155,56 @@ export default function FloatingUserBar() {
                 />
               </div>
 
-              <button
-                onClick={async () => {
-                  if (editFrontName.length !== 4 || editNickname.length !== 3) {
-                    alert('프론트 네임 4글자, 닉네임 3글자를 정확히 입력해주세요.');
-                    return;
-                  }
-                  setIsSavingProfile(true);
-                  try {
-                    let photoURL = anonProfile?.photoURL;
-                    if (profilePhotoFile) {
-                      photoURL = await uploadImage(profilePhotoFile, `profiles/${user.uid}`);
-                      await dashboardFacade.updatePhotoURL(user.uid, photoURL);
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    if (editFrontName.length !== 4 || editNickname.length !== 3) {
+                      alert('프론트 네임 4글자, 닉네임 3글자를 정확히 입력해주세요.');
+                      return;
                     }
-                    await dashboardFacade.updateFrontName(user.uid, editFrontName);
-                    await dashboardFacade.updateNickname(user.uid, editNickname);
-                    setAnonProfile({ frontName: editFrontName, nickname: editNickname, photoURL });
-                    setShowProfileModal(false);
-                  } catch (err) {
-                    console.error('Profile update failed:', err);
-                    alert('프로필 수정에 실패했습니다.');
-                  } finally {
-                    setIsSavingProfile(false);
-                  }
-                }}
-                disabled={isSavingProfile || editFrontName.length !== 4 || editNickname.length !== 3}
-                className="w-full py-3 bg-[#3182f6] hover:bg-[#2b72d6] text-white font-bold text-[14px] rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isSavingProfile ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  '저장하기'
+                    setIsSavingProfile(true);
+                    try {
+                      let photoURL = anonProfile?.photoURL;
+                      if (profilePhotoFile) {
+                        photoURL = await uploadImage(profilePhotoFile, `profiles/${user.uid}`);
+                        await dashboardFacade.updatePhotoURL(user.uid, photoURL);
+                      }
+                      await dashboardFacade.updateFrontName(user.uid, editFrontName);
+                      await dashboardFacade.updateNickname(user.uid, editNickname);
+                      setAnonProfile({ frontName: editFrontName, nickname: editNickname, photoURL });
+                      setShowProfileModal(false);
+                    } catch (err) {
+                      console.error('Profile update failed:', err);
+                      alert('프로필 수정에 실패했습니다.');
+                    } finally {
+                      setIsSavingProfile(false);
+                    }
+                  }}
+                  disabled={isSavingProfile || editFrontName.length !== 4 || editNickname.length !== 3}
+                  className="flex-1 py-3 bg-[#3182f6] hover:bg-[#2b72d6] text-white font-bold text-[14px] rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isSavingProfile ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    '저장하기'
+                  )}
+                </button>
+                {dashboardFacade.isAdmin(user.email) && (
+                  <button 
+                    onClick={() => { setShowProfileModal(false); router.push('/admin'); }}
+                    className="flex-1 py-3 bg-[#191f28] hover:bg-black text-white font-bold text-[14px] rounded-xl transition-colors"
+                  >
+                    관리자 설정
+                  </button>
                 )}
-              </button>
+                <button 
+                  onClick={() => { setShowProfileModal(false); handleLogout(); }}
+                  className="flex-1 py-3 bg-[#ffebec] hover:bg-[#f04452] text-[#f04452] hover:text-white font-bold text-[14px] rounded-xl transition-colors"
+                >
+                  로그아웃
+                </button>
+              </div>
             </div>
           </div>
         </div>

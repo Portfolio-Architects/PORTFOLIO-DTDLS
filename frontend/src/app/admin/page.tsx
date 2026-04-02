@@ -436,13 +436,12 @@ export default function AdminDashboard() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-6">
         {[
           { label: '전체 단지', value: stats.total, color: '#3182f6', bg: '#e8f3ff', icon: Building, fk: 'all' as const },
           { label: '매핑 완료', value: stats.mapped, color: '#03c75a', bg: '#f0fdf4', icon: Check, fk: 'all' as const },
           { label: '미매핑', value: stats.unmapped, color: '#f04452', bg: '#ffebec', icon: AlertTriangle, fk: 'unmatched' as const },
-          { label: '임장기', value: stats.totalReports, color: '#ff8a3d', bg: '#fff4e6', icon: FileText, fk: 'reported' as const },
-          { label: '임장완료', value: stats.reported, color: '#ff6b2c', bg: '#fff4e6', icon: MapPin, fk: 'reported' as const },
+          { label: '임장완료', value: stats.reported, color: '#ff8a3d', bg: '#fff4e6', icon: FileText, fk: 'reported' as const },
           { label: '공공임대', value: stats.publicR, color: '#8b95a1', bg: '#f2f4f6', icon: Home, fk: 'public' as const },
         ].map(s => (
           <div key={s.label} onClick={() => setFilter(s.fk)}

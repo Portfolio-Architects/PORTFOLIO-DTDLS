@@ -1,10 +1,8 @@
 'use client';
 
-import { 
-  Building, MapPin, Map as MapIcon, Compass, MessageSquare, Heart, X, FileText,
+import { ArrowUp, Building, MapPin, Map as MapIcon, Compass, MessageSquare, Heart, X, FileText,
   LayoutDashboard, UserCircle, Star, Link2, Trash2, LogOut,
-  Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil, ChevronDown
-} from 'lucide-react';
+  Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil, ChevronDown } from 'lucide-react';
 import { logger } from '@/lib/services/logger';
 import Image from 'next/image';
 
@@ -42,6 +40,8 @@ interface TransactionRecord {
   contractDay: string;
   price: number;
   priceEok: string;
+  deposit?: number;
+  monthlyRent?: number;
   floor: number;
   buildYear: number;
   dealType: string;
@@ -82,6 +82,22 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
 
   // Dong filter state
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+  useEffect(() => {
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 80);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const [listSort, setListSort] = useState<'views' | 'likes' | 'name'>('views');
   const [showFullName, setShowFullName] = useState(false);
   const [listHeight, setListHeight] = useState(600);
@@ -345,18 +361,31 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
     // 캐시를 방지하기 위해 쿼리스트링(v=Date.now()) 추가
     fetch(`/tx-data/${encodeURIComponent(fileKey)}.json?v=${Date.now()}`)
       .then(res => res.ok ? res.json() : [])
-      .then((records: { contractYm: string; contractDay: string; price: number; area: number; areaPyeong: number; floor: number; dealType?: string }[]) => {
-        const mapped: TransactionRecord[] = records.map((r, i) => ({
-          no: i + 1,
-          sigungu: '', dong: '', aptName: fileKey,
-          area: r.area, areaPyeong: r.areaPyeong,
-          contractYm: r.contractYm, contractDay: r.contractDay,
-          price: r.price, priceEok: formatPriceEok(r.price),
-          floor: r.floor, buyer: '', seller: '',
-          buildYear: 0, roadName: '', cancelDate: '-',
-          dealType: r.dealType || '', agentLocation: '',
-          registrationDate: '-', housingType: '',
-        }));
+      .then((records: { contractYm: string; contractDay: string; price: number; deposit?: number; monthlyRent?: number; area: number; areaPyeong: number; floor: number; dealType?: string }[]) => {
+        const mapped: TransactionRecord[] = records.map((r, i) => {
+          let eokStr = '';
+          if (r.dealType === '전세' || r.dealType === '월세') {
+             eokStr = formatPriceEok(r.deposit || 0);
+             if (r.dealType === '월세' && r.monthlyRent) {
+               eokStr += ` / ${r.monthlyRent}만`;
+             }
+          } else {
+             eokStr = formatPriceEok(r.price);
+          }
+          return {
+            no: i + 1,
+            sigungu: '', dong: '', aptName: fileKey,
+            area: r.area, areaPyeong: r.areaPyeong,
+            contractYm: r.contractYm, contractDay: r.contractDay,
+            contractDate: `${r.contractYm}${String(r.contractDay).padStart(2, '0')}`,
+            price: r.price, priceEok: eokStr,
+            deposit: r.deposit || 0, monthlyRent: r.monthlyRent || 0,
+            floor: r.floor, buyer: '', seller: '',
+            buildYear: 0, roadName: '', cancelDate: '-',
+            dealType: r.dealType || '', agentLocation: '',
+            registrationDate: '-', housingType: '',
+          };
+        });
         setModalTransactions(mapped);
       })
       .catch(err => console.warn('거래내역 로딩 실패:', err))
@@ -468,12 +497,25 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
       <a href="#main-content" className="skip-to-content">내용으로 건너뛰기</a>
 
       {/* Top Navigation Bar */}
-      <header className="bg-white/90 backdrop-blur-xl border-b border-[#e5e8eb] sticky top-0 z-40 transition-all duration-300" role="banner">
+      {/* Dynamic Minimal Sticky Header */}
+      <div 
+        className={`fixed top-0 inset-x-0 w-full bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] shadow-sm z-50 transition-transform duration-300 flex items-center justify-center h-[52px] ${
+          isScrolled ? 'translate-y-0' : '-translate-y-full'
+        }`}
+      >
+        <span className="font-extrabold text-[#191f28] tracking-wider text-[15px] flex items-center gap-2">
+           <img src="/dsq-icon.png" alt="DSQ" className="w-[20px] h-[20px] rounded-md" />
+           D-VIEW 동탄 아파트 가치 분석
+        </span>
+      </div>
+      
+      {/* Original Main Header */}
+      <header className="hidden sm:block bg-white/90 backdrop-blur-xl border-b border-[#e5e8eb] relative z-40 transition-all duration-300" role="banner">
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 h-14 sm:h-16 flex justify-between items-center">
           {/* Left: Pill Tabs */}
           <div className="flex items-center">
             <nav aria-label="메인 네비게이션" className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <div className="inline-flex bg-[#f2f4f6] rounded-full p-1 gap-0.5" role="tablist">
+              <div className="hidden sm:inline-flex bg-[#f2f4f6] rounded-full p-1 gap-0.5" role="tablist">
                 {[
                   { id: 'imjang' as const, label: '임장기', icon: Compass },
                   { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
@@ -495,7 +537,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
               </div>
 
               {/* 평/면적 토글 버튼 */}
-              <div className="inline-flex bg-[#f2f4f6] rounded-full p-1 gap-0.5">
+              <div className="hidden sm:inline-flex bg-[#f2f4f6] rounded-full p-1 gap-0.5">
                 <button
                   onClick={() => setAreaUnit('m2')}
                   className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 ${
@@ -613,7 +655,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
                     />
                   </div>
                   <FixedSizeList
-                    height={typeof window !== 'undefined' && window.innerWidth >= 768 ? listHeight : Math.min(sorted.length * 72, 600)}
+                    height={typeof window !== 'undefined' && window.innerWidth >= 768 ? listHeight : sorted.length * 72}
                     itemCount={sorted.length}
                     itemSize={72}
                     width="100%"
@@ -910,7 +952,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
           </div>
           <div className="flex flex-col gap-6">
             <div className="w-full h-[180px] sm:h-[200px] bg-gradient-to-br from-[#3182f6] to-[#2b72d6] rounded-3xl p-5 sm:p-8 flex flex-col justify-end text-white relative overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 group-hover:bg-white/20 transition-colors"></div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#3182f6]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 group-hover:bg-white/20 transition-colors"></div>
               <h3 className="text-[18px] sm:text-[24px] font-extrabold mb-1 relative z-10">우리 아파트 탈탈 털어드림!</h3>
               <p className="text-white/80 text-[12px] sm:text-[14px] relative z-10">장점부터 숨기고 싶은 단점까지 속 시원하게 분석 신청하기</p>
               <div className="absolute top-6 right-6 sm:top-8 sm:right-8 bg-white text-[#3182f6] w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold shadow-lg shadow-black/10">&rarr;</div>
@@ -991,9 +1033,76 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
 
 
 
+      
+      {/* Scroll to Top Button */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className={`fixed z-50 bottom-24 sm:bottom-8 right-4 sm:right-8 bg-white text-[#3182f6] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-[#e5e8eb] w-[46px] h-[46px] rounded-full flex items-center justify-center transition-all duration-300 hover:bg-[#f8f9fa] hover:scale-105 active:scale-95 ${
+          isScrolled ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-10 opacity-0 pointer-events-none'
+        }`}
+        aria-label="맨 위로 이동"
+        title="맨 위로 이동"
+      >
+        <ArrowUp size={22} strokeWidth={2.5} />
+      </button>
+
       {showReviewModal && user && (
         <WriteReviewModal onClose={() => setShowReviewModal(false)} userUid={user.uid} />
       )}
+
+      {/* 모바일 전용 하단 플로팅 네비게이션 독 */}
+      <nav className="sm:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white/90 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.15)] rounded-[32px] px-3 py-2.5 flex items-center justify-between border border-[#e5e8eb] w-[92%] max-w-[360px]">
+        {/* 면적 토글 (좌측) */}
+        <div className="flex flex-col items-center justify-center pl-1 shrink-0">
+          <div className="flex flex-col bg-[#f2f4f6] rounded-[14px] p-0.5 gap-0.5 min-w-[32px] shadow-inner">
+            <button
+              onClick={() => setAreaUnit('m2')}
+              className={`px-1 py-1.5 rounded-xl text-[10px] font-extrabold transition-all duration-200 leading-none ${
+                areaUnit === 'm2' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'
+              }`}
+            >
+              m²
+            </button>
+            <button
+              onClick={() => setAreaUnit('pyeong')}
+              className={`px-1 py-1.5 rounded-xl text-[10px] font-extrabold transition-all duration-200 leading-none ${
+                areaUnit === 'pyeong' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'
+              }`}
+            >
+              평
+            </button>
+          </div>
+        </div>
+
+        {/* 구분선 */}
+        <div className="w-[1px] h-9 bg-[#e5e8eb] mx-2 shrink-0" />
+
+        {/* 우측 3개 탭 */}
+        <div className="flex items-center justify-between flex-1 gap-1">
+          {[
+            { id: 'imjang' as const, label: '임장기', icon: Compass },
+            { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
+            { id: 'recommend' as const, label: '집 추천', icon: Home },
+          ].map(tab => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex flex-col items-center justify-center w-full min-h-[50px] rounded-[22px] transition-all duration-300 relative ${
+                  isActive ? 'text-[#3182f6]' : 'text-[#8b95a1] hover:text-[#4e5968]'
+                }`}
+              >
+                {isActive && (
+                   <div className="absolute inset-0 bg-[#3182f6]/10 rounded-[22px] transition-opacity" />
+                )}
+                <tab.icon size={22} strokeWidth={isActive ? 2.5 : 2} className="mb-1 relative z-10" />
+                <span className="text-[10px] font-bold tracking-wide relative z-10">{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
 
     </div>
   );
