@@ -16,7 +16,6 @@ interface AnchorTenantCardProps {
 
 interface AnchorItem {
   name: string;
-  icon: string;
   distance: number | undefined;
   color: string;
   bgColor: string;
@@ -34,17 +33,17 @@ function getGrade(distance: number): { label: string; color: string; bg: string 
 
 export default function AnchorTenantCard(props: AnchorTenantCardProps) {
   const anchors: AnchorItem[] = [
-    { name: '스타벅스', icon: '☕', distance: props.distanceToStarbucks, color: '#00704A', bgColor: '#f0fdf4' },
-    { name: '올리브영', icon: '💚', distance: props.distanceToOliveYoung, color: '#03c75a', bgColor: '#f0fdf4' },
-    { name: '다이소', icon: '🏪', distance: props.distanceToDaiso, color: '#EF4444', bgColor: '#fff0f1' },
-    { name: '대형마트', icon: '🛒', distance: props.distanceToSupermarket, color: '#f59e0b', bgColor: '#fffbeb' },
-    { name: '맥도날드', icon: '🍔', distance: props.distanceToMcDonalds, color: '#DA291C', bgColor: '#fff0f1' },
+    { name: '스타벅스', distance: props.distanceToStarbucks, color: '#00704A', bgColor: '#f0fdf4' },
+    { name: '올리브영', distance: props.distanceToOliveYoung, color: '#03c75a', bgColor: '#f0fdf4' },
+    { name: '다이소', distance: props.distanceToDaiso, color: '#EF4444', bgColor: '#fff0f1' },
+    { name: '대형마트', distance: props.distanceToSupermarket, color: '#f59e0b', bgColor: '#fffbeb' },
+    { name: '맥도날드', distance: props.distanceToMcDonalds, color: '#DA291C', bgColor: '#fff0f1' },
   ];
 
   const available = anchors.filter(a => a.distance != null);
   if (available.length === 0) return null;
 
-  const maxDistance = Math.max(...available.map(a => a.distance!), 1000);
+  const TRACK_MAX_DISTANCE = 2000;
 
   return (
     <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
@@ -60,7 +59,7 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
         {anchors.map((anchor) => {
           if (anchor.distance == null) return null;
           const grade = getGrade(anchor.distance);
-          const barWidth = Math.max(8, 100 - (anchor.distance / maxDistance) * 100);
+          const barWidth = Math.min(100, Math.max(1, (anchor.distance / TRACK_MAX_DISTANCE) * 100));
 
           return (
             <div key={anchor.name} className="flex items-center gap-3">
@@ -98,12 +97,14 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
       </div>
 
       {/* Footer — 기준 설명 */}
-      <div className="mt-4 pt-3 border-t border-[#f2f4f6] flex items-center gap-3 text-[10px] font-bold text-[#8b95a1]">
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#03c75a]" />~300m</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#3182f6]" />~500m</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#f59e0b]" />~800m</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#8b95a1]" />800m+</span>
-        <span className="ml-auto">직선거리 기준</span>
+      <div className="mt-4 pt-3 border-t border-[#f2f4f6] flex items-center justify-between text-[10px] font-bold text-[#8b95a1]">
+        <div className="flex gap-3">
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#03c75a]" />~300m</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#3182f6]" />~500m</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#f59e0b]" />~800m</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#8b95a1]" />800m+</span>
+        </div>
+        <span className="shrink-0 text-[#8b95a1] ml-2">기준 스케일: 최대 2km</span>
       </div>
     </div>
   );

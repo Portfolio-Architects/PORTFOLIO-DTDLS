@@ -67,20 +67,35 @@ async function main() {
 
     const key = normalizeAptName(aptName);
     if (!byApt[key]) byApt[key] = [];    
-    byApt[key].push({
-      contractYm: d.contractYm || '',
-      contractDay: d.contractDay || '',
-      price: d.price || 0,
-      priceEok: formatPriceEok(d.price || 0),
-      deposit: d.deposit || 0,
-      monthlyRent: d.monthlyRent || 0,
-      area: d.area || 0,
-      areaPyeong: d.areaPyeong || 0,
-      floor: d.floor || 0,
-      dong: d.dong || '',
-      dealType: d.dealType || '매매',
-      contractDate: `${d.contractYm}${String(d.contractDay).padStart(2, '0')}`,
-    });
+    
+    const cDate = `${d.contractYm || ''}${String(d.contractDay || '').padStart(2, '0')}`;
+    
+    // 심화된 중복 방지 (기본 transactions 컬렉션 내에서도 중복 방지)
+    const isDup = byApt[key].some(t => 
+      t.contractDate === cDate && 
+      t.area === (d.area || 0) && 
+      Math.abs(t.floor - (d.floor || 0)) < 1 &&
+      ((t.price === (d.price || 0) && t.price > 0) || (t.deposit === (d.deposit || 0) && t.deposit > 0))
+    );
+
+    if (!isDup) {
+      byApt[key].push({
+        contractYm: d.contractYm || '',
+        contractDay: d.contractDay || '',
+        price: d.price || 0,
+        priceEok: (d.dealType === '전세' || d.dealType === '월세') 
+          ? formatPriceEok(d.deposit || 0) + (d.monthlyRent ? `/${d.monthlyRent}` : '')
+          : formatPriceEok(d.price || 0),
+        deposit: d.deposit || 0,
+        monthlyRent: d.monthlyRent || 0,
+        area: d.area || 0,
+        areaPyeong: d.areaPyeong || 0,
+        floor: d.floor || 0,
+        dong: d.dong || '',
+        dealType: d.dealType || '매매',
+        contractDate: cDate,
+      });
+    }
   });
 
   console.log('📡 Firestore transactionSync (임대차 등) 로딩 중...');
@@ -96,14 +111,23 @@ async function main() {
     if (!byApt[key]) byApt[key] = [];    
     
     const cDate = d.contractDate || `${d.contractYm || ''}${String(d.contractDay || '').padStart(2, '0')}`;
-    // simple deduplication (skip if exactly same dealType, area, price/deposit)
-    const isDup = byApt[key].some(t => t.contractDate === cDate && t.area === d.area && t.dealType === d.dealType && (t.price === d.price || t.deposit === d.deposit));
+    
+    // 심화된 중복 방지: 날짜, 면적, 가격(또는 보증금), 층수가 동일하면 완벽히 같은 거래로 간주 (dealType 표기법 차이 무시)
+    const isDup = byApt[key].some(t => 
+      t.contractDate === cDate && 
+      t.area === d.area && 
+      Math.abs(t.floor - d.floor) < 1 &&
+      ((t.price === d.price && t.price > 0) || (t.deposit === d.deposit && t.deposit > 0))
+    );
+
     if (!isDup) {
       byApt[key].push({
         contractYm: d.contractYm || '',
         contractDay: d.contractDay || '',
         price: d.price || 0,
-        priceEok: formatPriceEok((d.dealType === '매매' ? d.price : d.deposit) || 0),
+        priceEok: (d.dealType === '전세' || d.dealType === '월세') 
+          ? formatPriceEok(d.deposit || 0) + (d.monthlyRent ? `/${d.monthlyRent}` : '')
+          : formatPriceEok(d.price || 0),
         deposit: d.deposit || 0,
         monthlyRent: d.monthlyRent || 0,
         area: d.area || 0,
@@ -287,6 +311,9 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = `;
       contractYm: t.contractYm,
       contractDay: t.contractDay,
       price: t.price,
+      priceEok: (t.dealType === '전세' || t.dealType === '월세') 
+        ? formatPriceEok(t.deposit || 0) + (t.monthlyRent ? ` / ${t.monthlyRent}만` : '')
+        : formatPriceEok(t.price || 0),
       deposit: t.deposit || 0,
       monthlyRent: t.monthlyRent || 0,
       area: t.area,
