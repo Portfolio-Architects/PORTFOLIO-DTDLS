@@ -11,22 +11,20 @@
  * → Vercel CPU 사용 0, 메인 페이지 즉시 렌더링
  */
 
-const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, query, orderBy, getDocs } = require('firebase/firestore');
+const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
 
 const OUTPUT_PATH = path.resolve(__dirname, '../src/lib/transaction-summary.ts');
 
-// Firebase config (public)
-const firebaseConfig = {
-  apiKey: "AIzaSyBv05nu9B8iVqDr68y8itgsDzg31aAuyf8",
-  authDomain: "portfolio-dtdls.firebaseapp.com",
-  projectId: "portfolio-dtdls",
-  storageBucket: "portfolio-dtdls.firebasestorage.app",
-  messagingSenderId: "294879479843",
-  appId: "1:294879479843:web:721124e99a10cdc9d04996",
-};
+const serviceAccountPath = path.resolve(__dirname, '../serviceAccountKey.json');
+const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+}
 
 function formatPriceEok(priceMan) {
   const eok = Math.floor(priceMan / 10000);
@@ -48,12 +46,10 @@ function normalizeAptName(name) {
 async function main() {
   console.log('📡 Firestore에서 실거래가 데이터 읽는 중...');
   
-  const app = initializeApp(firebaseConfig, 'sync-tx');
-  const db = getFirestore(app);
+  const db = admin.firestore();
   
-  const collRef = collection(db, 'transactions');
-  const q = query(collRef, orderBy('contractDate', 'desc'));
-  const snapshot = await getDocs(q);
+  const collRef = db.collection('transactions');
+  const snapshot = await collRef.orderBy('contractDate', 'desc').get();
 
   console.log(`📋 총 ${snapshot.size}건 로드 완료`);
 
@@ -84,7 +80,7 @@ async function main() {
   });
 
   console.log('📡 Firestore transactionSync (임대차 등) 로딩 중...');
-  const syncSnap = await getDocs(query(collection(db, 'transactionSync'), orderBy('contractYm', 'desc')));
+  const syncSnap = await db.collection('transactionSync').orderBy('contractYm', 'desc').get();
   console.log(`📋 transactionSync 컬렉션에서 ${syncSnap.size}건 로드 완료`);
 
   syncSnap.forEach((docSnap) => {

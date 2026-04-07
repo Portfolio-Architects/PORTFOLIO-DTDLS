@@ -1,5 +1,5 @@
 # 📋 PORTFOLIO D-VIEW — Engineering Report
-> **Date**: 2026-04-02 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
+> **Date**: 2026-04-07 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
 
 
 ---
@@ -30,13 +30,13 @@
 
 ## 3. Codebase Metrics
 
-- **Source Files**: 101개 (src/)
-- **LOC**: ~23,900
+- **Source Files**: 98개 (src/)
+- **LOC**: ~21,300
 - **Components**: 23개 (Card, Modal, Chart, Consumer, Admin, Map 등)
 - **API Routes**: 13개
 - **Repositories**: 7개 핵심 모듈 (apartment·comment·post·purchase·report·review·user)
 - **Admin Pages**: 4개 (대시보드, 아파트 상세, 종합 보고서, 트래픽 분석)
-- **Test Suites**: 5개 / 89 assertions 전수 통과 (단, UI 컴포넌트 커버리지 0%)
+- **Test Suites**: 6개 / 47 assertions 전수 통과 (React Testing Library 기반 UI 컴포넌트 커버리지 포함)
 
 ---
 
@@ -125,7 +125,7 @@ src/
 | PWA | **B+** | Service Worker 등록, 오프라인 Fallback UI 구현, 모바일 풀스크린 모달 |
 | Fault Tolerance (장애 허용성) | **A-** | **[해결 완료]** Silent Catch 예외 블록 3건 전수 로깅(Logger) 처리 완료로 예외 추적성 확보 |
 | Type Integrity (타입 무결성) | **A** | **[해결 완료]** `any` 구문 81건 전수 제거 및 `unknown`·제네릭 타입으로 100% 마이그레이션 완료. 런타임 사이드 이펙트 위험 해소 (기본 인터페이스 및 strict null 완벽 준수) |
-| Test Coverage (테스트) | **A-** | **[해결 완료]** 코어 비즈니스 로직 89종 Pass 및 UI 컴포넌트(React Testing Library) 렌더링 리그레션 방어 테스트 도입 완료 |
+| Test Coverage (테스트) | **A-** | **[해결 완료]** 코어 비즈니스 로직 및 UI 컴포넌트(DongFilterBar 등) 총 47개 테스트 전수 통과. 렌더링 리그레션 최소 방어선 구축 |
 | Production Readiness | **A** | **[해결 완료]** 잔존 `console.log` 전수 제거 및 3D Canvas 메모리 릭 요인 점검 완료 |
 | 보안 | **B+** | Firebase Auth (Google OAuth), Admin 권한 분리, CSP Report-Only 헤더, credentials.json gitignore |
 | DevOps / CI | **B+** | GitHub Actions CI (Lint→TypeCheck→Jest→Build), Vercel 자동 배포 |
@@ -134,8 +134,8 @@ src/
 ---
 
 ## 7. Testing & CI/CD
-- **Jest**: 5 suites / 89 assertions 코어 비즈니스 로직 전수 통과
-  - **테스트 한계**: UI 컴포넌트 테스트 커버리지 0% (리그레션 방어 미비)
+- **Jest**: 6 suites / 47 assertions 코어 비즈니스 로직 및 컴포넌트 전수 통과
+  - **테스트 현황**: UI 컴포넌트(RTL) 커버리지 편입 시작, 점진적 리그레션 방어 중
 - **CI/CD**: GitHub Actions `.github/workflows/ci.yml`
   - Lint → Type Check → Jest → Build (push/PR to master)
   - Vercel 자동 배포 연동
@@ -163,7 +163,7 @@ src/
 ## 9. Roadmap
 
 ### Phase 1 (단기)
-- [x] ~~테스트 커버리지 확충~~ (16→45 assertions, 5 suites — haversine·valuation·dongs·scoring·apartmentMapping)
+- [x] ~~테스트 커버리지 확충~~ (코어 로직 47 assertions, 6 suites 통합 검증 완료)
 - [x] ~~데이터 검증 레이어~~ (가격 IQR 이상치·미등록 단지·면적/층수 범위·중복 탐지, 검증 리포트 자동 생성)
 - [x] ~~실거래가 자동 수집 자동화~~ (GitHub Actions cron → 국토부 API → Firestore → 정적 파일 → Vercel 재배포, 매일 KST 06:00)
 - [x] ~~리스트 가상화~~ (react-window FixedSizeList — 179개 → ~17개 DOM 노드, 체감 속도 2~3배 향상)
@@ -201,7 +201,9 @@ src/
 
 | 일시 | 주요 항목 | 요약 내용 |
 |:---|:---|:---|
+| 2026-04-07 | **실거래가 매매/전월세 DB 통합 파이프라인 구축** | Firebase Client 보안 규칙 만료 우회를 위해 `firebase-admin`을 이용한 백엔드 업로드 아키텍처 전환. 전월세 전용 CSV 업로더 신설 및 매매/전월세 통합 동기화 달성 |
 | 2026-04-02 | **모바일 UX 및 밸류에이션 리팩토링** | 하단 플로팅 독 네이티브 가상화 스크롤 배포, 매매/전월세 차트 데이터 통합 연동, 다이내믹 스티키 헤더 및 관리자 팝오버 구조 축소 개편 |
+| 2026-04-02 | **UI 컴포넌트 핫픽스 자동화** | `fix_modal.js`, `fix_header.js` 등 다수의 자동화 스크립트를 통한 UI 일괄 리팩토링 및 핫픽스 적용 (`2,250+` 라인 변경) |
 | 2026-04-02 | **Signal Map UI 리팩토링** | 노드 제어 패널 좌측 사이드바 이동, 5W1H 툴팁 우상단 재배치, 노드 연결/해제 UX 개선 및 패널 높이 정렬 |
 | 2026-04-01 | **Signal Map 시각화 고도화** | 스티키 네비게이션 헤더 구현, 빈 노드 상태 대비 사이드바 요약 대시보드 추가, 다중 카테고리 파이 슬라이스 시각화 |
 | 2026-04-01 | **포트폴리오 리포트 인프라 개선** | USD 통화 포맷팅 소수점 2자리 규격화, PDF 출력을 위한 마크다운 여백 압축, Portfolio Structural Convexity Framework 연동 |

@@ -5,20 +5,19 @@
  * 사용법: node scripts/upload-transactions.js <csv파일경로>
  */
 
-const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, addDoc, getDocs, query, where } = require('firebase/firestore');
+const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
 const iconv = require('iconv-lite');
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBv05nu9B8iVqDr68y8itgsDzg31aAuyf8",
-  authDomain: "portfolio-dtdls.firebaseapp.com",
-  projectId: "portfolio-dtdls",
-  storageBucket: "portfolio-dtdls.firebasestorage.app",
-  messagingSenderId: "294879479843",
-  appId: "1:294879479843:web:721124e99a10cdc9d04996",
-};
+const serviceAccountPath = path.resolve(__dirname, '../serviceAccountKey.json');
+const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+}
 
 function parseCSV(line) {
   const result = [];
@@ -155,29 +154,26 @@ async function main() {
 
   // Firestore 업로드
   console.log('\n🔥 Firestore에 업로드 중...');
-  const app = initializeApp(firebaseConfig, 'upload-tx');
-  const db = getFirestore(app);
-  const collRef = collection(db, 'transactions');
+  const db = admin.firestore();
+  const collRef = db.collection('transactions');
 
   let uploaded = 0;
   let skipped = 0;
 
   for (const record of records) {
-    // 중복 체크 (같은 아파트, 같은 날짜, 같은 가격, 같은 층)
-    const dupQuery = query(collRef,
-      where('aptName', '==', record.aptName),
-      where('contractDate', '==', record.contractDate),
-      where('price', '==', record.price),
-      where('floor', '==', record.floor),
-    );
-    const dupSnap = await getDocs(dupQuery);
+    const dupSnap = await collRef
+      .where('aptName', '==', record.aptName)
+      .where('contractDate', '==', record.contractDate)
+      .where('price', '==', record.price)
+      .where('floor', '==', record.floor)
+      .get();
     
     if (!dupSnap.empty) {
       skipped++;
       continue;
     }
 
-    await addDoc(collRef, record);
+    await collRef.add(record);
     uploaded++;
   }
 
