@@ -87,7 +87,10 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
           <div className="text-right min-w-[80px]">
             <div className="text-base font-extrabold text-[#191f28] tabular-nums leading-none mb-1">
               {(() => {
-                if (!txSummary.avg1MPrice) return txSummary.avg1MPriceEok;
+                if (!txSummary.avg1MPrice && (txSummary.latestRentDeposit || 0) > 0) {
+                  return `전/월세 ${txSummary.latestRentDepositEok}`;
+                }
+                if (!txSummary.avg1MPrice) return '-';
                 const roundedMan = Math.round(txSummary.avg1MPrice / 100) * 100;
                 if (roundedMan >= 10000) {
                   const eok = Math.floor(roundedMan / 10000);
@@ -115,6 +118,7 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
                     }
                   }
                 }
+                if (!txSummary.avg1MPerPyeong) return null;
                 return <span className="text-xs font-bold text-[#3182f6]">{txSummary.avg1MPerPyeong.toLocaleString()}만/평</span>;
               })()}
             </div>

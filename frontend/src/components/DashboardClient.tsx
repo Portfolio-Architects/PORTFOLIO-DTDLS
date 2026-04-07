@@ -569,43 +569,46 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
         {mounted && activeTab === 'imjang' && (
         <section>
           {/* 1. Section Header */}
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             {/* 1행: 로고 + 타이틀 + 배지 */}
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-2.5">
-              <img src="/dsq-icon.png" alt="DSQ" className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl shadow-sm shrink-0" />
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#191f28] tracking-tight">
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-4 mb-3">
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 bg-gradient-to-tr from-blue-100 to-indigo-50 rounded-xl blur-md opacity-60"></div>
+                <img src="/dsq-icon.png" alt="DSQ" className="relative w-9 h-9 sm:w-12 sm:h-12 rounded-xl shadow-sm ring-1 ring-[#191f28]/5" />
+              </div>
+              <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-br from-[#111827] to-[#4b5563] bg-clip-text text-transparent tracking-tight">
                 동탄 아파트 가치 분석
               </h1>
-              <div className="flex items-center gap-2">
-                <span suppressHydrationWarning className="inline-flex items-center gap-1.5 bg-[#e8f3ff] text-[#3182f6] text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
-                  <Building size={14} />
+              <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto mt-0.5 sm:mt-0">
+                <span suppressHydrationWarning className="inline-flex items-center gap-1 bg-white backdrop-blur-md border border-blue-100/80 text-[#3182f6] shadow-[0_2px_8px_rgba(49,130,246,0.06)] text-[11px] sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full shrink-0 transition-transform hover:scale-[1.02]">
+                  <Building size={12} className="sm:w-[14px] sm:h-[14px] opacity-80" />
                   {Object.values(sheetApartments).flat().length}개 단지
                 </span>
                 {fieldReports.length > 0 && (
-                  <span className="inline-flex items-center gap-1.5 bg-[#fff8e1] text-[#f59e0b] text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shrink-0">
-                    <FileText size={14} />
+                  <span className="inline-flex items-center gap-1 bg-white backdrop-blur-md border border-amber-100/80 text-[#f59e0b] shadow-[0_2px_8px_rgba(245,158,11,0.06)] text-[11px] sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full shrink-0 transition-transform hover:scale-[1.02]">
+                    <FileText size={12} className="sm:w-[14px] sm:h-[14px] opacity-80" />
                     {fieldReports.length}개 리포트
                   </span>
                 )}
               </div>
             </div>
             {/* 2행: 서브타이틀 */}
-            <div className="text-sm sm:text-base text-[#8b95a1] font-medium flex items-center gap-1 flex-wrap">
+            <div className="inline-flex items-center flex-wrap bg-white/60 backdrop-blur-sm border border-[#e5e8eb]/80 rounded-2xl sm:rounded-full px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-sm text-[#6b7684] font-medium shadow-[0_1px_4px_rgba(0,0,0,0.02)] gap-y-1">
               <button 
                 onClick={() => setShowFullName(!showFullName)} 
-                className="text-[#191f28] font-extrabold hover:text-[#3182f6] transition-colors focus:outline-none flex items-center gap-1 group"
+                className="text-[#191f28] font-extrabold hover:text-[#3182f6] transition-colors focus:outline-none flex items-center group shrink-0"
                 aria-expanded={showFullName}
               >
                 D-VIEW
                 <ChevronDown size={14} className={`transition-transform duration-300 text-[#d1d6db] group-hover:text-[#3182f6] ${showFullName ? 'rotate-180' : ''}`} />
               </button>
-              <span className="mx-0.5">:</span>
+
               <div 
-                className={`overflow-hidden transition-[max-width,opacity,margin] duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] whitespace-nowrap flex items-center h-full ${showFullName ? 'max-w-[500px] opacity-100 mr-1' : 'max-w-0 opacity-0 mr-0'}`}
+                className={`overflow-hidden transition-[max-width,opacity,margin] duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] whitespace-nowrap flex items-center h-full ${showFullName ? 'max-w-[400px] opacity-100 ml-1.5 sm:ml-2' : 'max-w-0 opacity-0 ml-0'}`}
               >
-                <span className="text-[#191f28] font-bold">D</span>ongtan <span className="text-[#191f28] font-bold px-[0.5px]">V</span>alue <span className="text-[#191f28] font-bold px-[0.5px]">I</span>nsight &amp; <span className="text-[#191f28] font-bold px-[0.5px]">E</span>valuation <span className="text-[#191f28] font-bold px-[0.5px]">W</span>indow
+                <span className="text-[#333d4b] font-bold">D</span>ongtan <span className="text-[#333d4b] font-bold px-[0.5px]">V</span>alue <span className="text-[#333d4b] font-bold px-[0.5px]">I</span>nsight <span className="hidden sm:inline">&amp;</span><span className="sm:hidden">&amp;</span> <span className="text-[#333d4b] font-bold px-[0.5px]">E</span>valuation <span className="text-[#333d4b] font-bold px-[0.5px]">W</span>indow
               </div>
-              <span className="shrink-0">{showFullName ? '· ' : ''}실거래가 · 가치측정 · 현장 검증 사진</span>
+              <span className={`shrink-0 ${showFullName ? 'ml-1.5 sm:ml-2 pl-1.5 sm:pl-2 border-l border-[#e5e8eb]' : 'ml-1.5 sm:ml-2'}`}>실거래가 · 가치측정 · 현장 검증 사진</span>
             </div>
           </div>
 

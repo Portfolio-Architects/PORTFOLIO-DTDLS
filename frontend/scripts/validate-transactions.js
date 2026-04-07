@@ -63,7 +63,7 @@ function loadExistingPriceStats() {
 function detectPriceAnomaly(tx, existingStats) {
   const normName = tx.aptName.replace(/\s+/g, '').replace(/[()（）\[\]]/g, '');
   const stats = existingStats[normName];
-  if (!stats || stats.count < 5) return null; // 데이터 부족 시 스킵
+  if (!stats || stats.count < 5 || tx.price <= 0) return null; // 매매가 아니거나 데이터 부족 시 스킵
 
   const range = stats.max - stats.min;
   const iqr = range * 0.5; // IQR 근사치
@@ -97,8 +97,8 @@ function validateTransactions(transactions) {
     const issues = [];
     const normName = tx.aptName.replace(/\s+/g, '').replace(/[()（）\[\]]/g, '');
 
-    // 1. 가격 기본 검증
-    if (tx.price <= 0) {
+    // 1. 가격 기본 검증 (매매는 price > 0, 전월세는 deposit > 0)
+    if (tx.price <= 0 && tx.deposit <= 0) {
       errors.push({ tx, issue: '가격 0 이하', severity: 'ERROR' });
       continue;
     }

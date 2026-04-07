@@ -18550,6 +18550,2333 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "avg1MRentDeposit": 56000,
     "avg1MRentDepositEok": "5억6,000"
   },
+  "동아": {
+    "latestPrice": 14000,
+    "latestPriceEok": "1억4,000",
+    "latestArea": 18,
+    "latestFloor": 4,
+    "latestDate": "20260401",
+    "maxPrice": 14000,
+    "maxPriceEok": "1억4,000",
+    "minPrice": 14000,
+    "minPriceEok": "1억4,000",
+    "txCount": 1,
+    "avg1MPrice": 14000,
+    "avg1MPriceEok": "1억4,000",
+    "avg1MPerPyeong": 778,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "1억4,000",
+        "areaPyeong": 18,
+        "floor": 4,
+        "area": 59.4
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "동신": {
+    "latestPrice": 15600,
+    "latestPriceEok": "1억5,600",
+    "latestArea": 18,
+    "latestFloor": 12,
+    "latestDate": "20260401",
+    "maxPrice": 15600,
+    "maxPriceEok": "1억5,600",
+    "minPrice": 5200,
+    "minPriceEok": "5,200만",
+    "txCount": 2,
+    "avg1MPrice": 10400,
+    "avg1MPriceEok": "1억400",
+    "avg1MPerPyeong": 607,
+    "avg1MTxCount": 2,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "1억5,600",
+        "areaPyeong": 18,
+        "floor": 12,
+        "area": 59.58
+      },
+      {
+        "date": "04.01",
+        "priceEok": "5,200만",
+        "areaPyeong": 15,
+        "floor": 7,
+        "area": 49.72
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "동성": {
+    "latestPrice": 24000,
+    "latestPriceEok": "2억4,000",
+    "latestArea": 25.6,
+    "latestFloor": 5,
+    "latestDate": "20260401",
+    "maxPrice": 24000,
+    "maxPriceEok": "2억4,000",
+    "minPrice": 20500,
+    "minPriceEok": "2억500",
+    "txCount": 2,
+    "avg1MPrice": 22250,
+    "avg1MPriceEok": "2억2,250",
+    "avg1MPerPyeong": 1035,
+    "avg1MTxCount": 2,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "2억4,000",
+        "areaPyeong": 25.6,
+        "floor": 5,
+        "area": 84.71
+      },
+      {
+        "date": "04.01",
+        "priceEok": "2억500",
+        "areaPyeong": 18.1,
+        "floor": 11,
+        "area": 59.92
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "동산아파트": {
+    "latestPrice": 10600,
+    "latestPriceEok": "1억600",
+    "latestArea": 18,
+    "latestFloor": 4,
+    "latestDate": "20260401",
+    "maxPrice": 10600,
+    "maxPriceEok": "1억600",
+    "minPrice": 10600,
+    "minPriceEok": "1억600",
+    "txCount": 1,
+    "avg1MPrice": 10600,
+    "avg1MPriceEok": "1억600",
+    "avg1MPerPyeong": 589,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "1억600",
+        "areaPyeong": 18,
+        "floor": 4,
+        "area": 59.61
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "동부": {
+    "latestPrice": 15000,
+    "latestPriceEok": "1억5,000",
+    "latestArea": 25.7,
+    "latestFloor": 15,
+    "latestDate": "20260401",
+    "maxPrice": 15000,
+    "maxPriceEok": "1억5,000",
+    "minPrice": 15000,
+    "minPriceEok": "1억5,000",
+    "txCount": 1,
+    "avg1MPrice": 15000,
+    "avg1MPriceEok": "1억5,000",
+    "avg1MPerPyeong": 584,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "1억5,000",
+        "areaPyeong": 25.7,
+        "floor": 15,
+        "area": 84.9
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "동보렉스5": {
+    "latestPrice": 9700,
+    "latestPriceEok": "9,700만",
+    "latestArea": 15.9,
+    "latestFloor": 14,
+    "latestDate": "20260401",
+    "maxPrice": 9700,
+    "maxPriceEok": "9,700만",
+    "minPrice": 9700,
+    "minPriceEok": "9,700만",
+    "txCount": 1,
+    "avg1MPrice": 9700,
+    "avg1MPriceEok": "9,700만",
+    "avg1MPerPyeong": 610,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "9,700만",
+        "areaPyeong": 15.9,
+        "floor": 14,
+        "area": 52.47
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "동보": {
+    "latestPrice": 32700,
+    "latestPriceEok": "3억2,700",
+    "latestArea": 25.6,
+    "latestFloor": 16,
+    "latestDate": "20260401",
+    "maxPrice": 32700,
+    "maxPriceEok": "3억2,700",
+    "minPrice": 32700,
+    "minPriceEok": "3억2,700",
+    "txCount": 1,
+    "avg1MPrice": 32700,
+    "avg1MPriceEok": "3억2,700",
+    "avg1MPerPyeong": 1277,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "3억2,700",
+        "areaPyeong": 25.6,
+        "floor": 16,
+        "area": 84.58
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "도안18단지린풀하우스": {
+    "latestPrice": 59500,
+    "latestPriceEok": "5억9,500",
+    "latestArea": 25.7,
+    "latestFloor": 27,
+    "latestDate": "20260401",
+    "maxPrice": 59500,
+    "maxPriceEok": "5억9,500",
+    "minPrice": 59500,
+    "minPriceEok": "5억9,500",
+    "txCount": 1,
+    "avg1MPrice": 59500,
+    "avg1MPriceEok": "5억9,500",
+    "avg1MPerPyeong": 2315,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "5억9,500",
+        "areaPyeong": 25.7,
+        "floor": 27,
+        "area": 84.9841
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "도시화명그린206": {
+    "latestPrice": 14350,
+    "latestPriceEok": "1억4,350",
+    "latestArea": 15.1,
+    "latestFloor": 20,
+    "latestDate": "20260401",
+    "maxPrice": 14350,
+    "maxPriceEok": "1억4,350",
+    "minPrice": 14350,
+    "minPriceEok": "1억4,350",
+    "txCount": 1,
+    "avg1MPrice": 14350,
+    "avg1MPriceEok": "1억4,350",
+    "avg1MPerPyeong": 950,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "1억4,350",
+        "areaPyeong": 15.1,
+        "floor": 20,
+        "area": 49.83
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "도시두송": {
+    "latestPrice": 13000,
+    "latestPriceEok": "1억3,000",
+    "latestArea": 18.1,
+    "latestFloor": 17,
+    "latestDate": "20260401",
+    "maxPrice": 13000,
+    "maxPriceEok": "1억3,000",
+    "minPrice": 13000,
+    "minPriceEok": "1억3,000",
+    "txCount": 1,
+    "avg1MPrice": 13000,
+    "avg1MPriceEok": "1억3,000",
+    "avg1MPerPyeong": 718,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "1억3,000",
+        "areaPyeong": 18.1,
+        "floor": 17,
+        "area": 59.775
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "도명": {
+    "latestPrice": 6000,
+    "latestPriceEok": "6,000만",
+    "latestArea": 25.1,
+    "latestFloor": 4,
+    "latestDate": "20260401",
+    "maxPrice": 6000,
+    "maxPriceEok": "6,000만",
+    "minPrice": 6000,
+    "minPriceEok": "6,000만",
+    "txCount": 1,
+    "avg1MPrice": 6000,
+    "avg1MPriceEok": "6,000만",
+    "avg1MPerPyeong": 239,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "6,000만",
+        "areaPyeong": 25.1,
+        "floor": 4,
+        "area": 83.04
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "도마e편한세상포레나": {
+    "latestPrice": 61200,
+    "latestPriceEok": "6억1,200",
+    "latestArea": 25.6,
+    "latestFloor": 29,
+    "latestDate": "20260401",
+    "maxPrice": 61200,
+    "maxPriceEok": "6억1,200",
+    "minPrice": 61200,
+    "minPriceEok": "6억1,200",
+    "txCount": 1,
+    "avg1MPrice": 61200,
+    "avg1MPriceEok": "6억1,200",
+    "avg1MPerPyeong": 2391,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "6억1,200",
+        "areaPyeong": 25.6,
+        "floor": 29,
+        "area": 84.7316
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "도램마을1단지웅진스타클래스": {
+    "latestPrice": 56000,
+    "latestPriceEok": "5억6,000",
+    "latestArea": 25.7,
+    "latestFloor": 11,
+    "latestDate": "20260401",
+    "maxPrice": 56000,
+    "maxPriceEok": "5억6,000",
+    "minPrice": 56000,
+    "minPriceEok": "5억6,000",
+    "txCount": 1,
+    "avg1MPrice": 56000,
+    "avg1MPriceEok": "5억6,000",
+    "avg1MPerPyeong": 2179,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "5억6,000",
+        "areaPyeong": 25.7,
+        "floor": 11,
+        "area": 84.99
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "더샵명지퍼스트월드3단지": {
+    "latestPrice": 56550,
+    "latestPriceEok": "5억6,550",
+    "latestArea": 24.4,
+    "latestFloor": 9,
+    "latestDate": "20260401",
+    "maxPrice": 56550,
+    "maxPriceEok": "5억6,550",
+    "minPrice": 56550,
+    "minPriceEok": "5억6,550",
+    "txCount": 1,
+    "avg1MPrice": 56550,
+    "avg1MPriceEok": "5억6,550",
+    "avg1MPerPyeong": 2318,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "5억6,550",
+        "areaPyeong": 24.4,
+        "floor": 9,
+        "area": 80.7864
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "대정그린파크2": {
+    "latestPrice": 6700,
+    "latestPriceEok": "6,700만",
+    "latestArea": 24.3,
+    "latestFloor": 6,
+    "latestDate": "20260401",
+    "maxPrice": 6700,
+    "maxPriceEok": "6,700만",
+    "minPrice": 6700,
+    "minPriceEok": "6,700만",
+    "txCount": 1,
+    "avg1MPrice": 6700,
+    "avg1MPriceEok": "6,700만",
+    "avg1MPerPyeong": 276,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "6,700만",
+        "areaPyeong": 24.3,
+        "floor": 6,
+        "area": 80.27
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "대원칸타빌아파트": {
+    "latestPrice": 25500,
+    "latestPriceEok": "2억5,500",
+    "latestArea": 25.7,
+    "latestFloor": 19,
+    "latestDate": "20260401",
+    "maxPrice": 25500,
+    "maxPriceEok": "2억5,500",
+    "minPrice": 25500,
+    "minPriceEok": "2억5,500",
+    "txCount": 1,
+    "avg1MPrice": 25500,
+    "avg1MPriceEok": "2억5,500",
+    "avg1MPerPyeong": 992,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "2억5,500",
+        "areaPyeong": 25.7,
+        "floor": 19,
+        "area": 84.8
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "대원칸타빌4차아파트": {
+    "latestPrice": 36000,
+    "latestPriceEok": "3억6,000",
+    "latestArea": 25.7,
+    "latestFloor": 10,
+    "latestDate": "20260401",
+    "maxPrice": 36000,
+    "maxPriceEok": "3억6,000",
+    "minPrice": 36000,
+    "minPriceEok": "3억6,000",
+    "txCount": 1,
+    "avg1MPrice": 36000,
+    "avg1MPriceEok": "3억6,000",
+    "avg1MPerPyeong": 1401,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "3억6,000",
+        "areaPyeong": 25.7,
+        "floor": 10,
+        "area": 84.847
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "대신푸르지오2차": {
+    "latestPrice": 23850,
+    "latestPriceEok": "2억3,850",
+    "latestArea": 12,
+    "latestFloor": 20,
+    "latestDate": "20260401",
+    "maxPrice": 23850,
+    "maxPriceEok": "2억3,850",
+    "minPrice": 23850,
+    "minPriceEok": "2억3,850",
+    "txCount": 1,
+    "avg1MPrice": 23850,
+    "avg1MPriceEok": "2억3,850",
+    "avg1MPerPyeong": 1988,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "2억3,850",
+        "areaPyeong": 12,
+        "floor": 20,
+        "area": 39.5362
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "대신푸르지오1차": {
+    "latestPrice": 59000,
+    "latestPriceEok": "5억9,000",
+    "latestArea": 25.6,
+    "latestFloor": 10,
+    "latestDate": "20260401",
+    "maxPrice": 59000,
+    "maxPriceEok": "5억9,000",
+    "minPrice": 59000,
+    "minPriceEok": "5억9,000",
+    "txCount": 1,
+    "avg1MPrice": 59000,
+    "avg1MPriceEok": "5억9,000",
+    "avg1MPerPyeong": 2305,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "5억9,000",
+        "areaPyeong": 25.6,
+        "floor": 10,
+        "area": 84.6518
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "대성타워": {
+    "latestPrice": 19000,
+    "latestPriceEok": "1억9,000",
+    "latestArea": 25.7,
+    "latestFloor": 3,
+    "latestDate": "20260401",
+    "maxPrice": 19000,
+    "maxPriceEok": "1억9,000",
+    "minPrice": 19000,
+    "minPriceEok": "1억9,000",
+    "txCount": 1,
+    "avg1MPrice": 19000,
+    "avg1MPriceEok": "1억9,000",
+    "avg1MPerPyeong": 739,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "1억9,000",
+        "areaPyeong": 25.7,
+        "floor": 3,
+        "area": 84.92
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "대림3": {
+    "latestPrice": 19000,
+    "latestPriceEok": "1억9,000",
+    "latestArea": 16,
+    "latestFloor": 5,
+    "latestDate": "20260401",
+    "maxPrice": 19000,
+    "maxPriceEok": "1억9,000",
+    "minPrice": 19000,
+    "minPriceEok": "1억9,000",
+    "txCount": 1,
+    "avg1MPrice": 19000,
+    "avg1MPriceEok": "1억9,000",
+    "avg1MPerPyeong": 1188,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "1억9,000",
+        "areaPyeong": 16,
+        "floor": 5,
+        "area": 53.01
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "대동피렌체": {
+    "latestPrice": 16750,
+    "latestPriceEok": "1억6,750",
+    "latestArea": 9.7,
+    "latestFloor": 5,
+    "latestDate": "20260401",
+    "maxPrice": 16750,
+    "maxPriceEok": "1억6,750",
+    "minPrice": 16750,
+    "minPriceEok": "1억6,750",
+    "txCount": 1,
+    "avg1MPrice": 16750,
+    "avg1MPriceEok": "1억6,750",
+    "avg1MPerPyeong": 1727,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "1억6,750",
+        "areaPyeong": 9.7,
+        "floor": 5,
+        "area": 32.004
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "능곡현대홈타운1": {
+    "latestPrice": 53000,
+    "latestPriceEok": "5억3,000",
+    "latestArea": 25.6,
+    "latestFloor": 21,
+    "latestDate": "20260401",
+    "maxPrice": 53000,
+    "maxPriceEok": "5억3,000",
+    "minPrice": 53000,
+    "minPriceEok": "5억3,000",
+    "txCount": 1,
+    "avg1MPrice": 53000,
+    "avg1MPriceEok": "5억3,000",
+    "avg1MPerPyeong": 2070,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "5억3,000",
+        "areaPyeong": 25.6,
+        "floor": 21,
+        "area": 84.5579
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "노블파크": {
+    "latestPrice": 49800,
+    "latestPriceEok": "4억9,800",
+    "latestArea": 18.1,
+    "latestFloor": 4,
+    "latestDate": "20260401",
+    "maxPrice": 58000,
+    "maxPriceEok": "5억8,000",
+    "minPrice": 49800,
+    "minPriceEok": "4억9,800",
+    "txCount": 2,
+    "avg1MPrice": 53900,
+    "avg1MPriceEok": "5억3,900",
+    "avg1MPerPyeong": 2317,
+    "avg1MTxCount": 2,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "4억9,800",
+        "areaPyeong": 18.1,
+        "floor": 4,
+        "area": 59.98
+      },
+      {
+        "date": "04.01",
+        "priceEok": "5억8,000",
+        "areaPyeong": 30.8,
+        "floor": 2,
+        "area": 101.93
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "내이현대": {
+    "latestPrice": 15500,
+    "latestPriceEok": "1억5,500",
+    "latestArea": 25.7,
+    "latestFloor": 10,
+    "latestDate": "20260401",
+    "maxPrice": 15500,
+    "maxPriceEok": "1억5,500",
+    "minPrice": 15500,
+    "minPriceEok": "1억5,500",
+    "txCount": 1,
+    "avg1MPrice": 15500,
+    "avg1MPriceEok": "1억5,500",
+    "avg1MPerPyeong": 603,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "1억5,500",
+        "areaPyeong": 25.7,
+        "floor": 10,
+        "area": 84.96
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "남양우림필유아파트": {
+    "latestPrice": 34000,
+    "latestPriceEok": "3억4,000",
+    "latestArea": 30.6,
+    "latestFloor": 9,
+    "latestDate": "20260401",
+    "maxPrice": 34000,
+    "maxPriceEok": "3억4,000",
+    "minPrice": 34000,
+    "minPriceEok": "3억4,000",
+    "txCount": 1,
+    "avg1MPrice": 34000,
+    "avg1MPriceEok": "3억4,000",
+    "avg1MPerPyeong": 1111,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "3억4,000",
+        "areaPyeong": 30.6,
+        "floor": 9,
+        "area": 101.209
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "남양산역반도유보라아이비파크5": {
+    "latestPrice": 39000,
+    "latestPriceEok": "3억9,000",
+    "latestArea": 28.4,
+    "latestFloor": 9,
+    "latestDate": "20260401",
+    "maxPrice": 39000,
+    "maxPriceEok": "3억9,000",
+    "minPrice": 39000,
+    "minPriceEok": "3억9,000",
+    "txCount": 1,
+    "avg1MPrice": 39000,
+    "avg1MPriceEok": "3억9,000",
+    "avg1MPerPyeong": 1373,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "3억9,000",
+        "areaPyeong": 28.4,
+        "floor": 9,
+        "area": 93.874
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "남산공원휴먼빌": {
+    "latestPrice": 18000,
+    "latestPriceEok": "1억8,000",
+    "latestArea": 25.7,
+    "latestFloor": 8,
+    "latestDate": "20260401",
+    "maxPrice": 18000,
+    "maxPriceEok": "1억8,000",
+    "minPrice": 18000,
+    "minPriceEok": "1억8,000",
+    "txCount": 1,
+    "avg1MPrice": 18000,
+    "avg1MPriceEok": "1억8,000",
+    "avg1MPerPyeong": 700,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "1억8,000",
+        "areaPyeong": 25.7,
+        "floor": 8,
+        "area": 84.9878
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "금호어울림레이크": {
+    "latestPrice": 67800,
+    "latestPriceEok": "6억7,800",
+    "latestArea": 18.1,
+    "latestFloor": 21,
+    "latestDate": "20260401",
+    "maxPrice": 95000,
+    "maxPriceEok": "9억5,000",
+    "minPrice": 29000,
+    "minPriceEok": "2억9,000",
+    "txCount": 388,
+    "avg1MPrice": 69300,
+    "avg1MPriceEok": "6억9,300",
+    "avg1MPerPyeong": 3730,
+    "avg1MTxCount": 9,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "6억7,800",
+        "areaPyeong": 18.1,
+        "floor": 21,
+        "area": 59.96
+      },
+      {
+        "date": "03.26",
+        "priceEok": "6억6,000",
+        "areaPyeong": 18.1,
+        "floor": 4,
+        "area": 59.93
+      },
+      {
+        "date": "03.22",
+        "priceEok": "6억8,500",
+        "areaPyeong": 18.1,
+        "floor": 25,
+        "area": 59.96
+      },
+      {
+        "date": "03.21",
+        "priceEok": "6억9,600",
+        "areaPyeong": 18.1,
+        "floor": 17,
+        "area": 59.93
+      }
+    ],
+    "rentTxCount": 24,
+    "latestRentDeposit": 38000,
+    "latestRentDepositEok": "3억8,000",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260401",
+    "avg1MRentDeposit": 33218,
+    "avg1MRentDepositEok": "3억3,218"
+  },
+  "금호어울림레이크2차": {
+    "latestPrice": 64000,
+    "latestPriceEok": "6억4,000",
+    "latestArea": 22.7,
+    "latestFloor": 16,
+    "latestDate": "20260317",
+    "maxPrice": 89800,
+    "maxPriceEok": "8억9,800",
+    "minPrice": 32500,
+    "minPriceEok": "3억2,500",
+    "txCount": 250,
+    "avg1MPrice": 67000,
+    "avg1MPriceEok": "6억7,000",
+    "avg1MPerPyeong": 2772,
+    "avg1MTxCount": 2,
+    "recent": [
+      {
+        "date": "03.17",
+        "priceEok": "6억4,000",
+        "areaPyeong": 22.7,
+        "floor": 16,
+        "area": 74.99
+      },
+      {
+        "date": "03.14",
+        "priceEok": "7억",
+        "areaPyeong": 25.7,
+        "floor": 15,
+        "area": 84.97
+      },
+      {
+        "date": "02.07",
+        "priceEok": "7억",
+        "areaPyeong": 25.7,
+        "floor": 18,
+        "area": 84.97
+      },
+      {
+        "date": "02.07",
+        "priceEok": "6억8,900",
+        "areaPyeong": 25.7,
+        "floor": 17,
+        "area": 84.97
+      }
+    ],
+    "rentTxCount": 10,
+    "latestRentDeposit": 12000,
+    "latestRentDepositEok": "1억2,000",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260401",
+    "avg1MRentDeposit": 33800,
+    "avg1MRentDepositEok": "3억3,800"
+  },
+  "금촌주공7단지1019-0": {
+    "latestPrice": 32500,
+    "latestPriceEok": "3억2,500",
+    "latestArea": 25.7,
+    "latestFloor": 14,
+    "latestDate": "20260401",
+    "maxPrice": 32500,
+    "maxPriceEok": "3억2,500",
+    "minPrice": 32500,
+    "minPriceEok": "3억2,500",
+    "txCount": 1,
+    "avg1MPrice": 32500,
+    "avg1MPriceEok": "3억2,500",
+    "avg1MPerPyeong": 1265,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "3억2,500",
+        "areaPyeong": 25.7,
+        "floor": 14,
+        "area": 84.8
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "금양아이파크": {
+    "latestPrice": 32500,
+    "latestPriceEok": "3억2,500",
+    "latestArea": 19.5,
+    "latestFloor": 6,
+    "latestDate": "20260401",
+    "maxPrice": 32500,
+    "maxPriceEok": "3억2,500",
+    "minPrice": 32500,
+    "minPriceEok": "3억2,500",
+    "txCount": 1,
+    "avg1MPrice": 32500,
+    "avg1MPriceEok": "3억2,500",
+    "avg1MPerPyeong": 1667,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "3억2,500",
+        "areaPyeong": 19.5,
+        "floor": 6,
+        "area": 64.5347
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "극동스타클래스": {
+    "latestPrice": 67400,
+    "latestPriceEok": "6억7,400",
+    "latestArea": 25.7,
+    "latestFloor": 23,
+    "latestDate": "20260401",
+    "maxPrice": 67400,
+    "maxPriceEok": "6억7,400",
+    "minPrice": 67400,
+    "minPriceEok": "6억7,400",
+    "txCount": 1,
+    "avg1MPrice": 67400,
+    "avg1MPriceEok": "6억7,400",
+    "avg1MPerPyeong": 2623,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "6억7,400",
+        "areaPyeong": 25.7,
+        "floor": 23,
+        "area": 84.97
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "그린힐반도유보라아이비파크101단지": {
+    "latestPrice": 50000,
+    "latestPriceEok": "5억",
+    "latestArea": 25.7,
+    "latestFloor": 12,
+    "latestDate": "20260401",
+    "maxPrice": 69500,
+    "maxPriceEok": "6억9,500",
+    "minPrice": 26000,
+    "minPriceEok": "2억6,000",
+    "txCount": 624,
+    "avg1MPrice": 43669,
+    "avg1MPriceEok": "4억3,669",
+    "avg1MPerPyeong": 2187,
+    "avg1MTxCount": 13,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "5억",
+        "areaPyeong": 25.7,
+        "floor": 12,
+        "area": 84.9991
+      },
+      {
+        "date": "03.31",
+        "priceEok": "4억7,300",
+        "areaPyeong": 22.4,
+        "floor": 10,
+        "area": 74.1263
+      },
+      {
+        "date": "03.31",
+        "priceEok": "4억",
+        "areaPyeong": 18.1,
+        "floor": 2,
+        "area": 59.7731
+      },
+      {
+        "date": "03.27",
+        "priceEok": "3억9,500",
+        "areaPyeong": 18.1,
+        "floor": 13,
+        "area": 59.8742
+      }
+    ],
+    "rentTxCount": 12,
+    "latestRentDeposit": 32000,
+    "latestRentDepositEok": "3억2,000",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260331",
+    "avg1MRentDeposit": 31483,
+    "avg1MRentDepositEok": "3억1,483"
+  },
+  "그랜드힐2차": {
+    "latestPrice": 24500,
+    "latestPriceEok": "2억4,500",
+    "latestArea": 25.6,
+    "latestFloor": 9,
+    "latestDate": "20260401",
+    "maxPrice": 24500,
+    "maxPriceEok": "2억4,500",
+    "minPrice": 24500,
+    "minPriceEok": "2억4,500",
+    "txCount": 1,
+    "avg1MPrice": 24500,
+    "avg1MPriceEok": "2억4,500",
+    "avg1MPerPyeong": 957,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "2억4,500",
+        "areaPyeong": 25.6,
+        "floor": 9,
+        "area": 84.7422
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "구봉마을주공8-1": {
+    "latestPrice": 19800,
+    "latestPriceEok": "1억9,800",
+    "latestArea": 18,
+    "latestFloor": 7,
+    "latestDate": "20260401",
+    "maxPrice": 19800,
+    "maxPriceEok": "1억9,800",
+    "minPrice": 19800,
+    "minPriceEok": "1억9,800",
+    "txCount": 1,
+    "avg1MPrice": 19800,
+    "avg1MPriceEok": "1억9,800",
+    "avg1MPerPyeong": 1100,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "1억9,800",
+        "areaPyeong": 18,
+        "floor": 7,
+        "area": 59.47
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "교대금호어울림": {
+    "latestPrice": 45000,
+    "latestPriceEok": "4억5,000",
+    "latestArea": 25.7,
+    "latestFloor": 12,
+    "latestDate": "20260401",
+    "maxPrice": 45000,
+    "maxPriceEok": "4억5,000",
+    "minPrice": 45000,
+    "minPriceEok": "4억5,000",
+    "txCount": 1,
+    "avg1MPrice": 45000,
+    "avg1MPriceEok": "4억5,000",
+    "avg1MPerPyeong": 1751,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "4억5,000",
+        "areaPyeong": 25.7,
+        "floor": 12,
+        "area": 84.9833
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "광양푸르지오더퍼스트": {
+    "latestPrice": 35650,
+    "latestPriceEok": "3억5,650",
+    "latestArea": 25.7,
+    "latestFloor": 12,
+    "latestDate": "20260401",
+    "maxPrice": 35650,
+    "maxPriceEok": "3억5,650",
+    "minPrice": 24000,
+    "minPriceEok": "2억4,000",
+    "txCount": 3,
+    "avg1MPrice": 31117,
+    "avg1MPriceEok": "3억1,117",
+    "avg1MPerPyeong": 1341,
+    "avg1MTxCount": 3,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "3억5,650",
+        "areaPyeong": 25.7,
+        "floor": 12,
+        "area": 84.9888
+      },
+      {
+        "date": "04.01",
+        "priceEok": "3억3,700",
+        "areaPyeong": 25.7,
+        "floor": 8,
+        "area": 84.9597
+      },
+      {
+        "date": "04.01",
+        "priceEok": "2억4,000",
+        "areaPyeong": 18.1,
+        "floor": 14,
+        "area": 59.9889
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "광양중마2차진아리채": {
+    "latestPrice": 22900,
+    "latestPriceEok": "2억2,900",
+    "latestArea": 25.7,
+    "latestFloor": 14,
+    "latestDate": "20260401",
+    "maxPrice": 22900,
+    "maxPriceEok": "2억2,900",
+    "minPrice": 22900,
+    "minPriceEok": "2억2,900",
+    "txCount": 1,
+    "avg1MPrice": 22900,
+    "avg1MPriceEok": "2억2,900",
+    "avg1MPerPyeong": 891,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "2억2,900",
+        "areaPyeong": 25.7,
+        "floor": 14,
+        "area": 84.9909
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "관곡마을동아": {
+    "latestPrice": 18000,
+    "latestPriceEok": "1억8,000",
+    "latestArea": 18.1,
+    "latestFloor": 1,
+    "latestDate": "20260401",
+    "maxPrice": 18000,
+    "maxPriceEok": "1억8,000",
+    "minPrice": 18000,
+    "minPriceEok": "1억8,000",
+    "txCount": 1,
+    "avg1MPrice": 18000,
+    "avg1MPriceEok": "1억8,000",
+    "avg1MPerPyeong": 994,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "1억8,000",
+        "areaPyeong": 18.1,
+        "floor": 1,
+        "area": 60
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "공주신관동효성해링턴플레이스": {
+    "latestPrice": 35300,
+    "latestPriceEok": "3억5,300",
+    "latestArea": 22.4,
+    "latestFloor": 11,
+    "latestDate": "20260401",
+    "maxPrice": 35300,
+    "maxPriceEok": "3억5,300",
+    "minPrice": 35300,
+    "minPriceEok": "3억5,300",
+    "txCount": 1,
+    "avg1MPrice": 35300,
+    "avg1MPriceEok": "3억5,300",
+    "avg1MPerPyeong": 1576,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "3억5,300",
+        "areaPyeong": 22.4,
+        "floor": 11,
+        "area": 74.179
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "고합": {
+    "latestPrice": 22500,
+    "latestPriceEok": "2억2,500",
+    "latestArea": 18.1,
+    "latestFloor": 3,
+    "latestDate": "20260401",
+    "maxPrice": 22500,
+    "maxPriceEok": "2억2,500",
+    "minPrice": 22500,
+    "minPriceEok": "2억2,500",
+    "txCount": 1,
+    "avg1MPrice": 22500,
+    "avg1MPriceEok": "2억2,500",
+    "avg1MPerPyeong": 1243,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "2억2,500",
+        "areaPyeong": 18.1,
+        "floor": 3,
+        "area": 59.96
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "계룡": {
+    "latestPrice": 15000,
+    "latestPriceEok": "1억5,000",
+    "latestArea": 18,
+    "latestFloor": 7,
+    "latestDate": "20260401",
+    "maxPrice": 15000,
+    "maxPriceEok": "1억5,000",
+    "minPrice": 15000,
+    "minPriceEok": "1억5,000",
+    "txCount": 1,
+    "avg1MPrice": 15000,
+    "avg1MPriceEok": "1억5,000",
+    "avg1MPerPyeong": 833,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "1억5,000",
+        "areaPyeong": 18,
+        "floor": 7,
+        "area": 59.4
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "경주휴엔하임퍼스트": {
+    "latestPrice": 20000,
+    "latestPriceEok": "2억",
+    "latestArea": 22.7,
+    "latestFloor": 8,
+    "latestDate": "20260401",
+    "maxPrice": 20000,
+    "maxPriceEok": "2억",
+    "minPrice": 20000,
+    "minPriceEok": "2억",
+    "txCount": 1,
+    "avg1MPrice": 20000,
+    "avg1MPriceEok": "2억",
+    "avg1MPerPyeong": 881,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "2억",
+        "areaPyeong": 22.7,
+        "floor": 8,
+        "area": 74.9853
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "경성큰마을": {
+    "latestPrice": 36500,
+    "latestPriceEok": "3억6,500",
+    "latestArea": 25.7,
+    "latestFloor": 9,
+    "latestDate": "20260401",
+    "maxPrice": 36500,
+    "maxPriceEok": "3억6,500",
+    "minPrice": 36500,
+    "minPriceEok": "3억6,500",
+    "txCount": 1,
+    "avg1MPrice": 36500,
+    "avg1MPriceEok": "3억6,500",
+    "avg1MPerPyeong": 1420,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "3억6,500",
+        "areaPyeong": 25.7,
+        "floor": 9,
+        "area": 84.94
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "검단힐스테이트6차": {
+    "latestPrice": 49500,
+    "latestPriceEok": "4억9,500",
+    "latestArea": 25.7,
+    "latestFloor": 14,
+    "latestDate": "20260401",
+    "maxPrice": 49500,
+    "maxPriceEok": "4억9,500",
+    "minPrice": 49500,
+    "minPriceEok": "4억9,500",
+    "txCount": 1,
+    "avg1MPrice": 49500,
+    "avg1MPriceEok": "4억9,500",
+    "avg1MPerPyeong": 1926,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "4억9,500",
+        "areaPyeong": 25.7,
+        "floor": 14,
+        "area": 84.9908
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "검단신도시한신더휴캐널파크THEHUECANALPARK": {
+    "latestPrice": 63000,
+    "latestPriceEok": "6억3,000",
+    "latestArea": 25.5,
+    "latestFloor": 5,
+    "latestDate": "20260401",
+    "maxPrice": 63000,
+    "maxPriceEok": "6억3,000",
+    "minPrice": 63000,
+    "minPriceEok": "6억3,000",
+    "txCount": 1,
+    "avg1MPrice": 63000,
+    "avg1MPriceEok": "6억3,000",
+    "avg1MPerPyeong": 2471,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "6억3,000",
+        "areaPyeong": 25.5,
+        "floor": 5,
+        "area": 84.34
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "검단신도시디에트르더힐": {
+    "latestPrice": 58000,
+    "latestPriceEok": "5억8,000",
+    "latestArea": 22.9,
+    "latestFloor": 17,
+    "latestDate": "20260401",
+    "maxPrice": 58000,
+    "maxPriceEok": "5억8,000",
+    "minPrice": 58000,
+    "minPriceEok": "5억8,000",
+    "txCount": 1,
+    "avg1MPrice": 58000,
+    "avg1MPriceEok": "5억8,000",
+    "avg1MPerPyeong": 2533,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "5억8,000",
+        "areaPyeong": 22.9,
+        "floor": 17,
+        "area": 75.8458
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "강릉송정신원아침도시": {
+    "latestPrice": 38000,
+    "latestPriceEok": "3억8,000",
+    "latestArea": 25.7,
+    "latestFloor": 4,
+    "latestDate": "20260401",
+    "maxPrice": 38000,
+    "maxPriceEok": "3억8,000",
+    "minPrice": 38000,
+    "minPriceEok": "3억8,000",
+    "txCount": 1,
+    "avg1MPrice": 38000,
+    "avg1MPriceEok": "3억8,000",
+    "avg1MPerPyeong": 1479,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "3억8,000",
+        "areaPyeong": 25.7,
+        "floor": 4,
+        "area": 84.9522
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "강남": {
+    "latestPrice": 37300,
+    "latestPriceEok": "3억7,300",
+    "latestArea": 19.2,
+    "latestFloor": 13,
+    "latestDate": "20260401",
+    "maxPrice": 37300,
+    "maxPriceEok": "3억7,300",
+    "minPrice": 37300,
+    "minPriceEok": "3억7,300",
+    "txCount": 1,
+    "avg1MPrice": 37300,
+    "avg1MPriceEok": "3억7,300",
+    "avg1MPerPyeong": 1943,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "3억7,300",
+        "areaPyeong": 19.2,
+        "floor": 13,
+        "area": 63.4
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "갑을아파트": {
+    "latestPrice": 4400,
+    "latestPriceEok": "4,400만",
+    "latestArea": 11.8,
+    "latestFloor": 13,
+    "latestDate": "20260401",
+    "maxPrice": 4400,
+    "maxPriceEok": "4,400만",
+    "minPrice": 4400,
+    "minPriceEok": "4,400만",
+    "txCount": 1,
+    "avg1MPrice": 4400,
+    "avg1MPriceEok": "4,400만",
+    "avg1MPerPyeong": 373,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "4,400만",
+        "areaPyeong": 11.8,
+        "floor": 13,
+        "area": 39.06
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "e편한세상지제역": {
+    "latestPrice": 36500,
+    "latestPriceEok": "3억6,500",
+    "latestArea": 18,
+    "latestFloor": 4,
+    "latestDate": "20260401",
+    "maxPrice": 36500,
+    "maxPriceEok": "3억6,500",
+    "minPrice": 36500,
+    "minPriceEok": "3억6,500",
+    "txCount": 1,
+    "avg1MPrice": 36500,
+    "avg1MPriceEok": "3억6,500",
+    "avg1MPerPyeong": 2028,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "3억6,500",
+        "areaPyeong": 18,
+        "floor": 4,
+        "area": 59.435
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "e편한세상영종국제도시센텀베뉴": {
+    "latestPrice": 48800,
+    "latestPriceEok": "4억8,800",
+    "latestArea": 25.7,
+    "latestFloor": 5,
+    "latestDate": "20260401",
+    "maxPrice": 48800,
+    "maxPriceEok": "4억8,800",
+    "minPrice": 48800,
+    "minPriceEok": "4억8,800",
+    "txCount": 1,
+    "avg1MPrice": 48800,
+    "avg1MPriceEok": "4억8,800",
+    "avg1MPerPyeong": 1899,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "4억8,800",
+        "areaPyeong": 25.7,
+        "floor": 5,
+        "area": 84.9819
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "e편한세상송도": {
+    "latestPrice": 62800,
+    "latestPriceEok": "6억2,800",
+    "latestArea": 25.5,
+    "latestFloor": 12,
+    "latestDate": "20260401",
+    "maxPrice": 62800,
+    "maxPriceEok": "6억2,800",
+    "minPrice": 62800,
+    "minPriceEok": "6억2,800",
+    "txCount": 1,
+    "avg1MPrice": 62800,
+    "avg1MPriceEok": "6억2,800",
+    "avg1MPerPyeong": 2463,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "6억2,800",
+        "areaPyeong": 25.5,
+        "floor": 12,
+        "area": 84.2538
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "e편한세상서산예천": {
+    "latestPrice": 31300,
+    "latestPriceEok": "3억1,300",
+    "latestArea": 18.1,
+    "latestFloor": 6,
+    "latestDate": "20260401",
+    "maxPrice": 31300,
+    "maxPriceEok": "3억1,300",
+    "minPrice": 31300,
+    "minPriceEok": "3억1,300",
+    "txCount": 1,
+    "avg1MPrice": 31300,
+    "avg1MPriceEok": "3억1,300",
+    "avg1MPerPyeong": 1729,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "3억1,300",
+        "areaPyeong": 18.1,
+        "floor": 6,
+        "area": 59.9837
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "SK": {
+    "latestPrice": 63900,
+    "latestPriceEok": "6억3,900",
+    "latestArea": 46.6,
+    "latestFloor": 9,
+    "latestDate": "20260401",
+    "maxPrice": 63900,
+    "maxPriceEok": "6억3,900",
+    "minPrice": 63900,
+    "minPriceEok": "6억3,900",
+    "txCount": 1,
+    "avg1MPrice": 63900,
+    "avg1MPriceEok": "6억3,900",
+    "avg1MPerPyeong": 1371,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "6억3,900",
+        "areaPyeong": 46.6,
+        "floor": 9,
+        "area": 154.197
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "DMC호반베르디움더포레4단지": {
+    "latestPrice": 91700,
+    "latestPriceEok": "9억1,700",
+    "latestArea": 25.7,
+    "latestFloor": 7,
+    "latestDate": "20260401",
+    "maxPrice": 91700,
+    "maxPriceEok": "9억1,700",
+    "minPrice": 91700,
+    "minPriceEok": "9억1,700",
+    "txCount": 1,
+    "avg1MPrice": 91700,
+    "avg1MPriceEok": "9억1,700",
+    "avg1MPerPyeong": 3568,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "04.01",
+        "priceEok": "9억1,700",
+        "areaPyeong": 25.7,
+        "floor": 7,
+        "area": 84.8984
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "휴먼시아7단지아파트.": {
+    "latestPrice": 0,
+    "latestPriceEok": "0",
+    "latestArea": 0,
+    "latestFloor": 0,
+    "latestDate": "",
+    "maxPrice": 0,
+    "maxPriceEok": "0",
+    "minPrice": 0,
+    "minPriceEok": "0",
+    "txCount": 0,
+    "avg1MPrice": 0,
+    "avg1MPriceEok": "0만",
+    "avg1MPerPyeong": 0,
+    "avg1MTxCount": 0,
+    "recent": [],
+    "rentTxCount": 8,
+    "latestRentDeposit": 3640,
+    "latestRentDepositEok": "3,640만",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260331",
+    "avg1MRentDeposit": 2737,
+    "avg1MRentDepositEok": "2,737만"
+  },
+  "화성동탄2하우스디엔에이치에프": {
+    "latestPrice": 0,
+    "latestPriceEok": "0",
+    "latestArea": 0,
+    "latestFloor": 0,
+    "latestDate": "",
+    "maxPrice": 0,
+    "maxPriceEok": "0",
+    "minPrice": 0,
+    "minPriceEok": "0",
+    "txCount": 0,
+    "avg1MPrice": 0,
+    "avg1MPriceEok": "0만",
+    "avg1MPerPyeong": 0,
+    "avg1MTxCount": 0,
+    "recent": [],
+    "rentTxCount": 4,
+    "latestRentDeposit": 8376,
+    "latestRentDepositEok": "8,376만",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260331",
+    "avg1MRentDeposit": 6985,
+    "avg1MRentDepositEok": "6,985만"
+  },
+  "한신더휴": {
+    "latestPrice": 73000,
+    "latestPriceEok": "7억3,000",
+    "latestArea": 25.3,
+    "latestFloor": 17,
+    "latestDate": "20260331",
+    "maxPrice": 80900,
+    "maxPriceEok": "8억900",
+    "minPrice": 37465,
+    "minPriceEok": "3억7,465",
+    "txCount": 312,
+    "avg1MPrice": 68750,
+    "avg1MPriceEok": "6억8,750",
+    "avg1MPerPyeong": 2849,
+    "avg1MTxCount": 4,
+    "recent": [
+      {
+        "date": "03.31",
+        "priceEok": "7억3,000",
+        "areaPyeong": 25.3,
+        "floor": 17,
+        "area": 83.7489
+      },
+      {
+        "date": "03.31",
+        "priceEok": "6억8,500",
+        "areaPyeong": 23.1,
+        "floor": 17,
+        "area": 76.4713
+      },
+      {
+        "date": "03.27",
+        "priceEok": "6억8,500",
+        "areaPyeong": 23.1,
+        "floor": 11,
+        "area": 76.4713
+      },
+      {
+        "date": "03.11",
+        "priceEok": "6억5,000",
+        "areaPyeong": 25.2,
+        "floor": 2,
+        "area": 83.4162
+      }
+    ],
+    "rentTxCount": 8,
+    "latestRentDeposit": 38000,
+    "latestRentDepositEok": "3억8,000",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260330",
+    "avg1MRentDeposit": 35088,
+    "avg1MRentDepositEok": "3억5,088"
+  },
+  "자연앤데시앙": {
+    "latestPrice": 61000,
+    "latestPriceEok": "6억1,000",
+    "latestArea": 25.7,
+    "latestFloor": 26,
+    "latestDate": "20260331",
+    "maxPrice": 67000,
+    "maxPriceEok": "6억7,000",
+    "minPrice": 15900,
+    "minPriceEok": "1억5,900",
+    "txCount": 2076,
+    "avg1MPrice": 51388,
+    "avg1MPriceEok": "5억1,388",
+    "avg1MPerPyeong": 2359,
+    "avg1MTxCount": 16,
+    "recent": [
+      {
+        "date": "03.31",
+        "priceEok": "6억1,000",
+        "areaPyeong": 25.7,
+        "floor": 26,
+        "area": 84.94
+      },
+      {
+        "date": "03.31",
+        "priceEok": "5억1,400",
+        "areaPyeong": 22.6,
+        "floor": 23,
+        "area": 74.6
+      },
+      {
+        "date": "03.30",
+        "priceEok": "5억1,000",
+        "areaPyeong": 22.6,
+        "floor": 12,
+        "area": 74.6
+      },
+      {
+        "date": "03.25",
+        "priceEok": "4억6,800",
+        "areaPyeong": 18,
+        "floor": 4,
+        "area": 59.52
+      }
+    ],
+    "rentTxCount": 11,
+    "latestRentDeposit": 30000,
+    "latestRentDepositEok": "3억",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260325",
+    "avg1MRentDeposit": 27300,
+    "avg1MRentDepositEok": "2억7,300"
+  },
+  "이편한세상동탄": {
+    "latestPrice": 55000,
+    "latestPriceEok": "5억5,000",
+    "latestArea": 22.6,
+    "latestFloor": 11,
+    "latestDate": "20260331",
+    "maxPrice": 94000,
+    "maxPriceEok": "9억4,000",
+    "minPrice": 34500,
+    "minPriceEok": "3억4,500",
+    "txCount": 549,
+    "avg1MPrice": 58260,
+    "avg1MPriceEok": "5억8,260",
+    "avg1MPerPyeong": 2569,
+    "avg1MTxCount": 5,
+    "recent": [
+      {
+        "date": "03.31",
+        "priceEok": "5억5,000",
+        "areaPyeong": 22.6,
+        "floor": 11,
+        "area": 74.67
+      },
+      {
+        "date": "03.27",
+        "priceEok": "6억2,000",
+        "areaPyeong": 22.6,
+        "floor": 4,
+        "area": 74.73
+      },
+      {
+        "date": "03.23",
+        "priceEok": "6억1,300",
+        "areaPyeong": 25.5,
+        "floor": 4,
+        "area": 84.2
+      },
+      {
+        "date": "03.10",
+        "priceEok": "5억4,000",
+        "areaPyeong": 18.3,
+        "floor": 3,
+        "area": 60.49
+      }
+    ],
+    "rentTxCount": 16,
+    "latestRentDeposit": 20000,
+    "latestRentDepositEok": "2억",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260321",
+    "avg1MRentDeposit": 32063,
+    "avg1MRentDepositEok": "3억2,063"
+  },
+  "서동탄역파크자이": {
+    "latestPrice": 50800,
+    "latestPriceEok": "5억800",
+    "latestArea": 23.3,
+    "latestFloor": 5,
+    "latestDate": "20260331",
+    "maxPrice": 53500,
+    "maxPriceEok": "5억3,500",
+    "minPrice": 50800,
+    "minPriceEok": "5억800",
+    "txCount": 2,
+    "avg1MPrice": 52150,
+    "avg1MPriceEok": "5억2,150",
+    "avg1MPerPyeong": 2238,
+    "avg1MTxCount": 2,
+    "recent": [
+      {
+        "date": "03.31",
+        "priceEok": "5억800",
+        "areaPyeong": 23.3,
+        "floor": 5,
+        "area": 76.9706
+      },
+      {
+        "date": "03.28",
+        "priceEok": "5억3,500",
+        "areaPyeong": 23.3,
+        "floor": 15,
+        "area": 76.9706
+      }
+    ],
+    "rentTxCount": 0,
+    "latestRentDeposit": 0,
+    "latestRentDepositEok": "0",
+    "latestRentMonthly": 0,
+    "latestRentDate": "",
+    "avg1MRentDeposit": 0,
+    "avg1MRentDepositEok": "0만"
+  },
+  "동탄파크푸르지오": {
+    "latestPrice": 59000,
+    "latestPriceEok": "5억9,000",
+    "latestArea": 25.7,
+    "latestFloor": 4,
+    "latestDate": "20260327",
+    "maxPrice": 78000,
+    "maxPriceEok": "7억8,000",
+    "minPrice": 34200,
+    "minPriceEok": "3억4,200",
+    "txCount": 354,
+    "avg1MPrice": 56600,
+    "avg1MPriceEok": "5억6,600",
+    "avg1MPerPyeong": 2347,
+    "avg1MTxCount": 6,
+    "recent": [
+      {
+        "date": "03.27",
+        "priceEok": "5억9,000",
+        "areaPyeong": 25.7,
+        "floor": 4,
+        "area": 84.92
+      },
+      {
+        "date": "03.21",
+        "priceEok": "6억800",
+        "areaPyeong": 25.7,
+        "floor": 7,
+        "area": 84.92
+      },
+      {
+        "date": "03.14",
+        "priceEok": "5억4,000",
+        "areaPyeong": 22.6,
+        "floor": 8,
+        "area": 74.75
+      },
+      {
+        "date": "03.07",
+        "priceEok": "5억7,500",
+        "areaPyeong": 25.7,
+        "floor": 13,
+        "area": 84.94
+      }
+    ],
+    "rentTxCount": 11,
+    "latestRentDeposit": 43000,
+    "latestRentDepositEok": "4억3,000",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260331",
+    "avg1MRentDeposit": 34600,
+    "avg1MRentDepositEok": "3억4,600"
+  },
+  "동탄역푸르지오": {
+    "latestPrice": 90000,
+    "latestPriceEok": "9억",
+    "latestArea": 25.7,
+    "latestFloor": 12,
+    "latestDate": "20260328",
+    "maxPrice": 112000,
+    "maxPriceEok": "11억2,000",
+    "minPrice": 39994,
+    "minPriceEok": "3억9,994",
+    "txCount": 310,
+    "avg1MPrice": 90400,
+    "avg1MPriceEok": "9억400",
+    "avg1MPerPyeong": 3655,
+    "avg1MTxCount": 7,
+    "recent": [
+      {
+        "date": "03.28",
+        "priceEok": "9억",
+        "areaPyeong": 25.7,
+        "floor": 12,
+        "area": 84.9349
+      },
+      {
+        "date": "03.26",
+        "priceEok": "9억4,800",
+        "areaPyeong": 25.6,
+        "floor": 18,
+        "area": 84.6681
+      },
+      {
+        "date": "03.23",
+        "priceEok": "8억6,500",
+        "areaPyeong": 22.6,
+        "floor": 21,
+        "area": 74.8664
+      },
+      {
+        "date": "03.21",
+        "priceEok": "8억6,500",
+        "areaPyeong": 22.6,
+        "floor": 7,
+        "area": 74.8664
+      }
+    ],
+    "rentTxCount": 8,
+    "latestRentDeposit": 45000,
+    "latestRentDepositEok": "4억5,000",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260331",
+    "avg1MRentDeposit": 45000,
+    "avg1MRentDepositEok": "4억5,000"
+  },
+  "동탄역파라곤": {
+    "latestPrice": 109800,
+    "latestPriceEok": "10억9,800",
+    "latestArea": 24.2,
+    "latestFloor": 30,
+    "latestDate": "20260306",
+    "maxPrice": 173000,
+    "maxPriceEok": "17억3,000",
+    "minPrice": 79000,
+    "minPriceEok": "7억9,000",
+    "txCount": 44,
+    "avg1MPrice": 109800,
+    "avg1MPriceEok": "10억9,800",
+    "avg1MPerPyeong": 4537,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "03.06",
+        "priceEok": "10억9,800",
+        "areaPyeong": 24.2,
+        "floor": 30,
+        "area": 79.8807
+      },
+      {
+        "date": "02.23",
+        "priceEok": "10억7,000",
+        "areaPyeong": 23.6,
+        "floor": 18,
+        "area": 78.059
+      },
+      {
+        "date": "02.14",
+        "priceEok": "10억2,000",
+        "areaPyeong": 23.6,
+        "floor": 7,
+        "area": 78.059
+      },
+      {
+        "date": "02.12",
+        "priceEok": "10억6,500",
+        "areaPyeong": 23.6,
+        "floor": 34,
+        "area": 78.059
+      }
+    ],
+    "rentTxCount": 3,
+    "latestRentDeposit": 54000,
+    "latestRentDepositEok": "5억4,000",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260331",
+    "avg1MRentDeposit": 56000,
+    "avg1MRentDepositEok": "5억6,000"
+  },
   "동탄역시범리슈빌아파트": {
     "latestPrice": 121000,
     "latestPriceEok": "12억1,000",
@@ -19252,9 +21579,9 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDeposit": 0,
     "latestRentDepositEok": "0",
     "latestRentMonthly": 0,
-    "latestRentDate": "",
-    "avg1MRentDeposit": 0,
-    "avg1MRentDepositEok": "0만"
+    "latestRentDate": "20260327",
+    "avg1MRentDeposit": 52500,
+    "avg1MRentDepositEok": "5억2,500"
   },
   "동탄파크릭스A51-2BL아파트": {
     "latestPrice": 0,
@@ -19560,6 +21887,54 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "avg1MPriceEok": "7억",
     "avg1MPerPyeong": 2734,
     "avg1MTxCount": 0,
+    "recent": [],
+    "rentTxCount": 1,
+    "latestRentDeposit": 4189,
+    "latestRentDepositEok": "4,189만",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260326",
+    "avg1MRentDeposit": 4189,
+    "avg1MRentDepositEok": "4,189만"
+  },
+  "호반써밋동탄": {
+    "latestPrice": 0,
+    "latestPriceEok": "0",
+    "latestArea": 0,
+    "latestFloor": 0,
+    "latestDate": "",
+    "maxPrice": 0,
+    "maxPriceEok": "0",
+    "minPrice": 0,
+    "minPriceEok": "0",
+    "txCount": 0,
+    "avg1MPrice": 0,
+    "avg1MPriceEok": "0만",
+    "avg1MPerPyeong": 0,
+    "avg1MTxCount": 0,
+    "recent": [],
+    "rentTxCount": 4,
+    "latestRentDeposit": 5000,
+    "latestRentDepositEok": "5,000만",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260326",
+    "avg1MRentDeposit": 5000,
+    "avg1MRentDepositEok": "5,000만"
+  },
+  "푸른마을모아미래도": {
+    "latestPrice": 50000,
+    "latestPriceEok": "5억",
+    "latestArea": 25.3,
+    "latestFloor": 10,
+    "latestDate": "20260325",
+    "maxPrice": 61000,
+    "maxPriceEok": "6억1,000",
+    "minPrice": 16570,
+    "minPriceEok": "1억6,570",
+    "txCount": 1430,
+    "avg1MPrice": 46367,
+    "avg1MPriceEok": "4억6,367",
+    "avg1MPerPyeong": 2198,
+    "avg1MTxCount": 6,
     "recent": [
       {
         "date": "02.28",
@@ -19841,11 +22216,914 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
         "area": 74.94
       },
       {
-        "date": "01.31",
-        "priceEok": "6억7,000",
+        "date": "03.24",
+        "priceEok": "9억",
+        "areaPyeong": 25.7,
+        "floor": 7,
+        "area": 84.96
+      },
+      {
+        "date": "03.07",
+        "priceEok": "9억4,500",
+        "areaPyeong": 25.7,
+        "floor": 18,
+        "area": 84.96
+      },
+      {
+        "date": "03.07",
+        "priceEok": "9억500",
+        "areaPyeong": 25.7,
+        "floor": 11,
+        "area": 84.96
+      }
+    ],
+    "rentTxCount": 10,
+    "latestRentDeposit": 20000,
+    "latestRentDepositEok": "2억",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260322",
+    "avg1MRentDeposit": 33343,
+    "avg1MRentDepositEok": "3억3,343"
+  },
+  "시범한빛마을금호어울림": {
+    "latestPrice": 77800,
+    "latestPriceEok": "7억7,800",
+    "latestArea": 25.5,
+    "latestFloor": 15,
+    "latestDate": "20260326",
+    "maxPrice": 89400,
+    "maxPriceEok": "8억9,400",
+    "minPrice": 28000,
+    "minPriceEok": "2억8,000",
+    "txCount": 598,
+    "avg1MPrice": 83600,
+    "avg1MPriceEok": "8억3,600",
+    "avg1MPerPyeong": 3272,
+    "avg1MTxCount": 2,
+    "recent": [
+      {
+        "date": "03.26",
+        "priceEok": "7억7,800",
+        "areaPyeong": 25.5,
+        "floor": 15,
+        "area": 84.465
+      },
+      {
+        "date": "03.14",
+        "priceEok": "8억9,400",
+        "areaPyeong": 25.6,
+        "floor": 16,
+        "area": 84.613
+      },
+      {
+        "date": "02.20",
+        "priceEok": "8억4,000",
+        "areaPyeong": 25.6,
+        "floor": 31,
+        "area": 84.465
+      },
+      {
+        "date": "02.14",
+        "priceEok": "8억8,000",
+        "areaPyeong": 25.6,
+        "floor": 13,
+        "area": 84.613
+      }
+    ],
+    "rentTxCount": 2,
+    "latestRentDeposit": 45000,
+    "latestRentDepositEok": "4억5,000",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260311",
+    "avg1MRentDeposit": 45000,
+    "avg1MRentDepositEok": "4억5,000"
+  },
+  "동탄호수공원리슈빌": {
+    "latestPrice": 0,
+    "latestPriceEok": "0",
+    "latestArea": 0,
+    "latestFloor": 0,
+    "latestDate": "",
+    "maxPrice": 0,
+    "maxPriceEok": "0",
+    "minPrice": 0,
+    "minPriceEok": "0",
+    "txCount": 0,
+    "avg1MPrice": 0,
+    "avg1MPriceEok": "0만",
+    "avg1MPerPyeong": 0,
+    "avg1MTxCount": 0,
+    "recent": [],
+    "rentTxCount": 7,
+    "latestRentDeposit": 15800,
+    "latestRentDepositEok": "1억5,800",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260326",
+    "avg1MRentDeposit": 16600,
+    "avg1MRentDepositEok": "1억6,600"
+  },
+  "동탄플래티넘": {
+    "latestPrice": 64500,
+    "latestPriceEok": "6억4,500",
+    "latestArea": 36.4,
+    "latestFloor": 35,
+    "latestDate": "20260326",
+    "maxPrice": 71000,
+    "maxPriceEok": "7억1,000",
+    "minPrice": 35617,
+    "minPriceEok": "3억5,617",
+    "txCount": 96,
+    "avg1MPrice": 64500,
+    "avg1MPriceEok": "6억4,500",
+    "avg1MPerPyeong": 1772,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "03.26",
+        "priceEok": "6억4,500",
+        "areaPyeong": 36.4,
+        "floor": 35,
+        "area": 120.47
+      },
+      {
+        "date": "02.28",
+        "priceEok": "6억5,000",
+        "areaPyeong": 36.4,
+        "floor": 34,
+        "area": 120.47
+      },
+      {
+        "date": "01.23",
+        "priceEok": "5억9,950",
+        "areaPyeong": 36.4,
+        "floor": 17,
+        "area": 120.47
+      },
+      {
+        "date": "12.25",
+        "priceEok": "6억3,000",
+        "areaPyeong": 36.4,
+        "floor": 31,
+        "area": 120.47
+      }
+    ],
+    "rentTxCount": 1,
+    "latestRentDeposit": 43500,
+    "latestRentDepositEok": "4억3,500",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260219",
+    "avg1MRentDeposit": 43500,
+    "avg1MRentDepositEok": "4억3,500"
+  },
+  "동탄파크릭스A52BL아파트": {
+    "latestPrice": 0,
+    "latestPriceEok": "0",
+    "latestArea": 0,
+    "latestFloor": 0,
+    "latestDate": "",
+    "maxPrice": 0,
+    "maxPriceEok": "0",
+    "minPrice": 0,
+    "minPriceEok": "0",
+    "txCount": 0,
+    "avg1MPrice": 0,
+    "avg1MPriceEok": "0만",
+    "avg1MPerPyeong": 0,
+    "avg1MTxCount": 0,
+    "recent": [],
+    "rentTxCount": 2,
+    "latestRentDeposit": 13000,
+    "latestRentDepositEok": "1억3,000",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260326",
+    "avg1MRentDeposit": 13000,
+    "avg1MRentDepositEok": "1억3,000"
+  },
+  "동탄2신도시4차동원로얄듀크포레": {
+    "latestPrice": 50000,
+    "latestPriceEok": "5억",
+    "latestArea": 17.9,
+    "latestFloor": 32,
+    "latestDate": "20260307",
+    "maxPrice": 61000,
+    "maxPriceEok": "6억1,000",
+    "minPrice": 40000,
+    "minPriceEok": "4억",
+    "txCount": 54,
+    "avg1MPrice": 49750,
+    "avg1MPriceEok": "4억9,750",
+    "avg1MPerPyeong": 2779,
+    "avg1MTxCount": 2,
+    "recent": [
+      {
+        "date": "03.07",
+        "priceEok": "5억",
+        "areaPyeong": 17.9,
+        "floor": 32,
+        "area": 59.0157
+      },
+      {
+        "date": "03.07",
+        "priceEok": "4억9,500",
+        "areaPyeong": 17.9,
+        "floor": 22,
+        "area": 59.0157
+      },
+      {
+        "date": "01.03",
+        "priceEok": "4억8,000",
+        "areaPyeong": 17.9,
+        "floor": 2,
+        "area": 59.0157
+      },
+      {
+        "date": "12.20",
+        "priceEok": "4억7,000",
+        "areaPyeong": 17.9,
+        "floor": 7,
+        "area": 59.0157
+      }
+    ],
+    "rentTxCount": 7,
+    "latestRentDeposit": 34500,
+    "latestRentDepositEok": "3억4,500",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260326",
+    "avg1MRentDeposit": 18420,
+    "avg1MRentDepositEok": "1억8,420"
+  },
+  "중흥에스클래스에듀하이": {
+    "latestPrice": 71800,
+    "latestPriceEok": "7억1,800",
+    "latestArea": 25.1,
+    "latestFloor": 18,
+    "latestDate": "20260322",
+    "maxPrice": 74500,
+    "maxPriceEok": "7억4,500",
+    "minPrice": 54766,
+    "minPriceEok": "5억4,766",
+    "txCount": 61,
+    "avg1MPrice": 68600,
+    "avg1MPriceEok": "6억8,600",
+    "avg1MPerPyeong": 2730,
+    "avg1MTxCount": 3,
+    "recent": [
+      {
+        "date": "03.22",
+        "priceEok": "7억1,800",
+        "areaPyeong": 25.1,
+        "floor": 18,
+        "area": 83.0109
+      },
+      {
+        "date": "03.17",
+        "priceEok": "6억6,000",
+        "areaPyeong": 25.2,
+        "floor": 18,
+        "area": 83.1694
+      },
+      {
+        "date": "03.17",
+        "priceEok": "6억8,000",
+        "areaPyeong": 25.1,
+        "floor": 6,
+        "area": 83.0109
+      },
+      {
+        "date": "02.27",
+        "priceEok": "6억6,500",
+        "areaPyeong": 25.1,
+        "floor": 22,
+        "area": 83.0109
+      }
+    ],
+    "rentTxCount": 8,
+    "latestRentDeposit": 5000,
+    "latestRentDepositEok": "5,000만",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260325",
+    "avg1MRentDeposit": 19393,
+    "avg1MRentDepositEok": "1억9,393"
+  },
+  "센트럴S타운": {
+    "latestPrice": 10500,
+    "latestPriceEok": "1억500",
+    "latestArea": 6.3,
+    "latestFloor": 8,
+    "latestDate": "20260319",
+    "maxPrice": 12000,
+    "maxPriceEok": "1억2,000",
+    "minPrice": 2800,
+    "minPriceEok": "2,800만",
+    "txCount": 208,
+    "avg1MPrice": 6875,
+    "avg1MPriceEok": "6,875만",
+    "avg1MPerPyeong": 1261,
+    "avg1MTxCount": 2,
+    "recent": [
+      {
+        "date": "03.19",
+        "priceEok": "1억500",
+        "areaPyeong": 6.3,
+        "floor": 8,
+        "area": 20.8
+      },
+      {
+        "date": "03.07",
+        "priceEok": "3,250만",
+        "areaPyeong": 3.8,
+        "floor": 9,
+        "area": 12.71
+      },
+      {
+        "date": "12.03",
+        "priceEok": "5,000만",
+        "areaPyeong": 4.3,
+        "floor": 10,
+        "area": 14.18
+      },
+      {
+        "date": "11.26",
+        "priceEok": "3,000만",
+        "areaPyeong": 3.8,
+        "floor": 9,
+        "area": 12.71
+      }
+    ],
+    "rentTxCount": 7,
+    "latestRentDeposit": 4300,
+    "latestRentDepositEok": "4,300만",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260325",
+    "avg1MRentDeposit": 2667,
+    "avg1MRentDepositEok": "2,667만"
+  },
+  "르파비스": {
+    "latestPrice": 40400,
+    "latestPriceEok": "4억400",
+    "latestArea": 15.7,
+    "latestFloor": 13,
+    "latestDate": "20260318",
+    "maxPrice": 63500,
+    "maxPriceEok": "6억3,500",
+    "minPrice": 33000,
+    "minPriceEok": "3억3,000",
+    "txCount": 70,
+    "avg1MPrice": 45200,
+    "avg1MPriceEok": "4억5,200",
+    "avg1MPerPyeong": 2259,
+    "avg1MTxCount": 2,
+    "recent": [
+      {
+        "date": "03.18",
+        "priceEok": "4억400",
+        "areaPyeong": 15.7,
+        "floor": 13,
+        "area": 51.99
+      },
+      {
+        "date": "03.05",
+        "priceEok": "5억",
+        "areaPyeong": 25.7,
+        "floor": 2,
+        "area": 84.96
+      },
+      {
+        "date": "02.27",
+        "priceEok": "6억2,000",
         "areaPyeong": 25.7,
         "floor": 13,
-        "area": 84.97
+        "area": 84.96
+      },
+      {
+        "date": "02.27",
+        "priceEok": "4억3,500",
+        "areaPyeong": 15.7,
+        "floor": 19,
+        "area": 51.99
+      }
+    ],
+    "rentTxCount": 8,
+    "latestRentDeposit": 10287,
+    "latestRentDepositEok": "1억287",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260325",
+    "avg1MRentDeposit": 7858,
+    "avg1MRentDepositEok": "7,858만"
+  },
+  "동탄2아이파크1단지": {
+    "latestPrice": 62500,
+    "latestPriceEok": "6억2,500",
+    "latestArea": 29.3,
+    "latestFloor": 11,
+    "latestDate": "20260325",
+    "maxPrice": 85000,
+    "maxPriceEok": "8억5,000",
+    "minPrice": 38000,
+    "minPriceEok": "3억8,000",
+    "txCount": 112,
+    "avg1MPrice": 56400,
+    "avg1MPriceEok": "5억6,400",
+    "avg1MPerPyeong": 2145,
+    "avg1MTxCount": 6,
+    "recent": [
+      {
+        "date": "03.25",
+        "priceEok": "6억2,500",
+        "areaPyeong": 29.3,
+        "floor": 11,
+        "area": 96.9237
+      },
+      {
+        "date": "03.21",
+        "priceEok": "5억6,500",
+        "areaPyeong": 25.7,
+        "floor": 18,
+        "area": 84.8688
+      },
+      {
+        "date": "03.18",
+        "priceEok": "5억4,200",
+        "areaPyeong": 25.7,
+        "floor": 6,
+        "area": 84.8688
+      },
+      {
+        "date": "03.14",
+        "priceEok": "5억5,200",
+        "areaPyeong": 25.7,
+        "floor": 12,
+        "area": 84.8688
+      }
+    ],
+    "rentTxCount": 4,
+    "latestRentDeposit": 37000,
+    "latestRentDepositEok": "3억7,000",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260311",
+    "avg1MRentDeposit": 37000,
+    "avg1MRentDepositEok": "3억7,000"
+  },
+  "호반베르디움센트럴포레": {
+    "latestPrice": 57800,
+    "latestPriceEok": "5억7,800",
+    "latestArea": 25.6,
+    "latestFloor": 2,
+    "latestDate": "20260323",
+    "maxPrice": 85000,
+    "maxPriceEok": "8억5,000",
+    "minPrice": 35000,
+    "minPriceEok": "3억5,000",
+    "txCount": 639,
+    "avg1MPrice": 60593,
+    "avg1MPriceEok": "6억593",
+    "avg1MPerPyeong": 2359,
+    "avg1MTxCount": 7,
+    "recent": [
+      {
+        "date": "03.23",
+        "priceEok": "5억7,800",
+        "areaPyeong": 25.6,
+        "floor": 2,
+        "area": 84.669
+      },
+      {
+        "date": "03.21",
+        "priceEok": "6억2,800",
+        "areaPyeong": 25.7,
+        "floor": 19,
+        "area": 84.8388
+      },
+      {
+        "date": "03.16",
+        "priceEok": "6억",
+        "areaPyeong": 25.7,
+        "floor": 2,
+        "area": 84.8388
+      },
+      {
+        "date": "03.14",
+        "priceEok": "6억800",
+        "areaPyeong": 25.7,
+        "floor": 2,
+        "area": 84.8388
+      }
+    ],
+    "rentTxCount": 11,
+    "latestRentDeposit": 37000,
+    "latestRentDepositEok": "3억7,000",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260324",
+    "avg1MRentDeposit": 35131,
+    "avg1MRentDepositEok": "3억5,131"
+  },
+  "우미린제일풍경채": {
+    "latestPrice": 63800,
+    "latestPriceEok": "6억3,800",
+    "latestArea": 24.3,
+    "latestFloor": 9,
+    "latestDate": "20260324",
+    "maxPrice": 89000,
+    "maxPriceEok": "8억9,000",
+    "minPrice": 22850,
+    "minPriceEok": "2억2,850",
+    "txCount": 1431,
+    "avg1MPrice": 66933,
+    "avg1MPriceEok": "6억6,933",
+    "avg1MPerPyeong": 2808,
+    "avg1MTxCount": 3,
+    "recent": [
+      {
+        "date": "03.24",
+        "priceEok": "6억3,800",
+        "areaPyeong": 24.3,
+        "floor": 9,
+        "area": 80.3931
+      },
+      {
+        "date": "03.21",
+        "priceEok": "6억9,500",
+        "areaPyeong": 23,
+        "floor": 18,
+        "area": 75.87
+      },
+      {
+        "date": "03.13",
+        "priceEok": "6억7,500",
+        "areaPyeong": 24.3,
+        "floor": 18,
+        "area": 80.3931
+      },
+      {
+        "date": "02.13",
+        "priceEok": "6억4,700",
+        "areaPyeong": 22.4,
+        "floor": 22,
+        "area": 74.092
+      }
+    ],
+    "rentTxCount": 10,
+    "latestRentDeposit": 30000,
+    "latestRentDepositEok": "3억",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260321",
+    "avg1MRentDeposit": 24680,
+    "avg1MRentDepositEok": "2억4,680"
+  },
+  "동탄역호반써밋": {
+    "latestPrice": 87000,
+    "latestPriceEok": "8억7,000",
+    "latestArea": 25.7,
+    "latestFloor": 25,
+    "latestDate": "20260324",
+    "maxPrice": 90000,
+    "maxPriceEok": "9억",
+    "minPrice": 28000,
+    "minPriceEok": "2억8,000",
+    "txCount": 735,
+    "avg1MPrice": 77250,
+    "avg1MPriceEok": "7억7,250",
+    "avg1MPerPyeong": 3557,
+    "avg1MTxCount": 2,
+    "recent": [
+      {
+        "date": "03.24",
+        "priceEok": "8억7,000",
+        "areaPyeong": 25.7,
+        "floor": 25,
+        "area": 84.957
+      },
+      {
+        "date": "03.13",
+        "priceEok": "6억7,500",
+        "areaPyeong": 18.1,
+        "floor": 2,
+        "area": 59.8365
+      },
+      {
+        "date": "02.27",
+        "priceEok": "7억6,300",
+        "areaPyeong": 18.1,
+        "floor": 13,
+        "area": 59.8365
+      },
+      {
+        "date": "02.21",
+        "priceEok": "8억3,500",
+        "areaPyeong": 25.7,
+        "floor": 3,
+        "area": 84.957
+      }
+    ],
+    "rentTxCount": 12,
+    "latestRentDeposit": 5000,
+    "latestRentDepositEok": "5,000만",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260324",
+    "avg1MRentDeposit": 25293,
+    "avg1MRentDepositEok": "2억5,293"
+  },
+  "동탄역시범우남퍼스트빌아파트": {
+    "latestPrice": 124700,
+    "latestPriceEok": "12억4,700",
+    "latestArea": 18.1,
+    "latestFloor": 24,
+    "latestDate": "20260324",
+    "maxPrice": 148000,
+    "maxPriceEok": "14억8,000",
+    "minPrice": 32938,
+    "minPriceEok": "3억2,938",
+    "txCount": 1026,
+    "avg1MPrice": 129875,
+    "avg1MPriceEok": "12억9,875",
+    "avg1MPerPyeong": 6250,
+    "avg1MTxCount": 4,
+    "recent": [
+      {
+        "date": "03.24",
+        "priceEok": "12억4,700",
+        "areaPyeong": 18.1,
+        "floor": 24,
+        "area": 59.98
+      },
+      {
+        "date": "03.20",
+        "priceEok": "12억9,000",
+        "areaPyeong": 22.4,
+        "floor": 20,
+        "area": 73.96
+      },
+      {
+        "date": "03.08",
+        "priceEok": "12억3,000",
+        "areaPyeong": 18.1,
+        "floor": 23,
+        "area": 59.99
+      },
+      {
+        "date": "03.07",
+        "priceEok": "14억2,800",
+        "areaPyeong": 25.7,
+        "floor": 14,
+        "area": 84.94
+      }
+    ],
+    "rentTxCount": 16,
+    "latestRentDeposit": 55000,
+    "latestRentDepositEok": "5억5,000",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260320",
+    "avg1MRentDeposit": 52643,
+    "avg1MRentDepositEok": "5억2,643"
+  },
+  "능동마을이지더원": {
+    "latestPrice": 54500,
+    "latestPriceEok": "5억4,500",
+    "latestArea": 23.7,
+    "latestFloor": 10,
+    "latestDate": "20260323",
+    "maxPrice": 69000,
+    "maxPriceEok": "6억9,000",
+    "minPrice": 23000,
+    "minPriceEok": "2억3,000",
+    "txCount": 642,
+    "avg1MPrice": 56200,
+    "avg1MPriceEok": "5억6,200",
+    "avg1MPerPyeong": 2320,
+    "avg1MTxCount": 3,
+    "recent": [
+      {
+        "date": "03.23",
+        "priceEok": "5억4,500",
+        "areaPyeong": 23.7,
+        "floor": 10,
+        "area": 78.2912
+      },
+      {
+        "date": "03.19",
+        "priceEok": "5억6,100",
+        "areaPyeong": 23.7,
+        "floor": 6,
+        "area": 78.2912
+      },
+      {
+        "date": "03.05",
+        "priceEok": "5억8,000",
+        "areaPyeong": 25.3,
+        "floor": 16,
+        "area": 83.5573
+      },
+      {
+        "date": "03.02",
+        "priceEok": "5억1,000",
+        "areaPyeong": 23.7,
+        "floor": 15,
+        "area": 78.2912
+      }
+    ],
+    "rentTxCount": 5,
+    "latestRentDeposit": 33000,
+    "latestRentDepositEok": "3억3,000",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260324",
+    "avg1MRentDeposit": 33483,
+    "avg1MRentDepositEok": "3억3,483"
+  },
+  "솔빛마을경남아너스빌": {
+    "latestPrice": 97000,
+    "latestPriceEok": "9억7,000",
+    "latestArea": 38.8,
+    "latestFloor": 22,
+    "latestDate": "20260323",
+    "maxPrice": 108000,
+    "maxPriceEok": "10억8,000",
+    "minPrice": 32000,
+    "minPriceEok": "3억2,000",
+    "txCount": 617,
+    "avg1MPrice": 97000,
+    "avg1MPriceEok": "9억7,000",
+    "avg1MPerPyeong": 2500,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "03.23",
+        "priceEok": "9억7,000",
+        "areaPyeong": 38.8,
+        "floor": 22,
+        "area": 128.4145
+      },
+      {
+        "date": "02.19",
+        "priceEok": "8억5,500",
+        "areaPyeong": 31.3,
+        "floor": 24,
+        "area": 103.3947
+      },
+      {
+        "date": "02.14",
+        "priceEok": "8억1,000",
+        "areaPyeong": 31.3,
+        "floor": 24,
+        "area": 103.3947
+      },
+      {
+        "date": "02.06",
+        "priceEok": "9억3,000",
+        "areaPyeong": 38.8,
+        "floor": 6,
+        "area": 128.4145
+      }
+    ],
+    "rentTxCount": 3,
+    "latestRentDeposit": 15000,
+    "latestRentDepositEok": "1억5,000",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260307",
+    "avg1MRentDeposit": 15000,
+    "avg1MRentDepositEok": "1억5,000"
+  },
+  "동탄퍼스트파크": {
+    "latestPrice": 43400,
+    "latestPriceEok": "4억3,400",
+    "latestArea": 22,
+    "latestFloor": 12,
+    "latestDate": "20260323",
+    "maxPrice": 55800,
+    "maxPriceEok": "5억5,800",
+    "minPrice": 10300,
+    "minPriceEok": "1억300",
+    "txCount": 841,
+    "avg1MPrice": 42317,
+    "avg1MPriceEok": "4억2,317",
+    "avg1MPerPyeong": 1923,
+    "avg1MTxCount": 6,
+    "recent": [
+      {
+        "date": "03.23",
+        "priceEok": "4억3,400",
+        "areaPyeong": 22,
+        "floor": 12,
+        "area": 72.5957
+      },
+      {
+        "date": "03.20",
+        "priceEok": "4억3,500",
+        "areaPyeong": 22,
+        "floor": 8,
+        "area": 72.5957
+      },
+      {
+        "date": "03.19",
+        "priceEok": "4억3,500",
+        "areaPyeong": 22,
+        "floor": 6,
+        "area": 72.5957
+      },
+      {
+        "date": "03.11",
+        "priceEok": "4억",
+        "areaPyeong": 22,
+        "floor": 3,
+        "area": 72.5957
+      }
+    ],
+    "rentTxCount": 6,
+    "latestRentDeposit": 20443,
+    "latestRentDepositEok": "2억443",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260320",
+    "avg1MRentDeposit": 18814,
+    "avg1MRentDepositEok": "1억8,814"
+  },
+  "동탄역린스트라우스": {
+    "latestPrice": 142300,
+    "latestPriceEok": "14억2,300",
+    "latestArea": 28.4,
+    "latestFloor": 32,
+    "latestDate": "20260305",
+    "maxPrice": 162000,
+    "maxPriceEok": "16억2,000",
+    "minPrice": 76000,
+    "minPriceEok": "7억6,000",
+    "txCount": 138,
+    "avg1MPrice": 141650,
+    "avg1MPriceEok": "14억1,650",
+    "avg1MPerPyeong": 4988,
+    "avg1MTxCount": 2,
+    "recent": [
+      {
+        "date": "03.05",
+        "priceEok": "14억2,300",
+        "areaPyeong": 28.4,
+        "floor": 32,
+        "area": 93.8026
+      },
+      {
+        "date": "03.03",
+        "priceEok": "14억1,000",
+        "areaPyeong": 28.4,
+        "floor": 30,
+        "area": 93.8026
+      },
+      {
+        "date": "02.22",
+        "priceEok": "13억7,800",
+        "areaPyeong": 27.9,
+        "floor": 26,
+        "area": 92.2542
+      },
+      {
+        "date": "02.09",
+        "priceEok": "12억4,500",
+        "areaPyeong": 22.7,
+        "floor": 18,
+        "area": 75.0217
+      }
+    ],
+    "rentTxCount": 8,
+    "latestRentDeposit": 50000,
+    "latestRentDepositEok": "5억",
+    "latestRentMonthly": 0,
+    "latestRentDate": "20260323",
+    "avg1MRentDeposit": 36250,
+    "avg1MRentDepositEok": "3억6,250"
+  },
+  "솔빛마을신도브래뉴": {
+    "latestPrice": 50000,
+    "latestPriceEok": "5억",
+    "latestArea": 24.1,
+    "latestFloor": 8,
+    "latestDate": "20260303",
+    "maxPrice": 78800,
+    "maxPriceEok": "7억8,800",
+    "minPrice": 27500,
+    "minPriceEok": "2억7,500",
+    "txCount": 692,
+    "avg1MPrice": 50000,
+    "avg1MPriceEok": "5억",
+    "avg1MPerPyeong": 2075,
+    "avg1MTxCount": 1,
+    "recent": [
+      {
+        "date": "03.03",
+        "priceEok": "5억",
+        "areaPyeong": 24.1,
+        "floor": 8,
+        "area": 79.6171
+      },
+      {
+        "date": "02.20",
+        "priceEok": "7억8,800",
+        "areaPyeong": 25.6,
+        "floor": 21,
+        "area": 84.753
+      },
+      {
+        "date": "02.07",
+        "priceEok": "7억7,000",
+        "areaPyeong": 25.6,
+        "floor": 29,
+        "area": 84.753
       },
       {
         "date": "01.24",
@@ -20115,13 +23393,13 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
         "area": 84.6595
       }
     ],
-    "rentTxCount": 0,
-    "latestRentDeposit": 0,
-    "latestRentDepositEok": "0",
+    "rentTxCount": 6,
+    "latestRentDeposit": 46500,
+    "latestRentDepositEok": "4억6,500",
     "latestRentMonthly": 0,
-    "latestRentDate": "",
-    "avg1MRentDeposit": 0,
-    "avg1MRentDepositEok": "0만"
+    "latestRentDate": "20260321",
+    "avg1MRentDeposit": 36375,
+    "avg1MRentDepositEok": "3억6,375"
   },
   "동탄2아이파크2단지": {
     "latestPrice": 52100,

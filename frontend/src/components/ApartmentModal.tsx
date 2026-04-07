@@ -463,8 +463,15 @@ export function FieldReportModal({
 
             {/* Right: Title + Chart — mobile: 1번째, desktop: 2번째 (60%) */}
              <div className="w-full md:w-[60%] flex flex-col order-1 md:order-2">
-               <div className="flex items-center gap-2 mb-3">
-                 <span className="bg-[#3182f6] text-white text-sm font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
+               <div className="flex items-center justify-between mb-3 w-full">
+                 <div className="flex items-center gap-2">
+                   <span className="bg-[#3182f6] text-white text-sm font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
+                 </div>
+                 {/* 전역 마스터 스위치 */}
+                 <div className="bg-[#f2f4f6] p-0.5 rounded-xl flex items-center shadow-inner">
+                   <button onClick={() => setChartType('sale')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>매매 모드</button>
+                   <button onClick={() => setChartType('jeonse')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>전월세 모드</button>
+                 </div>
                </div>
                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-[#191f28]">{report.apartmentName}</h1>
 
@@ -585,11 +592,7 @@ export function FieldReportModal({
                           <TrendingUp size={15} className="text-[#3182f6]" /> {chartType === 'sale' ? '매매가 추이' : '전월세 추이'}
                         </h4>
                         <div className="flex items-center gap-3">
-                          {/* Toggle Jeonse/Sale */}
-                          <div className="bg-[#f2f4f6] p-0.5 rounded-lg flex items-center shadow-inner hidden sm:flex">
-                            <button onClick={() => setChartType('sale')} className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${chartType === 'sale' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>매매</button>
-                            <button onClick={() => setChartType('jeonse')} className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>전월세</button>
-                          </div>
+
                           {/* Timeframe Toggles */}
                           <div className="flex items-center gap-0.5 bg-[#f2f4f6] p-0.5 rounded-lg shadow-inner">
                             {(['6M','1Y','3Y','ALL'] as const).map(tf => (
@@ -874,10 +877,6 @@ export function FieldReportModal({
                   <h5 className="text-[13px] font-bold text-[#8b95a1] flex items-center gap-1.5">
                     평형별 최근 거래가
                   </h5>
-                  <div className="bg-[#f2f4f6] p-0.5 rounded-lg flex items-center shadow-inner">
-                    <button onClick={() => setChartType('sale')} className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${chartType === 'sale' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>매매</button>
-                    <button onClick={() => setChartType('jeonse')} className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>전월세</button>
-                  </div>
                 </div>
                 <div className="flex flex-nowrap gap-3 overflow-x-auto pb-4 px-4 md:px-10 -mx-4 md:-mx-10 custom-scrollbar items-stretch p-1">
                   {areaCards.map((c, i) => {

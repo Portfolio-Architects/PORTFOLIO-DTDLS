@@ -10,7 +10,7 @@
  */
 
 const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, query, orderBy, getDocs, doc, setDoc, where } = require('firebase/firestore');
+const { getFirestore, collection, query, orderBy, getDocs, doc, writeBatch, setDoc, where } = require('firebase/firestore');
 const fs = require('fs');
 const path = require('path');
 const iconv = require('iconv-lite');
@@ -79,30 +79,62 @@ async function main() {
     process.exit(1);
   }
 
+  const headers = parseCsvLine(lines[headerIdx]);
+  const idx = (name) => headers.findIndex(h => h.includes(name));
+  
+  const iSigungu = idx('시군구');
+  const iAptName = headers.findIndex(h => h.includes('아파트') || h.includes('단지명'));
+  const iArea = idx('전용면적');
+  const iContractYm = idx('계약년월');
+  const iContractDay = idx('계약일');
+  const iFloor = idx('층');
+  
+  const iPrice = idx('거래금액'); // 매매
+  const iDealType = idx('전월세구분'); // 전월세
+  const iDeposit = idx('보증금'); // 전월세
+  const iMonthlyRent = idx('월세'); // 전월세
+  
+  if (iSigungu < 0 || iAptName < 0 || iContractYm < 0) {
+    console.error('❌ 필수 칼럼을 찾을 수 없습니다.');
+    process.exit(1);
+  }
+
   const dataLines = lines.slice(headerIdx + 1);
   console.log(`📋 데이터 행: ${dataLines.length}건`);
 
   const newTxs = [];
   for (const line of dataLines) {
     const cols = parseCsvLine(line);
-    if (cols.length < 12) continue;
+    if (cols.length < 5) continue;
 
-    const sigungu = cols[1]; // 경기도 화성시 동탄구 xx동
-    const aptName = cols[5];
-    const areaStr = cols[6];
-    const contractYm = cols[7]; // 202603
-    const contractDay = cols[8].padStart(2, '0'); // "20" → "20"
-    const priceStr = cols[9]; // "43,500"
-    const floor = parseInt(cols[11]) || 0;
+    const sigungu = cols[iSigungu] || '';
+    const aptName = cols[iAptName] || '';
+    const areaStr = cols[iArea] || '0';
+    const contractYm = cols[iContractYm] || '';
+    const contractDay = (cols[iContractDay] || '').padStart(2, '0');
+    const floor = parseInt(cols[iFloor]) || 0;
 
-    // 거래금액 파싱 (쉼표 제거)
-    const price = parseInt(priceStr.replace(/,/g, '')) || 0;
-    if (price === 0) continue;
+    // 동탄 지역 필터링 (경기도 화성시 동탄구, 화성시 영천동 등 동탄 신도시 소속 지역만)
+    if (!sigungu.includes('화성시') || (!sigungu.includes('동탄') && !sigungu.includes('영천') && !sigungu.includes('오산') && !sigungu.includes('청계') && !sigungu.includes('목동') && !sigungu.includes('산척') && !sigungu.includes('방교') && !sigungu.includes('장지') && !sigungu.includes('송동') && !sigungu.includes('능동') && !sigungu.includes('반송') && !sigungu.includes('석우'))) {
+      continue;
+    }
+
+    let price = 0, deposit = 0, monthlyRent = 0, dealType = '매매';
+
+    if (iPrice >= 0) {
+      price = parseInt((cols[iPrice] || '').replace(/,/g, '')) || 0;
+    }
+    if (iDealType >= 0) {
+      dealType = cols[iDealType] || '';
+      deposit = parseInt((cols[iDeposit] || '').replace(/,/g, '')) || 0;
+      monthlyRent = parseInt((cols[iMonthlyRent] || '').replace(/,/g, '')) || 0;
+    }
+
+    if (price === 0 && deposit === 0) continue;
 
     const area = parseFloat(areaStr) || 0;
     const areaPyeong = Math.round(area / 3.306 * 10) / 10;
 
-    // 동 이름 추출: "경기도 화성시 동탄구 영천동" → "영천동"
     const dongParts = sigungu.split(' ');
     const dong = dongParts[dongParts.length - 1] || '';
 
@@ -111,6 +143,9 @@ async function main() {
       contractYm,
       contractDay,
       price,
+      deposit,
+      monthlyRent,
+      dealType,
       area,
       areaPyeong,
       floor,
@@ -139,18 +174,18 @@ async function main() {
   let uploaded = 0;
   let skipped = 0;
 
-  for (const tx of validTxs) {
-    // 고유 ID: 아파트명_계약일_면적_층_가격
-    const docId = `${normalizeAptName(tx.aptName)}_${tx.contractDate}_${tx.area}_${tx.floor}_${tx.price}`;
-    const docRef = doc(db, 'transactions', docId);
-
-    try {
-      await setDoc(docRef, tx, { merge: true });
+  try {
+    const batch = writeBatch(db);
+    for (const tx of validTxs) {
+      const docId = `${normalizeAptName(tx.aptName)}_${tx.contractDate}_${tx.area}_${tx.floor}_${tx.price}`;
+      const docRef = doc(db, 'transactions', docId);
+      batch.set(docRef, tx, { merge: true });
       uploaded++;
-    } catch (err) {
-      console.error(`⚠️ 업로드 실패: ${tx.aptName} — ${err.message}`);
-      skipped++;
     }
+    await batch.commit();
+  } catch (err) {
+    console.error(`⚠️ 일괄 업로드 실패 — ${err.message}`);
+    skipped = validTxs.length;
   }
 
   console.log(`📤 Firestore 업로드: ${uploaded}건 성공, ${skipped}건 스킵`);
@@ -167,6 +202,12 @@ async function main() {
     const d = docSnap.data();
     const aptName = d.aptName || '';
     if (!aptName) return;
+    
+    // Summary 생성 시에도 동탄 데이터만 포함되도록 이중 필터 설정
+    if (d.dong && !['영천동','청계동','오산동','목동','산척동','방교동','장지동','송동','신동','능동','반송동','석우동'].includes(d.dong)) {
+      return; 
+    }
+
     const key = normalizeAptName(aptName);
     if (!byApt[key]) byApt[key] = [];
     byApt[key].push({

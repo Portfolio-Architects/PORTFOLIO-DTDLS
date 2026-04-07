@@ -173,13 +173,14 @@ src/
 - [ ] 동네 은행별 대출 이자 비교 리스트 (주담대·전세대출 금리 현황)
 - [ ] 주변 동네 부동산 가격 비교 (동탄 vs 수원·용인·평택 시세 벤치마크)
 - [ ] 전월세 가치평가 시스템 (적정 전세가율·월세 수익률 산출)
+- [ ] Firebase MCP 서버 연동 (AI Assistant의 실시간 DB 디버깅 및 스키마 분석 전용 채널 구축)
 
 ### Phase 2 (중장기)
 - [x] ~~Server Components 부분 도입 (page.tsx SSR 전환 → TTFB 감소, 초기 JS 축소)~~
 - [x] ~~Streaming + Suspense 경계 추가 (점진적 렌더링 → 체감 속도 개선)~~
 - [x] ~~Edge Runtime 전환 (일부 API → Cold Start 제거)~~
 - [x] ~~E2E 테스트 (Playwright — 모달·정렬·필터 자동 검증)~~
-- [ ] Vercel Pro Plan 전환 + TossPayments 유료 모델 복원
+- [ ] 하이브리드 아키텍처 전환 (UI 렌더링: Vercel Pro 유지 / 무거운 API 스크립트: Cloud Run 이관) 및 TossPayments 복원
 - [ ] 이메일/비밀번호 + 카카오/Apple 소셜 로그인 확장
 - [ ] 개인화 필터링 & Push 알림 (관심 단지 가격 변동 알림)
 - [ ] AI 기반 아파트 추천 엔진 (사용자 선호 학습 → 맞춤 단지 제안)
