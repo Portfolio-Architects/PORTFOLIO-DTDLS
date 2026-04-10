@@ -65,6 +65,19 @@ export async function POST(request: NextRequest) {
     batch.update(adminDb.collection('scoutingReports').doc(reportId), {
       viewCount: FieldValue.increment(1),
     });
+
+    const reportRef = await adminDb.collection('scoutingReports').doc(reportId).get();
+    const title = reportRef.exists ? (reportRef.data()?.apartmentName || '알 수 없는 단지') : '알 수 없는 리포트';
+
+    batch.set(
+      adminDb.doc(`daily_stats/${today}/content_views/${reportId}`),
+      {
+        title,
+        type: 'report',
+        views: FieldValue.increment(1)
+      },
+      { merge: true }
+    );
     await batch.commit();
 
     return NextResponse.json({ counted: true });

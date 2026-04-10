@@ -3,6 +3,7 @@ import { PieChart, LayoutDashboard, Building2, Newspaper, MessageSquare, Search,
 import './globals.css';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import OfflineBanner from '@/components/OfflineBanner';
+import SiteTracker from '@/components/SiteTracker';
 
 export const metadata: Metadata = {
   title: 'D-VIEW | 동탄 아파트 가치분석',
@@ -41,6 +42,7 @@ export default function RootLayout({
         `}} />
         <OfflineBanner />
         <FloatingUserBar />
+        <SiteTracker />
         {children}
       </body>
     </html>

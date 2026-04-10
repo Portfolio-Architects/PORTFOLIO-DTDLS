@@ -10,6 +10,8 @@ jobs:
   sync:
     name: 국토부 API → Firestore → Static Files
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     defaults:
       run:
         working-directory: frontend

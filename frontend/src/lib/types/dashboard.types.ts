@@ -41,6 +41,8 @@ export interface NewsItemData {
   title: string;
   /** 메타 정보 (e.g., '방금 전 · 부동산') */
   meta: string;
+  /** 게시글 내용 (피드 노출용 프리뷰) */
+  content?: string;
   /** 작성자 닉네임 */
   author: string;
   /** 첨부 이미지 URL */
@@ -51,6 +53,8 @@ export interface NewsItemData {
   icon: ElementType;
   /** 좋아요 수 */
   likes?: number;
+  /** 조회수 (방문자 카운팅) */
+  views?: number;
   /** 작성자 UID (삭제 권한 확인용) */
   authorUid?: string;
   /** 인증된 아파트명 */

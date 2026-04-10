@@ -2,7 +2,7 @@
 
 import { ArrowUp, Building, MapPin, Map as MapIcon, Compass, MessageSquare, Heart, X, FileText,
   LayoutDashboard, UserCircle, Star, Link2, Trash2, LogOut,
-  Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil, ChevronDown } from 'lucide-react';
+  Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil, ChevronDown, Eye } from 'lucide-react';
 import { logger } from '@/lib/services/logger';
 import Image from 'next/image';
 
@@ -73,6 +73,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
   // Lounge compose & verify state
   const [showCompose, setShowCompose] = useState(false);
   const [postTitle, setPostTitle] = useState('');
+  const [postContent, setPostContent] = useState('');
   const [postCategory, setPostCategory] = useState('자유');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showVerify, setShowVerify] = useState(false);
@@ -99,7 +100,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
   }, []);
 
   const [listSort, setListSort] = useState<'views' | 'likes' | 'name'>('views');
-  const [showFullName, setShowFullName] = useState(false);
+
   const [listHeight, setListHeight] = useState(600);
 
   useEffect(() => {
@@ -579,36 +580,6 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
               <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-br from-[#111827] to-[#4b5563] bg-clip-text text-transparent tracking-tight">
                 동탄 아파트 가치 분석
               </h1>
-              <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto mt-0.5 sm:mt-0">
-                <span suppressHydrationWarning className="inline-flex items-center gap-1 bg-white backdrop-blur-md border border-blue-100/80 text-[#3182f6] shadow-[0_2px_8px_rgba(49,130,246,0.06)] text-[11px] sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full shrink-0 transition-transform hover:scale-[1.02]">
-                  <Building size={12} className="sm:w-[14px] sm:h-[14px] opacity-80" />
-                  {Object.values(sheetApartments).flat().length}개 단지
-                </span>
-                {fieldReports.length > 0 && (
-                  <span className="inline-flex items-center gap-1 bg-white backdrop-blur-md border border-amber-100/80 text-[#f59e0b] shadow-[0_2px_8px_rgba(245,158,11,0.06)] text-[11px] sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full shrink-0 transition-transform hover:scale-[1.02]">
-                    <FileText size={12} className="sm:w-[14px] sm:h-[14px] opacity-80" />
-                    {fieldReports.length}개 리포트
-                  </span>
-                )}
-              </div>
-            </div>
-            {/* 2행: 서브타이틀 */}
-            <div className="inline-flex items-center flex-wrap bg-white/60 backdrop-blur-sm border border-[#e5e8eb]/80 rounded-2xl sm:rounded-full px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-sm text-[#6b7684] font-medium shadow-[0_1px_4px_rgba(0,0,0,0.02)] gap-y-1">
-              <button 
-                onClick={() => setShowFullName(!showFullName)} 
-                className="text-[#191f28] font-extrabold hover:text-[#3182f6] transition-colors focus:outline-none flex items-center group shrink-0"
-                aria-expanded={showFullName}
-              >
-                D-VIEW
-                <ChevronDown size={14} className={`transition-transform duration-300 text-[#d1d6db] group-hover:text-[#3182f6] ${showFullName ? 'rotate-180' : ''}`} />
-              </button>
-
-              <div 
-                className={`overflow-hidden transition-[max-width,opacity,margin] duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] whitespace-nowrap flex items-center h-full ${showFullName ? 'max-w-[400px] opacity-100 ml-1.5 sm:ml-2' : 'max-w-0 opacity-0 ml-0'}`}
-              >
-                <span className="text-[#333d4b] font-bold">D</span>ongtan <span className="text-[#333d4b] font-bold px-[0.5px]">V</span>alue <span className="text-[#333d4b] font-bold px-[0.5px]">I</span>nsight <span className="hidden sm:inline">&amp;</span><span className="sm:hidden">&amp;</span> <span className="text-[#333d4b] font-bold px-[0.5px]">E</span>valuation <span className="text-[#333d4b] font-bold px-[0.5px]">W</span>indow
-              </div>
-              <span className={`shrink-0 ${showFullName ? 'ml-1.5 sm:ml-2 pl-1.5 sm:pl-2 border-l border-[#e5e8eb]' : 'ml-1.5 sm:ml-2'}`}>실거래가 · 가치측정 · 현장 검증 사진</span>
             </div>
           </div>
 
@@ -821,7 +792,15 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
               newsFeed.map((news) => (
                 <div key={news.id} onClick={() => router.push(`/lounge/${news.id}`)} className="bg-white rounded-2xl border border-[#e5e8eb] px-5 py-4 hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="text-[16px] font-bold text-[#191f28] leading-snug flex-1">{news.title}</h3>
+                    <div className="flex flex-col gap-1 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${news.category === '부동산' ? 'bg-[#ffe8e8] text-[#f04452]' : news.category === '교통' ? 'bg-[#e8f3ff] text-[#3182f6]' : 'bg-[#f2f4f6] text-[#4e5968]'}`}>{news.meta.split('·')[1]?.trim() || news.category || '자유'}</span>
+                      </div>
+                      <h3 className="text-[17px] font-extrabold text-[#191f28] leading-snug line-clamp-1">{news.title}</h3>
+                      {news.content && (
+                        <p className="text-[14px] text-[#4e5968] leading-relaxed line-clamp-2 mt-1">{news.content}</p>
+                      )}
+                    </div>
                     {(user?.uid === news.authorUid || dashboardFacade.isAdmin(user?.email)) && (
                       <button
                         onClick={async (e) => {
@@ -836,14 +815,15 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
                         className="shrink-0 p-1.5 rounded-lg hover:bg-[#fff0f0] text-[#adb5bd] hover:text-[#ff6b6b] transition-colors"
                         title="삭제"
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={16} />
                       </button>
                     )}
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[13px] text-[#8b95a1]">{news.author} · {news.meta}</span>
+                  <div className="flex items-center justify-between border-t border-[#f2f4f6] pt-3 mt-3">
+                    <span className="text-[13px] text-[#8b95a1] font-medium">{news.author} · {news.meta.split('·')[0]?.trim()}</span>
                     <div className="flex items-center gap-3">
-                      <span className="flex items-center gap-1 text-[12px] text-[#8b95a1]"><Heart size={12} /> {news.likes || 0}</span>
+                      <span className="flex items-center gap-1 text-[12px] text-[#8b95a1]"><Eye size={14} /> {news.views || 0}</span>
+                      <span className="flex items-center gap-1 text-[12px] text-[#8b95a1]"><Heart size={14} /> {news.likes || 0}</span>
                     </div>
                   </div>
                 </div>
@@ -877,7 +857,8 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
                     <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#191f28] text-white border-[#191f28]' : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'}`}>{cat}</button>
                   ))}
                 </div>
-                <textarea value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="동탄 이야기를 자유롭게 나눠보세요..." rows={3} className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors resize-none focus:ring-4 focus:ring-[#3182f6]/10 mb-4" autoFocus />
+                <input value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="글 제목을 입력하세요" className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-[#3182f6] focus:bg-white transition-colors mb-2" autoFocus />
+                <textarea value={postContent} onChange={(e) => setPostContent(e.target.value)} placeholder="동탄 이야기를 자유롭게 나눠보세요... 상세히 작성해주시면 더 많은 이웃들이 공감할 수 있습니다." rows={5} className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors resize-none focus:ring-4 focus:ring-[#3182f6]/10 mb-4" />
                 <div className="flex items-center justify-between">
                   <span className="text-[12px] text-[#8b95a1]">🎭 {userProfile ? getDisplayName(userProfile) : '익명'}</span>
                   <button
@@ -885,8 +866,8 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
                       if (!user || !postTitle.trim()) return;
                       setIsSubmitting(true);
                       try {
-                        await dashboardFacade.addPost(postTitle.trim(), postCategory, user.uid);
-                        setPostTitle(''); setPostCategory('자유'); setShowCompose(false);
+                        await dashboardFacade.addPost(postTitle.trim(), postContent.trim(), postCategory, user.uid);
+                        setPostTitle(''); setPostContent(''); setPostCategory('자유'); setShowCompose(false);
                       } catch { alert('글 작성에 실패했습니다.'); }
                       finally { setIsSubmitting(false); }
                     }}
@@ -1011,28 +992,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
         
       </main>
 
-      {/* Field Report Full View Modal — 모바일에서만 or 임장기 탭 외에서 사용 */}
-      {selectedReport && activeTab !== 'imjang' && (
-        <FieldReportModal 
-          report={fullReportData || selectedReport} 
-          onClose={() => setSelectedReport(null)} 
-          comments={commentsData[selectedReport.id] || []}
-          commentInput={commentInput[selectedReport.id] || ''}
-          onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}
-          onSubmitComment={() => handleSubmitComment(selectedReport.id)}
-          user={user}
-          transactions={modalTransactions}
-          typeMap={typeMap}
-          isLoadingDetail={isLoadingDetail}
-          isPurchased={purchasedReportIds.includes(selectedReport.id)}
-          isAdmin={dashboardFacade.isAdmin(user?.email)}
-          onPurchaseComplete={() => {
-            if (user) {
-              PurchaseRepo.getUserPurchasedReportIds(user.uid).then(setPurchasedReportIds);
-            }
-          }}
-        />
-      )}
+
 
 
 

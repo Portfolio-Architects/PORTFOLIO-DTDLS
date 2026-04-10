@@ -22,6 +22,7 @@ import { compressImage } from '@/lib/utils/imageCompression';
  */
 export async function createPost(
   title: string,
+  content: string,
   category: string,
   authorUid: string,
   imageFile?: File
@@ -45,6 +46,7 @@ export async function createPost(
     await PostRepo.createPost({
       title,
       category,
+      content,
       authorName: displayName,
       authorUid,
       imageUrl,

@@ -39,11 +39,13 @@ export function listenToPosts(callback: (posts: NewsItemData[]) => void): () => 
         id: docSnap.id,
         title: data.title,
         meta: `${dateStr} · ${data.category}`,
+        content: data.content || undefined,
         author: data.authorName || '익명',
         imageUrl: data.imageUrl,
         tagClass,
         icon,
         likes: data.likes || 0,
+        views: data.views || 0,
         authorUid: data.authorUid || undefined,
         verifiedApartment: data.verifiedApartment || undefined,
         verificationLevel: data.verificationLevel || undefined,
@@ -63,6 +65,7 @@ export function listenToPosts(callback: (posts: NewsItemData[]) => void): () => 
 export async function createPost(data: {
   title: string;
   category: string;
+  content?: string;
   authorName: string;
   authorUid: string;
   imageUrl: string | null;
@@ -72,6 +75,7 @@ export async function createPost(data: {
   const docRef = await addDoc(collection(db, 'posts'), {
     ...data,
     likes: 0,
+    views: 0,
     createdAt: serverTimestamp(),
   });
   logger.info('PostRepository.createPost', 'Post created', { id: docRef.id });
@@ -86,6 +90,20 @@ export async function createPost(data: {
 export async function incrementPostLike(postId: string): Promise<void> {
   const postRef = doc(db, 'posts', postId);
   await updateDoc(postRef, { likes: increment(1) });
+}
+
+import * as TrafficRepo from '@/lib/repositories/traffic.repository';
+
+/**
+ * Increments the view counter on a post.
+ * @param postId - The Firestore document ID
+ * @param title - The post title for daily stats
+ * @throws FirestoreError if update fails
+ */
+export async function incrementPostView(postId: string, title: string = '알 수 없는 글'): Promise<void> {
+  const postRef = doc(db, 'posts', postId);
+  await updateDoc(postRef, { views: increment(1) });
+  await TrafficRepo.incrementContentView(postId, title, 'lounge');
 }
 
 /**

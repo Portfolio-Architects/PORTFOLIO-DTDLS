@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { dashboardFacade } from '@/lib/DashboardFacade';
+import { isAdmin } from '@/lib/config/admin.config';
 import { UserCircle, Edit3, X, Camera } from 'lucide-react';
 import { uploadImage } from '@/lib/services/reportService';
 
@@ -28,8 +29,14 @@ export default function FloatingUserBar() {
       if (currentUser) {
         const profile = await dashboardFacade.getUserProfile(currentUser.uid);
         if (profile) setAnonProfile(profile);
+        if (isAdmin(currentUser.email)) {
+          localStorage.setItem('dview_is_admin', 'true');
+        } else {
+          localStorage.removeItem('dview_is_admin');
+        }
       } else {
         setAnonProfile(null);
+        localStorage.removeItem('dview_is_admin');
       }
     });
     return () => unsubscribe();

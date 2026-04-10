@@ -469,8 +469,8 @@ export function FieldReportModal({
                  </div>
                  {/* 전역 마스터 스위치 */}
                  <div className="bg-[#f2f4f6] p-0.5 rounded-xl flex items-center shadow-inner">
-                   <button onClick={() => setChartType('sale')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>매매 모드</button>
-                   <button onClick={() => setChartType('jeonse')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>전월세 모드</button>
+                   <button onClick={() => setChartType('sale')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>매매</button>
+                   <button onClick={() => setChartType('jeonse')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>전월세</button>
                  </div>
                </div>
                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-[#191f28]">{report.apartmentName}</h1>
@@ -614,7 +614,7 @@ export function FieldReportModal({
                          })()}
                        </span>
                        <span className="text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-1 rounded-lg">
-                         최근 1개월 평균
+                         최근월 평균
                        </span>
                      </div>
                      <div className="h-[300px] relative">

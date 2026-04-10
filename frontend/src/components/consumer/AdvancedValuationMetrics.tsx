@@ -165,24 +165,43 @@ function calculateUtilityScoreV2(report: FieldReportData) {
 }
 
 export default function AdvancedValuationMetrics({ report, transactions }: Props) {
-  // 1. Transaction 분리  // 2. Fetch the latest Sale and Jeonse from props
-  // Any dealType that is not 전세 or 월세 is considered a Sale (e.g. 중개거래, 직거래)
+  // 1개월 기준일 계산
+  const now = new Date();
+  const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+
+  const isRecent = (t: any) => {
+    if (!t.contractYm || t.contractYm.length < 6) return false;
+    const y = parseInt(t.contractYm.slice(0, 4));
+    const m = parseInt(t.contractYm.slice(4, 6));
+    const d = parseInt(t.contractDay || '1');
+    const txDate = new Date(y, m - 1, d);
+    return txDate >= oneMonthAgo;
+  };
+
+  // 1. Transaction 분리
   const sales = transactions.filter(t => t.dealType !== '전세' && t.dealType !== '월세').sort((a,b) => b.contractDate.localeCompare(a.contractDate));
   const rents = transactions.filter(t => t.dealType === '전세' || t.dealType === '월세').sort((a,b) => b.contractDate.localeCompare(a.contractDate));
   
-  const latestSale = sales.length > 0 ? sales[0].price : 0;
-  
-  // For rent, we convert Wolse to Jeonse equiv (deposit + rent * 12 / 0.055)
-  const latestRentTx = rents.length > 0 ? rents[0] : null;
-  const latestRent = latestRentTx 
-    ? (latestRentTx.dealType === '월세' 
-        ? (latestRentTx.deposit || 0) + Math.round((latestRentTx.monthlyRent || 0) * 12 / 0.055) 
-        : (latestRentTx.deposit || latestRentTx.price)) 
-    : 0;
+  const recentSales = sales.filter(isRecent);
+  const recentRents = rents.filter(isRecent);
 
-  // 2. 실사용 PER 계산
-  const realEstatePER = (latestSale > 0 && latestRent > 0) ? (latestSale / latestRent) : 0;
-  const jeonseRatio = (latestSale > 0 && latestRent > 0) ? (latestRent / latestSale) * 100 : 0;
+  // 1개월 평균 매매가 (최근 1개월 거래 없으면 가장 마지막 거래 1건 폴백 적용)
+  const avg1MSale = recentSales.length > 0
+    ? Math.round(recentSales.reduce((sum, t) => sum + t.price, 0) / recentSales.length)
+    : (sales.length > 0 ? sales[0].price : 0);
+  
+  const getJeonseEq = (t: any) => t.dealType === '월세' 
+    ? (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055) 
+    : (t.deposit || t.price || 0);
+
+  // 1개월 평균 전세가 (최근 1개월 거래 없으면 가장 마지막 거래 1건 폴백 적용)
+  const avg1MRent = recentRents.length > 0
+    ? Math.round(recentRents.reduce((sum, t) => sum + getJeonseEq(t), 0) / recentRents.length)
+    : (rents.length > 0 ? getJeonseEq(rents[0]) : 0);
+
+  // 2. 실사용 PER 계산 (1건 대신 평균치 적용)
+  const realEstatePER = (avg1MSale > 0 && avg1MRent > 0) ? (avg1MSale / avg1MRent) : 0;
+  const jeonseRatio = (avg1MSale > 0 && avg1MRent > 0) ? (avg1MRent / avg1MSale) * 100 : 0;
 
   // 3. 상태 평가 로직
   let statusText = '데이터 부족';
@@ -285,13 +304,17 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
             
             <div className="flex flex-col gap-3.5">
               <div className="flex items-center justify-between">
-                <span className="text-[13px] text-[#8b95a1] font-medium">최근 매매가 (Price)</span>
-                <span className="text-[15px] font-extrabold text-[#191f28]">{formatPrice(latestSale)}</span>
+                <span className="text-[13px] text-[#8b95a1] font-medium flex items-center gap-1">
+                  1개월 평균 매매가 <span className="text-[10px] bg-[#f2f4f6] px-1 rounded">(Price)</span>
+                </span>
+                <span className="text-[15px] font-extrabold text-[#191f28]">{formatPrice(avg1MSale)}</span>
               </div>
               
               <div className="flex items-center justify-between">
-                <span className="text-[13px] text-[#8b95a1] font-medium">최근 전세가 (Jeonse)</span>
-                <span className="text-[15px] font-extrabold text-[#3182f6]">{formatPrice(latestRent)}</span>
+                <span className="text-[13px] text-[#8b95a1] font-medium flex items-center gap-1">
+                  1개월 평균 전세가 <span className="text-[10px] bg-[#f2f4f6] px-1 rounded">(Jeonse)</span>
+                </span>
+                <span className="text-[15px] font-extrabold text-[#3182f6]">{formatPrice(avg1MRent)}</span>
               </div>
 
               <div className="h-px w-full bg-[#e5e8eb] my-1" />

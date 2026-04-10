@@ -15,7 +15,8 @@ const { initializeApp } = require('firebase/app');
 const { getFirestore, collection, doc, writeBatch, query, orderBy, limit, getDocs } = require('firebase/firestore');
 
 const API_KEY = process.env.BUILDING_API_KEY || '';
-const LAWD_CD = '41597'; // 동탄구 (화성시)
+const LAWD_CD = '41590'; // 화성시 (동탄 지역은 코드 내에서 필터링)
+const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동'];
 const API_BASE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev';
 
 // Firebase config (public)
@@ -127,6 +128,9 @@ async function main() {
         const contractDay = get('dealDay').padStart(2, '0');
         const floor = parseInt(get('floor'), 10) || 0;
         const dong = get('umdNm');
+
+        // 🔥 치명적 버그 수정: 동탄 권역 속하는 동 이름만 메모리 필터링
+        if (!DONGTAN_DONGS.some(d => dong.includes(d))) continue;
 
         monthRecords.push({
           sigungu: `경기도 화성시 동탄구 ${dong}`,
