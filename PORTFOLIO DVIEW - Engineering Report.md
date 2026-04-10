@@ -1,5 +1,5 @@
 # 📋 PORTFOLIO D-VIEW — Engineering Report
-> **Date**: 2026-04-07 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
+> **Date**: 2026-04-08 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
 
 
 ---
@@ -202,6 +202,7 @@ src/
 
 | 일시 | 주요 항목 | 요약 내용 |
 |:---|:---|:---|
+| 2026-04-08 | **데이터 파이프라인 고도화 및 마스터 스위치 통합** | 대규모 트랜잭션 데이터 무결성 검증을 위한 `validation-report.json` 도입 및 더미 전세 데이터 클렌징 연동. UI 레이어(`DashboardClient`, `ApartmentModal`, `AnchorTenantCard`)의 실거래가 예외 방어 로직 강화 및 마스터 스위치 적용 |
 | 2026-04-07 | **실거래가 매매/전월세 DB 통합 파이프라인 구축** | Firebase Client 보안 규칙 만료 우회를 위해 `firebase-admin`을 이용한 백엔드 업로드 아키텍처 전환. 전월세 전용 CSV 업로더 신설 및 매매/전월세 통합 동기화 달성 |
 | 2026-04-02 | **모바일 UX 및 밸류에이션 리팩토링** | 하단 플로팅 독 네이티브 가상화 스크롤 배포, 매매/전월세 차트 데이터 통합 연동, 다이내믹 스티키 헤더 및 관리자 팝오버 구조 축소 개편 |
 | 2026-04-02 | **UI 컴포넌트 핫픽스 자동화** | `fix_modal.js`, `fix_header.js` 등 다수의 자동화 스크립트를 통한 UI 일괄 리팩토링 및 핫픽스 적용 (`2,250+` 라인 변경) |
