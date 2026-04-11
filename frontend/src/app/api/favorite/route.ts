@@ -37,9 +37,9 @@ export async function POST(request: NextRequest) {
       await countRef.set({ count: FieldValue.increment(1), aptName }, { merge: true });
       return NextResponse.json({ favorited: true });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('[favorite] Error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error', details: error?.message || String(error) }, { status: 500 });
   }
 }
 
@@ -59,8 +59,8 @@ export async function GET(request: NextRequest) {
     const snap = await adminDb.collection('favorites').where('userId', '==', userId).get();
     const favorites = snap.docs.map(d => d.data().aptName as string);
     return NextResponse.json({ favorites });
-  } catch (error) {
+  } catch (error: any) {
     console.error('[favorite GET] Error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error', details: error?.message || String(error) }, { status: 500 });
   }
 }

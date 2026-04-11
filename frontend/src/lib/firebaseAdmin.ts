@@ -43,3 +43,12 @@ if (!admin.apps.length) {
 
 export const adminAuth = admin.apps.length ? admin.auth() : null;
 export const adminDb = admin.apps.length ? admin.firestore() : null;
+
+// Fix for Vercel Serverless Function 500 timeouts (gRPC connection hangs)
+if (adminDb) {
+  try {
+    adminDb.settings({ preferRest: true });
+  } catch (e) {
+    // Ignore if already set
+  }
+}

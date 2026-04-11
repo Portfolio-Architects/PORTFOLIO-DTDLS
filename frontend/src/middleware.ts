@@ -15,7 +15,7 @@ const DURATION = 60 * 1000; // 1분 유지
 
 export function middleware(request: NextRequest) {
   // 클라이언트 IP 추출 (Vercel 환경 지원)
-  const ip = request.ip || request.headers.get('x-forwarded-for') || '127.0.0.1';
+  const ip = request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || '127.0.0.1';
   
   // 1. Rate Limiting (API 라우트에 국한)
   if (request.nextUrl.pathname.startsWith('/api/')) {
@@ -54,14 +54,14 @@ export function middleware(request: NextRequest) {
 
   // CSP: XSS 방어를 위해 허가된 리소스만 로딩
   // Next.js 개발 및 런타임을 위해 호환되는 플래그('unsafe-inline', 'unsafe-eval')만 최소 허용하며, 서드파티 스크립트 도메인을 제어합니다.
-  const cspHeader = `
-    default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://maps.googleapis.com https://www.google.com https://www.gstatic.com;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
-    img-src 'self' blob: data: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://maps.gstatic.com https://maps.googleapis.com;
-    font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net;
-    connect-src 'self' https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://maps.googleapis.com https://vitals.vercel-insights.com;
-    frame-src 'self' https://www.google.com https://www.youtube.com https://portfolio-dtdls.firebaseapp.com;
+    const cspHeader = `
+      default-src 'self';
+      script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://maps.googleapis.com https://www.google.com https://www.gstatic.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
+      img-src 'self' blob: data: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://maps.gstatic.com https://maps.googleapis.com;
+      font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net;
+      connect-src 'self' https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://maps.googleapis.com https://vitals.vercel-insights.com https://cdn.jsdelivr.net;
+      frame-src 'self' https://www.google.com https://www.youtube.com https://portfolio-dtdls.firebaseapp.com;
     object-src 'none';
     base-uri 'self';
     form-action 'self';

@@ -34,7 +34,7 @@ jobs:
 
       # Step 1: 국토부 API → Firestore
       - name: Fetch transactions from 국토부 API
-        if: ${{ secrets.BUILDING_API_KEY != '' }}
+        if: secrets.BUILDING_API_KEY != ''
         run: node scripts/fetch-transactions.js
         env:
           BUILDING_API_KEY: ${{ secrets.BUILDING_API_KEY }}
