@@ -21,6 +21,13 @@ if (!admin.apps.length) {
       } catch (parseError) {
         console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY JSON.');
       }
+    } else if (process.env.GOOGLE_PRIVATE_KEY && process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
+      // 3. Fallback to standard Google Service Account env vars (used in Vercel)
+      credential = admin.credential.cert({
+        projectId: 'portfolio-dtdls',
+        clientEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        privateKey: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      });
     } else {
       console.warn('⚠️ Firebase Admin credential not found. Admin features calling this module will fail.');
       console.warn('Place serviceAccountKey.json in the project root or set FIREBASE_SERVICE_ACCOUNT_KEY env var.');
