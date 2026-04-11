@@ -595,13 +595,6 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
         {mounted && activeTab === 'imjang' && (
         <section>
           {/* 1. Section Header — removed, now in main header */}
-          <div className="mb-3 sm:hidden">
-            <div className="flex items-start justify-between w-full">
-              <div className="-mr-2 flex justify-end w-full">
-                <FloatingUserBar />
-              </div>
-            </div>
-          </div>
 
           {/* ── 마스터-디테일 레이아웃 ── */}
           <div className="flex flex-col md:flex-row md:bg-white md:rounded-2xl md:border md:border-[#e5e8eb] md:shadow-sm">
@@ -776,9 +769,6 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
             <div>
               <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] mb-1">실시간 동탄라운지</h2>
               <p className="text-[15px] text-[#8b95a1] font-medium">동탄 주민들의 솔직한 이야기</p>
-            </div>
-            <div className="sm:hidden -mr-2 mt-1">
-              <FloatingUserBar />
             </div>
           </div>
 
@@ -956,9 +946,6 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
             <div>
               <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] mb-1">아파트 추천</h2>
               <p className="text-[15px] text-[#8b95a1] font-medium">동탄 맞춤 아파트 추천 & 분석</p>
-            </div>
-            <div className="sm:hidden -mr-2 mt-1">
-              <FloatingUserBar />
             </div>
           </div>
           <div className="flex flex-col gap-6">
