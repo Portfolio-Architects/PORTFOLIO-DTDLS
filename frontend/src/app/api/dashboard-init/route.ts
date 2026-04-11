@@ -25,10 +25,16 @@ export async function GET() {
     apartmentMeta: {},
   };
 
+  const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
+    Promise.race([
+      promise,
+      new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Firebase timeout')), ms))
+    ]);
+
   // 1. Favorite counts (Firebase Admin)
   try {
     if (adminDb) {
-      const snap = await adminDb.collection('favoriteCounts').get();
+      const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 5000);
       snap.docs.forEach(doc => {
         const data = doc.data();
         if (data.count > 0) {
@@ -66,7 +72,7 @@ export async function GET() {
   // 3. Apartment meta (Firebase Admin — name mapping + public rental)
   try {
     if (adminDb) {
-      const metaDoc = await adminDb.doc('settings/apartmentMeta').get();
+      const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 5000);
       if (metaDoc.exists) {
         result.apartmentMeta = metaDoc.data() || {};
       }

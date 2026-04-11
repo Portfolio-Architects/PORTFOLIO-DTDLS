@@ -16,14 +16,20 @@ async function getInitialData() {
     apartmentMeta: {},
   };
 
+  const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
+    Promise.race([
+      promise,
+      new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Firebase timeout')), ms))
+    ]);
+
   try {
     if (adminDb) {
-      const snap = await adminDb.collection('favoriteCounts').get();
+      const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 5000);
       snap.docs.forEach((doc: any) => {
         const data = doc.data();
         if (data.count > 0) result.favoriteCounts[data.aptName || doc.id] = data.count;
       });
-      const metaDoc = await adminDb.doc('settings/apartmentMeta').get();
+      const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 5000);
       if (metaDoc.exists) {
         result.apartmentMeta = metaDoc.data() || {};
       }
