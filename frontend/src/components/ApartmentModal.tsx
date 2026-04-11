@@ -161,7 +161,7 @@ export function FieldReportModal({
   const [txFilterArea, setTxFilterArea] = useState<string>('ALL');
   const [txFilterDealType, setTxFilterDealType] = useState<string>('ALL');
   const [txSort, setTxSort] = useState<{key: string, dir: 'asc'|'desc'}>({key: 'date', dir: 'desc'});
-  const [activeDropdown, setActiveDropdown] = useState<'floor' | 'type' | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<'floor' | 'type' | 'area' | null>(null);
   const [activeTab, setActiveTab] = useState('sec-summary');
 
   // 차트 매매/전월세 토글
@@ -306,20 +306,12 @@ export function FieldReportModal({
                     </div>
                   </div>
                   
-                  {/* 좌우 스와이프 힌트 (모바일 전용) */}
-                  <div className="md:hidden flex items-center justify-end px-1 pb-2">
-                    <span className="flex items-center gap-1 text-[#8b95a1] bg-[#f2f4f6] px-2 py-1 rounded-md text-[11px] font-bold">
-                      <ArrowLeftRight size={12} className="animate-pulse" />
-                      표를 좌우로 넘겨서 확인하세요
-                    </span>
-                  </div>
-                  
                   {/* 팝업 오버레이 닫기용 투명 배경 - 레이아웃 간섭(Layout Shift) 방지를 위해 독립 배치 */}
                   {activeDropdown && (
                     <div className="fixed inset-0 z-40" onClick={() => setActiveDropdown(null)} />
                   )}
-                  <div className="flex-1 relative min-h-[400px] md:min-h-0">
-                    <div className="absolute inset-0 overflow-x-auto overflow-y-auto custom-scrollbar">
+                  <div className={`relative transition-all duration-300 ${isTxExpanded ? 'h-[400px]' : 'h-[260px] overflow-hidden'}`}>
+                    <div className={`absolute inset-0 overflow-x-auto custom-scrollbar ${isTxExpanded ? 'overflow-y-auto' : 'overflow-y-hidden'}`}>
                       <table className="w-full text-xs md:text-sm">
                       <thead className="sticky top-0 bg-[#f9fafb] z-50">
                         {(() => {
@@ -327,7 +319,7 @@ export function FieldReportModal({
                             <div className={`p-0.5 rounded cursor-pointer flex items-center justify-center transition-colors ${activeDropdown === key ? 'bg-[#e5e8eb]' : 'hover:bg-[#e5e8eb]'}`} onClick={(e) => {
                               e.stopPropagation();
                               if (hasFilter) {
-                                setActiveDropdown(activeDropdown === key ? null : key);
+                                setActiveDropdown((activeDropdown === key ? null : key) as any);
                               } else {
                                 handleTxSort(key);
                               }
@@ -442,6 +434,17 @@ export function FieldReportModal({
                       </tbody>
                     </table>
                     </div>
+                    {/* Gradient Overlay for "더보기" on Mobile & Desktop */}
+                    {!isTxExpanded && filteredTransactions.length > 5 && (
+                      <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-[#f9fafb] via-[#f9fafb]/80 to-transparent flex items-end justify-center pb-2 pointer-events-none">
+                        <button 
+                          onClick={() => setIsTxExpanded(true)} 
+                          className="bg-white border border-[#e5e8eb] shadow-sm text-[#4e5968] text-[13px] font-bold px-4 py-2 rounded-full flex items-center gap-1 hover:bg-[#f2f4f6] transition-colors pointer-events-auto active:scale-95"
+                        >
+                          더보기 <ChevronDown size={14} />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                 </div>
@@ -622,23 +625,23 @@ export function FieldReportModal({
                       </div>
                       
                      <div className="flex w-full divide-x divide-[#e5e8eb] mb-5 bg-[#f9fafb] py-3 rounded-xl border border-[#e5e8eb] overflow-x-auto custom-scrollbar [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
-                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[20%] flex-1 snap-center">
+                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[85px] flex-1 snap-center">
                          <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">1개월 평균</span>
                          <span className="text-[16px] font-extrabold text-[#191f28] whitespace-nowrap">{formatAvgPriceEok(momentum.m1)}</span>
                        </div>
-                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[20%] flex-1 snap-center">
+                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[85px] flex-1 snap-center">
                          <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">3개월 평균</span>
                          <span className="text-[16px] font-extrabold text-[#191f28] whitespace-nowrap">{formatAvgPriceEok(momentum.m3)}</span>
                        </div>
-                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[20%] flex-1 snap-center">
+                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[85px] flex-1 snap-center">
                          <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">6개월 평균</span>
                          <span className="text-[16px] font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.m6)}</span>
                        </div>
-                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[20%] flex-1 snap-center">
+                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[85px] flex-1 snap-center">
                          <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">1년 평균</span>
                          <span className="text-[16px] font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.y1)}</span>
                        </div>
-                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[20%] flex-1 snap-center border-r-0">
+                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[85px] flex-1 snap-center border-r-0">
                          <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">3년 평균</span>
                          <span className="text-[16px] font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.y3)}</span>
                        </div>
@@ -883,8 +886,8 @@ export function FieldReportModal({
                 {/* --- 기간별 단지 평균 테이블 --- */}
                 {periodData.length > 0 && (
                   <div className="pt-4">
-                    <div className="flex items-center gap-2 mb-3 flex-wrap">
-                      <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-between gap-2 mb-3 flex-wrap w-full">
+                      <div className="flex items-center gap-2 justify-between w-full sm:w-auto sm:justify-start">
                         <h5 className="text-[15px] font-bold text-[#4e5968] flex items-center gap-1.5">기간별 평균가격
                           <button
                             onClick={(e) => { e.stopPropagation(); setShowPriceHelp((prev: boolean) => !prev); }}
@@ -969,34 +972,40 @@ export function FieldReportModal({
             );
           })()}
 
-          {/* Sticky Section Nav — stub이면 숨김 */}
-          {!isStub && (
+          {/* Sticky Section Nav */}
           <nav className="sticky top-0 z-[60] bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] px-4 md:px-8 pt-3 pb-0 shadow-sm shadow-[#191f28]/5">
             <div className="flex gap-6 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full relative">
-              {['단지 기본정보', '단지 입지정보', '밸류에이션 분석', '현장 검증 사진', '아파트 이야기'].map((label, idx) => {
-                const ids = ['sec-summary', 'sec-infra-metrics', 'sec-valuation', 'sec-photos', 'sec-comments'];
-                const isActive = activeTab === ids[idx];
-                return (
-                  <button
-                    key={ids[idx]}
-                    onClick={() => scrollToSection(ids[idx])}
-                    className={`relative shrink-0 pb-3 text-[14px] font-bold transition-all duration-200 outline-none ${
-                       isActive ? 'text-[#191f28]' : 'text-[#8b95a1] hover:text-[#191f28]'
-                    }`}
-                  >
-                    {label}
-                    {isActive && (
-                      <span className="absolute bottom-0 left-0 w-full h-[3px] bg-[#191f28] rounded-t-sm" />
-                    )}
-                  </button>
-                );
-              })}
+              {(() => {
+                const tabs = [
+                  { id: 'sec-summary', label: '단지 기본정보', show: true },
+                  { id: 'sec-infra-metrics', label: '단지 입지정보', show: !!report.metrics },
+                  { id: 'sec-valuation', label: '밸류에이션 분석', show: transactions.length > 0 },
+                  { id: 'sec-photos', label: '현장 검증 사진', show: report.images && report.images.length > 0 },
+                  { id: 'sec-comments', label: '아파트 이야기', show: true },
+                ].filter(t => t.show);
+
+                return tabs.map((tab) => {
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => scrollToSection(tab.id)}
+                      className={`relative shrink-0 pb-3 text-[14px] font-bold transition-all duration-200 outline-none ${
+                         isActive ? 'text-[#191f28]' : 'text-[#8b95a1] hover:text-[#191f28]'
+                      }`}
+                    >
+                      {tab.label}
+                      {isActive && (
+                        <span className="absolute bottom-0 left-0 w-full h-[3px] bg-[#191f28] rounded-t-sm" />
+                      )}
+                    </button>
+                  );
+                });
+              })()}
             </div>
           </nav>
-          )}
 
-          {/* Magazine Content Wrapper — stub이면 숨김 */}
-          {!isStub && (
+          {/* Magazine Content Wrapper */}
           <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4' : 'px-2 py-2 md:px-3 md:py-3'} flex flex-col gap-8 w-full`}>
 
             {/* 1. 단지 기본 명세 (Specs) */}
@@ -1438,7 +1447,6 @@ export function FieldReportModal({
             </div>
 
           </div>
-          )}
     </>
   );
 
@@ -1480,7 +1488,7 @@ export function FieldReportModal({
         <div className="absolute inset-0 bg-[#191f28]/60 backdrop-blur-sm" onClick={onClose} />
         
         <div ref={modalRef} onScroll={handleScroll} className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] max-h-[90vh] rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden shadow-2xl transition-all duration-300 ring-1 ring-black/5`}>
-          <button onClick={onClose} className="sticky top-4 z-20 ml-auto mr-4 mt-4 -mb-14 bg-[#191f28]/80 hover:bg-[#191f28] text-white w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0">
+          <button onClick={onClose} className="sticky top-4 z-[100] ml-auto mr-4 mt-4 -mb-14 bg-[#191f28]/80 hover:bg-[#191f28] text-white w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0">
             <X size={20} />
           </button>
           {content}

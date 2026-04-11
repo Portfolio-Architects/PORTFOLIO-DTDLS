@@ -334,6 +334,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
         likes: 0,
         commentCount: 0,
         createdAt: null,
+        metrics: first as any,
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -561,7 +562,9 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
                   평
                 </button>
               </div>
-              <FloatingUserBar />
+              <div className="hidden sm:block">
+                <FloatingUserBar />
+              </div>
             </div>
           </div>
           {/* Bottom row: Tab navigation */}
