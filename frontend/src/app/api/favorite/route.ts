@@ -51,18 +51,25 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    if (!adminDb) return NextResponse.json({ error: 'DB not initialized' }, { status: 500 });
+    if (!adminDb) return NextResponse.json({ favorites: [], warning: 'DB not initialized' }, { status: 200 });
 
     const userId = request.nextUrl.searchParams.get('userId');
     if (!userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+      return NextResponse.json({ favorites: [] }, { status: 200 });
     }
 
-    const snap = await adminDb.collection('favorites').where('userId', '==', userId).get();
+    const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
+      Promise.race([
+        promise,
+        new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Firebase timeout')), ms))
+      ]);
+
+    const snap = await withTimeout(adminDb.collection('favorites').where('userId', '==', userId).get(), 5000);
     const favorites = snap.docs.map(d => d.data().aptName as string);
     return NextResponse.json({ favorites });
   } catch (error: any) {
     console.error('[favorite GET] Error:', error);
-    return NextResponse.json({ error: 'Internal server error', details: error?.message || String(error) }, { status: 500 });
+    // Return [] instead of 500 to prevent app crashes if Firebase hangs
+    return NextResponse.json({ favorites: [], error: String(error) }, { status: 200 });
   }
 }

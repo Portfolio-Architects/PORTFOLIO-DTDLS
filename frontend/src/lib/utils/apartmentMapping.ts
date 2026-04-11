@@ -111,8 +111,17 @@ function deepNormalize(name: string): string {
  * 
  * @returns 매칭된 키 (없으면 null)
  */
+const HARDCODED_MAPPING: Record<string, string> = {
+  '그린힐반도유보라아이비파크10.0': '그린힐반도유보라아이비파크101단지',
+  '레이크힐반도유보라아이비파크10.0': '레이크힐반도유보라아이비파크10.2',
+};
+
 export function findTxKey<T>(aptName: string, txMap: Record<string, T>, manualMapping?: Record<string, string>): string | null {
   const norm = normalizeAptName(aptName);
+
+  // 0.5단계: 하드코딩 매핑
+  const hardcoded = HARDCODED_MAPPING[norm];
+  if (hardcoded && hardcoded in txMap) return hardcoded;
 
   // 0단계: 수동 매핑 (최우선)
   if (manualMapping) {
