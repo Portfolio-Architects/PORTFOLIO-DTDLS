@@ -621,24 +621,24 @@ export function FieldReportModal({
                         </div>
                       </div>
                       
-                     <div className="grid grid-cols-5 divide-x divide-[#e5e8eb] w-full mb-5 bg-[#f9fafb] py-3 rounded-xl border border-[#e5e8eb] overflow-x-auto scrollbar-hide">
-                       <div className="flex flex-col px-3 sm:px-4">
+                     <div className="flex w-full divide-x divide-[#e5e8eb] mb-5 bg-[#f9fafb] py-3 rounded-xl border border-[#e5e8eb] overflow-x-auto custom-scrollbar [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
+                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[20%] flex-1 snap-center">
                          <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">1개월 평균</span>
                          <span className="text-[16px] font-extrabold text-[#191f28] whitespace-nowrap">{formatAvgPriceEok(momentum.m1)}</span>
                        </div>
-                       <div className="flex flex-col px-3 sm:px-4">
+                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[20%] flex-1 snap-center">
                          <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">3개월 평균</span>
                          <span className="text-[16px] font-extrabold text-[#191f28] whitespace-nowrap">{formatAvgPriceEok(momentum.m3)}</span>
                        </div>
-                       <div className="flex flex-col px-3 sm:px-4">
+                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[20%] flex-1 snap-center">
                          <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">6개월 평균</span>
                          <span className="text-[16px] font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.m6)}</span>
                        </div>
-                       <div className="flex flex-col px-3 sm:px-4">
+                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[20%] flex-1 snap-center">
                          <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">1년 평균</span>
                          <span className="text-[16px] font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.y1)}</span>
                        </div>
-                       <div className="flex flex-col px-3 sm:px-4">
+                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[20%] flex-1 snap-center border-r-0">
                          <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">3년 평균</span>
                          <span className="text-[16px] font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.y3)}</span>
                        </div>
