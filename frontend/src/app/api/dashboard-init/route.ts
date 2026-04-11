@@ -12,7 +12,7 @@ import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 
-export const revalidate = 300; // 5분 ISR 캐시
+export const dynamic = 'force-dynamic'; // Vercel build-time network isolation 대비 (런타임에 동적으로 실행 후 CDN 캐시)
 
 export async function GET() {
   const result: {

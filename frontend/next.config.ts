@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+  ...(process.env.VERCEL ? {} : {
+    turbopack: {
+      root: path.resolve(import.meta.dirname, '..'),
+    }
+  }),
   typescript: {
     ignoreBuildErrors: true,
   },
