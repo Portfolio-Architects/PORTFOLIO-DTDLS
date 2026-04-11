@@ -524,16 +524,21 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
       <header className="bg-white border-b border-[#e5e8eb] relative z-40" role="banner">
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16">
           {/* Top row: Brand + UserBar */}
-          <div className="flex items-center justify-between h-14 sm:h-16">
+          <div className="flex items-center justify-between pt-5 pb-3 sm:pt-6 sm:pb-4">
             <div className="flex items-center gap-3">
               <img src="/d-view-icon.png" alt="D-VIEW" className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg shadow-sm ring-1 ring-black/5" />
-              <div className="flex flex-col">
-                <h1 className="text-[17px] sm:text-[20px] font-extrabold text-[#191f28] tracking-tight leading-tight">
+              <div className="flex flex-col mt-0.5">
+                <h1 className="text-[18px] sm:text-[21px] font-extrabold text-[#191f28] tracking-tight leading-tight">
                   동탄 아파트 가치 분석
                 </h1>
-                <span className="text-[11px] sm:text-[12px] font-medium text-[#8b95a1] tracking-wide hidden sm:block">
-                  D-VIEW · Real Estate Intelligence
-                </span>
+                <div className="hidden sm:flex items-center gap-1.5 mt-1">
+                  <span className="px-1.5 py-[2px] bg-[#e8f3ff] text-[#3182f6] rounded-[5px] text-[10px] sm:text-[11px] font-bold tracking-tight">
+                    DATA LAB
+                  </span>
+                  <span className="text-[12px] sm:text-[13px] font-semibold text-[#505967] tracking-tight">
+                    실시간 실거래·임장 리포트
+                  </span>
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-3">
