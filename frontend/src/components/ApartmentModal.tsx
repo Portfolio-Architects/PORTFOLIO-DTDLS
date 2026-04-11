@@ -36,6 +36,8 @@ interface TransactionRecord {
   floor: number;
   buildYear: number;
   dealType: string;
+  reqGb?: string;
+  rnuYn?: string;
 }
 /** GalleryGrid — Horizontal Category-based Scroll for quick point-catching */
 function GalleryGrid({ images, tags, tagLabels, onImageClick }: {
@@ -157,7 +159,6 @@ export function FieldReportModal({
   const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: any } | null>(null);
   const [showPriceHelp, setShowPriceHelp] = useState(false);
   const [txFilterArea, setTxFilterArea] = useState<string>('ALL');
-  const [txFilterFloor, setTxFilterFloor] = useState<string>('ALL');
   const [txFilterDealType, setTxFilterDealType] = useState<string>('ALL');
   const [txSort, setTxSort] = useState<{key: string, dir: 'asc'|'desc'}>({key: 'date', dir: 'desc'});
   const [activeDropdown, setActiveDropdown] = useState<'floor' | 'type' | null>(null);
@@ -165,6 +166,7 @@ export function FieldReportModal({
 
   // 차트 매매/전월세 토글
   const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
+  const [periodDealType, setPeriodDealType] = useState<'sale' | 'jeonse'>('sale');
 
   const handleTxSort = (key: string) => {
     setTxSort(prev => ({ key, dir: prev.key === key && prev.dir === 'desc' ? 'asc' : 'desc' }));
@@ -236,21 +238,10 @@ export function FieldReportModal({
   const areaTypes = Array.from(new Set(transactions.map(tx => {
     const norm = normalizeAptName(tx.aptName);
     const t = typeMap[norm]?.[String(tx.area)];
-    return t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : String(tx.area);
+    return t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : (areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`);
   }))).sort();
   // 고유 유형 목록
   const dealTypes = Array.from(new Set(transactions.map(tx => tx.dealType))).sort();
-  // 층 구간 (아파트별 최고층 기준 3등분)
-  const floors = transactions.map(tx => Number(tx.floor)).filter(f => !Number.isNaN(f));
-  const maxFloor = Math.max(...floors, 1);
-  const lowCut = Math.floor(maxFloor / 3);
-  const midCut = Math.floor(maxFloor * 2 / 3);
-  const floorTiers = [
-    { key: 'ALL', label: '전체' },
-    { key: 'LOW', label: `저층(1~${lowCut}F)` },
-    { key: 'MID', label: `중층(${lowCut + 1}~${midCut}F)` },
-    { key: 'HIGH', label: `고층(${midCut + 1}F~)` },
-  ];
 
   const chipClass = (active: boolean) => `w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
     active ? 'bg-[#e8f3ff] text-[#3182f6]' : 'bg-transparent text-[#4e5968] hover:bg-[#f2f4f6]'
@@ -264,23 +255,13 @@ export function FieldReportModal({
       if (txFilterArea !== 'ALL') {
         const norm = normalizeAptName(tx.aptName);
         const t = typeMap[norm]?.[String(tx.area)];
-        const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : String(tx.area);
+        const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : (areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`);
         if (label !== txFilterArea) return false;
-      }
-      if (txFilterFloor !== 'ALL') {
-        const f = Number(tx.floor);
-        const allFloors = transactions.map(tt => Number(tt.floor)).filter(ff => !Number.isNaN(ff));
-        const mxF = Math.max(...allFloors, 1);
-        const lc = Math.floor(mxF / 3);
-        const mc = Math.floor(mxF * 2 / 3);
-        if (txFilterFloor === 'LOW' && f > lc) return false;
-        if (txFilterFloor === 'MID' && (f <= lc || f > mc)) return false;
-        if (txFilterFloor === 'HIGH' && f <= mc) return false;
       }
       if (txFilterDealType !== 'ALL' && tx.dealType !== txFilterDealType) return false;
       return true;
     });
-  }, [transactions, txFilterArea, txFilterFloor, txFilterDealType, typeMap, areaUnit, chartType]);
+  }, [transactions, txFilterArea, txFilterDealType, typeMap, areaUnit, chartType]);
 
   const sortedFilteredTransactions = useMemo(() => {
     return [...filteredTransactions].sort((a, b) => {
@@ -337,12 +318,13 @@ export function FieldReportModal({
                   {activeDropdown && (
                     <div className="fixed inset-0 z-40" onClick={() => setActiveDropdown(null)} />
                   )}
-                  <div className="overflow-x-auto overflow-y-auto max-h-[460px] custom-scrollbar">
-                    <table className="w-full min-w-[460px] text-sm">
+                  <div className="flex-1 relative min-h-[400px] md:min-h-0">
+                    <div className="absolute inset-0 overflow-x-auto overflow-y-auto custom-scrollbar">
+                      <table className="w-full text-xs md:text-sm">
                       <thead className="sticky top-0 bg-[#f9fafb] z-50">
                         {(() => {
                           const renderSortIcon = (key: string, hasFilter: boolean = false) => (
-                            <div className={`p-1 -m-1 rounded cursor-pointer flex items-center justify-center transition-colors ${activeDropdown === key ? 'bg-[#e5e8eb]' : 'hover:bg-[#e5e8eb]'}`} onClick={(e) => {
+                            <div className={`p-0.5 rounded cursor-pointer flex items-center justify-center transition-colors ${activeDropdown === key ? 'bg-[#e5e8eb]' : 'hover:bg-[#e5e8eb]'}`} onClick={(e) => {
                               e.stopPropagation();
                               if (hasFilter) {
                                 setActiveDropdown(activeDropdown === key ? null : key);
@@ -355,18 +337,18 @@ export function FieldReportModal({
                           );
                           return (
                             <tr className="border-b border-[#e5e8eb] text-[#8b95a1]">
-                              <th className="py-3 text-center font-bold rounded-tl-lg">
-                                <div className="flex items-center justify-center gap-1 w-full relative">
-                                  <span>거래일</span>
+                              <th className="py-2.5 text-center font-bold rounded-tl-lg">
+                                <div className="flex items-center justify-center gap-0.5 w-full relative">
+                                  <span>계약일</span>
                                 </div>
                               </th>
-                              <th className="py-3 text-center font-bold w-[25%]">
-                                <div className="flex items-center justify-center gap-1 w-full">
+                              <th className="py-2.5 text-center font-bold w-[25%]">
+                                <div className="flex items-center justify-center gap-0.5 w-full">
                                   <span>금액</span>
                                 </div>
                               </th>
-                              <th className="py-3 text-center font-bold w-[18%] group hover:bg-[#f2f4f6] transition-colors relative">
-                                <div className="flex items-center justify-center gap-1">
+                              <th className="py-2.5 text-center font-bold w-[16%] group hover:bg-[#f2f4f6] transition-colors relative">
+                                <div className="flex items-center justify-center gap-0.5">
                                   <span className="cursor-pointer" onClick={() => handleTxSort('area')}>{areaUnit === 'm2' ? 'm²' : '평'}</span>
                                   {renderSortIcon('area', true)}
                                 </div>
@@ -382,24 +364,14 @@ export function FieldReportModal({
                                   </div>
                                 )}
                               </th>
-                              <th className="py-3 text-center font-bold w-[15%] group hover:bg-[#f2f4f6] transition-colors relative">
-                                <div className="flex items-center justify-center gap-1">
-                                  <span className="cursor-pointer" onClick={() => handleTxSort('floor')}>층</span>
-                                  {renderSortIcon('floor', true)}
+                              <th className="py-2.5 text-center font-bold w-[13%] group hover:bg-[#f2f4f6] transition-colors relative">
+                                <div className="flex items-center justify-center gap-0.5 cursor-pointer" onClick={() => handleTxSort('floor')}>
+                                  <span>층</span>
+                                  {renderSortIcon('floor', false)}
                                 </div>
-                                {activeDropdown === 'floor' && (
-                                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white ring-1 ring-black/5 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex flex-col min-w-[150px] font-normal z-50 text-left" onClick={e => e.stopPropagation()}>
-                                    <div className="text-[11px] font-bold text-[#8b95a1] mb-2 px-3 pt-1">층수 필터</div>
-                                    <div className="flex flex-col items-stretch max-h-[250px] overflow-y-auto custom-scrollbar">
-                                      {floorTiers.map(ft => (
-                                        <button key={ft.key} className={chipClass(txFilterFloor === ft.key)} onClick={() => {setTxFilterFloor(ft.key); setActiveDropdown(null);}}>{ft.label}</button>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
                               </th>
-                              <th className="py-3 pr-2 text-right font-bold w-[18%] group hover:bg-[#f2f4f6] transition-colors rounded-tr-lg relative">
-                                <div className="flex items-center justify-end gap-1">
+                              <th className="py-2.5 pr-2 text-right font-bold w-[22%] group hover:bg-[#f2f4f6] transition-colors rounded-tr-lg relative">
+                                <div className="flex items-center justify-end gap-0.5 tracking-tight">
                                   <span className="cursor-pointer" onClick={() => handleTxSort('type')}>유형</span>
                                   {renderSortIcon('type', true)}
                                 </div>
@@ -429,28 +401,47 @@ export function FieldReportModal({
                             const t = typeMap[norm]?.[String(tx.area)];
                             const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : null;
                             const badgeEl = (() => {
-                              if (!label) return <span className="text-xs">{tx.areaPyeong}평</span>;
+                              if (!label) return <span className="text-[10px] md:text-xs">{areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`}</span>;
                               const [tc, bgc] = getBadgeColorClasses(label);
-                              return <span className={`font-bold ${tc} ${bgc} px-1.5 py-0.5 rounded text-xs`} title={`${tx.areaPyeong}평`}>{label}</span>;
+                              return <span className={`font-bold ${tc} ${bgc} px-1.5 py-0.5 rounded text-[10px] md:text-xs`} title={areaUnit === 'm2' ? `${tx.areaPyeong}평` : `${tx.area}m²`}>{label}</span>;
                             })();
                             return (
                               <tr key={idx} className={`border-b border-[#f2f4f6] hover:bg-white/60 transition-colors ${isRecent ? 'bg-[#f0f7ff]' : ''}`}>
-                                <td className={`py-3 pl-2 whitespace-nowrap align-middle ${isRecent ? 'text-[#191f28] font-bold' : 'text-[#4e5968]'}`}>
+                                <td className={`py-2.5 pl-1 md:pl-2 whitespace-nowrap align-middle tracking-tight ${isRecent ? 'text-[#191f28] font-bold' : 'text-[#4e5968]'}`}>
                                   <div className="flex items-center w-full">
-                                    {isRecent ? <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3182f6] mr-1.5 shrink-0" /> : <span className="inline-block w-1.5 h-1.5 mr-1.5 shrink-0" />}
-                                    <span>{tx.contractYm.slice(0,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}</span>
+                                    {isRecent ? <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3182f6] mr-1 shrink-0" /> : <span className="inline-block w-1.5 h-1.5 mr-1 shrink-0" />}
+                                    <span>{tx.contractYm.slice(2,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}</span>
                                   </div>
                                 </td>
-                                <td className={`py-3 pr-2 text-right font-extrabold align-middle whitespace-nowrap ${isRecent ? 'text-[#3182f6]' : 'text-[#191f28]'}`}>{tx.priceEok}</td>
-                                <td className="py-3 text-center align-middle">{badgeEl}</td>
-                                <td className="py-3 text-center text-[#4e5968] align-middle">{tx.floor}층</td>
-                                <td className="py-3 pr-2 text-right text-[#8b95a1] align-middle whitespace-nowrap">{tx.dealType}</td>
+                                <td className={`py-2.5 pr-1 text-right font-extrabold align-middle whitespace-nowrap tracking-tighter ${isRecent ? 'text-[#3182f6]' : 'text-[#191f28]'}`}>{tx.priceEok}</td>
+                                <td className="py-2.5 text-center align-middle">{badgeEl}</td>
+                                <td className="py-2.5 text-center text-[#4e5968] align-middle">{tx.floor}</td>
+                                <td className="py-2.5 pr-1 md:pr-2 text-right align-middle text-[#8b95a1] w-[22%]">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <span className="whitespace-nowrap truncate">{tx.dealType}</span>
+                                    {(tx.reqGb || tx.rnuYn === '사용') && (
+                                      <div className="flex items-center gap-0.5">
+                                        {tx.reqGb === '신규' && (
+                                          <span className="shrink-0 whitespace-nowrap text-[9px] md:text-[10px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-1 py-0.5 rounded leading-none">신규</span>
+                                        )}
+                                        {tx.rnuYn === '사용' ? (
+                                          <span className="shrink-0 whitespace-nowrap text-[9px] md:text-[10px] font-bold bg-[#f0fdf4] text-[#03c75a] px-1 py-0.5 rounded leading-none">청구권</span>
+                                        ) : (
+                                          tx.reqGb === '갱신' && (
+                                            <span className="shrink-0 whitespace-nowrap text-[9px] md:text-[10px] font-bold bg-[#e8f3ff] text-[#3182f6] px-1 py-0.5 rounded leading-none">재계약</span>
+                                          )
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
                               </tr>
                             );
                           });
                         })()}
                       </tbody>
                     </table>
+                    </div>
                   </div>
 
                 </div>
@@ -473,7 +464,17 @@ export function FieldReportModal({
                    <button onClick={() => setChartType('jeonse')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>전월세</button>
                  </div>
                </div>
-               <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-[#191f28]">{report.apartmentName}</h1>
+               <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-[#191f28] flex items-center gap-2">
+                 {report.apartmentName}
+                 <a 
+                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(report.apartmentName + (report.apartmentName.includes('아파트') ? '' : ' 아파트'))}`}
+                   target="_blank" rel="noopener noreferrer"
+                   className="text-[#3182f6] hover:bg-[#e8f3ff] p-1.5 md:p-2 rounded-full transition-colors group flex shrink-0 items-center justify-center -ml-1 md:ml-0"
+                   title="구글 지도에서 아파트 위치 보기"
+                 >
+                   <MapPin className="w-6 h-6 md:w-8 md:h-8 group-hover:scale-110 transition-transform" />
+                 </a>
+               </h1>
 
                {/* 매매가/전세가 추이 차트 — 산점도(층수별) + 거래량 막대 + 이동평균선 */}
                {transactions.length > 0 && (() => {
@@ -534,27 +535,14 @@ export function FieldReportModal({
                  })).filter(d => d.price >= q1 - iqr * 3 && d.price <= q3 + iqr * 3);
                  if (scatterData.length === 0) return null;
 
-                 // 층수별 색상 — 해당 아파트 최고층 대비 비율로 동적 분류
-                 const maxFloor = Math.max(...scatterData.map(d => d.floor), 1);
-                 const lowCut = Math.ceil(maxFloor / 3);
-                 const midCut = Math.ceil((maxFloor * 2) / 3);
-                 const getFloorColor = (floor: number) => {
-                   if (floor >= midCut) return '#FF6B6B'; // 고층 = 다홍/빨강
-                   if (floor >= lowCut) return '#3182f6'; // 중층 = 파랑
-                   return '#20C997'; // 저층 = 민트/청록 (보색 대비 강화)
-                 };
-                 const getFloorTier = (floor: number): 'low' | 'mid' | 'high' => {
-                   if (floor >= midCut) return 'high';
-                   if (floor >= lowCut) return 'mid';
-                   return 'low';
-                 };
+                 // 단일 색상
+                 const getFloorColor = (floor: number) => '#3182f6';
 
-                 // 월별 층별 평균 + 거래량
-                 const byMonthTier = new Map<number, { low: number[]; mid: number[]; high: number[]; all: number[] }>();
+                 // 월별 평균 + 거래량
+                 const byMonthTier = new Map<number, { all: number[] }>();
                  scatterData.forEach(d => {
-                   if (!byMonthTier.has(d.yearMonth)) byMonthTier.set(d.yearMonth, { low: [], mid: [], high: [], all: [] });
+                   if (!byMonthTier.has(d.yearMonth)) byMonthTier.set(d.yearMonth, { all: [] });
                    const bucket = byMonthTier.get(d.yearMonth)!;
-                   bucket[getFloorTier(d.floor)].push(d.price);
                    bucket.all.push(d.price);
                  });
                  const avg = (arr: number[]) => arr.length > 0 ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 1000) / 1000 : undefined;
@@ -562,9 +550,6 @@ export function FieldReportModal({
                    .map(([ym, buckets]) => ({
                      ts: new Date(Math.floor(ym / 100), (ym % 100) - 1, 15).getTime(),
                      monthAvg: avg(buckets.all)!,
-                     lowAvg: avg(buckets.low),
-                     midAvg: avg(buckets.mid),
-                     highAvg: avg(buckets.high),
                      volume: buckets.all.length, ym,
                      bandHigh, bandLow,
                    }))
@@ -585,6 +570,39 @@ export function FieldReportModal({
                  const yearAgoEntry = monthlyData.find(d => d.ym >= yearAgoYm);
                  const yoyChange = yearAgoEntry ? ((latestAvg - yearAgoEntry.monthAvg) / yearAgoEntry.monthAvg * 100) : null;
 
+                 // 1M, 3M, 6M, 1Y 기준 모멘텀 계산 (차트 기간 필터와 무관하게 전체 rawData 기준)
+                 const getRecentAvgByMonths = (months: number) => {
+                   const cutoffDate = new Date(now.getFullYear(), now.getMonth() - months, 1);
+                   const cutoffYm = cutoffDate.getFullYear() * 100 + (cutoffDate.getMonth() + 1);
+                   const filtered = rawData.filter(d => d.yearMonth >= cutoffYm);
+                   if (filtered.length === 0) return 0;
+                   
+                   // 이상치(급매/오류) 제거 후 평균
+                   const sorted = [...filtered].sort((a,b) => a.price - b.price);
+                   const q1 = sorted[Math.floor(sorted.length * 0.05)]?.price || 0;
+                   const q3 = sorted[Math.floor(sorted.length * 0.95)]?.price || 10;
+                   const iqr = q3 - q1;
+                   const valid = sorted.filter(d => d.price >= q1 - iqr * 3 && d.price <= q3 + iqr * 3);
+                   if (valid.length === 0) return 0;
+                   return valid.reduce((acc, d) => acc + d.price, 0) / valid.length;
+                 };
+
+                 const momentum = {
+                 m1: getRecentAvgByMonths(1),
+                 m3: getRecentAvgByMonths(3),
+                 m6: getRecentAvgByMonths(6),
+                 y1: getRecentAvgByMonths(12),
+                   y3: getRecentAvgByMonths(36)
+                  };
+
+                 const formatAvgPriceEok = (avg: number) => {
+                   if (!avg) return '-';
+                   const roundedAvg = Math.round(avg * 100) / 100;
+                   const eok = Math.floor(roundedAvg);
+                   const rem = Math.round((roundedAvg % 1) * 10000);
+                   return `${eok >= 1 ? `${eok}억` : ''}${rem > 0 ? rem.toLocaleString() : (eok > 0 ? '' : '0')}`;
+                 };
+
                  return (
                    <div className="mt-4 bg-white rounded-2xl p-5 ring-1 ring-black/5 flex-1">
                       <div className="flex items-center justify-between mb-3 w-full">
@@ -592,8 +610,6 @@ export function FieldReportModal({
                           <TrendingUp size={15} className="text-[#3182f6]" /> {chartType === 'sale' ? '매매가 추이' : '전월세 추이'}
                         </h4>
                         <div className="flex items-center gap-3">
-
-                          {/* Timeframe Toggles */}
                           <div className="flex items-center gap-0.5 bg-[#f2f4f6] p-0.5 rounded-lg shadow-inner">
                             {(['6M','1Y','3Y','ALL'] as const).map(tf => (
                               <button key={tf} onClick={() => setChartTimeframe(tf)}
@@ -604,18 +620,28 @@ export function FieldReportModal({
                           </div>
                         </div>
                       </div>
-                     <div className="flex items-center gap-3 mb-4">
-                       <span className="text-[24px] font-extrabold text-[#191f28]">
-                         {(() => {
-                           const roundedAvg = Math.round(latestAvg * 100) / 100;
-                           const eok = Math.floor(roundedAvg);
-                           const rem = Math.round((roundedAvg % 1) * 10000);
-                           return `${eok >= 1 ? `${eok}억` : ''}${rem > 0 ? rem.toLocaleString() : ''}`;
-                         })()}
-                       </span>
-                       <span className="text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-1 rounded-lg">
-                         최근월 평균
-                       </span>
+                      
+                     <div className="grid grid-cols-5 divide-x divide-[#e5e8eb] w-full mb-5 bg-[#f9fafb] py-3 rounded-xl border border-[#e5e8eb] overflow-x-auto scrollbar-hide">
+                       <div className="flex flex-col px-3 sm:px-4">
+                         <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">1개월 평균</span>
+                         <span className="text-[16px] font-extrabold text-[#191f28] whitespace-nowrap">{formatAvgPriceEok(momentum.m1)}</span>
+                       </div>
+                       <div className="flex flex-col px-3 sm:px-4">
+                         <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">3개월 평균</span>
+                         <span className="text-[16px] font-extrabold text-[#191f28] whitespace-nowrap">{formatAvgPriceEok(momentum.m3)}</span>
+                       </div>
+                       <div className="flex flex-col px-3 sm:px-4">
+                         <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">6개월 평균</span>
+                         <span className="text-[16px] font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.m6)}</span>
+                       </div>
+                       <div className="flex flex-col px-3 sm:px-4">
+                         <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">1년 평균</span>
+                         <span className="text-[16px] font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.y1)}</span>
+                       </div>
+                       <div className="flex flex-col px-3 sm:px-4">
+                         <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">3년 평균</span>
+                         <span className="text-[16px] font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.y3)}</span>
+                       </div>
                      </div>
                      <div className="h-[300px] relative">
                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
@@ -654,25 +680,18 @@ export function FieldReportModal({
                                    <div style={{ color: '#8b95a1', fontSize: 11, marginBottom: 4 }}>
                                      {new Date(item?.ts).getFullYear()}.{String(new Date(item?.ts).getMonth()+1).padStart(2,'0')}월
                                    </div>
-                                   {item?.highAvg && <div style={{ color: '#FF6B6B', fontSize: 12, fontWeight: 700 }}>고층 {item.highAvg.toFixed(2)}억</div>}
-                                   {item?.midAvg && <div style={{ color: '#3182f6', fontSize: 12, fontWeight: 700 }}>중층 {item.midAvg.toFixed(2)}억</div>}
-                                   {item?.lowAvg && <div style={{ color: '#20C997', fontSize: 12, fontWeight: 700 }}>저층 {item.lowAvg.toFixed(2)}억</div>}
+                                   {item?.monthAvg && <div style={{ color: '#191f28', fontSize: 12, fontWeight: 700 }}>평균 {item.monthAvg.toFixed(2)}억</div>}
                                    {vol != null && <div style={{ color: '#8b95a1', fontSize: 11, marginTop: 2 }}>거래 {vol}건</div>}
                                  </div>
                                );
                              }}
                              cursor={{ stroke: '#d1d6db', strokeWidth: 1, strokeDasharray: '3 3' }}
                            />
-                           {/* 가격 밴드 (P5~P95) */}
-                           <Area type="monotone" dataKey="bandHigh" yAxisId="price" stroke="none" fill="url(#bandGrad)" fillOpacity={1} dot={false} activeDot={false} isAnimationActive={false} />
+                           {/* 가격 밴드 (P5~P95) - 배경이 탁해 보여 유저 요청으로 삭제 */}
                            {/* 거래량 막대그래프 */}
                            <Bar dataKey="volume" yAxisId="volume" fill="#e5e8eb" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.6} isAnimationActive={false} />
-                           {/* 저층 월별 평균선 — 점점선 */}
-                           <Line type="monotone" dataKey="lowAvg" yAxisId="price" stroke="#20C997" strokeWidth={2} strokeDasharray="2 3" dot={false} activeDot={false} connectNulls isAnimationActive={false} />
-                           {/* 중층 월별 평균선 — 점선 */}
-                           <Line type="monotone" dataKey="midAvg" yAxisId="price" stroke="#3182f6" strokeWidth={2} strokeDasharray="6 3" dot={false} activeDot={false} connectNulls isAnimationActive={false} />
-                           {/* 고층 월별 평균선 — 실선 */}
-                           <Line type="monotone" dataKey="highAvg" yAxisId="price" stroke="#FF6B6B" strokeWidth={2} dot={false} activeDot={false} connectNulls isAnimationActive={false} />
+                           {/* 월별 평균선 — 실선 */}
+                           <Line type="monotone" dataKey="monthAvg" yAxisId="price" stroke="#3182f6" strokeWidth={2} dot={false} activeDot={false} connectNulls isAnimationActive={false} />
                            {/* 산점도 — 층수별 색상 */}
                            <Customized
                              component={(rechartProps: any) => {
@@ -726,7 +745,7 @@ export function FieldReportModal({
                                {d.priceEok || `${d.price.toFixed(2)}억`}
                              </div>
                              <div style={{ color: '#8b95a1', fontSize: 11, display: 'flex', gap: 6, alignItems: 'center' }}>
-                               {typeName ? <span style={{ color: '#3182f6', fontWeight: 600 }}>{typeName}</span> : <span>{d.area}평</span>}
+                               {typeName ? <span style={{ color: '#3182f6', fontWeight: 600 }}>{typeName}</span> : <span>{areaUnit === 'm2' ? `${d.rawArea}m²` : `${d.area}평`}</span>}
                                <span>·</span><span style={{ color: getFloorColor(d.floor) }}>{d.floor}층</span>
                                {d.dealType && <><span>·</span><span>{d.dealType}</span></>}
                              </div>
@@ -735,10 +754,8 @@ export function FieldReportModal({
                        })()}
                      </div>
                      {/* 범례 */}
-                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 px-1 text-[12px] sm:text-[13px] font-bold text-[#8b95a1]">
-                       <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 border-t-[1.5px] border-dotted border-[#20C997]"/>저층 (1~{lowCut - 1}F)</span>
-                       <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 border-t-[1.5px] border-dashed border-[#3182f6]"/>중층 ({lowCut}~{midCut - 1}F)</span>
-                       <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[1.5px] bg-[#FF6B6B] rounded"/>고층 ({midCut}F~)</span>
+                     <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 mt-2 px-1 text-[12px] sm:text-[13px] font-bold text-[#8b95a1]">
+                       <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[1.5px] bg-[#3182f6] rounded"/>평균가</span>
                        <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-3.5 h-3.5 bg-[#e5e8eb] rounded-sm"/>거래량</span>
                      </div>
                    </div>
@@ -753,45 +770,29 @@ export function FieldReportModal({
             const now = new Date();
             const aptNorm = normalizeAptName(report.apartmentName);
 
-            // 1) 평형별 최근 거래가 그룹핑
-            const cardTransactions = transactions.filter(tx => {
-              if (chartType === 'sale' && (tx.dealType === '전세' || tx.dealType === '월세')) return false;
-              if (chartType === 'jeonse' && tx.dealType !== '전세' && tx.dealType !== '월세') return false;
-              return true;
-            });
-            const byArea = new Map<string, { label: string; price: string; rawPrice: number; count: number; latestYm: number; area: number; floor: number; supplyPyeong?: number }>();
-            cardTransactions.forEach(tx => {
+            // 1) 타입 필터 칩 목록 구성 (단지 내 존재하는 전 평형 추출)
+            const byArea = new Map<string, { label: string; area: number }>();
+            transactions.forEach(tx => {
               const key = String(tx.area);
-              const typeData = typeMap[aptNorm]?.[key];
-              const typeName = typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
-              const label = typeName || `${tx.areaPyeong}평`;
-              
-              let supplyPyeong: number | undefined;
-              if (typeData?.typeM2) {
-                const supplyM2Match = typeData.typeM2.match(/\d+(\.\d+)?/);
-                if (supplyM2Match) supplyPyeong = parseFloat(supplyM2Match[0]) * 0.3025;
-              }
-
-              const ym = parseInt(tx.contractYm);
-              const existing = byArea.get(key);
-              if (!existing || ym > existing.latestYm) {
-                byArea.set(key, { label, price: tx.priceEok, rawPrice: tx.price, count: (existing?.count || 0) + 1, latestYm: ym, area: tx.area, floor: tx.floor, supplyPyeong });
-              } else {
-                existing.count++;
+              if (!byArea.has(key)) {
+                const txAptNorm = normalizeAptName(tx.aptName);
+                const typeData = typeMap[txAptNorm]?.[key];
+                const typeName = typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
+                const label = typeName || (areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`);
+                byArea.set(key, { label, area: tx.area });
               }
             });
-            const areaCards = Array.from(byArea.values())
-              .sort((a, b) => {
-                const numA = parseInt(a.label.match(/\d+/)?.[0] || '0');
-                const numB = parseInt(b.label.match(/\d+/)?.[0] || '0');
-                if (numA !== numB) return numA - numB;
-                return a.label.localeCompare(b.label);
-              });
 
-            // 2) 타입 필터 칩 목록 구성
             const typeFilters: { key: string; label: string; area: number }[] = [
               { key: 'ALL', label: '단지 전체', area: 0 },
-              ...areaCards.map(c => ({ key: String(c.area), label: c.label, area: c.area })),
+              ...Array.from(byArea.values())
+                .sort((a, b) => {
+                  const numA = parseInt(a.label.match(/\d+/)?.[0] || '0');
+                  const numB = parseInt(b.label.match(/\d+/)?.[0] || '0');
+                  if (numA !== numB) return numA - numB;
+                  return a.label.localeCompare(b.label);
+                })
+                .map(c => ({ key: String(c.area), label: c.label, area: c.area }))
             ];
 
             // 3) 기간별 평균 산출 (1M, 3M, 6M, 1Y, 3Y, 5Y, 10Y, ALL)
@@ -811,15 +812,22 @@ export function FieldReportModal({
               return d.getFullYear() * 100 + (d.getMonth() + 1);
             };
 
+            const periodTransactions = transactions.filter(tx => {
+              if (periodDealType === 'sale' && (tx.dealType === '전세' || tx.dealType === '월세')) return false;
+              if (periodDealType === 'jeonse' && tx.dealType !== '전세' && tx.dealType !== '월세') return false;
+              return true;
+            });
+
             // Filter transactions by type if selected
             const baseTx = priceTypeFilter === 'ALL'
-              ? transactions
-              : transactions.filter(tx => String(tx.area) === priceTypeFilter);
+              ? periodTransactions
+              : periodTransactions.filter(tx => String(tx.area) === priceTypeFilter);
 
             // Calculate supply pyeong for a transaction
             const getTxSupplyPyeong = (tx: TransactionRecord) => {
               const key = String(tx.area);
-              const typeData = typeMap[aptNorm]?.[key];
+              const txAptNorm = normalizeAptName(tx.aptName);
+              const typeData = typeMap[txAptNorm]?.[key];
               if (typeData?.typeM2) {
                 const supplyM2Match = typeData.typeM2.match(/\d+(\.\d+)?/);
                 if (supplyM2Match) return parseFloat(supplyM2Match[0]) * 0.3025;
@@ -872,55 +880,34 @@ export function FieldReportModal({
 
             return (
               <div className="bg-white w-full px-4 md:px-10 pb-6 border-b border-[#e5e8eb]">
-                {/* --- 평형별 최근 거래가 --- */}
-                <div className="flex items-center justify-between mb-3 mt-2 pr-1">
-                  <h5 className="text-[13px] font-bold text-[#8b95a1] flex items-center gap-1.5">
-                    평형별 최근 거래가
-                  </h5>
-                </div>
-                <div className="flex flex-nowrap gap-3 overflow-x-auto pb-4 px-4 md:px-10 -mx-4 md:-mx-10 custom-scrollbar items-stretch p-1">
-                  {areaCards.map((c, i) => {
-                    const [tc, bgc] = getBadgeColorClasses(c.label);
-                    // Use supplyPyeong if available, fallback to approx
-                    const pyeong = c.supplyPyeong || (c.area * 0.3025 * 1.33);
-                    const perPyeongMan = pyeong > 0 ? Math.round(c.rawPrice / pyeong) : 0;
-                    const perPyeongStr = perPyeongMan >= 10000
-                      ? `${Math.floor(perPyeongMan / 10000)}억${Math.round(perPyeongMan % 10000) > 0 ? Math.round(perPyeongMan % 10000).toLocaleString() : ''}`
-                      : `${perPyeongMan.toLocaleString()}만`;
-                    return (
-                      <div key={i} className="flex flex-col bg-[#f9fafb] rounded-xl px-5 py-4 ring-1 ring-black/5 hover:ring-[#3182f6]/30 transition-all shrink-0 w-[135px] h-auto">
-                        <div className={`text-[12px] font-bold ${tc} ${bgc} inline-block px-2 py-0.5 rounded-md mb-2 w-fit`}>{c.label}</div>
-                        <div className="text-[17px] font-extrabold text-[#191f28] leading-tight">{c.price}</div>
-                        {perPyeongMan > 0 && <div className="text-[12px] font-bold text-[#4e5968] mt-1">{perPyeongStr}<span className="text-[#8b95a1] font-medium">/평</span></div>}
-                        <div className="text-[11px] text-[#8b95a1] mt-1">{c.floor}층</div>
-                      </div>
-                    );
-                  })}
-                </div>
-
                 {/* --- 기간별 단지 평균 테이블 --- */}
                 {periodData.length > 0 && (
-                  <div className="mt-2 border-t border-[#e5e8eb] pt-4">
+                  <div className="pt-4">
                     <div className="flex items-center gap-2 mb-3 flex-wrap">
-                      <h5 className="text-[13px] font-bold text-[#8b95a1] flex items-center gap-1.5">기간별 평균가격
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setShowPriceHelp((prev: boolean) => !prev); }}
-                          className="w-4 h-4 rounded-full bg-[#d1d6db] hover:bg-[#8b95a1] text-[9px] font-extrabold text-white inline-flex items-center justify-center transition-colors leading-none flex-shrink-0"
-                          aria-label="기준 설명"
-                        >?</button>
-                      </h5>
+                      <div className="flex items-center gap-2">
+                        <h5 className="text-[15px] font-bold text-[#4e5968] flex items-center gap-1.5">기간별 평균가격
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setShowPriceHelp((prev: boolean) => !prev); }}
+                            className="w-4 h-4 rounded-full bg-[#d1d6db] hover:bg-[#8b95a1] text-[10px] font-extrabold text-white inline-flex items-center justify-center transition-colors leading-none flex-shrink-0"
+                            aria-label="기준 설명"
+                          >?</button>
+                        </h5>
+                        <div className="bg-[#f2f4f6] p-1 rounded-lg flex items-center shadow-inner ml-2">
+                          <button onClick={() => setPeriodDealType('sale')} className={`px-3 py-1 rounded-md text-[13px] font-bold transition-all ${periodDealType === 'sale' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>매매</button>
+                          <button onClick={() => setPeriodDealType('jeonse')} className={`px-3 py-1 rounded-md text-[13px] font-bold transition-all ${periodDealType === 'jeonse' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>전월세</button>
+                        </div>
+                      </div>
                       {showPriceHelp && (
                         <>
                           <div className="fixed inset-0 z-[9998]" onClick={() => setShowPriceHelp(false)} />
                           <div className="absolute left-4 top-12 z-[9999] w-[260px] bg-[#1e293b] text-white text-[11px] leading-relaxed rounded-xl px-4 py-3 shadow-2xl">
                             <div className="font-bold mb-1.5">📊 기간별 평균가격이란?</div>
-                            <p className="text-white/80">각 기간 내 실거래된 모든 매매가의 <span className="text-white font-bold">산술 평균</span>입니다.</p>
+                            <p className="text-white/80">각 기간 내 실거래된 모든 자료의 <span className="text-white font-bold">산술 평균</span>입니다.</p>
                             <p className="text-white/80 mt-1">100만 원 단위로 반올림하여 표시합니다.</p>
                             <p className="text-white/50 mt-1.5 text-[10px]">예: "1개월" = 최근 1개월간 거래된 가격의 평균</p>
                           </div>
                         </>
                       )}
-                      <span className="text-[10px] text-[#8b95a1] ml-auto">공급 {avgAreaPyeong.toFixed(1)}평 기준</span>
                     </div>
                     {/* Type filter chips */}
                     <div className="flex flex-nowrap gap-1.5 overflow-x-auto custom-scrollbar pb-3 -mx-1 px-1">
@@ -940,7 +927,7 @@ export function FieldReportModal({
                       <div className="overflow-x-auto custom-scrollbar -mx-4 md:-mx-10 px-4 md:px-10 mt-1">
                       <table className="w-full text-sm min-w-[600px] border-t border-[#f2f4f6]">
                         <thead>
-                          <tr className="border-b border-[#e5e8eb] text-[#8b95a1] text-[11px] font-bold bg-[#f9fafb]">
+                          <tr className="border-b border-[#e5e8eb] text-[#8b95a1] text-[12px] font-bold bg-[#f9fafb]">
                             <th className="py-2.5 px-3 text-left w-[80px]">구분</th>
                             {periodData.map(p => (
                               <th key={`th-${p.key}`} className="py-2.5 px-3 text-right whitespace-nowrap">{p.label}</th>
@@ -949,26 +936,26 @@ export function FieldReportModal({
                         </thead>
                         <tbody>
                           <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
-                            <td className="py-3 px-3 text-[12px] font-bold text-[#4e5968] bg-[#f9fafb]/50">평균가격</td>
+                            <td className="py-3 px-3 text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50">평균가격</td>
                             {periodData.map(p => (
                               <td key={`price-${p.key}`} className="py-3 px-3 text-right">
-                                <span className="text-[13px] font-extrabold text-[#191f28]">{p.avgPriceEok}</span>
+                                <span className="text-[14px] font-extrabold text-[#191f28]">{p.avgPriceEok}</span>
                               </td>
                             ))}
                           </tr>
                           <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
-                            <td className="py-3 px-3 text-[12px] font-bold text-[#4e5968] bg-[#f9fafb]/50">평당가격</td>
+                            <td className="py-3 px-3 text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50">평당가격</td>
                             {periodData.map(p => (
                               <td key={`perpyeong-${p.key}`} className="py-3 px-3 text-right">
-                                <span className="text-[12px] font-bold text-[#4e5968]">{p.perPyeongEok}<span className="text-[10px] text-[#8b95a1] font-medium">/평</span></span>
+                                <span className="text-[13px] font-bold text-[#4e5968]">{p.perPyeongEok}<span className="text-[11px] text-[#8b95a1] font-medium">/평</span></span>
                               </td>
                             ))}
                           </tr>
                           <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
-                            <td className="py-3 px-3 text-[12px] font-bold text-[#4e5968] bg-[#f9fafb]/50">거래건수</td>
+                            <td className="py-3 px-3 text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50">거래건수</td>
                             {periodData.map(p => (
                               <td key={`count-${p.key}`} className="py-3 px-3 text-right">
-                                <span className="text-[12px] font-medium text-[#8b95a1]">{p.count}건</span>
+                                <span className="text-[13px] font-medium text-[#8b95a1]">{p.count}건</span>
                               </td>
                             ))}
                           </tr>
@@ -1018,10 +1005,10 @@ export function FieldReportModal({
                  <h2 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2 mb-5 border-b border-[#e5e8eb] pb-3">
                    <Building size={18} className="text-[#3182f6]"/> 단지 기본정보
                  </h2>
-                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
                     <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
                       <p className="text-[12px] text-[#8b95a1] font-bold mb-1">단지명 / 시공사</p>
-                      <p className="text-[15px] text-[#191f28] font-bold">{report.apartmentName} <span className="text-[13px] text-[#4e5968] font-medium ml-1">{report.metrics.brand ? `(${report.metrics.brand})` : ''}</span></p>
+                      <p className="text-[15px] text-[#191f28] font-bold">{report.apartmentName} {report.metrics.brand && <span className="block text-[13px] text-[#4e5968] font-medium mt-0.5">({report.metrics.brand})</span>}</p>
                     </div>
                     <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
                       <p className="text-[12px] text-[#8b95a1] font-bold mb-1">사용승인일 (연차)</p>
@@ -1049,44 +1036,28 @@ export function FieldReportModal({
                               else if (y > 0) ageStr = `${y}년차`;
                               else ageStr = `${m}개월차`;
                             }
-                            return <>{year}년 {month}월 <span className="text-[13px] text-[#3182f6] font-medium ml-0.5">({ageStr})</span></>;
+                            return <>{year}년 {month}월 <span className="block text-[13px] text-[#3182f6] font-medium mt-0.5">({ageStr})</span></>;
                           }
                           
                           const year = parseInt(ybStr);
                           const age = currentYear - year + 1;
-                          return <>{year}년 <span className="text-[13px] text-[#3182f6] font-medium ml-0.5">({age}년차)</span></>;
+                          return <>{year}년 <span className="block text-[13px] text-[#3182f6] font-medium mt-0.5">({age}년차)</span></>;
                         })() : '-'}
                       </p>
                     </div>
                     <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
                       <p className="text-[12px] text-[#8b95a1] font-bold mb-1">규모 (세대/층)</p>
-                      <p className="text-[15px] text-[#191f28] font-bold">{report.metrics.householdCount ? `${report.metrics.householdCount}세대` : '-'} <span className="text-[#8b95a1] text-[13px] font-medium ml-0.5 whitespace-nowrap">/ {report.metrics.maxFloor ? `최고 ${report.metrics.maxFloor}층` : '-'}</span></p>
+                      <p className="text-[15px] text-[#191f28] font-bold">{report.metrics.householdCount ? `${report.metrics.householdCount}세대` : '-'} <span className="block text-[#8b95a1] text-[13px] font-medium mt-0.5">/ {report.metrics.maxFloor ? `최고 ${report.metrics.maxFloor}층` : '-'}</span></p>
                     </div>
                     <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
                       <p className="text-[12px] text-[#8b95a1] font-bold mb-1">용적률 / 건폐율</p>
-                      <p className="text-[15px] text-[#191f28] font-bold">{report.metrics.far ? `${report.metrics.far}%` : '-'} <span className="text-[#8b95a1] text-[13px] font-medium ml-1 whitespace-nowrap">/ {report.metrics.bcr ? `${report.metrics.bcr}%` : '-'}</span></p>
+                      <p className="text-[15px] text-[#191f28] font-bold">{report.metrics.far ? `${report.metrics.far}%` : '-'} <span className="block text-[#8b95a1] text-[13px] font-medium mt-0.5">/ {report.metrics.bcr ? `${report.metrics.bcr}%` : '-'}</span></p>
                     </div>
                     <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
                       <p className="text-[12px] text-[#8b95a1] font-bold mb-1">주차대수 (세대당)</p>
-                      <p className="text-[15px] text-[#191f28] font-bold">{report.metrics.parkingCount ? `${report.metrics.parkingCount}대` : '-'} <span className="text-[#8b95a1] text-[13px] font-medium ml-0.5 whitespace-nowrap">/ {report.metrics.parkingPerHousehold ? `${report.metrics.parkingPerHousehold}대` : '-'}</span></p>
+                      <p className="text-[15px] text-[#191f28] font-bold">{report.metrics.parkingCount ? `${report.metrics.parkingCount}대` : '-'} <span className="block text-[#8b95a1] text-[13px] font-medium mt-0.5">/ {report.metrics.parkingPerHousehold ? `${report.metrics.parkingPerHousehold}대` : '-'}</span></p>
                     </div>
-                    <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb] md:col-span-2">
-                      <p className="text-[12px] text-[#8b95a1] font-bold mb-1">단지 위치 (지도 보기)</p>
-                      {report.metrics.coordinates ? (
-                        <a 
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(report.metrics.coordinates)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[13px] text-[#3182f6] font-medium mt-0.5 tracking-tight truncate hover:underline flex items-center gap-1"
-                          title="구글 지도에서 보기"
-                        >
-                          <MapPin size={12} />
-                          {report.metrics.coordinates}
-                        </a>
-                      ) : (
-                        <p className="text-[13px] text-[#4e5968] mt-0.5 tracking-tight truncate">-</p>
-                      )}
-                    </div>
+
                  </div>
               </div>
             )}
@@ -1102,152 +1073,178 @@ export function FieldReportModal({
 
           {/* 단지 입지정보 컨테이너 (인프라 + 앵커 테넌트 묶음) */}
           <div id="sec-infra-metrics" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#e5e8eb] flex flex-col gap-10 scroll-mt-14">
-            {/* Location Infrastructure Info — Enhanced with categories + raw data */}
+            {/* Location Infrastructure Info — Enhanced Design v2 */}
             {report.metrics && (report.metrics.distanceToElementary || report.metrics.distanceToSubway || report.metrics.academyDensity) && (
               <div className="flex flex-col w-full">
-                <h2 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2 mb-5 border-b border-[#e5e8eb] pb-3">
+                <h2 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3">
                   <MapPin size={18} className="text-[#3182f6]"/> 단지 입지정보
                 </h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {report.metrics.distanceToElementary > 0 && (
-                    <div className="bg-[#f9fafb] rounded-2xl p-4 md:p-5 flex flex-col justify-between border border-[#e5e8eb] hover:border-[#3182f6]/30 transition-colors">
-                      <div className="text-[14px] font-bold text-[#4e5968] mb-2 flex items-center justify-between">
-                        <span>초등학교</span>
 
-                      </div>
-                      <div className="mt-1">
-                        <span className="text-[26px] font-extrabold text-[#191f28] tracking-tight">{report.metrics.distanceToElementary}</span>
-                        <span className="text-[14px] font-semibold text-[#8b95a1] ml-1">m</span>
-                      </div>
-                      {report.metrics.nearestSchoolNames?.elementary && (
-                        <div className="text-[13px] font-medium text-[#4e5968] mt-2 truncate bg-white rounded-lg px-2.5 py-1.5 border border-[#f2f4f6]">
-                          {report.metrics.nearestSchoolNames.elementary}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {report.metrics.distanceToMiddle > 0 && (
-                    <div className="bg-[#f9fafb] rounded-2xl p-4 md:p-5 flex flex-col justify-between border border-[#e5e8eb] hover:border-[#3182f6]/30 transition-colors">
-                      <div className="text-[14px] font-bold text-[#4e5968] mb-2 flex items-center justify-between">
-                        <span>중학교</span>
-                      </div>
-                      <div className="mt-1">
-                        <span className="text-[26px] font-extrabold text-[#191f28] tracking-tight">{report.metrics.distanceToMiddle}</span>
-                        <span className="text-[14px] font-semibold text-[#8b95a1] ml-1">m</span>
-                      </div>
-                      {report.metrics.nearestSchoolNames?.middle && (
-                        <div className="text-[13px] font-medium text-[#4e5968] mt-2 truncate bg-white rounded-lg px-2.5 py-1.5 border border-[#f2f4f6]">
-                          {report.metrics.nearestSchoolNames.middle}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {report.metrics.distanceToHigh > 0 && (
-                    <div className="bg-[#f9fafb] rounded-2xl p-4 md:p-5 flex flex-col justify-between border border-[#e5e8eb] hover:border-[#3182f6]/30 transition-colors">
-                      <div className="text-[14px] font-bold text-[#4e5968] mb-2 flex items-center justify-between">
-                        <span>고등학교</span>
-                      </div>
-                      <div className="mt-1">
-                        <span className="text-[26px] font-extrabold text-[#191f28] tracking-tight">{report.metrics.distanceToHigh}</span>
-                        <span className="text-[14px] font-semibold text-[#8b95a1] ml-1">m</span>
-                      </div>
-                      {report.metrics.nearestSchoolNames?.high && (
-                        <div className="text-[13px] font-medium text-[#4e5968] mt-2 truncate bg-white rounded-lg px-2.5 py-1.5 border border-[#f2f4f6]">
-                          {report.metrics.nearestSchoolNames.high}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {report.metrics.distanceToSubway > 0 && (
-                    <div className="bg-[#e8f3ff] rounded-2xl p-4 md:p-5 flex flex-col justify-between border border-[#bfdbfe] hover:border-[#3182f6]/40 transition-colors">
-                      <div className="text-[14px] font-bold text-[#3182f6] mb-2 flex items-center justify-between">
-                        <span>GTX-A/SRT</span>
-                      </div>
-                      <div className="mt-1">
-                        <span className="text-[26px] font-extrabold text-[#3182f6] tracking-tight">{report.metrics.distanceToSubway}</span>
-                        <span className="text-[14px] font-semibold text-[#3182f6]/70 ml-1">m</span>
-                      </div>
-                      {report.metrics.nearestStationName && (
-                        <div className="text-[13px] font-medium text-[#3182f6]/90 mt-2 truncate bg-white rounded-lg px-2.5 py-1.5 border border-[#bfdbfe]">
-                          {report.metrics.nearestStationName}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {report.metrics.distanceToIndeokwon != null && report.metrics.distanceToIndeokwon > 0 && (
-                    <div className="bg-[#e8f3ff] rounded-2xl p-4 md:p-5 flex flex-col justify-between border border-[#bfdbfe] hover:border-[#3182f6]/40 transition-colors">
-                      <div className="text-[14px] font-bold text-[#3182f6] mb-2 flex items-center justify-between">
-                        <span>인덕원선</span>
-                      </div>
-                      <div className="mt-1">
-                        <span className="text-[26px] font-extrabold text-[#3182f6] tracking-tight">{report.metrics.distanceToIndeokwon}</span>
-                        <span className="text-[14px] font-semibold text-[#3182f6]/70 ml-1">m</span>
-                      </div>
-                    </div>
-                  )}
-                  {report.metrics.distanceToTram != null && report.metrics.distanceToTram > 0 && (
-                    <div className="bg-[#e8f3ff] rounded-2xl p-4 md:p-5 flex flex-col justify-between border border-[#bfdbfe] hover:border-[#3182f6]/40 transition-colors">
-                      <div className="text-[14px] font-bold text-[#3182f6] mb-2 flex items-center justify-between">
-                        <span>동탄트램</span>
-                      </div>
-                      <div className="mt-1">
-                        <span className="text-[26px] font-extrabold text-[#3182f6] tracking-tight">{report.metrics.distanceToTram}</span>
-                        <span className="text-[14px] font-semibold text-[#3182f6]/70 ml-1">m</span>
-                      </div>
-                    </div>
-                  )}
-                  {/* Academy Density with Category Breakdown */}
-                  {report.metrics.academyDensity > 0 && (
-                    <div className="bg-[#f0fdf4] rounded-2xl p-4 md:p-5 flex flex-col justify-between col-span-1 border border-[#bbf7d0] hover:border-[#03c75a]/40 transition-colors">
-                      <div className="text-[14px] font-bold text-[#03c75a] mb-2 flex items-center justify-between">
-                        <span>학원 (500m 반경)</span>
-                      </div>
-                      <div className="mt-1 mb-3">
-                        <span className="text-[26px] font-extrabold text-[#03c75a] tracking-tight">{report.metrics.academyDensity}</span>
-                        <span className="text-[14px] font-semibold text-[#03c75a]/70 ml-1">개</span>
-                      </div>
-                      {report.metrics.academyCategories && Object.keys(report.metrics.academyCategories).length > 0 && (
-                        <div className="flex flex-col gap-1.5 mt-auto">
-                          {Object.entries(report.metrics.academyCategories)
-                            .sort(([,a], [,b]) => (b as number) - (a as number))
-                            .slice(0, 5)
-                            .map(([cat, cnt]) => (
-                              <div key={cat} className="flex justify-between items-center bg-white rounded-lg px-2.5 py-1.5 border border-[#bbf7d0]">
-                                <span className="text-[12px] text-[#4e5968] font-medium truncate mr-2">{cat}</span>
-                                <span className="font-extrabold text-[12px] text-[#03c75a] shrink-0">{cnt as number}개</span>
-                              </div>
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {/* Restaurant/Cafe Density with Category Breakdown */}
-                  {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
-                    <div className="bg-[#fffbeb] rounded-2xl p-4 md:p-5 flex flex-col justify-between col-span-1 border border-[#fde68a] hover:border-[#f59e0b]/40 transition-colors">
-                      <div className="text-[14px] font-bold text-[#f59e0b] mb-2 flex items-center justify-between">
-                        <span>음식점·카페 (500m)</span>
-                      </div>
-                      <div className="mt-1 mb-3">
-                        <span className="text-[26px] font-extrabold text-[#f59e0b] tracking-tight">{report.metrics.restaurantDensity}</span>
-                        <span className="text-[14px] font-semibold text-[#f59e0b]/70 ml-1">개</span>
-                      </div>
-                      {report.metrics.restaurantCategories && Object.keys(report.metrics.restaurantCategories).length > 0 && (
-                        <div className="flex flex-col gap-1.5 mt-auto">
-                          {Object.entries(report.metrics.restaurantCategories)
-                            .sort(([,a], [,b]) => (b as number) - (a as number))
-                            .slice(0, 5)
-                            .map(([cat, cnt]) => (
-                              <div key={cat} className="flex justify-between items-center bg-white rounded-lg px-2.5 py-1.5 border border-[#fde68a]">
-                                <span className="text-[12px] text-[#4e5968] font-medium truncate mr-2">{cat}</span>
-                                <span className="font-extrabold text-[12px] text-[#f59e0b] shrink-0">{cnt as number}개</span>
-                              </div>
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                {/* ─── 🎓 학군 Section ─── */}
+                {(report.metrics.distanceToElementary > 0 || report.metrics.distanceToMiddle > 0 || report.metrics.distanceToHigh > 0) && (
+                  <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-3">
 
+                      <span className="text-[13px] font-bold text-[#4e5968] tracking-wide uppercase">학군</span>
+                      <div className="flex-1 h-px bg-gradient-to-r from-[#e5e8eb] to-transparent ml-2" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-2.5">
+                      {[
+                        { label: '초등학교', dist: report.metrics.distanceToElementary, name: report.metrics.nearestSchoolNames?.elementary },
+                        { label: '중학교', dist: report.metrics.distanceToMiddle, name: report.metrics.nearestSchoolNames?.middle },
+                        { label: '고등학교', dist: report.metrics.distanceToHigh, name: report.metrics.nearestSchoolNames?.high },
+                      ].filter(s => s.dist && s.dist > 0).map(school => {
+                        const grade = school.dist! <= 300 ? 'excellent' : school.dist! <= 700 ? 'good' : school.dist! <= 1000 ? 'average' : 'far';
+                        const gradeStyles = {
+                          excellent: { bg: 'bg-[#f0fdf4]', border: 'border-[#bbf7d0]', text: 'text-[#15803d]', badge: 'bg-[#dcfce7] text-[#15803d]', dot: 'bg-[#22c55e]' },
+                          good: { bg: 'bg-[#f0f9ff]', border: 'border-[#bae6fd]', text: 'text-[#0369a1]', badge: 'bg-[#e0f2fe] text-[#0369a1]', dot: 'bg-[#0ea5e9]' },
+                          average: { bg: 'bg-[#fffbeb]', border: 'border-[#fed7aa]', text: 'text-[#c2410c]', badge: 'bg-[#ffedd5] text-[#c2410c]', dot: 'bg-[#f97316]' },
+                          far: { bg: 'bg-[#fef2f2]', border: 'border-[#fecaca]', text: 'text-[#b91c1c]', badge: 'bg-[#fee2e2] text-[#b91c1c]', dot: 'bg-[#ef4444]' },
+                        };
+                        const s = gradeStyles[grade];
+                        return (
+                          <div key={school.label} className={`${s.bg} rounded-2xl p-4 flex flex-col border ${s.border} hover:shadow-md transition-all duration-200 group`}>
+                            <div className="flex items-center justify-between mb-2.5">
+                              <span className="text-[13px] font-bold text-[#4e5968]">
+                                {school.label}
+                              </span>
+                              <span className={`w-2 h-2 rounded-full ${s.dot} animate-pulse`} />
+                            </div>
+                            <div className="flex items-baseline gap-0.5">
+                              <span className={`text-[28px] font-black ${s.text} tracking-tight tabular-nums leading-none`}>{(school.dist! / 1000).toFixed(2)}</span>
+                              <span className={`text-[13px] font-semibold ${s.text} opacity-60 ml-0.5`}>km</span>
+                            </div>
+                            {school.name && (
+                              <a 
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(school.name + ' 화성시')}`}
+                                target="_blank" rel="noopener noreferrer"
+                                className={`text-[12px] flex items-center justify-center gap-1 font-semibold ${s.text} mt-2.5 ${s.badge} rounded-lg px-2.5 py-1.5 text-center hover:opacity-80 transition-opacity`}
+                                title={`${school.name} 구글 지도에서 보기`}
+                              >
+                                <MapPin size={12} className="shrink-0" />
+                                <span className="truncate">{school.name}</span>
+                              </a>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* ─── 🚇 교통 Section ─── */}
+                {(report.metrics.distanceToSubway > 0 || (report.metrics.distanceToIndeokwon != null && report.metrics.distanceToIndeokwon > 0) || (report.metrics.distanceToTram != null && report.metrics.distanceToTram > 0)) && (
+                  <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+
+                      <span className="text-[13px] font-bold text-[#4e5968] tracking-wide uppercase">교통</span>
+                      <div className="flex-1 h-px bg-gradient-to-r from-[#e5e8eb] to-transparent ml-2" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-2.5">
+                      {[
+                        { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#3182f6', bgFrom: '#eef6ff', bgTo: '#dbeafe' },
+                        { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestIndeokwonCoords, color: '#7c3aed', bgFrom: '#f5f3ff', bgTo: '#ede9fe' },
+                        { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#0891b2', bgFrom: '#ecfeff', bgTo: '#cffafe' },
+                      ].filter(s => s.dist != null && s.dist > 0).map(station => (
+                        <div key={station.label}
+                          className="rounded-2xl p-4 flex flex-col border hover:shadow-md transition-all duration-200 group relative overflow-hidden"
+                          style={{
+                            background: `linear-gradient(135deg, ${station.bgFrom}, ${station.bgTo})`,
+                            borderColor: `${station.color}25`,
+                          }}>
+                          {/* Subtle gradient accent bar */}
+                          <div className="absolute top-0 left-0 right-0 h-[3px] opacity-80" style={{ background: `linear-gradient(90deg, ${station.color}, ${station.color}60)` }} />
+                          <div className="flex items-center justify-between mb-2.5">
+                            <span className="text-[13px] font-bold" style={{ color: station.color }}>
+                              {station.label}
+                            </span>
+                          </div>
+                          <div className="flex items-baseline gap-0.5">
+                            <span className="text-[28px] font-black tracking-tight tabular-nums leading-none" style={{ color: station.color }}>{(station.dist! / 1000).toFixed(2)}</span>
+                            <span className="text-[13px] font-semibold opacity-50 ml-0.5" style={{ color: station.color }}>km</span>
+                          </div>
+                          {station.name && (
+                            <a 
+                              href={station.coords ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.coords)}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.name + (station.name.includes('정거장') ? ' 동탄' : ' 역'))}`}
+                              target="_blank" rel="noopener noreferrer"
+                              className="text-[12px] flex items-center justify-center gap-1 font-semibold mt-2.5 rounded-lg px-2.5 py-1.5 text-center bg-white/80 backdrop-blur-sm hover:opacity-80 transition-opacity"
+                              style={{ color: station.color, border: `1px solid ${station.color}20` }}
+                              title={`${station.name} 구글 지도에서 보기`}
+                            >
+                              <MapPin size={12} className="shrink-0" />
+                              <span className="truncate">{station.name}</span>
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ─── 🏪 생활 인프라 Section ─── */}
+                {(report.metrics.academyDensity > 0 || (report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0)) && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+
+                      <span className="text-[13px] font-bold text-[#4e5968] tracking-wide uppercase">생활 인프라</span>
+                      <div className="flex-1 h-px bg-gradient-to-r from-[#e5e8eb] to-transparent ml-2" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {/* Academy Density */}
+                      {report.metrics.academyDensity > 0 && (
+                        <div className="bg-gradient-to-br from-[#f0fdf4] to-[#dcfce7]/50 rounded-2xl p-4 md:p-5 flex flex-col border border-[#bbf7d0] hover:shadow-md transition-all duration-200 relative overflow-hidden">
+                          <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#22c55e] to-[#22c55e]/40" />
+                          <div className="text-[13px] font-bold text-[#15803d] mb-2">
+                            학원 · 500m 반경
+                          </div>
+                          <div className="flex items-baseline gap-0.5 mb-3">
+                            <span className="text-[30px] font-black text-[#15803d] tracking-tight tabular-nums leading-none">{report.metrics.academyDensity}</span>
+                            <span className="text-[13px] font-semibold text-[#15803d]/60 ml-0.5">개</span>
+                          </div>
+                          {report.metrics.academyCategories && Object.keys(report.metrics.academyCategories).length > 0 && (
+                            <div className="flex flex-col gap-1.5 mt-auto">
+                              {Object.entries(report.metrics.academyCategories)
+                                .sort(([,a], [,b]) => (b as number) - (a as number))
+                                .slice(0, 5)
+                                .map(([cat, cnt]) => (
+                                  <div key={cat} className="flex justify-between items-center bg-white/80 backdrop-blur-sm rounded-lg px-2.5 py-1.5 border border-[#bbf7d0]/60">
+                                    <span className="text-[12px] text-[#4e5968] font-medium truncate mr-2">{cat}</span>
+                                    <span className="font-extrabold text-[12px] text-[#15803d] shrink-0 tabular-nums">{cnt as number}개</span>
+                                  </div>
+                                ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {/* Restaurant/Cafe Density */}
+                      {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
+                        <div className="bg-gradient-to-br from-[#fffbeb] to-[#fef3c7]/50 rounded-2xl p-4 md:p-5 flex flex-col border border-[#fde68a] hover:shadow-md transition-all duration-200 relative overflow-hidden">
+                          <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#f59e0b] to-[#f59e0b]/40" />
+                          <div className="text-[13px] font-bold text-[#b45309] mb-2">
+                            음식점 · 카페 · 500m
+                          </div>
+                          <div className="flex items-baseline gap-0.5 mb-3">
+                            <span className="text-[30px] font-black text-[#b45309] tracking-tight tabular-nums leading-none">{report.metrics.restaurantDensity}</span>
+                            <span className="text-[13px] font-semibold text-[#b45309]/60 ml-0.5">개</span>
+                          </div>
+                          {report.metrics.restaurantCategories && Object.keys(report.metrics.restaurantCategories).length > 0 && (
+                            <div className="flex flex-col gap-1.5 mt-auto">
+                              {Object.entries(report.metrics.restaurantCategories)
+                                .sort(([,a], [,b]) => (b as number) - (a as number))
+                                .slice(0, 5)
+                                .map(([cat, cnt]) => (
+                                  <div key={cat} className="flex justify-between items-center bg-white/80 backdrop-blur-sm rounded-lg px-2.5 py-1.5 border border-[#fde68a]/60">
+                                    <span className="text-[12px] text-[#4e5968] font-medium truncate mr-2">{cat}</span>
+                                    <span className="font-extrabold text-[12px] text-[#b45309] shrink-0 tabular-nums">{cnt as number}개</span>
+                                  </div>
+                                ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
               </div>
             )}
@@ -1256,10 +1253,25 @@ export function FieldReportModal({
             {report.metrics && (
               <AnchorTenantCard
                 distanceToStarbucks={report.metrics.distanceToStarbucks}
+                starbucksName={report.metrics.starbucksName}
+                starbucksAddress={report.metrics.starbucksAddress}
+                starbucksCoordinates={report.metrics.starbucksCoordinates}
                 distanceToOliveYoung={report.metrics.distanceToOliveYoung}
+                oliveYoungName={report.metrics.oliveYoungName}
+                oliveYoungAddress={report.metrics.oliveYoungAddress}
+                oliveYoungCoordinates={report.metrics.oliveYoungCoordinates}
                 distanceToDaiso={report.metrics.distanceToDaiso}
+                daisoName={report.metrics.daisoName}
+                daisoAddress={report.metrics.daisoAddress}
+                daisoCoordinates={report.metrics.daisoCoordinates}
                 distanceToSupermarket={report.metrics.distanceToSupermarket}
+                supermarketName={report.metrics.supermarketName}
+                supermarketAddress={report.metrics.supermarketAddress}
+                supermarketCoordinates={report.metrics.supermarketCoordinates}
                 distanceToMcDonalds={report.metrics.distanceToMcDonalds}
+                mcdonaldsName={report.metrics.mcdonaldsName}
+                mcdonaldsAddress={report.metrics.mcdonaldsAddress}
+                mcdonaldsCoordinates={report.metrics.mcdonaldsCoordinates}
               />
             )}
           </div>
@@ -1285,13 +1297,6 @@ export function FieldReportModal({
                       <Camera size={20} className="text-[#3182f6]"/>
                       현장 검증 사진
                       <div className="ml-auto flex items-center gap-2 md:gap-3">
-                        {(!!report.scoutingDate || !!report.createdAt) && (
-                          <span className="text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-1 rounded-md">
-                            촬영일자: {report.scoutingDate 
-                              ? String(report.scoutingDate).replace(/-/g, '.')
-                              : new Date(report.createdAt as string | number).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '.').slice(0, -1)}
-                          </span>
-                        )}
                         <span className="text-[13px] font-bold text-[#8b95a1]">{report.images.length}장</span>
                       </div>
                     </summary>

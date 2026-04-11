@@ -14,7 +14,8 @@ export interface ObjectiveMetrics {
   parkingCount?: number; // 총 주차대수
   parkingPerHousehold: number; // 세대당 주차대수
   yearBuilt: number; // 준공연도
-  maxFloor?: number; // 최고층
+  minFloor?: number; // 최저 조망층 (가장 낮은 탑층 동 기준)
+  maxFloor?: number; // 최고 조망층 (가장 높은 탑층 동 기준)
   coordinates?: string; // 좌표 (위도, 경도)
   distanceToElementary: number; // 초등학교까지의 거리 (미터)
   distanceToMiddle: number; // 중학교까지의 거리 (미터)
@@ -27,16 +28,36 @@ export interface ObjectiveMetrics {
   distanceToIndeokwon?: number; // 동탄인덕원선 거리 (m)
   distanceToTram?: number; // 동탄트램 거리 (m)
   distanceToStarbucks?: number;
+  starbucksName?: string; // e.g. "스타벅스 동탄역점"
+  starbucksAddress?: string; // e.g. "경기도 화성시 동탄역로 123"
+  starbucksCoordinates?: string; // e.g. "37.1994, 127.0984"
   distanceToMcDonalds?: number;
+  mcdonaldsName?: string;
+  mcdonaldsAddress?: string;
+  mcdonaldsCoordinates?: string;
   distanceToOliveYoung?: number;
+  oliveYoungName?: string;
+  oliveYoungAddress?: string;
+  oliveYoungCoordinates?: string;
   distanceToDaiso?: number;
+  daisoName?: string;
+  daisoAddress?: string;
+  daisoCoordinates?: string;
   distanceToSupermarket?: number;
+  supermarketName?: string;
+  supermarketAddress?: string;
+  supermarketCoordinates?: string;
   nearestSchoolNames?: {
     elementary?: string;
     middle?: string;
     high?: string;
   };
   nearestStationName?: string;
+  nearestStationLine?: string;
+  nearestIndeokwonStationName?: string;
+  nearestIndeokwonLine?: string;
+  nearestTramStationName?: string;
+  nearestTramLine?: string;
 }
 
 export interface AdSlot {

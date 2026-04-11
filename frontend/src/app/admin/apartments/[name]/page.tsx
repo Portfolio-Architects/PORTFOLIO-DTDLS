@@ -101,6 +101,7 @@ function autoSuggest(aptName: string): string | null {
 interface AptMeta {
   dong: string;
   txKey?: string;
+  minFloor?: number;
   maxFloor?: number;
   isPublicRental?: boolean;
   householdCount?: number;
@@ -120,10 +121,25 @@ interface AptMeta {
   distanceToIndeokwon?: number;
   distanceToTram?: number;
   distanceToStarbucks?: number;
+  starbucksName?: string;
+  starbucksAddress?: string;
+  starbucksCoordinates?: string;
   distanceToMcDonalds?: number;
+  mcdonaldsName?: string;
+  mcdonaldsAddress?: string;
+  mcdonaldsCoordinates?: string;
   distanceToOliveYoung?: number;
+  oliveYoungName?: string;
+  oliveYoungAddress?: string;
+  oliveYoungCoordinates?: string;
   distanceToDaiso?: number;
+  daisoName?: string;
+  daisoAddress?: string;
+  daisoCoordinates?: string;
   distanceToSupermarket?: number;
+  supermarketName?: string;
+  supermarketAddress?: string;
+  supermarketCoordinates?: string;
   academyDensity?: number;
   restaurantDensity?: number;
 }
@@ -185,6 +201,14 @@ export default function ApartmentInfoPage() {
     restaurantCategories?: Record<string, number>;
     nearestSchoolNames?: { elementary?: string; middle?: string; high?: string };
     nearestStationName?: string;
+    nearestStationLine?: string;
+    nearestIndeokwonStationName?: string;
+    nearestIndeokwonLine?: string;
+    nearestTramStationName?: string;
+    nearestTramLine?: string;
+    nearestStationCoords?: string;
+    nearestIndeokwonCoords?: string;
+    nearestTramCoords?: string;
   }>({});
 
   const suggestedTxKey = useMemo(() => {
@@ -197,58 +221,133 @@ export default function ApartmentInfoPage() {
   useEffect(() => {
     let isMounted = true;
     const load = async () => {
+      let firestoreLoaded = false;
       try {
         const metaDoc = await getDoc(doc(db, 'settings/apartmentMeta'));
         if (metaDoc.exists()) {
           const allMeta = metaDoc.data() as Record<string, unknown>;
-          const m = allMeta[originalName];
+          const m = allMeta[originalName] as Record<string, unknown> | undefined;
           if (m && typeof m === 'object' && m.dong) {
             const foundMeta: AptMeta = {
-              dong: m.dong, txKey: m.txKey || autoSuggest(originalName) || undefined,
-              maxFloor: m.maxFloor || 0, isPublicRental: m.isPublicRental || false,
-              householdCount: m.householdCount, yearBuilt: m.yearBuilt,
-              brand: m.brand, ticker: m.ticker,
-              far: m.far, bcr: m.bcr, parkingCount: m.parkingCount,
-              parkingPerHousehold: m.parkingPerHousehold, coordinates: m.coordinates,
+              dong: m.dong as string, txKey: (m.txKey as string) || autoSuggest(originalName) || undefined,
+              minFloor: m.minFloor as number | undefined, maxFloor: m.maxFloor as number | undefined, isPublicRental: (m.isPublicRental as boolean) || false,
+              householdCount: m.householdCount as number | undefined, yearBuilt: m.yearBuilt as string | undefined,
+              brand: m.brand as string | undefined, ticker: m.ticker as string | undefined,
+              far: m.far as number | undefined, bcr: m.bcr as number | undefined, parkingCount: m.parkingCount as number | undefined,
+              parkingPerHousehold: m.parkingPerHousehold as number | undefined, coordinates: m.coordinates as string | undefined,
+              // ★ Restore distance metrics from Firestore cache
+              distanceToElementary: m.distanceToElementary as number | undefined,
+              distanceToMiddle: m.distanceToMiddle as number | undefined,
+              distanceToHigh: m.distanceToHigh as number | undefined,
+              distanceToSubway: m.distanceToSubway as number | undefined,
+              distanceToIndeokwon: m.distanceToIndeokwon as number | undefined,
+              distanceToTram: m.distanceToTram as number | undefined,
+              distanceToStarbucks: m.distanceToStarbucks as number | undefined,
+              starbucksName: m.starbucksName as string | undefined,
+              starbucksAddress: m.starbucksAddress as string | undefined,
+              starbucksCoordinates: m.starbucksCoordinates as string | undefined,
+              distanceToMcDonalds: m.distanceToMcDonalds as number | undefined,
+              distanceToOliveYoung: m.distanceToOliveYoung as number | undefined,
+              distanceToDaiso: m.distanceToDaiso as number | undefined,
+              distanceToSupermarket: m.distanceToSupermarket as number | undefined,
+              academyDensity: m.academyDensity as number | undefined,
+              restaurantDensity: m.restaurantDensity as number | undefined,
             };
             if (isMounted) {
               setMeta(foundMeta);
               setInitialMeta(JSON.parse(JSON.stringify(foundMeta)));
               setLoaded(true);
+              firestoreLoaded = true;
             }
-            return;
           }
         }
       } catch (e) {
         console.warn('Firestore load failed, trying Sheets:', e);
       }
       try {
-        const res = await fetch('/api/apartments-by-dong');
+        const res = await fetch(`/api/apartments-by-dong?t=${Date.now()}`, { cache: 'no-store' });
         if (!res.ok) throw new Error('Sheets fail');
         const data = await res.json();
-        let foundMeta: AptMeta | null = null;
+        let sheetsMeta: AptMeta | null = null;
         if (data.byDong) {
           for (const [, apts] of Object.entries(data.byDong)) {
             const apt = (apts as { name: string; [key: string]: unknown }[]).find(a => a.name === originalName);
             if (apt) {
-              foundMeta = {
-                dong: (apt as Record<string, string | number | boolean>)?.dong, txKey: (apt as Record<string, string | number | boolean>)?.txKey || undefined, maxFloor: (apt as Record<string, string | number | boolean>)?.maxFloor || 0,
-                isPublicRental: (apt as Record<string, string | number | boolean>)?.isPublicRental || false, householdCount: (apt as Record<string, string | number | boolean>)?.householdCount,
+              sheetsMeta = {
+                dong: (apt as Record<string, string | number | boolean>)?.dong as string, txKey: (apt as Record<string, string | number | boolean>)?.txKey as string | undefined, minFloor: (apt as Record<string, string | number | boolean>)?.minFloor as number | undefined, maxFloor: (apt as Record<string, string | number | boolean>)?.maxFloor as number | undefined, isPublicRental: (apt as Record<string, string | number | boolean>)?.isPublicRental || false, householdCount: (apt as Record<string, string | number | boolean>)?.householdCount,
                 yearBuilt: (apt as Record<string, string | number | boolean>)?.yearBuilt, brand: (apt as Record<string, string | number | boolean>)?.brand, ticker: (apt as Record<string, string | number | boolean>)?.ticker,
                 far: (apt as Record<string, string | number | boolean>)?.far, bcr: (apt as Record<string, string | number | boolean>)?.bcr, parkingCount: (apt as Record<string, string | number | boolean>)?.parkingCount,
                 coordinates: (apt.lat && apt.lng) ? `${apt.lat}, ${apt.lng}` : undefined,
+                starbucksName: (apt as Record<string, string | number | boolean>)?.starbucksName as string | undefined,
+                starbucksAddress: (apt as Record<string, string | number | boolean>)?.starbucksAddress as string | undefined,
+                starbucksCoordinates: (apt as Record<string, string | number | boolean>)?.starbucksCoordinates as string | undefined,
+                oliveYoungName: (apt as Record<string, string | number | boolean>)?.oliveYoungName as string | undefined,
+                oliveYoungAddress: (apt as Record<string, string | number | boolean>)?.oliveYoungAddress as string | undefined,
+                oliveYoungCoordinates: (apt as Record<string, string | number | boolean>)?.oliveYoungCoordinates as string | undefined,
+                daisoName: (apt as Record<string, string | number | boolean>)?.daisoName as string | undefined,
+                daisoAddress: (apt as Record<string, string | number | boolean>)?.daisoAddress as string | undefined,
+                daisoCoordinates: (apt as Record<string, string | number | boolean>)?.daisoCoordinates as string | undefined,
+                mcdonaldsName: (apt as Record<string, string | number | boolean>)?.mcdonaldsName as string | undefined,
+                mcdonaldsAddress: (apt as Record<string, string | number | boolean>)?.mcdonaldsAddress as string | undefined,
+                mcdonaldsCoordinates: (apt as Record<string, string | number | boolean>)?.mcdonaldsCoordinates as string | undefined,
+                supermarketName: (apt as Record<string, string | number | boolean>)?.supermarketName as string | undefined,
+                supermarketAddress: (apt as Record<string, string | number | boolean>)?.supermarketAddress as string | undefined,
+                supermarketCoordinates: (apt as Record<string, string | number | boolean>)?.supermarketCoordinates as string | undefined,
+                distanceToStarbucks: (apt as Record<string, string | number | boolean>)?.distanceToStarbucks as number | undefined,
+                distanceToOliveYoung: (apt as Record<string, string | number | boolean>)?.distanceToOliveYoung as number | undefined,
+                distanceToDaiso: (apt as Record<string, string | number | boolean>)?.distanceToDaiso as number | undefined,
+                distanceToMcDonalds: (apt as Record<string, string | number | boolean>)?.distanceToMcDonalds as number | undefined,
+                distanceToSupermarket: (apt as Record<string, string | number | boolean>)?.distanceToSupermarket as number | undefined,
               };
               break;
             }
           }
         }
-        if (isMounted) {
-          setMeta(foundMeta || { dong: '기타', maxFloor: 0, isPublicRental: false });
-          setInitialMeta(JSON.parse(JSON.stringify(foundMeta || { dong: '기타' })));
+        if (isMounted && sheetsMeta) {
+          // ★ Sheets only provides basic fields — MERGE into existing meta, never overwrite distance metrics
+          setMeta(prev => {
+            if (!prev) return sheetsMeta;
+            return { ...prev, ...sheetsMeta, 
+              // Preserve any already-loaded distance metrics (from Firestore or scoutingReport)
+              distanceToElementary: prev.distanceToElementary ?? sheetsMeta!.distanceToElementary,
+              distanceToMiddle: prev.distanceToMiddle ?? sheetsMeta!.distanceToMiddle,
+              distanceToHigh: prev.distanceToHigh ?? sheetsMeta!.distanceToHigh,
+              distanceToSubway: prev.distanceToSubway ?? sheetsMeta!.distanceToSubway,
+              distanceToIndeokwon: prev.distanceToIndeokwon ?? sheetsMeta!.distanceToIndeokwon,
+              distanceToTram: prev.distanceToTram ?? sheetsMeta!.distanceToTram,
+              distanceToStarbucks: sheetsMeta!.distanceToStarbucks ?? prev.distanceToStarbucks,
+              starbucksName: sheetsMeta!.starbucksName || prev.starbucksName,
+              starbucksAddress: sheetsMeta!.starbucksAddress || prev.starbucksAddress,
+              starbucksCoordinates: sheetsMeta!.starbucksCoordinates || prev.starbucksCoordinates,
+              distanceToMcDonalds: sheetsMeta!.distanceToMcDonalds ?? prev.distanceToMcDonalds,
+              mcdonaldsName: sheetsMeta!.mcdonaldsName || prev.mcdonaldsName,
+              mcdonaldsAddress: sheetsMeta!.mcdonaldsAddress || prev.mcdonaldsAddress,
+              mcdonaldsCoordinates: sheetsMeta!.mcdonaldsCoordinates || prev.mcdonaldsCoordinates,
+              distanceToOliveYoung: sheetsMeta!.distanceToOliveYoung ?? prev.distanceToOliveYoung,
+              oliveYoungName: sheetsMeta!.oliveYoungName || prev.oliveYoungName,
+              oliveYoungAddress: sheetsMeta!.oliveYoungAddress || prev.oliveYoungAddress,
+              oliveYoungCoordinates: sheetsMeta!.oliveYoungCoordinates || prev.oliveYoungCoordinates,
+              distanceToDaiso: sheetsMeta!.distanceToDaiso ?? prev.distanceToDaiso,
+              daisoName: sheetsMeta!.daisoName || prev.daisoName,
+              daisoAddress: sheetsMeta!.daisoAddress || prev.daisoAddress,
+              daisoCoordinates: sheetsMeta!.daisoCoordinates || prev.daisoCoordinates,
+              distanceToSupermarket: sheetsMeta!.distanceToSupermarket ?? prev.distanceToSupermarket,
+              supermarketName: sheetsMeta!.supermarketName || prev.supermarketName,
+              supermarketAddress: sheetsMeta!.supermarketAddress || prev.supermarketAddress,
+              supermarketCoordinates: sheetsMeta!.supermarketCoordinates || prev.supermarketCoordinates,
+              academyDensity: prev.academyDensity ?? sheetsMeta!.academyDensity,
+              restaurantDensity: prev.restaurantDensity ?? sheetsMeta!.restaurantDensity,
+            };
+          });
+          setInitialMeta(prev => prev ? { ...prev, ...sheetsMeta } : JSON.parse(JSON.stringify(sheetsMeta)));
+          setLoaded(true);
+        } else if (isMounted && !firestoreLoaded) {
+          setMeta({ dong: '기타', maxFloor: 0, isPublicRental: false });
+          setInitialMeta({ dong: '기타' });
           setLoaded(true);
         }
-      } catch {
-        if (isMounted) {
+      } catch (e) {
+        if (isMounted && !firestoreLoaded) {
           setMeta({ dong: '기타', maxFloor: 0, isPublicRental: false });
           setInitialMeta({ dong: '기타' });
           setLoaded(true);
@@ -308,10 +407,25 @@ export default function ApartmentInfoPage() {
         distanceToIndeokwon: prev.distanceToIndeokwon ?? m.distanceToIndeokwon,
         distanceToTram: prev.distanceToTram ?? m.distanceToTram,
         distanceToStarbucks: prev.distanceToStarbucks ?? m.distanceToStarbucks,
+        starbucksName: prev.starbucksName ?? m.starbucksName,
+        starbucksAddress: prev.starbucksAddress ?? m.starbucksAddress,
+        starbucksCoordinates: prev.starbucksCoordinates ?? m.starbucksCoordinates,
         distanceToMcDonalds: prev.distanceToMcDonalds ?? m.distanceToMcDonalds,
+        mcdonaldsName: prev.mcdonaldsName ?? m.mcdonaldsName,
+        mcdonaldsAddress: prev.mcdonaldsAddress ?? m.mcdonaldsAddress,
+        mcdonaldsCoordinates: prev.mcdonaldsCoordinates ?? m.mcdonaldsCoordinates,
         distanceToOliveYoung: prev.distanceToOliveYoung ?? m.distanceToOliveYoung,
+        oliveYoungName: prev.oliveYoungName ?? m.oliveYoungName,
+        oliveYoungAddress: prev.oliveYoungAddress ?? m.oliveYoungAddress,
+        oliveYoungCoordinates: prev.oliveYoungCoordinates ?? m.oliveYoungCoordinates,
         distanceToDaiso: prev.distanceToDaiso ?? m.distanceToDaiso,
+        daisoName: prev.daisoName ?? m.daisoName,
+        daisoAddress: prev.daisoAddress ?? m.daisoAddress,
+        daisoCoordinates: prev.daisoCoordinates ?? m.daisoCoordinates,
         distanceToSupermarket: prev.distanceToSupermarket ?? m.distanceToSupermarket,
+        supermarketName: prev.supermarketName ?? m.supermarketName,
+        supermarketAddress: prev.supermarketAddress ?? m.supermarketAddress,
+        supermarketCoordinates: prev.supermarketCoordinates ?? m.supermarketCoordinates,
         academyDensity: prev.academyDensity ?? m.academyDensity,
         restaurantDensity: prev.restaurantDensity ?? (m as unknown as Record<string, number>).restaurantDensity,
         brand: prev.brand || m.brand,
@@ -319,19 +433,28 @@ export default function ApartmentInfoPage() {
         far: prev.far ?? m.far,
         bcr: prev.bcr ?? m.bcr,
         parkingPerHousehold: prev.parkingPerHousehold ?? m.parkingPerHousehold,
+        minFloor: prev.minFloor ?? m.minFloor,
         yearBuilt: prev.yearBuilt || String(m.yearBuilt || ''),
       }) : prev);
 
       // Restore API categories
-      if ((m as Record<string, string | number | boolean>).academyCategories) {
+      if (typeof m === 'object' && m !== null) {
         setApiCategories(prev => {
           if (Object.keys(prev.academyCategories || {}).length > 0) return prev;
           return {
             ...prev,
-            academyCategories: (m as Record<string, any>).academyCategories,
-            restaurantCategories: (m as Record<string, any>).restaurantCategories,
-            nearestSchoolNames: (m as Record<string, any>).nearestSchoolNames,
+            academyCategories: (m as Record<string, any>).academyCategories || {},
+            restaurantCategories: (m as Record<string, any>).restaurantCategories || {},
+            nearestSchoolNames: (m as Record<string, any>).nearestSchoolNames || {},
             nearestStationName: (m as Record<string, any>).nearestStationName,
+            nearestStationLine: (m as Record<string, any>).nearestStationLine,
+            nearestIndeokwonStationName: (m as Record<string, any>).nearestIndeokwonStationName,
+            nearestIndeokwonLine: (m as Record<string, any>).nearestIndeokwonLine,
+            nearestTramStationName: (m as Record<string, any>).nearestTramStationName,
+            nearestTramLine: (m as Record<string, any>).nearestTramLine,
+            nearestStationCoords: (m as Record<string, any>).nearestStationCoords,
+            nearestIndeokwonCoords: (m as Record<string, any>).nearestIndeokwonCoords,
+            nearestTramCoords: (m as Record<string, any>).nearestTramCoords,
           };
         });
       }
@@ -421,6 +544,14 @@ export default function ApartmentInfoPage() {
           high: loc.nearestSchools?.high?.name,
         },
         nearestStationName: loc.nearestStation?.name,
+        nearestStationLine: loc.nearestStation?.line,
+        nearestIndeokwonStationName: loc.nearestIndeokwon?.name,
+        nearestIndeokwonLine: loc.nearestIndeokwon?.line,
+        nearestTramStationName: loc.nearestTram?.name,
+        nearestTramLine: loc.nearestTram?.line,
+        nearestStationCoords: loc.nearestStation?.lat ? `${loc.nearestStation.lat},${loc.nearestStation.lng}` : undefined,
+        nearestIndeokwonCoords: loc.nearestIndeokwon?.lat ? `${loc.nearestIndeokwon.lat},${loc.nearestIndeokwon.lng}` : undefined,
+        nearestTramCoords: loc.nearestTram?.lat ? `${loc.nearestTram.lat},${loc.nearestTram.lng}` : undefined,
       });
       alert('✅ 자동 출력 완료!');
     } catch (e) {
@@ -448,6 +579,7 @@ export default function ApartmentInfoPage() {
         if (newName !== originalName) updates['아파트명'] = newName;
         if (meta.dong !== initialMeta.dong) updates['동'] = meta.dong;
         if (meta.txKey !== initialMeta.txKey) updates['txKey'] = meta.txKey || '';
+        if (meta.minFloor !== initialMeta.minFloor) updates['최저층'] = meta.minFloor || '';
         if (meta.maxFloor !== initialMeta.maxFloor) updates['최고층'] = meta.maxFloor || '';
         if (meta.isPublicRental !== initialMeta.isPublicRental) updates['공공임대'] = meta.isPublicRental ? 'Y' : 'N';
         if (meta.householdCount !== initialMeta.householdCount) updates['세대수'] = meta.householdCount || '';
@@ -474,7 +606,7 @@ export default function ApartmentInfoPage() {
 
       // 2. Update Firestore meta cache
       try {
-        const resMeta = await fetch('/api/apartments-by-dong');
+        const resMeta = await fetch(`/api/apartments-by-dong?t=${Date.now()}`, { cache: 'no-store' });
         if (resMeta.ok) {
           const data = await resMeta.json();
           const clean: Record<string, Record<string, unknown>> = {};
@@ -493,14 +625,47 @@ export default function ApartmentInfoPage() {
             });
           }
           delete clean[originalName];
-          clean[newName] = {
-            dong: meta.dong, txKey: meta.txKey, maxFloor: meta.maxFloor,
+          // ★ Save ALL fields including distance metrics to Firestore cache
+          const metaToSave: Record<string, unknown> = {
+            dong: meta.dong, txKey: meta.txKey, minFloor: meta.minFloor, maxFloor: meta.maxFloor,
             isPublicRental: meta.isPublicRental, ticker: initialMeta.ticker,
             householdCount: meta.householdCount, yearBuilt: meta.yearBuilt,
             brand: meta.brand, far: meta.far, bcr: meta.bcr,
             parkingCount: meta.parkingCount, parkingPerHousehold: meta.parkingPerHousehold,
-            coordinates: meta.coordinates
+            coordinates: meta.coordinates,
+            // Distance metrics (교통/학군/앵커테넌트)
+            distanceToElementary: meta.distanceToElementary ?? null,
+            distanceToMiddle: meta.distanceToMiddle ?? null,
+            distanceToHigh: meta.distanceToHigh ?? null,
+            distanceToSubway: meta.distanceToSubway ?? null,
+            distanceToIndeokwon: meta.distanceToIndeokwon ?? null,
+            distanceToTram: meta.distanceToTram ?? null,
+            distanceToStarbucks: meta.distanceToStarbucks ?? null,
+            starbucksName: meta.starbucksName ?? null,
+            starbucksAddress: meta.starbucksAddress ?? null,
+            starbucksCoordinates: meta.starbucksCoordinates ?? null,
+            distanceToMcDonalds: meta.distanceToMcDonalds ?? null,
+            mcdonaldsName: meta.mcdonaldsName ?? null,
+            mcdonaldsAddress: meta.mcdonaldsAddress ?? null,
+            mcdonaldsCoordinates: meta.mcdonaldsCoordinates ?? null,
+            distanceToOliveYoung: meta.distanceToOliveYoung ?? null,
+            oliveYoungName: meta.oliveYoungName ?? null,
+            oliveYoungAddress: meta.oliveYoungAddress ?? null,
+            oliveYoungCoordinates: meta.oliveYoungCoordinates ?? null,
+            distanceToDaiso: meta.distanceToDaiso ?? null,
+            daisoName: meta.daisoName ?? null,
+            daisoAddress: meta.daisoAddress ?? null,
+            daisoCoordinates: meta.daisoCoordinates ?? null,
+            distanceToSupermarket: meta.distanceToSupermarket ?? null,
+            supermarketName: meta.supermarketName ?? null,
+            supermarketAddress: meta.supermarketAddress ?? null,
+            supermarketCoordinates: meta.supermarketCoordinates ?? null,
+            academyDensity: meta.academyDensity ?? null,
+            restaurantDensity: meta.restaurantDensity ?? null,
           };
+          // Remove undefined keys to prevent Firestore serialization error
+          const safeMeta = JSON.parse(JSON.stringify(metaToSave));
+          clean[newName] = safeMeta;
           await setDoc(doc(db, FIRESTORE_DOC), clean);
         }
       } catch { /* Firestore cache update non-critical */ }
@@ -537,28 +702,52 @@ export default function ApartmentInfoPage() {
           brand: meta.brand || '', householdCount: meta.householdCount || 0,
           far: meta.far || 0, bcr: meta.bcr || 0,
           parkingCount: meta.parkingCount, parkingPerHousehold: meta.parkingPerHousehold || 0,
-          maxFloor: meta.maxFloor, coordinates: meta.coordinates,
+          minFloor: meta.minFloor, maxFloor: meta.maxFloor, coordinates: meta.coordinates,
           yearBuilt: Number(meta.yearBuilt) || 0,
           distanceToElementary: meta.distanceToElementary || 0,
           distanceToMiddle: meta.distanceToMiddle || 0,
           distanceToHigh: meta.distanceToHigh || 0,
           distanceToSubway: meta.distanceToSubway || 0,
-          distanceToIndeokwon: meta.distanceToIndeokwon ?? undefined,
-          distanceToTram: meta.distanceToTram ?? undefined,
-          distanceToStarbucks: meta.distanceToStarbucks ?? undefined,
-          distanceToMcDonalds: meta.distanceToMcDonalds ?? undefined,
-          distanceToOliveYoung: meta.distanceToOliveYoung ?? undefined,
-          distanceToDaiso: meta.distanceToDaiso ?? undefined,
-          distanceToSupermarket: meta.distanceToSupermarket ?? undefined,
+          distanceToIndeokwon: meta.distanceToIndeokwon ?? null,
+          distanceToTram: meta.distanceToTram ?? null,
+          distanceToStarbucks: meta.distanceToStarbucks ?? null,
+          starbucksName: meta.starbucksName ?? null,
+          starbucksAddress: meta.starbucksAddress ?? null,
+          starbucksCoordinates: meta.starbucksCoordinates ?? null,
+          distanceToMcDonalds: meta.distanceToMcDonalds ?? null,
+          mcdonaldsName: meta.mcdonaldsName ?? null,
+          mcdonaldsAddress: meta.mcdonaldsAddress ?? null,
+          mcdonaldsCoordinates: meta.mcdonaldsCoordinates ?? null,
+          distanceToOliveYoung: meta.distanceToOliveYoung ?? null,
+          oliveYoungName: meta.oliveYoungName ?? null,
+          oliveYoungAddress: meta.oliveYoungAddress ?? null,
+          oliveYoungCoordinates: meta.oliveYoungCoordinates ?? null,
+          distanceToDaiso: meta.distanceToDaiso ?? null,
+          daisoName: meta.daisoName ?? null,
+          daisoAddress: meta.daisoAddress ?? null,
+          daisoCoordinates: meta.daisoCoordinates ?? null,
+          distanceToSupermarket: meta.distanceToSupermarket ?? null,
+          supermarketName: meta.supermarketName ?? null,
+          supermarketAddress: meta.supermarketAddress ?? null,
+          supermarketCoordinates: meta.supermarketCoordinates ?? null,
           academyDensity: meta.academyDensity || 0,
           ...(apiCategories.academyCategories ? { academyCategories: apiCategories.academyCategories } : {}),
           ...(meta.restaurantDensity ? { restaurantDensity: meta.restaurantDensity } : {}),
           ...(apiCategories.restaurantCategories ? { restaurantCategories: apiCategories.restaurantCategories } : {}),
           ...(apiCategories.nearestSchoolNames ? { nearestSchoolNames: apiCategories.nearestSchoolNames } : {}),
           ...(apiCategories.nearestStationName ? { nearestStationName: apiCategories.nearestStationName } : {}),
+          ...(apiCategories.nearestStationLine ? { nearestStationLine: apiCategories.nearestStationLine } : {}),
+          ...(apiCategories.nearestIndeokwonStationName ? { nearestIndeokwonStationName: apiCategories.nearestIndeokwonStationName } : {}),
+          ...(apiCategories.nearestIndeokwonLine ? { nearestIndeokwonLine: apiCategories.nearestIndeokwonLine } : {}),
+          ...(apiCategories.nearestTramStationName ? { nearestTramStationName: apiCategories.nearestTramStationName } : {}),
+          ...(apiCategories.nearestTramLine ? { nearestTramLine: apiCategories.nearestTramLine } : {}),
+          ...(apiCategories.nearestStationCoords ? { nearestStationCoords: apiCategories.nearestStationCoords } : {}),
+          ...(apiCategories.nearestIndeokwonCoords ? { nearestIndeokwonCoords: apiCategories.nearestIndeokwonCoords } : {}),
+          ...(apiCategories.nearestTramCoords ? { nearestTramCoords: apiCategories.nearestTramCoords } : {}),
         };
 
-        const premiumScores = await getPremiumScoresAction(metricsPayload);
+        const safeMetricsPayload = JSON.parse(JSON.stringify(metricsPayload));
+        const premiumScores = await getPremiumScoresAction(safeMetricsPayload);
 
         const reportData = {
           dong: meta.dong,
@@ -566,7 +755,7 @@ export default function ApartmentInfoPage() {
           scoutingDate: new Date().toLocaleDateString('en-CA'),
           thumbnailUrl: uploadedImages[0]?.url || existingReport?.thumbnailUrl || '',
           images: uploadedImages,
-          metrics: metricsPayload,
+          metrics: safeMetricsPayload,
           premiumScores,
           isPremium: existingReport?.isPremium ?? true,
           premiumContent: existingReport?.premiumContent || '',
@@ -660,11 +849,23 @@ export default function ApartmentInfoPage() {
                     </button>
                   )}
                 </div>
-                <input type="text" value={meta.txKey || ''} onChange={e => setMeta({ ...meta, txKey: e.target.value })}
-                  list="tx-keys" placeholder="예: 동탄역호반써밋"
-                  className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none focus:border-[#3182f6] focus:bg-white font-mono" />
-                <datalist id="tx-keys">{txKeys.slice(0, 30).map(k => <option key={k} value={k}/>)}</datalist>
+                <input type="text" value={meta.isPublicRental ? '' : (meta.txKey || '')} 
+                  onChange={e => setMeta({ ...meta, txKey: e.target.value })}
+                  list="tx-keys" 
+                  placeholder={meta.isPublicRental ? "공공임대는 실거래가(TX) 매핑 불가" : "예: 동탄역호반써밋"}
+                  disabled={meta.isPublicRental}
+                  className={`w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none font-mono transition-all ${
+                    meta.isPublicRental ? 'opacity-60 cursor-not-allowed text-[#8b95a1]' : 'focus:border-[#3182f6] focus:bg-white'
+                  }`} />
+                {(() => {
+                  const searchStr = (meta.txKey || '').trim().toLowerCase();
+                  const filteredKeys = txKeys
+                    .filter(k => searchStr ? k.toLowerCase().includes(searchStr) : (k.includes('동탄') || (meta.dong && k.includes(meta.dong))))
+                    .slice(0, 100);
+                  return <datalist id="tx-keys">{filteredKeys.map(k => <option key={k} value={k}/>)}</datalist>;
+                })()}
               </div>
+              <NumField label="최저층" value={meta.minFloor} unit="층" placeholder="15" onChange={v => setMeta({...meta, minFloor: v ? Math.round(v) : undefined})}/>
               <NumField label="최고층" value={meta.maxFloor} unit="층" placeholder="35" onChange={v => setMeta({...meta, maxFloor: v ? Math.round(v) : undefined})}/>
               <div className="flex flex-col justify-end pb-1">
                 <button type="button" onClick={() => setMeta({ ...meta, isPublicRental: !meta.isPublicRental })}
@@ -717,6 +918,92 @@ export default function ApartmentInfoPage() {
               <NumField label="동탄인덕원선 거리" value={meta.distanceToIndeokwon} unit="m" placeholder="800" onChange={v => setMeta({...meta, distanceToIndeokwon: v})}/>
               <NumField label="동탄트램 거리" value={meta.distanceToTram} unit="m" placeholder="300" onChange={v => setMeta({...meta, distanceToTram: v})}/>
             </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 p-4 rounded-xl border border-[#bbf7d0] bg-[#f0fdf4]">
+              <div>
+                <label className="text-[13px] font-bold text-[#00704A] mb-1.5 flex items-center gap-1">스타벅스 지점명</label>
+                <input type="text" value={meta.starbucksName || ''} onChange={e => setMeta({ ...meta, starbucksName: e.target.value || undefined })}
+                  placeholder="예: 스타벅스 동탄역점" className="w-full px-4 py-3 bg-white border border-[#bbf7d0] rounded-xl text-[15px] outline-none focus:border-[#00704A] transition-all" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-[13px] font-bold text-[#00704A] mb-1.5 flex items-center gap-1">스타벅스 주소 / 구글 맵 좌표</label>
+                <div className="flex gap-2">
+                  <input type="text" value={meta.starbucksAddress || ''} onChange={e => setMeta({ ...meta, starbucksAddress: e.target.value || undefined })}
+                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-white border border-[#bbf7d0] rounded-xl text-[15px] outline-none focus:border-[#00704A] transition-all" />
+                  <input type="text" value={meta.starbucksCoordinates || ''} onChange={e => setMeta({ ...meta, starbucksCoordinates: e.target.value || undefined })}
+                    placeholder="좌표 (위도,경도)" className="w-44 px-4 py-3 bg-white border border-[#bbf7d0] rounded-xl text-[15px] outline-none focus:border-[#00704A] transition-all font-mono" />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 p-4 rounded-xl border border-[#03c75a]/30 bg-[#03c75a]/5 text-[#03c75a]">
+              <div>
+                <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">올리브영 지점명</label>
+                <input type="text" value={meta.oliveYoungName || ''} onChange={e => setMeta({ ...meta, oliveYoungName: e.target.value || undefined })}
+                  placeholder="예: 올리브영 동탄역점" className="w-full px-4 py-3 bg-white border border-[#03c75a]/30 rounded-xl text-[15px] outline-none focus:border-[#03c75a] transition-all" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">올리브영 주소 / 좌표</label>
+                <div className="flex gap-2">
+                  <input type="text" value={meta.oliveYoungAddress || ''} onChange={e => setMeta({ ...meta, oliveYoungAddress: e.target.value || undefined })}
+                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-white border border-[#03c75a]/30 rounded-xl text-[15px] outline-none focus:border-[#03c75a] transition-all text-[#191f28]" />
+                  <input type="text" value={meta.oliveYoungCoordinates || ''} onChange={e => setMeta({ ...meta, oliveYoungCoordinates: e.target.value || undefined })}
+                    placeholder="위도,경도" className="w-44 px-4 py-3 bg-white border border-[#03c75a]/30 rounded-xl text-[15px] outline-none focus:border-[#03c75a] transition-all font-mono text-[#191f28]" />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 p-4 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/5 text-[#EF4444]">
+              <div>
+                <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">다이소 지점명</label>
+                <input type="text" value={meta.daisoName || ''} onChange={e => setMeta({ ...meta, daisoName: e.target.value || undefined })}
+                  placeholder="예: 다이소 동탄역점" className="w-full px-4 py-3 bg-white border border-[#EF4444]/30 rounded-xl text-[15px] outline-none focus:border-[#EF4444] transition-all" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">다이소 주소 / 좌표</label>
+                <div className="flex gap-2">
+                  <input type="text" value={meta.daisoAddress || ''} onChange={e => setMeta({ ...meta, daisoAddress: e.target.value || undefined })}
+                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-white border border-[#EF4444]/30 rounded-xl text-[15px] outline-none focus:border-[#EF4444] transition-all text-[#191f28]" />
+                  <input type="text" value={meta.daisoCoordinates || ''} onChange={e => setMeta({ ...meta, daisoCoordinates: e.target.value || undefined })}
+                    placeholder="위도,경도" className="w-44 px-4 py-3 bg-white border border-[#EF4444]/30 rounded-xl text-[15px] outline-none focus:border-[#EF4444] transition-all font-mono text-[#191f28]" />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 p-4 rounded-xl border border-[#f59e0b]/40 bg-[#f59e0b]/5 text-[#d97706]">
+              <div>
+                <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">대형마트 지점명</label>
+                <input type="text" value={meta.supermarketName || ''} onChange={e => setMeta({ ...meta, supermarketName: e.target.value || undefined })}
+                  placeholder="예: 이마트 동탄점" className="w-full px-4 py-3 bg-white border border-[#f59e0b]/40 rounded-xl text-[15px] outline-none focus:border-[#f59e0b] transition-all" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">대형마트 주소 / 좌표</label>
+                <div className="flex gap-2">
+                  <input type="text" value={meta.supermarketAddress || ''} onChange={e => setMeta({ ...meta, supermarketAddress: e.target.value || undefined })}
+                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-white border border-[#f59e0b]/40 rounded-xl text-[15px] outline-none focus:border-[#f59e0b] transition-all text-[#191f28]" />
+                  <input type="text" value={meta.supermarketCoordinates || ''} onChange={e => setMeta({ ...meta, supermarketCoordinates: e.target.value || undefined })}
+                    placeholder="위도,경도" className="w-44 px-4 py-3 bg-white border border-[#f59e0b]/40 rounded-xl text-[15px] outline-none focus:border-[#f59e0b] transition-all font-mono text-[#191f28]" />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 p-4 rounded-xl border border-[#DA291C]/30 bg-[#DA291C]/5 text-[#DA291C]">
+              <div>
+                <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">맥도날드 지점명</label>
+                <input type="text" value={meta.mcdonaldsName || ''} onChange={e => setMeta({ ...meta, mcdonaldsName: e.target.value || undefined })}
+                  placeholder="예: 맥도날드 동탄점" className="w-full px-4 py-3 bg-white border border-[#DA291C]/30 rounded-xl text-[15px] outline-none focus:border-[#DA291C] transition-all" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">맥도날드 주소 / 좌표</label>
+                <div className="flex gap-2">
+                  <input type="text" value={meta.mcdonaldsAddress || ''} onChange={e => setMeta({ ...meta, mcdonaldsAddress: e.target.value || undefined })}
+                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-white border border-[#DA291C]/30 rounded-xl text-[15px] outline-none focus:border-[#DA291C] transition-all text-[#191f28]" />
+                  <input type="text" value={meta.mcdonaldsCoordinates || ''} onChange={e => setMeta({ ...meta, mcdonaldsCoordinates: e.target.value || undefined })}
+                    placeholder="위도,경도" className="w-44 px-4 py-3 bg-white border border-[#DA291C]/30 rounded-xl text-[15px] outline-none focus:border-[#DA291C] transition-all font-mono text-[#191f28]" />
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
               <NumField label="스타벅스" value={meta.distanceToStarbucks} unit="m" placeholder="250" onChange={v => setMeta({...meta, distanceToStarbucks: v})}/>
               <NumField label="올리브영" value={meta.distanceToOliveYoung} unit="m" placeholder="300" onChange={v => setMeta({...meta, distanceToOliveYoung: v})}/>

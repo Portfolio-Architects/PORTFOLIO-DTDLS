@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter, usePathname } from 'next/navigation';
 import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
@@ -52,10 +53,10 @@ export default function FloatingUserBar() {
 
   return (
     <>
-      {/* User Bar — 모바일: 헤더 내부 배치 / 데스크톱: fixed floating */}
-      <div className="fixed top-[13px] right-2 sm:right-4 z-50 animate-in slide-in-from-top-2 duration-300">
+      {/* User Bar — Embeddable */}
+      <div className="animate-in fade-in duration-300">
         {user ? (
-          <div className="flex items-center gap-1 sm:gap-2 bg-white/90 backdrop-blur-xl rounded-full pl-2 sm:pl-3 pr-2 sm:pr-4 py-1 sm:py-1.5 shadow-lg border border-[#e5e8eb]/50">
+          <div className="flex items-center gap-1 sm:gap-2 bg-white/90 rounded-full pl-2 sm:pl-3 pr-2 sm:pr-4 py-1 sm:py-1.5 border border-[#e5e8eb] shadow-sm">
             <button onClick={() => {
               setEditFrontName(anonProfile?.frontName || '동탄사는');
               setEditNickname(anonProfile?.nickname || '');
@@ -74,15 +75,15 @@ export default function FloatingUserBar() {
             </button>
                       </div>
         ) : (
-          <button onClick={handleLogin} className="flex items-center gap-1.5 bg-white/90 backdrop-blur-xl hover:bg-white text-[#191f28] text-[11px] sm:text-[13px] font-bold py-1 sm:py-2 px-3 sm:px-5 rounded-full shadow-lg border border-[#e5e8eb]/50 transition-colors">
+          <button onClick={handleLogin} className="flex items-center gap-1.5 bg-white text-[#191f28] text-[11px] sm:text-[13px] font-bold py-1 sm:py-2 px-3 sm:px-5 rounded-full border border-[#e5e8eb] shadow-sm transition-colors hover:bg-gray-50">
             로그인
           </button>
         )}
       </div>
 
       {/* Profile Edit Modal */}
-      {showProfileModal && user && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+      {showProfileModal && user && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="absolute inset-0 bg-[#191f28]/50 backdrop-blur-sm" onClick={() => setShowProfileModal(false)} />
           <div className="relative bg-white rounded-3xl p-8 w-full max-w-[420px] shadow-2xl">
             <button onClick={() => setShowProfileModal(false)} className="absolute top-4 right-4 text-[#8b95a1] hover:text-[#191f28] p-1 rounded-full transition-colors">
@@ -214,7 +215,8 @@ export default function FloatingUserBar() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

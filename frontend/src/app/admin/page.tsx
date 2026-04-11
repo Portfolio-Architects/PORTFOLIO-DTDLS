@@ -65,7 +65,7 @@ export default function AdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'all'|'unmatched'|'public'|'private'|'reported'>('all');
+  const [filter, setFilter] = useState<'all'|'unmatched'|'public'|'private'|'analyzed'|'verified'>('all');
   const [expandedDongs, setExpandedDongs] = useState<Set<string>>(new Set());
   const [expandedApts, setExpandedApts] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
@@ -355,23 +355,45 @@ export default function AdminDashboard() {
   }, [meta]);
 
   const allAptNames = useMemo(() => Object.keys(meta), [meta]);
-  const reportedApts = useMemo(() => {
+  const analyzedApts = useMemo(() => {
     const set = new Set<string>();
-    reports.forEach(r => set.add(r.apartmentName));
+    reports.forEach(r => {
+      const m = r.metrics;
+      if (m && (
+        m.distanceToElementary || m.distanceToMiddle || m.distanceToHigh ||
+        m.distanceToSubway || m.distanceToIndeokwon || m.distanceToTram ||
+        m.academyDensity || m.restaurantDensity ||
+        m.distanceToStarbucks || m.distanceToMcDonalds || m.distanceToOliveYoung ||
+        m.distanceToDaiso || m.distanceToSupermarket
+      )) {
+        set.add(r.apartmentName);
+      }
+    });
+    return set;
+  }, [reports]);
+  const verifiedApts = useMemo(() => {
+    const set = new Set<string>();
+    reports.forEach(r => {
+      if (r.images && r.images.length > 0) {
+        set.add(r.apartmentName);
+      }
+    });
     return set;
   }, [reports]);
 
   const stats = useMemo(() => {
-    let mapped = 0, unmapped = 0, publicR = 0, reported = 0;
+    let mapped = 0, unmapped = 0, publicR = 0, verified = 0, analyzed = 0;
     for (const name of allAptNames) {
       const m = meta[name];
       if (m?.isPublicRental) publicR++;
       if (m?.txKey && TX_SUMMARY[m.txKey as keyof typeof TX_SUMMARY]) mapped++;
       else unmapped++;
-      if (reportedApts.has(name)) reported++;
+      if (verifiedApts.has(name)) verified++;
+      if (analyzedApts.has(name)) analyzed++;
     }
-    return { total: allAptNames.length, mapped, unmapped, publicR, reported, totalReports: reports.length };
-  }, [meta, allAptNames, reportedApts, reports]);
+    const totalVerifiedReports = reports.filter(r => r.images && r.images.length > 0).length;
+    return { total: allAptNames.length, mapped, unmapped, publicR, verified, analyzed, totalVerifiedReports };
+  }, [meta, allAptNames, verifiedApts, analyzedApts, reports]);
 
   const filteredDongs = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -382,12 +404,13 @@ export default function AdminDashboard() {
         if (filter === 'unmatched') f = f.filter(a => !a.meta.txKey);
         if (filter === 'public') f = f.filter(a => a.meta.isPublicRental);
         if (filter === 'private') f = f.filter(a => !a.meta.isPublicRental);
-        if (filter === 'reported') f = f.filter(a => reportedApts.has(a.name));
+        if (filter === 'analyzed') f = f.filter(a => analyzedApts.has(a.name));
+        if (filter === 'verified') f = f.filter(a => verifiedApts.has(a.name));
         return [dong, f] as const;
       })
       .filter(([, a]) => a.length > 0)
       .sort(([a], [b]) => a.localeCompare(b, 'ko'));
-  }, [search, filter, aptsByDong, reportedApts]);
+  }, [search, filter, aptsByDong, analyzedApts, verifiedApts]);
 
   if (!loaded) return (
     <div className="flex justify-center items-center py-32">
@@ -401,7 +424,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-[#191f28] tracking-tight mb-2">아파트 대시보드</h1>
-          <p className="text-[#4e5968] text-[14px]">단지 기본정보 및 프리미엄 임장기 통합 관리</p>
+          <p className="text-[#4e5968] text-[14px]">단지 기본정보 및 현장검증리포트 통합 관리</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => setShowAddForm(!showAddForm)}
@@ -436,12 +459,13 @@ export default function AdminDashboard() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-6">
         {[
           { label: '전체 단지', value: stats.total, color: '#3182f6', bg: '#e8f3ff', icon: Building, fk: 'all' as const },
           { label: '매핑 완료', value: stats.mapped, color: '#03c75a', bg: '#f0fdf4', icon: Check, fk: 'all' as const },
           { label: '미매핑', value: stats.unmapped, color: '#f04452', bg: '#ffebec', icon: AlertTriangle, fk: 'unmatched' as const },
-          { label: '임장완료', value: stats.reported, color: '#ff8a3d', bg: '#fff4e6', icon: FileText, fk: 'reported' as const },
+          { label: '입지분석', value: stats.analyzed, color: '#8b5cf6', bg: '#f5f3ff', icon: MapPin, fk: 'analyzed' as const },
+          { label: '현장검증', value: stats.verified, color: '#ff8a3d', bg: '#fff4e6', icon: FileText, fk: 'verified' as const },
           { label: '공공임대', value: stats.publicR, color: '#8b95a1', bg: '#f2f4f6', icon: Home, fk: 'public' as const },
         ].map(s => (
           <div key={s.label} onClick={() => setFilter(s.fk)}
@@ -465,8 +489,8 @@ export default function AdminDashboard() {
             placeholder="아파트명 또는 동 이름으로 검색..."
             className="w-full pl-11 pr-4 py-3 bg-white border border-[#e5e8eb] rounded-xl text-[14px] outline-none focus:border-[#3182f6] focus:ring-4 focus:ring-[#3182f6]/10 transition-all" />
         </div>
-        <div className="flex gap-1.5 overflow-x-auto">
-          {([['all','전체'],['unmatched','미매핑'],['reported','임장완료'],['public','공공임대'],['private','일반분양']] as const).map(([key, label]) => (
+        <div className="flex gap-1.5 overflow-x-auto pb-2">
+          {([['all','전체'],['unmatched','미매핑'],['analyzed','입지분석'],['verified','현장검증'],['public','공공임대'],['private','일반분양']] as const).map(([key, label]) => (
             <button key={key} onClick={() => setFilter(key)}
               className={`shrink-0 px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${
                 filter === key ? 'bg-[#191f28] text-white' : 'bg-white border border-[#e5e8eb] text-[#4e5968] hover:bg-[#f2f4f6]'
@@ -481,7 +505,8 @@ export default function AdminDashboard() {
         {filteredDongs.map(([dong, apts]) => {
           const isExpanded = expandedDongs.has(dong) || search.trim().length > 0 || filter !== 'all';
           const dongMapped = apts.filter(a => !!a.meta.txKey).length;
-          const dongReported = apts.filter(a => reportedApts.has(a.name)).length;
+          const dongAnalyzed = apts.filter(a => analyzedApts.has(a.name)).length;
+          const dongVerified = apts.filter(a => verifiedApts.has(a.name)).length;
 
           return (
             <div key={dong} className="bg-white rounded-2xl border border-[#e5e8eb] shadow-sm overflow-hidden">
@@ -493,7 +518,8 @@ export default function AdminDashboard() {
                 <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
                   dongMapped === apts.length ? 'bg-[#f0fdf4] text-[#03c75a]' : dongMapped > 0 ? 'bg-[#fff4e6] text-[#ff8a3d]' : 'bg-[#f2f4f6] text-[#8b95a1]'
                 }`}>TX {dongMapped}/{apts.length}</span>
-                {dongReported > 0 && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#fff4e6] text-[#ff8a3d]">📝 {dongReported}</span>}
+                {dongAnalyzed > 0 && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#e8f3ff] text-[#1b64da]">📍 {dongAnalyzed}</span>}
+                {dongVerified > 0 && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#fff4e6] text-[#ff8a3d]">📸 {dongVerified}</span>}
               </button>
 
               {isExpanded && (
@@ -502,6 +528,7 @@ export default function AdminDashboard() {
                     const hasValidTx = m.txKey && TX_SUMMARY[m.txKey as keyof typeof TX_SUMMARY];
                     const suggested = !m.txKey ? autoSuggest(name) : null;
                     const aptReports = reportsByApt[name] || [];
+                    const verifiedReportsCount = aptReports.filter(r => r.images && r.images.length > 0).length;
                     const isAptExpanded = expandedApts.has(name);
 
                     return (
@@ -513,16 +540,15 @@ export default function AdminDashboard() {
                             
                             <span className="text-[13px] sm:text-[14px] font-bold text-[#191f28]">{name}</span>
 
-                            {m.isPublicRental && <span className="text-[10px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-2 py-0.5 rounded-full mt-0.5">🏠 공공임대</span>}
-                            {m.householdCount && <span className="text-[10px] text-[#8b95a1]">· {m.householdCount}세대</span>}
-                            {m.yearBuilt && <span className="text-[10px] text-[#8b95a1]">· {m.yearBuilt}년</span>}
-                            
                             {/* Report badge */}
-                            {aptReports.length > 0 && (
-                              <span className="text-[10px] font-bold bg-[#fff4e6] text-[#ff8a3d] px-2 py-0.5 rounded-full flex items-center gap-1 mt-0.5">
-                                📝 임장기 {aptReports.length}건
-                              </span>
+                            {m.isPublicRental && (
+                              <span className="text-[11px] font-bold bg-[#f2f4f6] text-[#4e5968] px-2 py-0.5 rounded-full mt-0.5 border border-[#e5e8eb]">공공임대</span>
                             )}
+                            {verifiedReportsCount > 0 ? (
+                              <span className="text-[11px] font-bold bg-[#fff4e6] text-[#ff8a3d] px-2 py-0.5 rounded-full mt-0.5">📸 현장검증 완료</span>
+                            ) : analyzedApts.has(name) ? (
+                              <span className="text-[11px] font-bold bg-[#e8f3ff] text-[#1b64da] px-2 py-0.5 rounded-full mt-0.5">📍 입지분석 완료 (사진 누락)</span>
+                            ) : null}
 
                             <span className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e5e8eb] rounded-lg text-[12px] font-bold text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28] transition-colors shadow-sm">
                               상세보기
@@ -558,7 +584,7 @@ export default function AdminDashboard() {
 
       {/* Floating Save Bar */}
       <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-40 bg-white/90 backdrop-blur-lg border-t border-[#e5e8eb] px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-        <span className="text-[13px] text-[#8b95a1] font-medium">{stats.total}개 단지 · {stats.mapped} 매핑 · 📝 {stats.totalReports} 임장기</span>
+        <span className="text-[13px] text-[#8b95a1] font-medium">{stats.total}개 단지 · {stats.mapped} 매핑 · 📸 {stats.totalVerifiedReports} 현장검증</span>
         <button onClick={handleSave} disabled={saving}
           className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all text-[14px] ${
             saved ? 'bg-[#03c75a] text-white shadow-lg shadow-[#03c75a]/20' : 'bg-[#3182f6] hover:bg-[#2b72d6] text-white shadow-lg shadow-[#3182f6]/20'

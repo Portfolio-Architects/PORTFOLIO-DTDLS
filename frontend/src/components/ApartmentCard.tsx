@@ -29,6 +29,28 @@ interface ApartmentCardProps {
 }
 
 export default function ApartmentCard({ apt, txSummary, report, isPublicRental, onClick, rank, isSelected, isFavorited, favoriteCount, onToggleFavorite, typeMap, areaUnit = 'm2' }: ApartmentCardProps) {
+  // 사진 등록 여부 확인
+  const hasPhotos = !!(
+    report?.imageUrl ||
+    (report?.images && report.images.length > 0) ||
+    report?.sections?.infra?.gateImg || report?.sections?.infra?.gateImgs?.length ||
+    report?.sections?.infra?.landscapeImg || report?.sections?.infra?.landscapeImgs?.length ||
+    report?.sections?.infra?.parkingImg ||
+    report?.sections?.ecosystem?.communityImg ||
+    report?.sections?.ecosystem?.schoolImg ||
+    report?.sections?.ecosystem?.commerceImg
+  );
+
+  // 입지 분석(metrics) 유무 확인 (기본 건축정보를 제외한 실제 주변 인프라 입지 데이터가 있는지)
+  const m = report?.metrics;
+  const hasAnalysis = !!m && !!(
+    m.distanceToElementary || m.distanceToMiddle || m.distanceToHigh ||
+    m.distanceToSubway || m.distanceToIndeokwon || m.distanceToTram ||
+    m.academyDensity || m.restaurantDensity ||
+    m.distanceToStarbucks || m.distanceToMcDonalds || m.distanceToOliveYoung ||
+    m.distanceToDaiso || m.distanceToSupermarket
+  );
+
   // 84㎡ 정규화 가격
   const norm84Label = (() => {
     if (!txSummary?.recent?.[0]) return null;
@@ -46,7 +68,7 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
     <div
       onClick={onClick}
       className={`relative flex items-center gap-3 px-4 py-3.5 transition-all duration-150 cursor-pointer hover:bg-[#f9fafb] active:bg-[#f2f4f6] border-b border-[#f2f4f6] last:border-b-0 group ${
-        !report && !txSummary ? 'opacity-60' : ''
+        !hasAnalysis && !hasPhotos && !txSummary ? 'opacity-60' : ''
       } ${
         isSelected ? 'bg-[#f8faff]' : ''
       }`}
@@ -57,25 +79,28 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
       )}
       {/* 순위 */}
       {rank != null && (
-        <span className="text-sm font-extrabold text-[#8b95a1] w-5 text-center shrink-0 tabular-nums">
+        <span className="text-sm font-extrabold text-[#8b95a1] w-7 text-center shrink-0 tabular-nums">
           {rank}
         </span>
       )}
 
       {/* 아파트 정보 */}
-      <div className="flex-1 min-w-0">
-        <h4 className="text-base font-bold text-[#191f28] truncate group-hover:text-[#3182f6] transition-colors leading-tight">
+      <div className="flex-1 min-w-0 pr-2">
+        <h4 className="text-[14.5px] font-bold text-[#191f28] truncate group-hover:text-[#3182f6] transition-colors leading-tight">
           {apt.name}
         </h4>
         <div className="flex items-center gap-1.5 mt-1">
           <span className="text-xs text-[#8b95a1]">{apt.dong}</span>
-          {report && (
-            <span className="inline-flex items-center gap-0.5 bg-[#fff8e1] text-[#f59e0b] text-[10px] font-bold px-1.5 py-[1px] rounded-full shrink-0" title="현장 검증 완료">
-              <FileText size={9} strokeWidth={2.5} />
-              리포트
+          {hasPhotos ? (
+            <span className="inline-flex items-center gap-0.5 bg-[#fff4e6] text-[#ff8a3d] text-[10px] font-bold px-1.5 py-[1px] rounded shrink-0 leading-tight" title="현장 검증 완료">
+              📸 현장검증
             </span>
-          )}
-          {!report && isPublicRental && (
+          ) : hasAnalysis ? (
+            <span className="inline-flex items-center gap-0.5 bg-[#e8f3ff] text-[#1b64da] text-[10px] font-bold px-1.5 py-[1px] rounded shrink-0 leading-tight" title="입지 분석 완료">
+              📍 입지분석
+            </span>
+          ) : null}
+          {(!hasAnalysis && !hasPhotos) && isPublicRental && (
             <span className="text-[11px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-1.5 py-[1px] rounded shrink-0 leading-tight">공공</span>
           )}
         </div>
@@ -148,18 +173,18 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
       {onToggleFavorite && (
         <button
           onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-          className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-all ${
+          className={`shrink-0 h-8 flex items-center justify-center gap-1 rounded-full transition-all px-2 -mr-2 ${
             isFavorited 
               ? 'text-[#ff3b30] hover:bg-red-50' 
               : 'text-[#d1d6db] hover:text-[#ff3b30] hover:bg-[#f9fafb]'
           }`}
           title={isFavorited ? '관심 해제' : '관심 등록'}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill={isFavorited ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill={isFavorited ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
           {(favoriteCount ?? 0) > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 text-[10px] font-bold text-[#ff3b30] bg-white rounded-full px-1 min-w-[14px] text-center leading-tight shadow-sm ring-1 ring-white">
+            <span className={`text-[12px] font-bold ${isFavorited ? 'text-[#ff3b30]' : 'text-[#8b95a1] group-hover:text-[#ff3b30]'}`}>
               {favoriteCount}
             </span>
           )}

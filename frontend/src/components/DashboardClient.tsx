@@ -9,6 +9,7 @@ import Image from 'next/image';
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
 import ApartmentCard from '@/components/ApartmentCard';
 import DongFilterBar from '@/components/DongFilterBar';
+import FloatingUserBar from '@/components/FloatingUserBar';
 import dynamic from 'next/dynamic';
 
 // Heavy components — loaded on demand (saves ~200KB initial JS)
@@ -158,7 +159,8 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
         for (const e of initialDashboardData.typeMap) {
           const key = normalizeAptName(e.aptName);
           if (!map[key]) map[key] = {};
-          map[key][e.area] = { typeM2: e.typeM2, typePyeong: e.typePyeong };
+          const normalizedArea = String(Number(e.area));
+          map[key][normalizedArea] = { typeM2: e.typeM2, typePyeong: e.typePyeong };
         }
         setTypeMap(map);
       }
@@ -194,7 +196,8 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
         for (const e of data.typeMap) {
           const key = normalizeAptName(e.aptName);
           if (!map[key]) map[key] = {};
-          map[key][e.area] = { typeM2: e.typeM2, typePyeong: e.typePyeong };
+          const normalizedArea = String(Number(e.area));
+          map[key][normalizedArea] = { typeM2: e.typeM2, typePyeong: e.typePyeong };
         }
         setTypeMap(map);
       }
@@ -362,7 +365,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
     // 캐시를 방지하기 위해 쿼리스트링(v=Date.now()) 추가
     fetch(`/tx-data/${encodeURIComponent(fileKey)}.json?v=${Date.now()}`)
       .then(res => res.ok ? res.json() : [])
-      .then((records: { contractYm: string; contractDay: string; price: number; deposit?: number; monthlyRent?: number; area: number; areaPyeong: number; floor: number; dealType?: string }[]) => {
+      .then((records: { contractYm: string; contractDay: string; price: number; deposit?: number; monthlyRent?: number; area: number; areaPyeong: number; floor: number; dealType?: string; reqGb?: string; rnuYn?: string }[]) => {
         const mapped: TransactionRecord[] = records.map((r, i) => {
           let eokStr = '';
           if (r.dealType === '전세' || r.dealType === '월세') {
@@ -385,6 +388,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
             buildYear: 0, roadName: '', cancelDate: '-',
             dealType: r.dealType || '', agentLocation: '',
             registrationDate: '-', housingType: '',
+            reqGb: r.reqGb || '', rnuYn: r.rnuYn || ''
           };
         });
         setModalTransactions(mapped);
@@ -464,12 +468,14 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
     }
   }, [selectedReport]);
 
-  // Count apartments per dong (from Google Sheet)
+  // Count apartments per dong (from Google Sheet), excluding public rentals
   const dongAptCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    Object.entries(sheetApartments).forEach(([dong, apts]) => { counts[dong] = apts.length; });
+    Object.entries(sheetApartments).forEach(([dong, apts]) => { 
+      counts[dong] = apts.filter(a => !publicRentalSet.has(a.name)).length; 
+    });
     return counts;
-  }, [sheetApartments]);
+  }, [sheetApartments, publicRentalSet]);
 
   // Count field reports by dong (for dong filter chip counts)
   const dongReportCounts = useMemo(() => {
@@ -497,51 +503,45 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
       {/* a11y: Skip to Content */}
       <a href="#main-content" className="skip-to-content">내용으로 건너뛰기</a>
 
-      {/* Top Navigation Bar */}
       {/* Dynamic Minimal Sticky Header */}
       <div 
-        className={`fixed top-0 inset-x-0 w-full bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] shadow-sm z-50 transition-transform duration-300 flex items-center justify-center h-[52px] ${
+        className={`fixed top-0 inset-x-0 w-full bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] shadow-sm z-50 transition-transform duration-300 flex items-center justify-between px-3 md:px-10 lg:px-16 h-[52px] ${
           isScrolled ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        <span className="font-extrabold text-[#191f28] tracking-wider text-[15px] flex items-center gap-2">
-           <img src="/dsq-icon.png" alt="DSQ" className="w-[20px] h-[20px] rounded-md" />
-           D-VIEW 동탄 아파트 가치 분석
+        <span className="font-extrabold text-[#191f28] tracking-tight text-[15px] flex items-center gap-2">
+           <img src="/d-view-icon.png" alt="D-VIEW" className="w-[22px] h-[22px] rounded-md" />
+           <span className="text-[#3182f6]">D-VIEW</span>
+           <span className="text-[#b0b8c1] font-normal text-[13px]">|</span>
+           <span className="text-[#4e5968] font-semibold text-[14px]">동탄 아파트 가치 분석</span>
         </span>
+        <div className="flex items-center -mr-1">
+          <FloatingUserBar />
+        </div>
       </div>
       
-      {/* Original Main Header */}
-      <header className="hidden sm:block bg-white/90 backdrop-blur-xl border-b border-[#e5e8eb] relative z-40 transition-all duration-300" role="banner">
-        <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 h-14 sm:h-16 flex justify-between items-center">
-          {/* Left: Pill Tabs */}
-          <div className="flex items-center">
-            <nav aria-label="메인 네비게이션" className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <div className="hidden sm:inline-flex bg-[#f2f4f6] rounded-full p-1 gap-0.5" role="tablist">
-                {[
-                  { id: 'imjang' as const, label: '임장기', icon: Compass },
-                  { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
-                  { id: 'recommend' as const, label: '집 추천', icon: Home },
-                ].map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-200 ${
-                      activeTab === tab.id
-                        ? 'bg-white text-[#191f28] shadow-sm'
-                        : 'text-[#8b95a1] hover:text-[#4e5968]'
-                    }`}
-                  >
-                    <tab.icon size={14} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} />
-                    <span className="hidden sm:inline">{tab.label}</span>
-                  </button>
-                ))}
+      {/* Main Header — Logo + Nav integrated */}
+      <header className="bg-white border-b border-[#e5e8eb] relative z-40" role="banner">
+        <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16">
+          {/* Top row: Brand + UserBar */}
+          <div className="flex items-center justify-between h-14 sm:h-16">
+            <div className="flex items-center gap-3">
+              <img src="/d-view-icon.png" alt="D-VIEW" className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg shadow-sm ring-1 ring-black/5" />
+              <div className="flex flex-col">
+                <h1 className="text-[17px] sm:text-[20px] font-extrabold text-[#191f28] tracking-tight leading-tight">
+                  동탄 아파트 가치 분석
+                </h1>
+                <span className="text-[11px] sm:text-[12px] font-medium text-[#8b95a1] tracking-wide hidden sm:block">
+                  D-VIEW · Real Estate Intelligence
+                </span>
               </div>
-
-              {/* 평/면적 토글 버튼 */}
-              <div className="hidden sm:inline-flex bg-[#f2f4f6] rounded-full p-1 gap-0.5">
+            </div>
+            <div className="flex items-center gap-3">
+              {/* 평/면적 토글 */}
+              <div className="hidden sm:inline-flex bg-[#f2f4f6] rounded-full p-0.5 gap-0.5">
                 <button
                   onClick={() => setAreaUnit('m2')}
-                  className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 ${
+                  className={`px-2.5 py-1 rounded-full text-[12px] font-bold transition-all duration-200 ${
                     areaUnit === 'm2' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'
                   }`}
                 >
@@ -549,42 +549,54 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
                 </button>
                 <button
                   onClick={() => setAreaUnit('pyeong')}
-                  className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 ${
+                  className={`px-2.5 py-1 rounded-full text-[12px] font-bold transition-all duration-200 ${
                     areaUnit === 'pyeong' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'
                   }`}
                 >
                   평
                 </button>
               </div>
-            </nav>
+              <FloatingUserBar />
+            </div>
           </div>
-          {/* User bar is now handled by FloatingUserBar in layout.tsx */}
-
-          </div>
+          {/* Bottom row: Tab navigation */}
+          <nav aria-label="메인 네비게이션" className="flex items-center gap-1 -mb-px">
+            {[
+              { id: 'imjang' as const, label: '단지 분석', icon: Compass },
+              { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
+              { id: 'recommend' as const, label: '집 추천', icon: Home },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-bold transition-all duration-200 border-b-2 ${
+                  activeTab === tab.id
+                    ? 'border-[#3182f6] text-[#3182f6]'
+                    : 'border-transparent text-[#8b95a1] hover:text-[#4e5968] hover:border-[#d1d5db]'
+                }`}
+              >
+                <tab.icon size={14} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
       </header>
 
       {/* Main Container */}
-      <main id="main-content" className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 py-3 sm:py-5 md:py-8 animate-in fade-in duration-500">
+      <main id="main-content" className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 pt-3 sm:pt-4 md:pt-5 pb-8 animate-in fade-in duration-500">
 
-        {/* ═══ TAB 1: 임장기 ═══ */}
+        {/* ═══ TAB 1: 단지 분석 ═══ */}
         {mounted && activeTab === 'imjang' && (
         <section>
-          {/* 1. Section Header */}
-          <div className="mb-4 sm:mb-6">
-            {/* 1행: 로고 + 타이틀 + 배지 */}
-            <div className="flex flex-wrap items-center gap-2.5 sm:gap-4 mb-3">
-              <div className="relative shrink-0">
-                <div className="absolute inset-0 bg-gradient-to-tr from-blue-100 to-indigo-50 rounded-xl blur-md opacity-60"></div>
-                <img src="/dsq-icon.png" alt="DSQ" className="relative w-9 h-9 sm:w-12 sm:h-12 rounded-xl shadow-sm ring-1 ring-[#191f28]/5" />
+          {/* 1. Section Header — removed, now in main header */}
+          <div className="mb-3 sm:hidden">
+            <div className="flex items-start justify-between w-full">
+              <div className="-mr-2 flex justify-end w-full">
+                <FloatingUserBar />
               </div>
-              <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold bg-gradient-to-br from-[#111827] to-[#4b5563] bg-clip-text text-transparent tracking-tight">
-                동탄 아파트 가치 분석
-              </h1>
             </div>
           </div>
-
-
-
 
           {/* ── 마스터-디테일 레이아웃 ── */}
           <div className="flex flex-col md:flex-row md:bg-white md:rounded-2xl md:border md:border-[#e5e8eb] md:shadow-sm">
@@ -592,9 +604,11 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
             <div className="w-full md:w-[380px] md:shrink-0 md:sticky md:top-16 md:self-start md:h-[calc(100vh-8rem)] md:border-r md:border-[#e5e8eb] flex flex-col overflow-hidden bg-white rounded-2xl md:rounded-l-2xl md:rounded-r-none">
           {(() => {
             // 전체: 모든 아파트 플랫 리스트 / 특정 동: 해당 동만
-            const allApts = selectedDong 
+            const rawApts = selectedDong 
               ? (sheetApartments[selectedDong] || [])
               : Object.values(sheetApartments).flat();
+              
+            const allApts = rawApts.filter(a => !publicRentalSet.has(a.name));
 
             // 정렬 로직
             const sorted = [...allApts].sort((a, b) => {
@@ -621,7 +635,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
                     <DongFilterBar
                       selectedDong={selectedDong}
                       onSelectDong={setSelectedDong}
-                      totalAptCount={Object.values(sheetApartments).flat().length}
+                      totalAptCount={Object.values(sheetApartments).flat().filter(a => !publicRentalSet.has(a.name)).length}
                       dongAptCounts={dongAptCounts}
                       dongReportCounts={dongReportCounts}
                       listSort={listSort}
@@ -629,9 +643,9 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
                     />
                   </div>
                   <FixedSizeList
-                    height={typeof window !== 'undefined' && window.innerWidth >= 768 ? listHeight : sorted.length * 72}
+                    height={typeof window !== 'undefined' && window.innerWidth >= 768 ? listHeight : sorted.length * 82}
                     itemCount={sorted.length}
-                    itemSize={72}
+                    itemSize={82}
                     width="100%"
                     overscanCount={5}
                   >
@@ -753,10 +767,13 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
         {/* ═══ TAB 2: 라운지 ═══ */}
         {activeTab === 'lounge' && (
         <section>
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-start mb-6 w-full">
             <div>
               <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] mb-1">실시간 동탄라운지</h2>
               <p className="text-[15px] text-[#8b95a1] font-medium">동탄 주민들의 솔직한 이야기</p>
+            </div>
+            <div className="sm:hidden -mr-2 mt-1">
+              <FloatingUserBar />
             </div>
           </div>
 
@@ -930,9 +947,14 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
         {/* ═══ TAB 3: 아파트 추천 ═══ */}
         {activeTab === 'recommend' && (
         <section>
-          <div className="mb-8">
-            <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] mb-1">아파트 추천</h2>
-            <p className="text-[15px] text-[#8b95a1] font-medium">동탄 맞춤 아파트 추천 & 분석</p>
+          <div className="flex justify-between items-start mb-8 w-full">
+            <div>
+              <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] mb-1">아파트 추천</h2>
+              <p className="text-[15px] text-[#8b95a1] font-medium">동탄 맞춤 아파트 추천 & 분석</p>
+            </div>
+            <div className="sm:hidden -mr-2 mt-1">
+              <FloatingUserBar />
+            </div>
           </div>
           <div className="flex flex-col gap-6">
             <div className="w-full h-[180px] sm:h-[200px] bg-gradient-to-br from-[#3182f6] to-[#2b72d6] rounded-3xl p-5 sm:p-8 flex flex-col justify-end text-white relative overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
@@ -1043,7 +1065,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
         {/* 우측 3개 탭 */}
         <div className="flex items-center justify-between flex-1 gap-1">
           {[
-            { id: 'imjang' as const, label: '임장기', icon: Compass },
+            { id: 'imjang' as const, label: '단지 분석', icon: Compass },
             { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
             { id: 'recommend' as const, label: '집 추천', icon: Home },
           ].map(tab => {

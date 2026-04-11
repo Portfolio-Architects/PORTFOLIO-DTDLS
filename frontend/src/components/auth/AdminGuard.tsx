@@ -17,12 +17,14 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
     // Dev mode: skip auth entirely
     if (process.env.NODE_ENV === 'development') {
       setIsAuthorized(true);
+      localStorage.setItem('dview_is_admin', 'true');
       return;
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         setIsAuthorized(false);
+        localStorage.removeItem('dview_is_admin');
         router.push('/');
         return;
       }
@@ -32,14 +34,17 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         const idTokenResult = await user.getIdTokenResult(true);
         if (idTokenResult.claims.admin === true) {
           setIsAuthorized(true);
+          localStorage.setItem('dview_is_admin', 'true');
         } else {
           console.error("User does not have admin claims.");
           setIsAuthorized(false);
+          localStorage.removeItem('dview_is_admin');
           router.push('/');
         }
       } catch (error) {
         console.error("Error fetching token claims:", error);
         setIsAuthorized(false);
+        localStorage.removeItem('dview_is_admin');
         router.push('/');
       }
     });

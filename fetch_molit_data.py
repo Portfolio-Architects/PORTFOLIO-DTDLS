@@ -78,8 +78,11 @@ def fetch_apt_transactions(lawd_cd, deal_ymd):
         return None
 
 if __name__ == "__main__":
+    import datetime
+    
     hwaseong_cd = "41590"
-    target_month = "202401" 
+    now = datetime.datetime.now()
+    target_month = now.strftime("%Y%m") 
     
     print("국토부 실거래가 데이터 수집을 시작합니다...")
     
@@ -100,7 +103,7 @@ if __name__ == "__main__":
                 print(f" - {row['법정동']} {row['아파트명']} ({row['전용면적(㎡)']}㎡): {int(row['거래금액(만원)']):,}만원 ({row['층']}층, {row['거래일자']})")
             
             # CSV로 저장
-            filename = f"dongtan_transactions_{target_month}.csv"
+            filename = "dongtan_transactions_latest.csv"
             filepath = os.path.join(os.path.dirname(__file__), filename)
             
             headers = ['아파트명', '법정동', '지번', '전용면적(㎡)', '거래금액(만원)', '층', '건축년도', '거래일자']
@@ -111,5 +114,40 @@ if __name__ == "__main__":
                     writer.writerow(d)
                 
             print(f"\n데이터가 '{filename}' 파일로 저장되었습니다.")
+            
+            import json
+            # JSON 데이터 파일 생성 (서버리스 마이그레이션)
+            dongtan_data.sort(key=lambda x: x['거래일자'])
+            
+            data_dir = os.path.join(os.path.dirname(__file__), "data")
+            os.makedirs(data_dir, exist_ok=True)
+            
+            # 1. Transactions JSON
+            tx_data = {
+                "status": "success",
+                "count": len(dongtan_data),
+                "data": dongtan_data
+            }
+            with open(os.path.join(data_dir, "transactions.json"), 'w', encoding='utf-8') as f:
+                json.dump(tx_data, f, ensure_ascii=False, indent=2)
+                
+            # 2. Summary JSON
+            prices = [int(item['거래금액(만원)']) for item in dongtan_data]
+            avg_price = int(sum(prices) / len(prices)) if prices else 0
+            max_price = max(prices) if prices else 0
+            
+            summary_data = {
+                "status": "success",
+                "summary": {
+                    "avg_price_krw": avg_price,
+                    "max_price_krw": max_price,
+                    "total_transactions": len(dongtan_data),
+                    "index_score": 114.2
+                }
+            }
+            with open(os.path.join(data_dir, "summary.json"), 'w', encoding='utf-8') as f:
+                json.dump(summary_data, f, ensure_ascii=False, indent=2)
+                
+            print("웹 대시보드용 정적 JSON 파일(summary.json, transactions.json) 생성이 완료되었습니다.")
     else:
         print("\n수집된 데이터가 없습니다. (API 통신 실패 또는 인증 오류일 수 있습니다)")

@@ -43,7 +43,7 @@ async function main() {
   const now = new Date();
   const monthsToSync = new Set();
   
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 17; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     monthsToSync.add(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`);
   }
@@ -64,13 +64,34 @@ async function main() {
     do {
       const url = `${API_BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${LAWD_CD}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000`;
 
-      const res = await fetch(url);
-      if (!res.ok) {
-        console.error(`   ❌ HTTP ${res.status}`);
-        break;
+      let text = '';
+      let success = false;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        let timeoutId;
+        try {
+          const controller = new AbortController();
+          timeoutId = setTimeout(() => controller.abort(), 15000);
+          const res = await fetch(url, { signal: controller.signal });
+          if (!res.ok) {
+            console.error(`   ❌ HTTP ${res.status}`);
+            clearTimeout(timeoutId);
+            break;
+          }
+          text = await res.text();
+          clearTimeout(timeoutId);
+          success = true;
+          break;
+        } catch (e) {
+          if (timeoutId) clearTimeout(timeoutId);
+          console.error(`   ⚠️ API 호출 지연 (시도 ${attempt}/3)... ${e.message}`);
+          await new Promise(r => setTimeout(r, 2000));
+        }
       }
 
-      const text = await res.text();
+      if (!success) {
+        console.error(`   ❌ API 응답 실패로 해당 연월(${ym}) 건너뜀`);
+        break;
+      }
 
       // 에러 응답 체크
       const errMatch = text.match(/<returnAuthMsg>(.*?)<\/returnAuthMsg>/);
@@ -128,6 +149,8 @@ async function main() {
           buildYear: parseInt(get('buildYear'), 10) || 0,
           dealType: dealType,
           source: 'govt_api_rent',
+          reqGb: get('contractType'),
+          rnuYn: get('useRRRight'),
           _key: `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${floor}`,
         });
       }

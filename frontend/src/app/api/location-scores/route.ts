@@ -285,9 +285,15 @@ export async function GET(request: NextRequest) {
     const gtxSrtLine = stations.filter(s => s.line.includes('GTX') || s.line.includes('SRT'));
     const indeokwonLine = stations.filter(s => s.line.includes('인덕원') || s.line.includes('동탄인덕원'));
     const tramLine = stations.filter(s => s.line.includes('트램') || s.line.includes('동탄트램'));
-    const nearestStation = gtxSrtLine.length > 0 ? findNearest(aptCoord, gtxSrtLine) : findNearest(aptCoord, stations);
-    const nearestIndeokwon = indeokwonLine.length > 0 ? findNearest(aptCoord, indeokwonLine) : null;
-    const nearestTram = tramLine.length > 0 ? findNearest(aptCoord, tramLine) : null;
+    const nearestStationBase = gtxSrtLine.length > 0 ? findNearest(aptCoord, gtxSrtLine) : findNearest(aptCoord, stations);
+    const nearestIndeokwonBase = indeokwonLine.length > 0 ? findNearest(aptCoord, indeokwonLine) : null;
+    const nearestTramBase = tramLine.length > 0 ? findNearest(aptCoord, tramLine) : null;
+
+    // Enrich with line name from sheet column C
+    const findStationLine = (name: string | undefined, pool: StationPOI[]) => pool.find(s => s.name === name)?.line || null;
+    const nearestStation = nearestStationBase ? { ...nearestStationBase, line: findStationLine(nearestStationBase.name, gtxSrtLine.length > 0 ? gtxSrtLine : stations) } : null;
+    const nearestIndeokwon = nearestIndeokwonBase ? { ...nearestIndeokwonBase, line: findStationLine(nearestIndeokwonBase.name, indeokwonLine) } : null;
+    const nearestTram = nearestTramBase ? { ...nearestTramBase, line: findStationLine(nearestTramBase.name, tramLine) } : null;
 
     // Academy density: bounding box pre-filter → haversine within 500m
     const candidateAcademies = filterByBBox(aptCoord, academies);
@@ -309,13 +315,12 @@ export async function GET(request: NextRequest) {
 
     // Anchor Tenants Distance calculations (Search from ALL restaurants/academies, not just 500m)
     const findAnchor = (keywords: string[]) => {
-      // 1순위: 사용자가 정밀 수급한 SBOYDS 데이터에서 먼저 찾는다.
+      // SBOYDS(수기 데이터)와 기존 상권(restaurants) 데이터 모두 통합 검색
       const sboydsMatches = sboyds.filter(r => keywords.some(k => r.name.includes(k)));
-      if (sboydsMatches.length > 0) return findNearest(aptCoord, sboydsMatches);
-
-      // 2순위: 기존 상권 데이터에서 검색
-      const matches = restaurants.filter(r => keywords.some(k => r.name.includes(k)));
-      return matches.length > 0 ? findNearest(aptCoord, matches) : null;
+      const restMatches = restaurants.filter(r => keywords.some(k => r.name.includes(k)));
+      
+      const combined = [...sboydsMatches, ...restMatches];
+      return combined.length > 0 ? findNearest(aptCoord, combined) : null;
     };
     
     const nearestStarbucks = findAnchor(['스타벅스']);

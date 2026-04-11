@@ -104,6 +104,7 @@ export async function POST(req: Request) {
         if (addObj.far) newRow[col(['용적률', 'far'])] = String(addObj.far);
         if (addObj.bcr) newRow[col(['건폐율', 'bcr'])] = String(addObj.bcr);
         if (addObj.parkingCount) newRow[col(['주차대수', 'parkingcount'])] = String(addObj.parkingCount);
+        if (addObj.minFloor) newRow[col(['최저층', 'minfloor'])] = String(addObj.minFloor);
         if (addObj.maxFloor) newRow[col(['최고층', 'maxfloor'])] = String(addObj.maxFloor);
         if (addObj.isPublicRental != null) newRow[col(['공공임대', 'ispublicrental'])] = addObj.isPublicRental ? 'Y' : 'N';
         if (addObj.ticker) newRow[col(['ticker', '티커'])] = addObj.ticker;

@@ -1,5 +1,5 @@
 # 📋 PORTFOLIO D-VIEW — Engineering Report
-> **Date**: 2026-04-08 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
+> **Date**: 2026-04-11 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
 
 
 ---
@@ -99,7 +99,8 @@ src/
 | **Community** | 댓글/리뷰 | comments, reviews | 유저 피드백 |
 | **Admin** | Sheets 동기화 | /api/admin/* | 일괄 업데이트 |
 | **Admin** | 종합 보고서 | /admin/report | SSOT 리포트 |
-| **Admin** | 트래픽 분석 탭 | scoutingReports | 단지별 조회수·관심 집계 |
+| **Admin** | 트래픽 분석 및 제외 | scoutingReports | 방문자 트래픽 집계 및 Admin(개발자) 제외 로직 |
+| **Admin** | 입지분석 현황 관리 | Admin Dashboard | 매장 위치 메타데이터 수집이 완료된 단지 통합 추적 탭 |
 | **Inspection** | Raw 인프라 메트릭스 | scoutingReports | 반경 500m 실측 거리 데이터 전수 공개 |
 | **Analytics** | Signal Map | MindMap3D | 3D 지식 그래프 |
 
@@ -128,7 +129,7 @@ src/
 | Type Integrity (타입 무결성) | **A** | **[해결 완료]** `any` 구문 81건 전수 제거 및 `unknown`·제네릭 타입으로 100% 마이그레이션 완료. 런타임 사이드 이펙트 위험 해소 (기본 인터페이스 및 strict null 완벽 준수) |
 | Test Coverage (테스트) | **A-** | **[해결 완료]** 코어 비즈니스 로직 및 UI 컴포넌트(DongFilterBar 등) 총 47개 테스트 전수 통과. 렌더링 리그레션 최소 방어선 구축 |
 | Production Readiness | **A** | **[해결 완료]** 잔존 `console.log` 전수 제거 및 3D Canvas 메모리 릭 요인 점검 완료 |
-| 보안 | **B+** | Firebase Auth (Google OAuth), Admin 권한 분리, CSP Report-Only 헤더, credentials.json gitignore |
+| 보안 | **A** | Firebase Auth, Admin 분리, Strict CSP 강제 주입, Edge 미들웨어 기반 IP Rate Limiting(API 트래픽 어뷰징 방어), Clickjacking 방어 완비 |
 | DevOps / CI | **B+** | GitHub Actions CI (Lint→TypeCheck→Jest→Build), Vercel 자동 배포 |
 | 컴포넌트 크기 | **A-** | page.tsx 970줄, ApartmentModal 1,336줄 (consumer 서브 컴포넌트 7개 분리 완료) |
 
@@ -178,10 +179,6 @@ src/
 - [ ] Firebase MCP 서버 연동 (AI Assistant의 실시간 DB 디버깅 및 스키마 분석 전용 채널 구축)
 
 ### Phase 2 (중장기)
-- [x] ~~Server Components 부분 도입 (page.tsx SSR 전환 → TTFB 감소, 초기 JS 축소)~~
-- [x] ~~Streaming + Suspense 경계 추가 (점진적 렌더링 → 체감 속도 개선)~~
-- [x] ~~Edge Runtime 전환 (일부 API → Cold Start 제거)~~
-- [x] ~~E2E 테스트 (Playwright — 모달·정렬·필터 자동 검증)~~
 - [ ] 구글 애드센스 오가닉 유입 극대화를 위한 **SEO 메타데이터 최적화 및 외부 커뮤니티 카카오톡 공유(Share) 기능 고도화**
 - [ ] 하이브리드 아키텍처 전환 (UI 렌더링: Vercel Pro 유지 / 무거운 API 스크립트: Cloud Run 이관) 및 TossPayments 복원
 - [ ] 이메일/비밀번호 + 카카오/Apple 소셜 로그인 확장
@@ -205,15 +202,15 @@ src/
 
 | 일시 | 주요 항목 | 요약 내용 |
 |:---|:---|:---|
+| 2026-04-11 | **오가닉 트래픽 무결성 확보 (Admin Exclusion)** | `SiteTracker` 로직에 관리자 접속 세션(Localhost 및 /admin 파이어베이스 권한)을 영구적으로 식별하여 일일 방문자수 중복 카운팅 데이터에서 개발자 트래픽을 원천 배제하는 토큰 연동 달성 |
+| 2026-04-11 | **주요 편의시설(AnchorTenant) UI 레이아웃 최적화** | AnchorTenantCard 내의 브랜드 배지(Badge) 도입 및 리스트 간격(Divider) 시인성 강화. 매장 메타데이터 카드를 진행 바 영역에 완벽히 스냅 밀착시켜 가독성 극대화 |
+| 2026-04-11 | **데이터 파이프라인 신뢰도 격상 및 입지분석 현황판** | 정규표현식(`^이마트(?!24)`)을 통한 푸드코트 등 추출 결함(False Positive) 해결 및 Admin Dashboard 상단에 '입지분석 완료' 추적 탭 신설 |
+| 2026-04-11 | **주요 편의시설 (앵커 테넌트) 메타데이터 고도화** | 관리자 패널 내 스타벅스 지점명, 상세 주소, 구글 맵 좌표 데이터 입력 폼 추가 및 소비자 뷰(AnchorTenantCard)의 구글 맵스 링크 인앱 연동으로 인프라 정보 신뢰도 향상 |
+| 2026-04-11 | **애플리케이션 보안 아키텍처 격상 (보안 등급 A 판정)** | `middleware.ts` 엣지 로직을 통한 전역 IP Rate Limiting(API 1분당 60회 제한) 적용으로 트래픽 인플레이션 봇/어뷰징 선제적 차단. XSS 유입을 막기 위한 Strict CSP 정책, Clickjacking 방패(`X-Frame-Options: DENY`) 등 프로덕션 레벨 사이버 보안 헤더 전면 강화 완료 |
 | 2026-04-08 | **데이터 파이프라인 고도화 및 마스터 스위치 통합** | 대규모 트랜잭션 데이터 무결성 검증을 위한 `validation-report.json` 도입 및 더미 전세 데이터 클렌징 연동. UI 레이어(`DashboardClient`, `ApartmentModal`, `AnchorTenantCard`)의 실거래가 예외 방어 로직 강화 및 마스터 스위치 적용 |
 | 2026-04-07 | **실거래가 매매/전월세 DB 통합 파이프라인 구축** | Firebase Client 보안 규칙 만료 우회를 위해 `firebase-admin`을 이용한 백엔드 업로드 아키텍처 전환. 전월세 전용 CSV 업로더 신설 및 매매/전월세 통합 동기화 달성 |
 | 2026-04-02 | **모바일 UX 및 밸류에이션 리팩토링** | 하단 플로팅 독 네이티브 가상화 스크롤 배포, 매매/전월세 차트 데이터 통합 연동, 다이내믹 스티키 헤더 및 관리자 팝오버 구조 축소 개편 |
 | 2026-04-02 | **UI 컴포넌트 핫픽스 자동화** | `fix_modal.js`, `fix_header.js` 등 다수의 자동화 스크립트를 통한 UI 일괄 리팩토링 및 핫픽스 적용 (`2,250+` 라인 변경) |
-| 2026-04-01 | **Signal Map 시각화 고도화** | 스티키 네비게이션 헤더 구현, 빈 노드 상태 대비 사이드바 요약 대시보드 추가, 다중 카테고리 파이 슬라이스 시각화 |
-| 2026-04-01 | **포트폴리오 리포트 인프라 개선** | USD 통화 포맷팅 소수점 2자리 규격화, PDF 출력을 위한 마크다운 여백 압축, Portfolio Structural Convexity Framework 연동 |
-| 2026-03-31 | **Signal Map 물리 엔진 및 포트폴리오 데이터 동기화** | 노드 궤도 속도 동기화 및 척력 튜닝, 직관적인 클릭 기반 노드 연결 구현. 총자산(Total Assets) 및 순자산(Net Worth) 데이터 연동 |
-| 2026-03-30 | **포트폴리오 대시보드 UI 및 Signal Map 인터랙션 최적화** | 상위 카테고리 선택 시 하위 트리 강조 처리, DCF 모달이 스티키 네비게이션 헤더 밑으로 깔리는 z-index 오류 분리 수정 |
-| 2026-03-27 | **Alpha 스코어 로직 수정 및 모바일 네비게이션 해소** | Vercel의 Serverless Caching으로 인한 Alpha 값(0.00) 지연 현상 수정, 모바일 필(Pill) 네비게이션 가로 스크롤 이슈 해결 |
 | 2026-03-26 | **아파트 가치분석(Valuation) 데이터 동기화 디버깅** | "힐스테이트 동탄역" 등 단지의 원천 DB 이름 맵핑 누락 해결 및 거래 내역 파이프라인 정규화, PER/PU 비율 산출 기능 디버깅 |
 | 2026-03-26 | **아파트 모달 UI 레이아웃 및 팝오버 네비게이션 고도화** | ApartmentModal 내비게이션 매핑 및 갤러리 UI/레이아웃 안정화 (Merge Conflict 해결 포함) |
 | 2026-03-26 | **Vercel 빌드 중단 방지 (Hotfix)** | 작업 중인 Admin 페이지의 TS 컴파일 에러로 인한 배포 실패를 방지하기 위해 임시 예외(Ignore) 처리 적용 |

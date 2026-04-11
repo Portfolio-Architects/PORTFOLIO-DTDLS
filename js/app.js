@@ -35,7 +35,7 @@ function initTabs() {
 async function fetchDashboardData() {
     try {
         // Fetch Summary KPI Data
-        const summaryRes = await fetch('http://127.0.0.1:8000/api/realestate/summary');
+        const summaryRes = await fetch('data/summary.json');
         const summaryData = await summaryRes.json();
         
         if (summaryData.status === 'success') {
@@ -43,7 +43,7 @@ async function fetchDashboardData() {
         }
 
         // Fetch Transaction Data for Chart
-        const txRes = await fetch('http://127.0.0.1:8000/api/realestate/transactions');
+        const txRes = await fetch('data/transactions.json');
         const txData = await txRes.json();
         
         if (txData.status === 'success') {

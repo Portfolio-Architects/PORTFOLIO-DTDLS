@@ -1,24 +1,17 @@
-const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, getDocs, query } = require('firebase/firestore');
+const admin = require('firebase-admin');
+const fs = require('fs');
+const path = require('path');
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBv05nu9B8iVqDr68y8itgsDzg31aAuyf8",
-  authDomain: "portfolio-dtdls.firebaseapp.com",
-  projectId: "portfolio-dtdls",
-};
+const serviceAccountKey = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../serviceAccountKey.json'), 'utf8'));
+admin.initializeApp({ credential: admin.credential.cert(serviceAccountKey) });
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-async function main() {
-  const snap = await getDocs(collection(db, 'transactions'));
-  const names = new Set();
-  snap.forEach(doc => {
-    const data = doc.data();
-    if (data.aptName && data.aptName.includes('힐스테이트')) {
-      names.add(data.aptName);
-    }
+async function check() {
+  const db = admin.firestore();
+  const snap = await db.collection('transactions').where('source', '==', 'csv_rent_import').limit(5).get();
+  snap.docs.forEach(doc => {
+    const d = doc.data();
+    console.log(d.aptName, d.contractYm, d.reqGb, d.rnuYn);
   });
-  console.log("Found aptNames in DB containing '힐스테이트':", Array.from(names));
+  process.exit(0);
 }
-main();
+check();

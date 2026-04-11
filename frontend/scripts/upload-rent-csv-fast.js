@@ -91,6 +91,9 @@ async function main() {
     const depositStr = (cols[10] || '').replace(/,/g, '').trim();
     const monthlyRentStr = (cols[11] || '').replace(/,/g, '').trim();
     
+    const reqGb = (cols[16] || '').trim(); // Q열: 계약구분 (신규/갱신)
+    const rnuYn = (cols[17] || '').trim(); // R열: 갱신요구권 사용여부 (사용/미사용)
+    
     const deposit = parseInt(depositStr) || 0;
     const monthlyRent = parseInt(monthlyRentStr) || 0;
     const floor = parseInt(cols[12]) || 0;
@@ -110,6 +113,8 @@ async function main() {
       price: deposit,
       deposit: deposit,
       monthlyRent: monthlyRent,
+      reqGb,
+      rnuYn,
       floor,
       buildYear,
       dealType,
@@ -129,50 +134,61 @@ async function main() {
     .where('source', '==', 'csv_rent_import')
     .get();
 
-  const existingKeys = new Set();
+  const existingDocs = new Map();
   snapshot.docs.forEach(doc => {
       const data = doc.data();
-      // Use exact composite key as used in original script:
-      // aptName + contractDate + deposit + floor + (monthlyRent)
       const key = `${data.aptName}_${data.contractDate}_${data.deposit}_${data.floor}_${data.monthlyRent || 0}`;
-      existingKeys.add(key);
+      existingDocs.set(key, { id: doc.id, data: data, ref: doc.ref });
   });
-  console.log(`📊 DB 로드 완료: 기존 전월세 데이터 ${existingKeys.size}건`);
+  console.log(`📊 DB 로드 완료: 기존 전월세 데이터 ${existingDocs.size}건`);
 
   const newRecords = [];
+  const updateRecords = [];
+  
   for (const record of records) {
       const key = `${record.aptName}_${record.contractDate}_${record.deposit}_${record.floor}_${record.monthlyRent}`;
-      if (!existingKeys.has(key)) {
-          newRecords.push(record);
-          existingKeys.add(key); // Prevent duplicates within the CSV itself
+      const existing = existingDocs.get(key);
+      
+      if (!existing) {
+          newRecords.push({type: 'new', record});
+          existingDocs.set(key, { record }); // Prevent duplicates within CSV
+      } else if (existing.data && (existing.data.reqGb !== record.reqGb || existing.data.rnuYn !== record.rnuYn)) {
+          // If the DB has the record but the renewal fields are different/missing, we perform an update
+          updateRecords.push({ type: 'update', ref: existing.ref, record });
+          existingDocs.set(key, { ...existing, data: record }); // update local map
       }
   }
 
-  console.log(`\n총 ${records.length}건 중 신규 추가 대상: ${newRecords.length}건`);
+  console.log(`\n총 ${records.length}건 중 신규 추가 대상: ${newRecords.length}건, 업데이트 대상: ${updateRecords.length}건`);
 
-  if (newRecords.length === 0) {
+  if (newRecords.length === 0 && updateRecords.length === 0) {
       console.log('업데이트할 내역이 없습니다.');
       process.exit(0);
   }
 
-  // Batch insert new records (Firestore allows up to 500 per batch)
-  console.log('🔥 새 데이터를 Firestore에 적재합니다...');
+  // Batch insert/update records (Firestore allows up to 500 per batch)
+  console.log('🔥 새 데이터 및 수정된 데이터를 Firestore에 적재합니다...');
+  const combined = [...newRecords, ...updateRecords];
   const chunks = [];
-  for (let i = 0; i < newRecords.length; i += 500) {
-      chunks.push(newRecords.slice(i, i + 500));
+  for (let i = 0; i < combined.length; i += 500) {
+      chunks.push(combined.slice(i, i + 500));
   }
 
   for (let i = 0; i < chunks.length; i++) {
       const batch = db.batch();
-      chunks[i].forEach(record => {
-          const docRef = db.collection('transactions').doc();
-          batch.set(docRef, record);
+      chunks[i].forEach(item => {
+          if (item.type === 'new') {
+            const docRef = db.collection('transactions').doc();
+            batch.set(docRef, item.record);
+          } else {
+            batch.update(item.ref, { reqGb: item.record.reqGb, rnuYn: item.record.rnuYn });
+          }
       });
       await batch.commit();
-      console.log(` -> 진행률: 배치 ${i + 1}/${chunks.length} 완료 (${Math.min((i + 1) * 500, newRecords.length)}건)`);
+      console.log(` -> 진행률: 배치 ${i + 1}/${chunks.length} 완료 (${Math.min((i + 1) * 500, combined.length)}건)`);
   }
 
-  console.log(`\n🎉 전월세 업로드 완료! (신규 ${newRecords.length}건)`);
+  console.log(`\n🎉 전월세 업로드 완료! (신규 ${newRecords.length}건, 업데이트 ${updateRecords.length}건)`);
   process.exit(0);
 }
 

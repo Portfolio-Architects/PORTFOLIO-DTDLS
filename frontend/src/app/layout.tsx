@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { PieChart, LayoutDashboard, Building2, Newspaper, MessageSquare, Search, Bell } from 'lucide-react';
 import './globals.css';
-import FloatingUserBar from '@/components/FloatingUserBar';
 import OfflineBanner from '@/components/OfflineBanner';
 import SiteTracker from '@/components/SiteTracker';
 
@@ -41,7 +40,6 @@ export default function RootLayout({
           }
         `}} />
         <OfflineBanner />
-        <FloatingUserBar />
         <SiteTracker />
         {children}
       </body>

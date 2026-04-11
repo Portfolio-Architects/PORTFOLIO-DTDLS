@@ -34,6 +34,9 @@ type FormValues = {
     distanceToOliveYoung: string;
     distanceToDaiso: string;
     distanceToSupermarket: string;
+    starbucksName: string;
+    starbucksAddress: string;
+    starbucksCoordinates: string;
     academyDensity: string;
     restaurantDensity: string;
   };
@@ -109,6 +112,8 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
     restaurantCategories?: Record<string, number>;
     nearestSchoolNames?: { elementary?: string; middle?: string; high?: string };
     nearestStationName?: string;
+    nearestIndeokwonStationName?: string;
+    nearestTramStationName?: string;
   }>({});
   const [dongData, setDongData] = useState<Record<string, string[]>>(FALLBACK_DONG_DATA);
   const [isLoadingApts, setIsLoadingApts] = useState(true);
@@ -159,6 +164,26 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
         distanceToSubway: '',
         distanceToIndeokwon: '',
         distanceToTram: '',
+        distanceToStarbucks: '',
+        distanceToMcDonalds: '',
+        distanceToOliveYoung: '',
+        distanceToDaiso: '',
+        distanceToSupermarket: '',
+        starbucksName: '',
+        starbucksAddress: '',
+        starbucksCoordinates: '',
+        mcdonaldsName: '',
+        mcdonaldsAddress: '',
+        mcdonaldsCoordinates: '',
+        oliveYoungName: '',
+        oliveYoungAddress: '',
+        oliveYoungCoordinates: '',
+        daisoName: '',
+        daisoAddress: '',
+        daisoCoordinates: '',
+        supermarketName: '',
+        supermarketAddress: '',
+        supermarketCoordinates: '',
         academyDensity: '',
         restaurantDensity: ''
       },
@@ -200,6 +225,8 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
           ...(m.restaurantDensity ? { restaurantDensity: m.restaurantDensity } : {}),
           ...(m.nearestSchoolNames ? { nearestSchoolNames: m.nearestSchoolNames } : {}),
           ...(m.nearestStationName ? { nearestStationName: m.nearestStationName } : {}),
+          ...(m.nearestIndeokwonStationName ? { nearestIndeokwonStationName: m.nearestIndeokwonStationName } : {}),
+          ...(m.nearestTramStationName ? { nearestTramStationName: m.nearestTramStationName } : {}),
         }));
       }
       // Pre-populate uploaded file keys from existing images
@@ -253,6 +280,8 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                 high: loc.nearestSchools?.high?.name,
               },
               nearestStationName: loc.nearestStation?.name,
+              nearestIndeokwonStationName: loc.nearestIndeokwon?.name,
+              nearestTramStationName: loc.nearestTram?.name,
             });
           } catch { /* silent fail */ }
         })();
@@ -398,15 +427,21 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
         distanceToOliveYoung: Number(data.metrics.distanceToOliveYoung),
         distanceToDaiso: Number(data.metrics.distanceToDaiso),
         distanceToSupermarket: Number(data.metrics.distanceToSupermarket),
+        starbucksName: data.metrics.starbucksName || undefined,
+        starbucksAddress: data.metrics.starbucksAddress || undefined,
+        starbucksCoordinates: data.metrics.starbucksCoordinates || undefined,
         academyDensity: Number(data.metrics.academyDensity),
         ...(apiCategories.academyCategories ? { academyCategories: apiCategories.academyCategories } : {}),
         ...(Number(data.metrics.restaurantDensity) || apiCategories.restaurantDensity ? { restaurantDensity: Number(data.metrics.restaurantDensity) || apiCategories.restaurantDensity } : {}),
         ...(apiCategories.restaurantCategories ? { restaurantCategories: apiCategories.restaurantCategories } : {}),
         ...(apiCategories.nearestSchoolNames ? { nearestSchoolNames: apiCategories.nearestSchoolNames } : {}),
         ...(apiCategories.nearestStationName ? { nearestStationName: apiCategories.nearestStationName } : {}),
+        ...(apiCategories.nearestIndeokwonStationName ? { nearestIndeokwonStationName: apiCategories.nearestIndeokwonStationName } : {}),
+        ...(apiCategories.nearestTramStationName ? { nearestTramStationName: apiCategories.nearestTramStationName } : {}),
       };
 
-      const premiumScores = await getPremiumScoresAction(metricsPayload);
+      const safeMetricsPayload = JSON.parse(JSON.stringify(metricsPayload));
+      const premiumScores = await getPremiumScoresAction(safeMetricsPayload);
 
       // Upload thumbnail if selected
       let finalThumbnailUrl = thumbnailPreview || '';
@@ -420,7 +455,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
         scoutingDate: data.scoutingDate,
         thumbnailUrl: finalThumbnailUrl || uploadedImages[0]?.url || '',
         images: uploadedImages,
-        metrics: metricsPayload,
+        metrics: safeMetricsPayload,
         premiumScores,
         isPremium: data.isPremium,
         premiumContent: data.premiumContent || '',
@@ -454,18 +489,30 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
   };
 
   const NumberInput = ({ name, label, placeholder, unit }: { name: string, label: string, placeholder: string, unit: string }) => (
-    <div className="mb-4">
-      <label className="block text-[14px] font-bold text-[#4e5968] mb-2">{label}</label>
+    <div className="flex flex-col mb-4">
+      <label className="text-[12px] font-bold text-[#4e5968] mb-1.5">{label}</label>
       <div className="relative">
         <input 
           type="number"
           step="0.01"
-          {...register(name, { required: true })}
+          {...register(name as any, { required: false })}
           className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-all placeholder-[#b0b8c1]"
           placeholder={placeholder}
         />
         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b95a1] font-bold text-[14px]">{unit}</span>
       </div>
+    </div>
+  );
+
+  const TextInput = ({ name, label, placeholder }: { name: string, label: string, placeholder: string }) => (
+    <div className="flex flex-col mb-4">
+      <label className="text-[12px] font-bold text-[#4e5968] mb-1.5">{label}</label>
+      <input 
+        type="text" 
+        {...register(name as any, { required: false })} 
+        placeholder={placeholder} 
+        className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-all placeholder-[#b0b8c1]" 
+      />
     </div>
   );
 
@@ -642,6 +689,8 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                     high: loc.nearestSchools?.high?.name,
                   },
                   nearestStationName: loc.nearestStation?.name,
+                  nearestIndeokwonStationName: loc.nearestIndeokwon?.name,
+                  nearestTramStationName: loc.nearestTram?.name,
                 });
 
                 // 건물 정보 (시트 C~H열)
@@ -661,10 +710,29 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
 
                   // 앵커 테넌트 (스타벅스 등)
                   if (loc.distanceToStarbucks != null) setValue('metrics.distanceToStarbucks', String(loc.distanceToStarbucks));
+                  if (loc.starbucksName != null) setValue('metrics.starbucksName', String(loc.starbucksName));
+                  if (loc.starbucksAddress != null) setValue('metrics.starbucksAddress', String(loc.starbucksAddress));
+                  if (loc.starbucksCoordinates != null) setValue('metrics.starbucksCoordinates', String(loc.starbucksCoordinates));
+                  
                   if (loc.distanceToMcDonalds != null) setValue('metrics.distanceToMcDonalds', String(loc.distanceToMcDonalds));
+                  if (loc.mcdonaldsName != null) setValue('metrics.mcdonaldsName', String(loc.mcdonaldsName));
+                  if (loc.mcdonaldsAddress != null) setValue('metrics.mcdonaldsAddress', String(loc.mcdonaldsAddress));
+                  if (loc.mcdonaldsCoordinates != null) setValue('metrics.mcdonaldsCoordinates', String(loc.mcdonaldsCoordinates));
+                  
                   if (loc.distanceToOliveYoung != null) setValue('metrics.distanceToOliveYoung', String(loc.distanceToOliveYoung));
+                  if (loc.oliveYoungName != null) setValue('metrics.oliveYoungName', String(loc.oliveYoungName));
+                  if (loc.oliveYoungAddress != null) setValue('metrics.oliveYoungAddress', String(loc.oliveYoungAddress));
+                  if (loc.oliveYoungCoordinates != null) setValue('metrics.oliveYoungCoordinates', String(loc.oliveYoungCoordinates));
+                  
                   if (loc.distanceToDaiso != null) setValue('metrics.distanceToDaiso', String(loc.distanceToDaiso));
+                  if (loc.daisoName != null) setValue('metrics.daisoName', String(loc.daisoName));
+                  if (loc.daisoAddress != null) setValue('metrics.daisoAddress', String(loc.daisoAddress));
+                  if (loc.daisoCoordinates != null) setValue('metrics.daisoCoordinates', String(loc.daisoCoordinates));
+                  
                   if (loc.distanceToSupermarket != null) setValue('metrics.distanceToSupermarket', String(loc.distanceToSupermarket));
+                  if (loc.supermarketName != null) setValue('metrics.supermarketName', String(loc.supermarketName));
+                  if (loc.supermarketAddress != null) setValue('metrics.supermarketAddress', String(loc.supermarketAddress));
+                  if (loc.supermarketCoordinates != null) setValue('metrics.supermarketCoordinates', String(loc.supermarketCoordinates));
 
                   const bldMsg = bld?.householdCount
                     ? `\n\n🏢 건물\n시공사: ${bld.brand ?? '-'}\n세대수: ${bld.householdCount}\n준공: ${bld.yearBuilt ?? '-'}\n용적률: ${bld.far ?? '-'}%\n건폐율: ${bld.bcr ?? '-'}%\n주차: ${bld.parkingPerHousehold ?? '-'}대/세대`
@@ -725,12 +793,29 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
           <NumberInput name="metrics.distanceToTram" label="동탄트램 거리" placeholder="예: 300" unit="m" />
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2 mb-4">
-          <NumberInput name="metrics.distanceToStarbucks" label="스타벅스 거리" placeholder="예: 250" unit="m" />
-          <NumberInput name="metrics.distanceToOliveYoung" label="올리브영 거리" placeholder="예: 300" unit="m" />
-          <NumberInput name="metrics.distanceToDaiso" label="다이소 거리" placeholder="예: 400" unit="m" />
-          <NumberInput name="metrics.distanceToSupermarket" label="대형마트(이마트/노브랜드)" placeholder="예: 500" unit="m" />
-          <NumberInput name="metrics.distanceToMcDonalds" label="맥도날드 거리" placeholder="예: 600" unit="m" />
+        <div className="border-t border-[#f2f4f6] pt-4 mt-6 mb-6">
+          <h3 className="text-[14px] font-bold text-[#191f28] flex gap-2 mb-3 items-center">
+            앵커 테넌트 (주요 편의시설)
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mb-4">
+            <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb] flex flex-col gap-3">
+              <span className="text-[13px] font-bold text-[#00704A] flex items-center gap-1.5 border-b border-[#e5e8eb] pb-2">☕ 스타벅스</span>
+              <NumberInput name="metrics.distanceToStarbucks" label="반경 거리" placeholder="예: 250" unit="m" />
+              <TextInput name="metrics.starbucksName" label="지점명" placeholder="예: 스타벅스 동탄역점" />
+              <TextInput name="metrics.starbucksAddress" label="상세 주소" placeholder="예: 경기도 화성시 동탄역로 123" />
+              <TextInput name="metrics.starbucksCoordinates" label="지도 좌표 (위도, 경도)" placeholder="예: 37.1982, 127.0984" />
+            </div>
+            
+            <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb] grid grid-cols-2 gap-x-4 gap-y-3 content-start">
+              <div className="col-span-2 border-b border-[#e5e8eb] pb-2 mb-1">
+                 <span className="text-[13px] font-bold text-[#191f28]">기타 주요 시설 거리</span>
+              </div>
+              <NumberInput name="metrics.distanceToOliveYoung" label="올리브영 거리" placeholder="예: 300" unit="m" />
+              <NumberInput name="metrics.distanceToDaiso" label="다이소 거리" placeholder="예: 400" unit="m" />
+              <NumberInput name="metrics.distanceToSupermarket" label="대형마트(이마트 등)" placeholder="예: 500" unit="m" />
+              <NumberInput name="metrics.distanceToMcDonalds" label="맥도날드 거리" placeholder="예: 600" unit="m" />
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">

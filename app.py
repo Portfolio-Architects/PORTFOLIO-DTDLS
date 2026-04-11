@@ -14,7 +14,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-CSV_FILE = os.path.join(os.path.dirname(__file__), "dongtan_dummy_transactions.csv")
+CSV_FILE = os.path.join(os.path.dirname(__file__), "dongtan_transactions_latest.csv")
 
 @app.get("/")
 def read_root():

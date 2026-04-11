@@ -165,9 +165,9 @@ function calculateUtilityScoreV2(report: FieldReportData) {
 }
 
 export default function AdvancedValuationMetrics({ report, transactions }: Props) {
-  // 1개월 기준일 계산
+  // 3개월 기준일 계산 (가치평가 이평선)
   const now = new Date();
-  const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+  const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
 
   const isRecent = (t: any) => {
     if (!t.contractYm || t.contractYm.length < 6) return false;
@@ -175,7 +175,7 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
     const m = parseInt(t.contractYm.slice(4, 6));
     const d = parseInt(t.contractDay || '1');
     const txDate = new Date(y, m - 1, d);
-    return txDate >= oneMonthAgo;
+    return txDate >= threeMonthsAgo;
   };
 
   // 1. Transaction 분리
@@ -185,8 +185,8 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
   const recentSales = sales.filter(isRecent);
   const recentRents = rents.filter(isRecent);
 
-  // 1개월 평균 매매가 (최근 1개월 거래 없으면 가장 마지막 거래 1건 폴백 적용)
-  const avg1MSale = recentSales.length > 0
+  // 3개월 평균 매매가 (최근 3개월 거래 없으면 가장 마지막 거래 1건 폴백 적용)
+  const avg3MSale = recentSales.length > 0
     ? Math.round(recentSales.reduce((sum, t) => sum + t.price, 0) / recentSales.length)
     : (sales.length > 0 ? sales[0].price : 0);
   
@@ -194,14 +194,14 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
     ? (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055) 
     : (t.deposit || t.price || 0);
 
-  // 1개월 평균 전세가 (최근 1개월 거래 없으면 가장 마지막 거래 1건 폴백 적용)
-  const avg1MRent = recentRents.length > 0
+  // 3개월 평균 전세가 (최근 3개월 거래 없으면 가장 마지막 거래 1건 폴백 적용)
+  const avg3MRent = recentRents.length > 0
     ? Math.round(recentRents.reduce((sum, t) => sum + getJeonseEq(t), 0) / recentRents.length)
     : (rents.length > 0 ? getJeonseEq(rents[0]) : 0);
 
-  // 2. 실사용 PER 계산 (1건 대신 평균치 적용)
-  const realEstatePER = (avg1MSale > 0 && avg1MRent > 0) ? (avg1MSale / avg1MRent) : 0;
-  const jeonseRatio = (avg1MSale > 0 && avg1MRent > 0) ? (avg1MRent / avg1MSale) * 100 : 0;
+  // 2. 실사용 PER 계산 (1건 대신 최근 3개월 평균치 적용)
+  const realEstatePER = (avg3MSale > 0 && avg3MRent > 0) ? (avg3MSale / avg3MRent) : 0;
+  const jeonseRatio = (avg3MSale > 0 && avg3MRent > 0) ? (avg3MRent / avg3MSale) * 100 : 0;
 
   // 3. 상태 평가 로직
   let statusText = '데이터 부족';
@@ -305,16 +305,16 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
             <div className="flex flex-col gap-3.5">
               <div className="flex items-center justify-between">
                 <span className="text-[13px] text-[#8b95a1] font-medium flex items-center gap-1">
-                  1개월 평균 매매가 <span className="text-[10px] bg-[#f2f4f6] px-1 rounded">(Price)</span>
+                  3개월 평균 매매가 <span className="text-[10px] bg-[#f2f4f6] px-1 rounded">(Price)</span>
                 </span>
-                <span className="text-[15px] font-extrabold text-[#191f28]">{formatPrice(avg1MSale)}</span>
+                <span className="text-[15px] font-extrabold text-[#191f28]">{formatPrice(avg3MSale)}</span>
               </div>
               
               <div className="flex items-center justify-between">
                 <span className="text-[13px] text-[#8b95a1] font-medium flex items-center gap-1">
-                  1개월 평균 전세가 <span className="text-[10px] bg-[#f2f4f6] px-1 rounded">(Jeonse)</span>
+                  3개월 평균 전세가 <span className="text-[10px] bg-[#f2f4f6] px-1 rounded">(Jeonse)</span>
                 </span>
-                <span className="text-[15px] font-extrabold text-[#3182f6]">{formatPrice(avg1MRent)}</span>
+                <span className="text-[15px] font-extrabold text-[#3182f6]">{formatPrice(avg3MRent)}</span>
               </div>
 
               <div className="h-px w-full bg-[#e5e8eb] my-1" />

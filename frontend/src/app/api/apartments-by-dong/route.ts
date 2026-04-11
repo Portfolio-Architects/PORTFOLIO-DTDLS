@@ -25,8 +25,28 @@ export interface SheetApartment {
   parkingCount?: number;
   brand?: string;
   maxFloor?: number;
+  minFloor?: number;
   txKey?: string;
   isPublicRental?: boolean;
+  starbucksName?: string;
+  starbucksAddress?: string;
+  starbucksCoordinates?: string;
+  mcdonaldsName?: string;
+  mcdonaldsAddress?: string;
+  mcdonaldsCoordinates?: string;
+  distanceToMcDonalds?: number;
+  oliveYoungName?: string;
+  oliveYoungAddress?: string;
+  oliveYoungCoordinates?: string;
+  distanceToOliveYoung?: number;
+  daisoName?: string;
+  daisoAddress?: string;
+  daisoCoordinates?: string;
+  distanceToDaiso?: number;
+  supermarketName?: string;
+  supermarketAddress?: string;
+  supermarketCoordinates?: string;
+  distanceToSupermarket?: number;
 }
 
 export async function GET() {
@@ -65,11 +85,11 @@ export async function GET() {
     const rows = await sheet.getRows();
     const apartments: SheetApartment[] = [];
 
-    // Helper to safely extract properties matching header variations
+    // Helper to safely extract properties matching header variations (ignoring all spaces and case)
     const getVal = (row: { get: (k: string) => string } & Record<string, string>, keys: string[]) => {
       for (const k of keys) {
-        // Case-insensitive exactly
-        const exact = sheet.headerValues.find(h => h.toLowerCase().trim() === k.toLowerCase().trim());
+        const normalizedK = k.replace(/\s+/g, '').toLowerCase();
+        const exact = sheet.headerValues.find(h => h.replace(/\s+/g, '').toLowerCase() === normalizedK);
         if (exact) {
           const v = row.get(exact);
           if (v !== undefined && v !== null && v !== '') return String(v).trim();
@@ -93,13 +113,18 @@ export async function GET() {
       const parkStr = getVal(r, ['주차대수', 'parkingcount', '주차']);
       const brand = getVal(r, ['시공사', 'brand', '브랜드']);
       const floorStr = getVal(r, ['최고층', 'maxfloor', 'floors', '층수', '층']);
+      const minFloorStr = getVal(r, ['최저층', 'minfloor']);
       const txKey = getVal(r, ['txkey', '실거래키']);
       const rentalStr = getVal(r, ['공공임대', 'public', 'rental', 'ispublicrental']);
       const ticker = getVal(r, ['ticker', '티커']);
+      const starbucksName = getVal(r, ['스타벅스지점명', '스타벅스 명', '스타벅스 지점', '스타벅스명', '스타벅스이름', 'starbucksname', 'starbucks_name', '지점명']);
+      const starbucksAddress = getVal(r, ['스타벅스주소', '스타벅스 주소', 'starbucksaddress', 'starbucks_address', '스타벅스상세주소', '상세주소']);
+      const starbucksCoordinates = getVal(r, ['스타벅스좌표', '스타벅스 좌표', '스타벅스 맵좌표', 'starbuckscoordinates', 'starbucks_coord', 'starbucks_coordinates', '구글맵좌표']);
 
       const householdCount = hh ? parseInt(hh.replace(/,/g, '')) : undefined;
       const parkingCount = parkStr ? parseInt(parkStr.replace(/,/g, '')) : undefined;
       const maxFloor = floorStr ? parseInt(floorStr.replace(/,/g, '')) : undefined;
+      const minFloor = minFloorStr ? parseInt(minFloorStr.replace(/,/g, '')) : undefined;
 
       apartments.push({
         ticker,
@@ -114,9 +139,129 @@ export async function GET() {
         parkingCount: isNaN(parkingCount as number) ? undefined : parkingCount,
         brand,
         maxFloor: isNaN(maxFloor as number) ? undefined : maxFloor,
+        minFloor: isNaN(minFloor as number) ? undefined : minFloor,
         txKey,
         isPublicRental: ['y', 'yes', 'true', 'o', '공공'].includes((rentalStr || '').toLowerCase()),
+        starbucksName,
+        starbucksAddress,
+        starbucksCoordinates,
       });
+    }
+
+    const sboydsSheet = doc.sheetsByTitle[SHEET_TABS.SBOYDS];
+    const tenants: Record<string, { name: string, lat: number, lng: number, address: string }[]> = {
+      starbucks: [],
+      oliveyoung: [],
+      daiso: [],
+      mcdonalds: [],
+      supermarket: []
+    };
+
+    if (sboydsSheet) {
+      const sbRows = await sboydsSheet.getRows();
+      for (const sb of sbRows) {
+        const rawName = sb.get('상호명');
+        if (!rawName) continue;
+        const name = String(rawName).trim();
+        const latStr = sb.get('위도');
+        const lngStr = sb.get('경도');
+        const address = sb.get('주소');
+        
+        if (latStr && lngStr) {
+          const entry = {
+            name,
+            lat: parseFloat(latStr),
+            lng: parseFloat(lngStr),
+            address: String(address || '').trim()
+          };
+          if (name.includes('스타벅스')) tenants.starbucks.push(entry);
+          else if (name.includes('올리브영')) tenants.oliveyoung.push(entry);
+          else if (name.includes('다이소')) tenants.daiso.push(entry);
+        }
+      }
+    }
+
+    const restSheet = doc.sheetsByTitle[SHEET_TABS.RESTAURANTS];
+    if (restSheet) {
+      const restRows = await restSheet.getRows();
+      for (const sb of restRows) {
+        const rawName = sb.get('상호명');
+        if (!rawName) continue;
+        const name = String(rawName).trim();
+        const latStr = sb.get('위도');
+        const lngStr = sb.get('경도');
+        const address = sb.get('지번주소') || sb.get('도로명주소') || sb.get('주소'); // fallback since restaurants sheet might have different address columns
+        
+        if (latStr && lngStr) {
+          const entry = {
+            name,
+            lat: parseFloat(latStr),
+            lng: parseFloat(lngStr),
+            address: String(address || '').trim()
+          };
+          const cleanName = name.replace(/^(?:\(주\)|주식회사\s*|유한회사\s*)/, '').trim();
+          
+          if (cleanName.includes('맥도날드')) {
+            tenants.mcdonalds.push(entry);
+          } else {
+            const isSupermarketMatch = /^(이마트|홈플러스|롯데마트|하나로마트|코스트코|트레이더스|노브랜드|스타필드마켓)/.test(cleanName) 
+              || /^[가-힣]*농협.*하나로마트/.test(cleanName);
+              
+            const isSupermarket = isSupermarketMatch 
+              && !cleanName.includes('이마트24') 
+              && !cleanName.includes('버거') 
+              && !cleanName.includes('피자');
+              
+            if (isSupermarket) {
+              tenants.supermarket.push(entry);
+            }
+          }
+        }
+      }
+    }
+
+    // Haversine formula
+    const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+      const R = 6371e3; // metres
+      const p1 = lat1 * Math.PI/180;
+      const p2 = lat2 * Math.PI/180;
+      const dp = (lat2-lat1) * Math.PI/180;
+      const dl = (lon2-lon1) * Math.PI/180;
+      const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    };
+
+    for (const apt of apartments) {
+      if (apt.lat && apt.lng) {
+        const findNearest = (list: typeof tenants.starbucks) => {
+          let nearestDist = Infinity;
+          let nearestItem = null;
+          for (const item of list) {
+            const dist = getDistance(apt.lat, apt.lng, item.lat, item.lng);
+            if (dist < nearestDist) {
+              nearestDist = dist;
+              nearestItem = item;
+            }
+          }
+          return { item: nearestItem, dist: nearestDist };
+        };
+
+        const sb = findNearest(tenants.starbucks);
+        if (sb.item) { apt.distanceToStarbucks = Math.round(sb.dist); apt.starbucksName = sb.item.name; apt.starbucksAddress = sb.item.address; apt.starbucksCoordinates = `${sb.item.lat}, ${sb.item.lng}`; }
+        
+        const oy = findNearest(tenants.oliveyoung);
+        if (oy.item) { apt.distanceToOliveYoung = Math.round(oy.dist); apt.oliveYoungName = oy.item.name; apt.oliveYoungAddress = oy.item.address; apt.oliveYoungCoordinates = `${oy.item.lat}, ${oy.item.lng}`; }
+        
+        const ds = findNearest(tenants.daiso);
+        if (ds.item) { apt.distanceToDaiso = Math.round(ds.dist); apt.daisoName = ds.item.name; apt.daisoAddress = ds.item.address; apt.daisoCoordinates = `${ds.item.lat}, ${ds.item.lng}`; }
+        
+        const mc = findNearest(tenants.mcdonalds);
+        if (mc.item) { apt.distanceToMcDonalds = Math.round(mc.dist); apt.mcdonaldsName = mc.item.name; apt.mcdonaldsAddress = mc.item.address; apt.mcdonaldsCoordinates = `${mc.item.lat}, ${mc.item.lng}`; }
+        
+        const sm = findNearest(tenants.supermarket);
+        if (sm.item) { apt.distanceToSupermarket = Math.round(sm.dist); apt.supermarketName = sm.item.name; apt.supermarketAddress = sm.item.address; apt.supermarketCoordinates = `${sm.item.lat}, ${sm.item.lng}`; }
+      }
     }
 
     // 동별로 그룹핑

@@ -106,6 +106,9 @@ async function main() {
     const depositStr = (cols[10] || '').replace(/,/g, '').trim();
     const monthlyRentStr = (cols[11] || '').replace(/,/g, '').trim();
     
+    const reqGb = (cols[16] || '').trim(); // Q열: 계약구분 (신규/갱신)
+    const rnuYn = (cols[17] || '').trim(); // R열: 갱신요구권 사용여부 (사용/미사용)
+    
     const deposit = parseInt(depositStr) || 0;
     const monthlyRent = parseInt(monthlyRentStr) || 0;
     const floor = parseInt(cols[12]) || 0;
@@ -125,6 +128,8 @@ async function main() {
       price: deposit, // UI 매매가 호환성용 (보증금 기준)
       deposit: deposit,
       monthlyRent: monthlyRent,
+      reqGb,
+      rnuYn,
       floor,
       buildYear,
       dealType,
