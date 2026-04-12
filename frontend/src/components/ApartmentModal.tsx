@@ -510,7 +510,7 @@ export function FieldReportModal({
                    const day = parseInt(tx.contractDay) || 15;
                    return {
                      ts: new Date(year, month - 1, day).getTime(),
-                     yearMonth: parseInt(ym),
+                     yearMonth: parseInt(ym), contractDay: day,
                      price: Math.round(priceEokNum * 1000) / 1000,
                      area: tx.areaPyeong, rawArea: tx.area,
                      floor: tx.floor, priceEok: tx.priceEok, dealType: tx.dealType,
