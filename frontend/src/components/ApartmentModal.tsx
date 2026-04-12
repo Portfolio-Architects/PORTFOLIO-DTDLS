@@ -625,25 +625,25 @@ export function FieldReportModal({
                       </div>
                       
                      <div className="flex w-full divide-x divide-[#e5e8eb] mb-5 bg-[#f9fafb] py-3 rounded-xl border border-[#e5e8eb] overflow-x-auto custom-scrollbar [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
-                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[85px] flex-1 snap-center">
-                         <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">1개월 평균</span>
-                         <span className="text-[16px] font-extrabold text-[#191f28] whitespace-nowrap">{formatAvgPriceEok(momentum.m1)}</span>
+                       <div className="flex flex-col items-center px-3 sm:px-5 shrink-0 min-w-[76px] sm:min-w-[85px] flex-1 snap-center">
+                         <span className="text-[10px] sm:text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">1개월 평균</span>
+                         <span className="text-[13px] sm:text-[16px] font-bold sm:font-extrabold text-[#191f28] whitespace-nowrap">{formatAvgPriceEok(momentum.m1)}</span>
                        </div>
-                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[85px] flex-1 snap-center">
-                         <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">3개월 평균</span>
-                         <span className="text-[16px] font-extrabold text-[#191f28] whitespace-nowrap">{formatAvgPriceEok(momentum.m3)}</span>
+                       <div className="flex flex-col items-center px-3 sm:px-5 shrink-0 min-w-[76px] sm:min-w-[85px] flex-1 snap-center">
+                         <span className="text-[10px] sm:text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">3개월 평균</span>
+                         <span className="text-[13px] sm:text-[16px] font-bold sm:font-extrabold text-[#191f28] whitespace-nowrap">{formatAvgPriceEok(momentum.m3)}</span>
                        </div>
-                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[85px] flex-1 snap-center">
-                         <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">6개월 평균</span>
-                         <span className="text-[16px] font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.m6)}</span>
+                       <div className="flex flex-col items-center px-3 sm:px-5 shrink-0 min-w-[76px] sm:min-w-[85px] flex-1 snap-center">
+                         <span className="text-[10px] sm:text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">6개월 평균</span>
+                         <span className="text-[13px] sm:text-[16px] font-bold sm:font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.m6)}</span>
                        </div>
-                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[85px] flex-1 snap-center">
-                         <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">1년 평균</span>
-                         <span className="text-[16px] font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.y1)}</span>
+                       <div className="flex flex-col items-center px-3 sm:px-5 shrink-0 min-w-[76px] sm:min-w-[85px] flex-1 snap-center">
+                         <span className="text-[10px] sm:text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">1년 평균</span>
+                         <span className="text-[13px] sm:text-[16px] font-bold sm:font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.y1)}</span>
                        </div>
-                       <div className="flex flex-col items-center px-4 sm:px-5 shrink-0 min-w-[85px] flex-1 snap-center border-r-0">
-                         <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">3년 평균</span>
-                         <span className="text-[16px] font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.y3)}</span>
+                       <div className="flex flex-col items-center px-3 sm:px-5 shrink-0 min-w-[76px] sm:min-w-[85px] flex-1 snap-center border-r-0">
+                         <span className="text-[10px] sm:text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">3년 평균</span>
+                         <span className="text-[13px] sm:text-[16px] font-bold sm:font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.y3)}</span>
                        </div>
                      </div>
                      <div className="h-[300px] relative">
@@ -939,26 +939,26 @@ export function FieldReportModal({
                         </thead>
                         <tbody>
                           <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
-                            <td className="py-3 px-3 text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50">평균가격</td>
+                            <td className="py-3 px-3 text-[12px] md:text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50">평균가격</td>
                             {periodData.map(p => (
                               <td key={`price-${p.key}`} className="py-3 px-3 text-right">
-                                <span className="text-[14px] font-extrabold text-[#191f28]">{p.avgPriceEok}</span>
+                                <span className="text-[13px] md:text-[14px] font-bold md:font-extrabold text-[#191f28]">{p.avgPriceEok}</span>
                               </td>
                             ))}
                           </tr>
                           <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
-                            <td className="py-3 px-3 text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50">평당가격</td>
+                            <td className="py-3 px-3 text-[12px] md:text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50">평당가격</td>
                             {periodData.map(p => (
                               <td key={`perpyeong-${p.key}`} className="py-3 px-3 text-right">
-                                <span className="text-[13px] font-bold text-[#4e5968]">{p.perPyeongEok}<span className="text-[11px] text-[#8b95a1] font-medium">/평</span></span>
+                                <span className="text-[12px] md:text-[13px] font-bold text-[#4e5968]">{p.perPyeongEok}<span className="text-[10px] md:text-[11px] text-[#8b95a1] font-medium">/평</span></span>
                               </td>
                             ))}
                           </tr>
                           <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
-                            <td className="py-3 px-3 text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50">거래건수</td>
+                            <td className="py-3 px-3 text-[12px] md:text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50">거래건수</td>
                             {periodData.map(p => (
                               <td key={`count-${p.key}`} className="py-3 px-3 text-right">
-                                <span className="text-[13px] font-medium text-[#8b95a1]">{p.count}건</span>
+                                <span className="text-[12px] md:text-[13px] font-medium text-[#8b95a1]">{p.count}건</span>
                               </td>
                             ))}
                           </tr>
