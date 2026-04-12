@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
+import { verifyAuthHeader } from '@/lib/authUtils';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,9 +16,18 @@ export async function POST(request: NextRequest) {
   try {
     if (!adminDb) return NextResponse.json({ error: 'DB not initialized' }, { status: 500 });
 
-    const { aptName, userId } = await request.json();
-    if (!aptName || !userId) {
-      return NextResponse.json({ error: 'aptName and userId are required' }, { status: 400 });
+    // Auth Validation
+    let decodedToken;
+    try {
+      decodedToken = await verifyAuthHeader(request);
+    } catch (authErr) {
+      return NextResponse.json({ error: 'Unauthorized Request' }, { status: 401 });
+    }
+    const userId = decodedToken.uid;
+
+    const { aptName } = await request.json();
+    if (!aptName) {
+      return NextResponse.json({ error: 'aptName is required' }, { status: 400 });
     }
 
     const docId = `${userId}_${aptName}`;
@@ -53,9 +63,18 @@ export async function GET(request: NextRequest) {
   try {
     if (!adminDb) return NextResponse.json({ favorites: [], warning: 'DB not initialized' }, { status: 200 });
 
-    const userId = request.nextUrl.searchParams.get('userId');
-    if (!userId) {
-      return NextResponse.json({ favorites: [] }, { status: 200 });
+    // Auth Validation
+    let decodedToken;
+    try {
+      decodedToken = await verifyAuthHeader(request);
+    } catch (authErr) {
+      return NextResponse.json({ favorites: [], warning: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = decodedToken.uid;
+
+    const requestedUserId = request.nextUrl.searchParams.get('userId');
+    if (requestedUserId && requestedUserId !== userId) {
+      return NextResponse.json({ favorites: [], warning: 'Forbidden' }, { status: 403 });
     }
 
     const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>

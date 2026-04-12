@@ -259,9 +259,13 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
   // Fetch user favorites when auth changes
   useEffect(() => {
     if (user) {
-      fetch(`/api/favorite?userId=${user.uid}`).then(r => r.json()).then(data => {
-        if (data.favorites) setUserFavorites(new Set(data.favorites));
-      }).catch((err) => { logger.warn('Dashboard', 'Failed to fetch favorites', { userId: user.uid }, err); });
+      user.getIdToken().then(idToken => {
+        fetch(`/api/favorite?userId=${user.uid}`, {
+          headers: { 'Authorization': `Bearer ${idToken}` }
+        }).then(r => r.json()).then(data => {
+          if (data.favorites) setUserFavorites(new Set(data.favorites));
+        }).catch((err) => { logger.warn('Dashboard', 'Failed to fetch favorites', { userId: user.uid }, err); });
+      }).catch(err => logger.warn('Dashboard', 'Auth token fetch failed', {}, err));
     } else {
       setUserFavorites(new Set());
     }
@@ -289,11 +293,16 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
     }));
     // Server sync
     try {
-      await fetch('/api/favorite', {
+      const idToken = await user.getIdToken();
+      const res = await fetch('/api/favorite', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ aptName, userId: user.uid }),
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({ aptName }),
       });
+      if (!res.ok) throw new Error('API failed');
     } catch {
       // Revert on failure
       setUserFavorites(prev => {

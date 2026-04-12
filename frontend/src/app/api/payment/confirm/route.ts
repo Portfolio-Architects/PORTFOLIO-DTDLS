@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyAuthHeader } from '@/lib/authUtils';
 
 /**
  * POST /api/payment/confirm
@@ -10,10 +11,19 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function POST(request: NextRequest) {
   try {
-    const { paymentKey, orderId, amount, userId, reportId } = await request.json();
+    // Auth Validation
+    let decodedToken;
+    try {
+      decodedToken = await verifyAuthHeader(request);
+    } catch (authErr) {
+      return NextResponse.json({ error: '인증되지 않은 요청입니다.' }, { status: 401 });
+    }
+    const userId = decodedToken.uid;
+
+    const { paymentKey, orderId, amount, reportId } = await request.json();
 
     // Validate required fields
-    if (!paymentKey || !orderId || !amount || !userId || !reportId) {
+    if (!paymentKey || !orderId || !amount || !reportId) {
       return NextResponse.json(
         { error: '필수 파라미터가 누락되었습니다.' },
         { status: 400 }

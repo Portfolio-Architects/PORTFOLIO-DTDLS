@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle2 } from 'lucide-react';
+import { auth } from '@/lib/firebaseConfig';
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
@@ -16,24 +17,36 @@ function PaymentSuccessContent() {
       const orderId = searchParams.get('orderId');
       const amount = searchParams.get('amount');
       const reportId = searchParams.get('reportId');
-      const userId = searchParams.get('userId');
 
-      if (!paymentKey || !orderId || !amount || !reportId || !userId) {
+      if (!paymentKey || !orderId || !amount || !reportId) {
         setStatus('error');
         setErrorMessage('결제 정보가 올바르지 않습니다.');
         return;
       }
 
       try {
+        // Wait for auth to initialize if not already
+        await auth.authStateReady();
+        const user = auth.currentUser;
+        if (!user) {
+          setStatus('error');
+          setErrorMessage('로그인이 필요합니다.');
+          return;
+        }
+
+        const idToken = await user.getIdToken();
+
         const res = await fetch('/api/payment/confirm', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
+          },
           body: JSON.stringify({
             paymentKey,
             orderId,
             amount: Number(amount),
             reportId,
-            userId,
           }),
         });
 
