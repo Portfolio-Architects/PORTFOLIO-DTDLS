@@ -41,7 +41,14 @@ export function TransactionTable({
   const [txFilterArea, setTxFilterArea] = useState<string>('ALL');
   const [txFilterDealType, setTxFilterDealType] = useState<string>('ALL');
   const [activeDropdown, setActiveDropdown] = useState<'sort' | 'area' | 'dealType' | null>(null);
-  const [isTxExpanded, setIsTxExpanded] = useState(false);
+  
+  const INITIAL_DISPLAY_COUNT = 20;
+  const [displayedCount, setDisplayedCount] = useState(INITIAL_DISPLAY_COUNT);
+
+  // Reset displayed count when filters change
+  useEffect(() => {
+    setDisplayedCount(INITIAL_DISPLAY_COUNT);
+  }, [txSort, txFilterArea, txFilterDealType, chartType]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -184,8 +191,8 @@ export function TransactionTable({
         </div>
       </div>
 
-      <div className={`overflow-y-auto custom-scrollbar flex-1 relative ${!isTxExpanded ? 'max-h-[360px] lg:max-h-none' : 'max-h-[600px] lg:max-h-none'}`}>
-        {sortedFilteredTransactions.slice(0, isTxExpanded ? undefined : 20).map((tx, i) => {
+      <div className={`overflow-y-auto custom-scrollbar flex-1 relative ${displayedCount <= INITIAL_DISPLAY_COUNT ? 'max-h-[360px] lg:max-h-none' : 'max-h-none'}`}>
+        {sortedFilteredTransactions.slice(0, displayedCount).map((tx, i) => {
           const m = tx.contractYm.substring(4, 6);
           const d = tx.contractDay;
           const eok = Math.floor(tx.price / 10000);
@@ -250,22 +257,22 @@ export function TransactionTable({
         )}
 
         {/* Gradient Fade for unexpanded state */}
-        {!isTxExpanded && filteredTransactions.length > 20 && (
+        {displayedCount < filteredTransactions.length && (
           <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent pointer-events-none flex items-end justify-center pb-2 z-10" />
         )}
       </div>
 
-      {/* Expand/Collapse Button (Mobile/Tablet only) */}
-      {!isTxExpanded && filteredTransactions.length > 20 && (
-        <button
-          onClick={() => setIsTxExpanded(true)}
-          className="lg:hidden relative -mt-4 w-[160px] mx-auto z-20 flex items-center justify-center gap-1.5 bg-[#191f28] text-white py-2.5 px-4 rounded-full text-[13px] font-extrabold shadow-lg hover:bg-[#191f28]/90 transition-colors mb-4"
-        >
-          더보기 <ChevronDown size={14} />
-        </button>
-      )}
-      {isTxExpanded && filteredTransactions.length > 20 && (
-        <div className="lg:hidden border-t border-[#f2f4f6]" />
+      {/* Expand/Collapse Button */}
+      {displayedCount < filteredTransactions.length && (
+        <>
+          <button
+            onClick={() => setDisplayedCount(prev => prev + 20)}
+            className="md:hidden relative -mt-4 w-[160px] mx-auto z-20 flex items-center justify-center gap-1.5 bg-[#191f28] text-white py-2.5 px-4 rounded-full text-[13px] font-extrabold shadow-lg hover:bg-[#191f28]/90 transition-colors mb-4"
+          >
+            더보기 <ChevronDown size={14} />
+          </button>
+          <div className="md:hidden border-t border-[#f2f4f6]" />
+        </>
       )}
     </div>
   );
