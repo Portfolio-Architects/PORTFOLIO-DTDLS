@@ -93,11 +93,11 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
           <span className="text-xs text-[#8b95a1]">{apt.dong}</span>
           {hasPhotos ? (
             <span className="inline-flex items-center gap-0.5 bg-[#fff4e6] text-[#ff8a3d] text-[10px] font-bold px-1.5 py-[1px] rounded shrink-0 leading-tight" title="현장 검증 완료">
-              📸 현장검증
+              현장검증
             </span>
           ) : hasAnalysis ? (
             <span className="inline-flex items-center gap-0.5 bg-[#e8f3ff] text-[#1b64da] text-[10px] font-bold px-1.5 py-[1px] rounded shrink-0 leading-tight" title="입지 분석 완료">
-              📍 입지분석
+              입지분석
             </span>
           ) : null}
           {(!hasAnalysis && !hasPhotos) && isPublicRental && (
@@ -112,6 +112,9 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
           <div className="text-right min-w-[80px]">
             <div className="text-base font-extrabold text-[#191f28] tabular-nums leading-none mb-1">
               {(() => {
+                if (txSummary.avg1MPriceEok && txSummary.avg1MPriceEok !== '0만' && txSummary.avg1MPrice > 0) {
+                  return txSummary.avg1MPriceEok;
+                }
                 if (txSummary.recent && txSummary.recent.length > 0) {
                   return txSummary.recent[0].priceEok;
                 }
@@ -123,40 +126,46 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
             </div>
             <div className="flex items-center justify-end gap-1.5">
               {(() => {
-                if (txSummary.recent && txSummary.recent.length > 0) {
+                let priceMan = 0;
+                let refArea = 0;
+                
+                if (txSummary.avg1MPrice > 0) {
+                  priceMan = txSummary.avg1MPrice;
+                  refArea = txSummary.recent?.[0]?.area || 0;
+                } else if (txSummary.recent && txSummary.recent.length > 0) {
                   const r = txSummary.recent[0];
+                  refArea = r.area;
                   // Extract priceMan from priceEok
                   const match = r.priceEok.match(/(\d+)억\s*([\d,]*)/);
-                  let priceMan = 0;
                   if (match) {
                     priceMan = parseInt(match[1]) * 10000 + parseInt((match[2] || '0').replace(/,/g, ''));
                   } else if (r.priceEok.includes('만')) {
                     priceMan = parseInt(r.priceEok.replace(/[^\d]/g, ''));
-                  } else {
-                    priceMan = txSummary.avg1MPrice || 0; // fallback
                   }
+                } else {
+                  priceMan = txSummary.avg1MPrice || 0; // fallback
+                }
 
-                  if (typeMap) {
-                    const aptNorm = apt.name.replace(/\[.*?\]\s*/g, '').replace(/\s+/g, '').replace(/[()（）]/g, '').trim();
-                    const t = typeMap[aptNorm]?.[String(r.area)];
-                    if (t) {
-                      const supplyM2Match = t.typeM2?.match(/\d+(\.\d+)?/);
-                      const supplyM2 = supplyM2Match ? parseFloat(supplyM2Match[0]) : null;
-                      const supplyPyeong = supplyM2 ? Math.round(supplyM2 * 0.3025 * 10) / 10 : null;
-                      const perPyeong = supplyPyeong && priceMan > 0
-                        ? Math.round(priceMan / supplyPyeong)
-                        : null;
-                      if (perPyeong) {
-                        return <span className="text-xs font-bold text-[#3182f6]">{perPyeong.toLocaleString()}만/평</span>;
-                      }
+                if (typeMap && refArea) {
+                  const aptNorm = apt.name.replace(/\[.*?\]\s*/g, '').replace(/\s+/g, '').replace(/[()（）]/g, '').trim();
+                  const t = typeMap[aptNorm]?.[String(refArea)];
+                  if (t) {
+                    const supplyM2Match = t.typeM2?.match(/\d+(\.\d+)?/);
+                    const supplyM2 = supplyM2Match ? parseFloat(supplyM2Match[0]) : null;
+                    const supplyPyeong = supplyM2 ? Math.round(supplyM2 * 0.3025 * 10) / 10 : null;
+                    const perPyeong = supplyPyeong && priceMan > 0
+                      ? Math.round(priceMan / supplyPyeong)
+                      : null;
+                    if (perPyeong) {
+                      return <span className="text-xs font-bold text-[#3182f6]">{perPyeong.toLocaleString()}만/평</span>;
                     }
                   }
+                }
                   
-                  // Fallback to scaled avg if calculation failed
-                  if (priceMan > 0 && txSummary.avg1MPrice && txSummary.avg1MPerPyeong) {
-                     const ratio = priceMan / txSummary.avg1MPrice;
-                     return <span className="text-xs font-bold text-[#3182f6]">{Math.round(txSummary.avg1MPerPyeong * ratio).toLocaleString()}만/평</span>;
-                  }
+                // Fallback to scaled avg if calculation failed
+                if (priceMan > 0 && txSummary.avg1MPrice && txSummary.avg1MPerPyeong) {
+                   const ratio = priceMan / txSummary.avg1MPrice;
+                   return <span className="text-xs font-bold text-[#3182f6]">{Math.round(txSummary.avg1MPerPyeong * ratio).toLocaleString()}만/평</span>;
                 }
 
                 if (!txSummary.avg1MPerPyeong) return null;
@@ -183,7 +192,7 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
           <svg width="18" height="18" viewBox="0 0 24 24" fill={isFavorited ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
-          {(favoriteCount ?? 0) > 0 && (
+          {favoriteCount != null && (
             <span className={`text-[12px] font-bold ${isFavorited ? 'text-[#ff3b30]' : 'text-[#8b95a1] group-hover:text-[#ff3b30]'}`}>
               {favoriteCount}
             </span>
