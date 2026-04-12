@@ -21,7 +21,7 @@ import { buildInitialApartments } from '@/lib/dong-apartments';
 
 interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }
 import { TX_SUMMARY, type AptTxSummary } from '@/lib/transaction-summary';
-import { isSameApartment, normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
+import { isSameApartment, normalizeAptName, findTxKey, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import * as PurchaseRepo from '@/lib/repositories/purchase.repository';
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -127,7 +127,14 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
       .then(r => r.json())
       .then(data => {
         if (data.byDong && Object.keys(data.byDong).length > 0) {
-          setSheetApartments(data.byDong);
+          // Apply display name overriding dynamically from the mapping
+          const updatedByDong = Object.fromEntries(
+            Object.entries(data.byDong).map(([dong, apts]) => [
+              dong,
+              (apts as DongApartment[]).map(a => ({ ...a, name: getDisplayAptName(a.name) }))
+            ])
+          );
+          setSheetApartments(updatedByDong);
         }
       })
       .catch((err) => { logger.warn('Dashboard', 'Failed to fetch apartments, falling back to static', {}, err); }); // 실패 시 정적 폴백 유지
@@ -350,8 +357,11 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
     if (!selectedReport) { setModalTransactions([]); return; }
     setIsTxLoading(true);
 
-    // findTxKey로 JSON 파일명 결정 (접두사 자동 strip)
-    const txKey = findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
+    // Find raw google sheet entry to check for explicit txKey
+    const rawApt = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping));
+    
+    // findTxKey로 JSON 파일명 결정 (접두사 자동 strip), Google Sheets explicit txKey 최우선
+    const txKey = (rawApt as any)?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
     const fileKey = txKey || normalizeAptName(selectedReport.apartmentName);
 
     // 캐시를 방지하기 위해 쿼리스트링(v=Date.now()) 추가
@@ -663,7 +673,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
                   >
                     {({ index, style }: { index: number; style: React.CSSProperties }) => {
                       const apt = sorted[index];
-                      const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
+                      const txKey = apt.txKey || findTxKey(apt.name, txSummaryData, nameMapping);
                       const txSummary = txKey ? txSummaryData[txKey] : undefined;
                       const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name, nameMapping));
                       return (

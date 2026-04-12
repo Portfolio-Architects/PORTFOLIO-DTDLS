@@ -2,16 +2,18 @@
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2, Eye } from 'lucide-react';
-import { db, auth } from '@/lib/firebaseConfig';
+import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2, Eye, Edit2, ImagePlus, Loader2 } from 'lucide-react';
+import { db, auth, storage } from '@/lib/firebaseConfig';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, getDoc, collection, onSnapshot, addDoc, updateDoc, increment, deleteDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import type { UserProfile } from '@/lib/types/user.types';
 import { getDisplayName } from '@/lib/types/user.types';
 import { isAdmin as checkAdmin } from '@/lib/config/admin.config';
+import { compressImage } from '@/lib/utils/imageCompression';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 
 interface PostComment {
@@ -39,6 +41,15 @@ export default function LoungeDetailClient({ postId, initialPost }: { postId: st
   const [commentText, setCommentText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [loading, setLoading] = useState(!initialPost);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+  const [editCategory, setEditCategory] = useState('');
+
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auth
   useEffect(() => {
@@ -142,6 +153,58 @@ export default function LoungeDetailClient({ postId, initialPost }: { postId: st
     }
   };
 
+  const handleSaveEdit = async () => {
+    if (!postId || !editTitle.trim()) return;
+    try {
+      await updateDoc(doc(db, 'posts', postId), {
+        title: editTitle.trim(),
+        content: editContent.trim(),
+        category: editCategory,
+        updatedAt: serverTimestamp(),
+      });
+      setPost((prev: any) => prev ? { ...prev, title: editTitle.trim(), content: editContent.trim(), category: editCategory } : prev);
+      setIsEditing(false);
+    } catch (e) {
+      alert('수정에 실패했습니다.');
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    try {
+      const compressedFile = await compressImage(file);
+      const fileExt = compressedFile.name.split('.').pop() || 'jpg';
+      const fileName = `lounge_images/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+      const storageRef = ref(storage, fileName);
+      await uploadBytes(storageRef, compressedFile);
+      const url = await getDownloadURL(storageRef);
+
+      const textarea = textareaRef.current;
+      if (textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const mdImage = `\n![이미지](${url})\n`;
+        const newText = editContent.substring(0, start) + mdImage + editContent.substring(end);
+        setEditContent(newText);
+        setTimeout(() => {
+          textarea.focus();
+          textarea.setSelectionRange(start + mdImage.length, start + mdImage.length);
+        }, 10);
+      } else {
+        setEditContent(prev => prev + `\n![이미지](${url})\n`);
+      }
+    } catch (error) {
+      console.error('Image upload failed', error);
+      alert('이미지 업로드에 실패했습니다.');
+    } finally {
+      setIsUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   /** Verification badge */
   const VerificationBadge = ({ apartment, level }: { apartment?: string; level?: string }) => {
     if (!apartment || !level) return null;
@@ -176,43 +239,124 @@ export default function LoungeDetailClient({ postId, initialPost }: { postId: st
         <button onClick={() => router.push('/lounge')} className="text-[#191f28] hover:bg-[#f2f4f6] p-1.5 rounded-full transition-colors">
           <ChevronLeft size={24} />
         </button>
-        <h1 className="text-[17px] font-bold text-[#191f28] flex-1 line-clamp-1">{String(post?.category || "라운지")}</h1>
+        <h1 className="text-[17px] font-bold text-[#191f28] flex-1 line-clamp-1">
+          {post?.category === '임장기' ? '동탄 임장/분석' : 
+           post?.category === '부동산 기초' ? '부동산 고민상담' :
+           post?.category === '정책자금 대출' ? '동탄 청약/대출' :
+           post?.category === '인프라' ? '동탄 교통/상권' : 
+           String(post?.category || "라운지")}
+        </h1>
         {(user?.uid === post?.authorUid || checkAdmin(user?.email)) && (
-          <button
-            onClick={async () => {
-              if (!confirm('이 글을 삭제하시겠습니까?')) return;
-              try {
-                await deleteDoc(doc(db, 'posts', postId));
-                router.push('/lounge');
-              } catch {
-                alert('삭제에 실패했습니다.');
-              }
-            }}
-            className="p-2 rounded-full hover:bg-[#fff0f0] text-[#adb5bd] hover:text-[#ff6b6b] transition-colors"
-            title="삭제"
-          >
-            <Trash2 size={18} />
-          </button>
+          <div className="flex items-center gap-1">
+            {!isEditing && (
+              <button
+                onClick={() => {
+                  setEditTitle(post?.title || '');
+                  setEditContent(post?.content || '');
+                  setEditCategory(post?.category || '동탄 임장/분석');
+                  setIsEditing(true);
+                }}
+                className="p-2 rounded-full hover:bg-[#f2f4f6] text-[#adb5bd] hover:text-[#3182f6] transition-colors"
+                title="수정"
+              >
+                <Edit2 size={18} />
+              </button>
+            )}
+            <button
+              onClick={async () => {
+                if (!confirm('이 글을 삭제하시겠습니까?')) return;
+                try {
+                  await deleteDoc(doc(db, 'posts', postId));
+                  router.push('/lounge');
+                } catch {
+                  alert('삭제에 실패했습니다.');
+                }
+              }}
+              className="p-2 rounded-full hover:bg-[#fff0f0] text-[#adb5bd] hover:text-[#ff6b6b] transition-colors"
+              title="삭제"
+            >
+              <Trash2 size={18} />
+            </button>
+          </div>
         )}
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-6 pb-32">
-        {/* Post Card */}
         <div className="bg-white rounded-2xl border border-[#e5e8eb] p-6 mb-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <span className={`text-[12px] font-bold px-2 py-0.5 rounded-md ${post?.category === '부동산' ? 'bg-[#ffe8e8] text-[#f04452]' : post?.category === '교통' ? 'bg-[#e8f3ff] text-[#3182f6]' : 'bg-[#f2f4f6] text-[#4e5968]'}`}>
-              {String(post?.category || "자유")}
-            </span>
-            <span className="text-[13px] text-[#8b95a1] ml-auto">{String(post?.createdAt || "")}</span>
-          </div>
-          <h1 className="text-[20px] font-extrabold text-[#191f28] leading-snug mt-2 mb-4">{String(post?.title || "")}</h1>
-          
-          {post?.content && (
-            <article className="[&>h2]:text-[18px] [&>h2]:font-extrabold [&>h2]:text-[#191f28] [&>h2]:mt-6 [&>h2]:mb-3 [&>h3]:text-[16px] [&>h3]:font-bold [&>h3]:text-[#191f28] [&>h3]:mt-5 [&>h3]:mb-2 [&>p]:mb-4 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-4 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:mb-4 text-[#4e5968] leading-relaxed mb-6 whitespace-pre-wrap">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {String(post.content)}
-              </ReactMarkdown>
-            </article>
+          {isEditing ? (
+            <div className="mt-4 flex flex-col gap-3">
+              <div className="flex gap-2 mb-2 overflow-x-auto">
+                {['동탄 임장/분석', '부동산 고민상담', '동탄 청약/대출', '동탄 교통/상권'].map((cat) => (
+                  <button key={cat} onClick={() => setEditCategory(cat)} className={`shrink-0 px-3 py-1.5 rounded-full text-[12px] font-bold border transition-all ${editCategory === cat ? 'bg-[#191f28] text-white border-[#191f28]' : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'}`}>{cat}</button>
+                ))}
+              </div>
+              <input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-xl px-4 py-3 text-[16px] font-bold outline-none focus:border-[#3182f6]"
+                placeholder="제목"
+              />
+              <textarea
+                ref={textareaRef}
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                rows={12}
+                className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-xl px-4 py-3 text-[15px] outline-none focus:border-[#3182f6] resize-none whitespace-pre-wrap"
+                placeholder="내용"
+              />
+              <div className="flex items-center justify-between mt-2">
+                <div>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingImage}
+                    className="flex items-center gap-1.5 text-[13px] font-bold text-[#4e5968] hover:text-[#3182f6] hover:bg-[#f2f4f6] transition-colors px-3 py-2 rounded-lg disabled:opacity-50 border border-[#e5e8eb]"
+                    title="이미지 업로드"
+                  >
+                    {isUploadingImage ? <Loader2 size={16} className="animate-spin text-[#3182f6]" /> : <ImagePlus size={16} />}
+                    <span>사진 첨부</span>
+                  </button>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleImageUpload} 
+                    accept="image/*" 
+                    className="hidden" 
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setIsEditing(false)} className="px-5 py-2.5 bg-[#f2f4f6] hover:bg-[#e5e8eb] text-[#4e5968] rounded-xl text-[14px] font-bold transition-colors">취소</button>
+                  <button onClick={handleSaveEdit} className="px-5 py-2.5 bg-[#3182f6] hover:bg-[#1b6de8] text-white rounded-xl text-[14px] font-bold transition-colors shadow-md shadow-[#3182f6]/20">저장</button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 mb-2">
+                <span className={`text-[12px] font-bold px-2 py-0.5 rounded-md ${
+                  (post?.category === '동탄 임장/분석' || post?.category === '임장기') ? 'bg-[#e8f8f0] text-[#00a06c]' :
+                  (post?.category === '부동산 고민상담' || post?.category === '부동산 기초' || post?.category === '부동산') ? 'bg-[#ffe8e8] text-[#f04452]' :
+                  (post?.category === '동탄 청약/대출' || post?.category === '정책자금 대출') ? 'bg-[#e8f3ff] text-[#3182f6]' :
+                  (post?.category === '동탄 교통/상권' || post?.category === '인프라' || post?.category === '교통') ? 'bg-[#f4e8ff] text-[#9b51e0]' :
+                  'bg-[#f2f4f6] text-[#4e5968]'
+                }`}>
+                  {post?.category === '임장기' ? '동탄 임장/분석' : 
+                   post?.category === '부동산 기초' ? '부동산 고민상담' :
+                   post?.category === '정책자금 대출' ? '동탄 청약/대출' :
+                   post?.category === '인프라' ? '동탄 교통/상권' : 
+                   String(post?.category || "자유")}
+                </span>
+                <span className="text-[13px] text-[#8b95a1] ml-auto">{String(post?.createdAt || "")}</span>
+              </div>
+              <h1 className="text-[20px] font-extrabold text-[#191f28] leading-snug mt-2 mb-4">{String(post?.title || "")}</h1>
+              
+              {post?.content && (
+                <article className="text-[#4e5968] text-[15px] leading-[1.65] break-keep [&>h2]:text-[18px] [&>h2]:font-extrabold [&>h2]:text-[#191f28] [&>h2]:mt-7 [&>h2]:mb-2.5 [&>h3]:text-[16px] [&>h3]:font-bold [&>h3]:text-[#191f28] [&>h3]:mt-5 [&>h3]:mb-1.5 [&>p]:mb-1 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-2 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:mb-2 [&_li]:pl-1 [&_li]:mb-0.5 [&_li>p]:inline [&_p]:whitespace-pre-wrap [&_li]:whitespace-pre-wrap marker:text-[#8b95a1] [&_img]:rounded-xl [&_img]:border [&_img]:border-[#e5e8eb] [&_img]:my-3">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {String(post.content).replace(/\n{3,}/g, '\n\n')}
+                  </ReactMarkdown>
+                </article>
+              )}
+            </>
           )}
 
           <div className="flex items-center justify-between border-t border-[#f2f4f6] pt-4">

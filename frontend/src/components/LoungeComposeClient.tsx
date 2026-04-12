@@ -1,15 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { PenLine, X, ShieldCheck, Building2 } from 'lucide-react';
-import { auth, googleProvider } from '@/lib/firebaseConfig';
+import { useState, useEffect, useRef } from 'react';
+import { PenLine, X, ShieldCheck, Building2, ImagePlus, Loader2 } from 'lucide-react';
+import { auth, googleProvider, storage } from '@/lib/firebaseConfig';
 import { onAuthStateChanged, signInWithPopup, User } from 'firebase/auth';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { dashboardFacade, UserReview } from '@/lib/DashboardFacade';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import type { UserProfile } from '@/lib/types/user.types';
 import { getDisplayName } from '@/lib/types/user.types';
 import { useRouter } from 'next/navigation';
 import { isAdmin } from '@/lib/config/admin.config';
+import { compressImage } from '@/lib/utils/imageCompression';
 
 export default function LoungeComposeClient() {
   const router = useRouter();
@@ -27,8 +29,55 @@ export default function LoungeComposeClient() {
 - 상세 내용을 입력하세요`;
 
   const [postContent, setPostContent] = useState('');
-  const [postCategory, setPostCategory] = useState('임장기');
+  const [postCategory, setPostCategory] = useState('동탄 임장/분석');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    try {
+      const compressedFile = await compressImage(file);
+      // 1. Storage Reference with unique name
+      const fileExt = compressedFile.name.split('.').pop() || 'jpg';
+      const fileName = `lounge_images/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+      const storageRef = ref(storage, fileName);
+
+      // 2. Upload
+      await uploadBytes(storageRef, compressedFile);
+
+      // 3. Get URL
+      const url = await getDownloadURL(storageRef);
+
+      // 4. Inject Markdown into textarea at cursor position
+      const textarea = textareaRef.current;
+      if (textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const mdImage = `\n![이미지](${url})\n`;
+        const newText = postContent.substring(0, start) + mdImage + postContent.substring(end);
+        setPostContent(newText);
+        
+        // Timeout to set focus back to textarea
+        setTimeout(() => {
+          textarea.focus();
+          textarea.setSelectionRange(start + mdImage.length, start + mdImage.length);
+        }, 10);
+      } else {
+        setPostContent(prev => prev + `\n![이미지](${url})\n`);
+      }
+    } catch (error) {
+      console.error('Image upload failed', error);
+      alert('이미지 업로드에 실패했습니다.');
+    } finally {
+      setIsUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = ''; // Reset input
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -111,12 +160,13 @@ export default function LoungeComposeClient() {
             
 
             <div className="flex gap-2 mb-4 overflow-x-auto">
-              {['임장기', '부동산 기초', '정책자금 대출', '인프라'].map((cat) => (
+              {['동탄 임장/분석', '부동산 고민상담', '동탄 청약/대출', '동탄 교통/상권'].map((cat) => (
                 <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#191f28] text-white border-[#191f28]' : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'}`}>{cat}</button>
               ))}
             </div>
             <input value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="검색에 노출될 확실한 글 제목을 입력하세요" className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-[#3182f6] focus:bg-white transition-colors mb-2" autoFocus />
             <textarea 
+              ref={textareaRef}
               value={postContent} 
               onChange={(e) => setPostContent(e.target.value)} 
               placeholder={isUserAdmin ? "동탄 이야기를 자유롭게 나눠보세요... 마크다운 문법을 사용하여 구조적인 글을 작성해보세요." : "동탄 이야기를 자유롭게 나눠보세요... 글을 작성해보세요."} 
@@ -124,7 +174,25 @@ export default function LoungeComposeClient() {
               className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors resize-none focus:ring-4 focus:ring-[#3182f6]/10 mb-4" 
             />
             <div className="flex items-center justify-between">
-              <span className="text-[12px] text-[#8b95a1]">🎭 {displayAuthorName}</span>
+              <div className="flex items-center gap-2 sm:gap-4">
+                <span className="text-[12px] text-[#8b95a1] hidden sm:inline-block">🎭 {displayAuthorName}</span>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingImage}
+                  className="flex items-center gap-1.5 text-[13px] font-bold text-[#4e5968] hover:text-[#3182f6] hover:bg-[#f2f4f6] transition-colors px-3 py-2 rounded-lg disabled:opacity-50 border border-[#e5e8eb]"
+                  title="이미지 업로드"
+                >
+                  {isUploadingImage ? <Loader2 size={16} className="animate-spin text-[#3182f6]" /> : <ImagePlus size={16} />}
+                  <span>사진 첨부</span>
+                </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleImageUpload} 
+                  accept="image/*" 
+                  className="hidden" 
+                />
+              </div>
               <button
                 onClick={async () => {
                   if (!user || !postTitle.trim()) return;

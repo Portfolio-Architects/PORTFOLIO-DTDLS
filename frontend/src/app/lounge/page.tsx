@@ -8,12 +8,21 @@ import { Post } from '@/lib/DashboardFacade'; // assuming this type exists or we
 export const revalidate = 60; // SSR Data revalidation every 60 seconds
 
 type Props = {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-export default async function LoungePage({ searchParams }: Props) {
+export default async function LoungePage(props: Props) {
+  const searchParams = await props.searchParams;
   const currentTab = typeof searchParams.tab === 'string' ? searchParams.tab : '전체';
   let posts: any[] = [];
+  
+  const CATEGORY_MAP: Record<string, string[]> = {
+    '전체': ['전체'],
+    '동탄 임장/분석': ['동탄 임장/분석', '임장기'],
+    '부동산 고민상담': ['부동산 고민상담', '부동산 기초'],
+    '동탄 청약/대출': ['동탄 청약/대출', '정책자금 대출'],
+    '동탄 교통/상권': ['동탄 교통/상권', '인프라']
+  };
   
   try {
     if (adminDb) {
@@ -25,7 +34,8 @@ export default async function LoungePage({ searchParams }: Props) {
       }));
       
       if (currentTab !== '전체') {
-        rawPosts = rawPosts.filter((p: any) => p.category === currentTab);
+        const allowedCategories = CATEGORY_MAP[currentTab] || [currentTab];
+        rawPosts = rawPosts.filter((p: any) => allowedCategories.includes(p.category));
       }
       
       posts = rawPosts;
@@ -51,7 +61,7 @@ export default async function LoungePage({ searchParams }: Props) {
           </div>
 
           <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
-            {['전체', '임장기', '부동산 기초', '정책자금 대출', '인프라'].map((cat) => (
+            {['전체', '동탄 임장/분석', '부동산 고민상담', '동탄 청약/대출', '동탄 교통/상권'].map((cat) => (
               <Link 
                 key={cat} 
                 href={cat === '전체' ? '/lounge' : `/lounge?tab=${encodeURIComponent(cat)}`}
@@ -77,13 +87,17 @@ export default async function LoungePage({ searchParams }: Props) {
                     <div className="flex flex-col gap-1 flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
-                          news.category === '임장기' ? 'bg-[#e8f8f0] text-[#00a06c]' :
-                          news.category === '부동산 기초' ? 'bg-[#ffe8e8] text-[#f04452]' :
-                          news.category === '정책자금 대출' ? 'bg-[#e8f3ff] text-[#3182f6]' :
-                          news.category === '인프라' ? 'bg-[#f4e8ff] text-[#9b51e0]' :
+                          (news.category === '동탄 임장/분석' || news.category === '임장기') ? 'bg-[#e8f8f0] text-[#00a06c]' :
+                          (news.category === '부동산 고민상담' || news.category === '부동산 기초') ? 'bg-[#ffe8e8] text-[#f04452]' :
+                          (news.category === '동탄 청약/대출' || news.category === '정책자금 대출') ? 'bg-[#e8f3ff] text-[#3182f6]' :
+                          (news.category === '동탄 교통/상권' || news.category === '인프라') ? 'bg-[#f4e8ff] text-[#9b51e0]' :
                           'bg-[#f2f4f6] text-[#4e5968]'
                         }`}>
-                          {news.category || '기타'}
+                          {news.category === '임장기' ? '동탄 임장/분석' : 
+                           news.category === '부동산 기초' ? '부동산 고민상담' :
+                           news.category === '정책자금 대출' ? '동탄 청약/대출' :
+                           news.category === '인프라' ? '동탄 교통/상권' : 
+                           (news.category || '기타')}
                         </span>
                       </div>
                       {/* SEO-friendly H2 headings for post titles in loops */}

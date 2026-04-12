@@ -3,14 +3,17 @@ import LoungeDetailClient from '@/components/LoungeDetailClient';
 import { adminDb } from '@/lib/firebaseAdmin';
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-// Next.js 14 Server Component for dynamic SEO
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+// Next.js 15+ Server Component for dynamic SEO requires await for params
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const { id } = params;
   let title = '동탄 라운지 게시글 | D-VIEW';
   let description = '동탄 주민들의 솔직한 리얼 실거래가 라운지 이야기입니다.';
+
+  if (!id) return { title, description };
 
   if (adminDb) {
     try {
@@ -19,10 +22,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         const data = docSnap.data();
         if (data) {
           title = `${data.title} | D-VIEW 라운지`;
-          // Use 'content' if it exists, otherwise fallback to description
-          description = data.content
-            ? (data.content.length > 100 ? data.content.substring(0, 100) + '...' : data.content)
-            : '동탄 주민들의 솔직한 리얼 실거래가 라운지 이야기입니다.';
+          // Use 'content' if it exists, clean markdown symbols, otherwise fallback to description
+          if (data.content) {
+            const cleanContent = data.content.replace(/[#*`~_\-]/g, '').replace(/\n+/g, ' ').trim();
+            description = cleanContent.length > 100 ? cleanContent.substring(0, 100) + '...' : cleanContent;
+          } else {
+            description = '동탄 주민들의 솔직한 리얼 실거래가 라운지 이야기입니다.';
+          }
         }
       }
     } catch (error) {
@@ -48,11 +54,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function LoungePostPage({ params }: Props) {
+export default async function LoungePostPage(props: Props) {
+  const params = await props.params;
   const { id } = params;
   let initialPost = null;
 
-  if (adminDb) {
+  if (adminDb && id) {
     try {
       const docSnap = await adminDb.collection('posts').doc(id).get();
       if (docSnap.exists) {

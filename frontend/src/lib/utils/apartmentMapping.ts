@@ -26,7 +26,21 @@ export function normalizeAptName(name: string): string {
 const HARDCODED_MAPPING: Record<string, string> = {
   '그린힐반도유보라아이비파크10.0': '그린힐반도유보라아이비파크101단지',
   '레이크힐반도유보라아이비파크10.0': '레이크힐반도유보라아이비파크10.2',
+  '동탄풍성신미주': '동탄역신미주',
 };
+
+const DISPLAY_NAME_MAPPING: Record<string, string> = {
+  '동탄풍성신미주': '동탄역 신미주',
+};
+
+/**
+ * UI 화면 표시용 아파트 이름 오버라이드
+ * Google Sheets에 이전 이름("동탄풍성신미주")이 있을 경우 현재 이름("동탄역 신미주")으로 변환
+ */
+export function getDisplayAptName(name: string): string {
+  if (!name) return '';
+  return DISPLAY_NAME_MAPPING[name] || DISPLAY_NAME_MAPPING[normalizeAptName(name)] || name;
+}
 
 /**
  * 두 아파트명이 같은 단지인지 확인 (정확 일치 및 수동/예외 매핑 허용)
