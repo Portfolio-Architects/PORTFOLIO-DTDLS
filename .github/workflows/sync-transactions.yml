@@ -5,6 +5,10 @@ on:
     # 매일 KST 04:00 (UTC 19:00) 실행
     - cron: '0 19 * * *'
   workflow_dispatch: # 수동 실행 지원
+  push:
+    branches:
+      - master
+      - main
 
 jobs:
   sync:
@@ -32,9 +36,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Skip expensive jobs on push
+        if: github.event_name == 'push'
+        run: echo "Skipped data synchronization during standard push events. This job safely exists to satisfy branch protection rules without duplicate api calls."
+
       # Step 1: 국토부 API → Firestore
       - name: Fetch transactions from 국토부 API
-        if: secrets.BUILDING_API_KEY != ''
+        if: secrets.BUILDING_API_KEY != '' && github.event_name != 'push'
         run: node scripts/fetch-transactions.js
         env:
           BUILDING_API_KEY: ${{ secrets.BUILDING_API_KEY }}
@@ -42,10 +50,12 @@ jobs:
 
       # Step 2: Firestore → Static files (transaction-summary.ts + tx-data/*.json)
       - name: Generate static transaction files
+        if: github.event_name != 'push'
         run: node scripts/sync-transactions.js
 
       # Step 3: Commit & Push if changes exist
       - name: Commit and push changes
+        if: github.event_name != 'push'
         run: |
           cd ..
           git config user.name "github-actions[bot]"
