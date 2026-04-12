@@ -172,6 +172,7 @@ src/
 ### Phase 1 (단기)
 - [x] **[Security Hotfix 🚨] 백엔드 API JWT 인가(Authorization) 도입**: 클라이언트가 전송하는 `userId` 기반 취약점(좋아요 조작 가능) 방어를 위해, Firebase ID Token(`admin.auth().verifyIdToken`) 디코딩 기반 무결성 검증 로직으로 API 엔드포인트 전면 격상
 - [x] **[Security 🔒] Firebase Config 환경변수 은닉**: `firebaseConfig.ts`에 하드코딩된 클라이언트 API Key 등 민감정보를 `.env`로 추출하여 GitHub 노출 완벽 차단
+- [ ] **"아파트 골라보기" (Toss-Style) 검색 UI 전면 개편**: 기존 나열식 '아파트 검색' 탭을 2-Column(좌측 테마/카테고리 네비게이션, 우측 테이블) 방식으로 개편. 인기 단지, 내 관심 단지, 권역별 모아보기 등 토스증권식 종목 탐색 UX 이식.
 - [ ] **구글 애드센스(Google AdSense)** 컴포넌트 선행 환경 구성 및 네이티브 광고/배너 레이아웃 명당 설계 (수익화 인프라 준비)
 - [ ] 동탄 아파트 관계도 구축 (3D Force Graph — 단지 간 거리·가격 상관관계 시각화)
 - [ ] 아파트 비교 기능 (2~3개 단지 나란히 비교 — 가격·세대수·인프라 대시보드)

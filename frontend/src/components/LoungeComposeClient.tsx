@@ -110,25 +110,6 @@ export default function LoungeComposeClient({ currentCategory = '동탄 임장/�
 
   return (
     <>
-      {(user && (userProfile || isUserAdmin)) && (
-        <div className="bg-white rounded-2xl border border-[#e5e8eb] p-4 mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-[14px] font-bold text-[#191f28]">{displayAuthorName}</span>
-            {displayApartment && (
-              <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md ${isUserAdmin ? 'bg-[#191f28] text-[#ffffff]' : 'bg-[#e8f3ff] text-[#3182f6]'}`}>
-                <ShieldCheck size={11} /> {displayApartment}
-              </span>
-            )}
-          </div>
-          <button
-            onClick={() => { /* TODO: open verify modal */ }}
-            className={`text-[12px] font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 ${isUserAdmin ? 'text-[#8b95a1] bg-[#f2f4f6] hover:bg-[#e5e8eb]' : 'text-[#3182f6] bg-[#e8f3ff] hover:bg-[#d4e9ff]'}`}
-          >
-            <Building2 size={13} />
-            {displayApartment ? '변경' : '아파트 인증'}
-          </button>
-        </div>
-      )}
 
       {user ? (
         <button

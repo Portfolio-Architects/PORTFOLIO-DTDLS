@@ -4,7 +4,7 @@ import { adminDb } from '@/lib/firebaseAdmin';
 export const revalidate = 3600; // Revalidate sitemap every hour
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dview-five.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
   // Base routes
   const routes: MetadataRoute.Sitemap = [
