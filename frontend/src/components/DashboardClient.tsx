@@ -404,10 +404,10 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
             price: r.price, priceEok: eokStr,
             deposit: r.deposit || 0, monthlyRent: r.monthlyRent || 0,
             floor: r.floor, buyer: '', seller: '',
-            buildYear: 0, roadName: '', cancelDate: r.cancelDate || '',
-            dealType: r.dealType || '', agentLocation: '',
+            buildYear: 0, roadName: '', cancelDate: (r as any).cancelDate || '',
+            dealType: (r as any).dealType || '', agentLocation: '',
             registrationDate: '-', housingType: '',
-            reqGb: r.reqGb || '', rnuYn: r.rnuYn || ''
+            reqGb: (r as any).reqGb || '', rnuYn: (r as any).rnuYn || ''
           };
         });
         setModalTransactions(mapped);

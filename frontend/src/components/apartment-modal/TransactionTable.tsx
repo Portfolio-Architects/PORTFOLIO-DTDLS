@@ -126,7 +126,7 @@ export function TransactionTable({
   };
 
   return (
-    <div className="flex flex-col bg-white rounded-2xl ring-1 ring-[#e5e8eb] overflow-hidden lg:h-[760px]">
+    <div className="flex flex-col bg-white rounded-2xl ring-1 ring-[#e5e8eb] overflow-hidden">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 p-4 bg-white border-b border-[#e5e8eb] w-full">
         <h4 className="text-[14px] font-bold text-[#4e5968] shrink-0">
           실거래가 <span className="text-[#3182f6] ml-1">{filteredTransactions.length}</span>건

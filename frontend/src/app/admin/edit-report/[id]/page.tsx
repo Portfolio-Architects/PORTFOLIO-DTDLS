@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import ReportEditorForm, { FormValues } from '@/components/admin/ReportEditorForm';
+import ReportEditorForm from '@/components/admin/ReportEditorForm';
+import { FormValues } from '@/components/admin/report-editor/types';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import { ScoutingReport } from '@/lib/types/scoutingReport';

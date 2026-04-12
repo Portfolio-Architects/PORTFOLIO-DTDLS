@@ -172,7 +172,7 @@ export function FieldReportModal({
           <div className={`bg-white w-full flex flex-col md:flex-row p-4 ${inline ? 'md:p-6' : 'md:p-10'} gap-4 md:gap-8 ${inline ? '' : 'rounded-t-3xl'} shrink-0 pt-4 md:pt-8 ${inline ? 'border-b border-[#f2f4f6]' : 'border-b border-[#e5e8eb]'}`}>
             
             {/* Left: 실거래가 전체 리스트 — mobile: 2번째, desktop: 1번째 (40%) */}
-            <div className="w-full md:w-[40%] shrink-0 order-2 md:order-1 flex flex-col">
+            <div className="w-full md:w-[40%] shrink-0 order-2 md:order-1 flex flex-col self-start">
               <TransactionTable 
                 transactions={transactions as any} 
                 typeMap={typeMap} 

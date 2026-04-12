@@ -131,7 +131,7 @@ src/
 | Production Readiness | **A** | **[해결 완료]** 잔존 `console.log` 전수 제거 및 3D Canvas 메모리 릭 요인 점검 완료 |
 | 보안 | **A** | Firebase Auth, Admin 분리, Strict CSP 강제 주입, Edge 미들웨어 기반 IP Rate Limiting(API 트래픽 어뷰징 방어), Clickjacking 방어 완비 |
 | DevOps / CI | **B+** | GitHub Actions CI (Lint→TypeCheck→Jest→Build), Vercel 자동 배포 |
-| 컴포넌트 크기 | **A-** | page.tsx 970줄, ApartmentModal 1,336줄 (consumer 서브 컴포넌트 7개 분리 완료) |
+| 컴포넌트 크기 | **A** | page.tsx 970줄, ApartmentModal 1,336줄 (consumer 서브 컴포넌트 7개 분리 완료), ReportEditorForm 1,179→230줄 (FormProvider + 4 Sub-module 분리 완료) |
 
 ---
 
@@ -166,7 +166,7 @@ src/
 
 ### 🚀 스파게티 코드 리팩토링 마스터플랜 (Architecture Refactoring)
 - [x] **[Phase 1] ApartmentModal 분해**: 1,450줄의 거대 모달을 Header, TransactionChart, TransactionTable, Gallery 등 독립 서브 컴포넌트로 분할하여 단일 책임 원칙(SRP) 확보
-- [ ] **[Phase 2] ReportEditorForm 모듈화**: 1,120줄의 어드민 폼을 BasicInfo, Metrics, ImageUpload 등 독립적인 입력 단위(Sub-form) 컴포넌트로 쪼개기
+- [x] **[Phase 2] ReportEditorForm 모듈화**: 1,179줄의 어드민 폼을 `FormProvider` 기반 컨테이너(230줄)로 경량화하고, `BasicInfoSection`, `ThumbnailSection`, `MetricsSection`, `ImageUploadSection` 4개 독립 Sub-form 컴포넌트로 완전 분리
 - [ ] **[Phase 3] Dashboard Data Hooks 캡슐화**: DashboardClient 컴포넌트 내에 혼재된 API Fetching 등 비즈니스 로직을 `useDashboardInitialization` 형태의 Custom Hooks로 추출하여 UI와 데이터 레이어 분리
 
 ### Phase 1 (단기)
@@ -206,6 +206,7 @@ src/
 
 | 일시 | 주요 항목 | 요약 내용 |
 |:---|:---|:---|
+| 2026-04-12 | **[Phase 2] ReportEditorForm 모듈화 및 실거래가 UI 레이아웃 최적화** | 1,179줄 모놀리식 어드민 폼을 `FormProvider` 컨테이너(230줄) + 4개 Sub-module(`BasicInfoSection`, `ThumbnailSection`, `MetricsSection`, `ImageUploadSection`)로 아키텍처 분할 완료. TransactionTable 하드코딩 높이(`lg:h-[760px]`) 제거 및 Flexbox `self-start` 적용으로 데이터 건수 대비 불필요 하단 여백 완전 해소 |
 | 2026-04-12 | **라운지(Lounge) 피드 UI 모던화 및 SEO 렌더링 고도화** | 토스증권 스타일 3단 레이아웃 및 Intercepting Route 모달로 라운지 개편. 무한 스크롤 및 IP 기반 좋아요 중복 방지 구현. 클라이언트 탭 방식에서 SSR 기반 Page 연동으로 Google SEO 시맨틱 헤딩(H1-H3) 및 메타데이터 인덱싱 최적화 완료 |
 | 2026-04-12 | **데이터 파이프라인 회복 탄력성(Resilience) 인프라 격상** | 범용 Raw Caching 도입으로 빌드 및 API 다운 시 오프라인 데이터 보존(Macro, Ontology 등). Vercel 환경에서 Firebase SDK gRPC 타임아웃 런타임 행(Hang) 문제 디버깅 및 동적 API 라우팅 강제로 빌드 I/O 누락 방호 |
 | 2026-04-12 | **모바일 제스처 UX 및 UI 컴포넌트 안정화 패치** | 모바일 스플래시 화면 Dock Z-Index 버그 픽스, 물리 기반 Pull-to-Refresh와 햅틱 피드백 연동. 모바일 Sticky 헤더 이탈 버그 및 통합 포트폴리오 아이콘 벡터 디자인(M100 65) 일원화로 프론트엔드 강건성 확보 |

@@ -48,7 +48,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
     import('@/lib/repositories/post.repository').then(({ listenToPosts }) => {
       unsubscribe = listenToPosts((clientPosts) => {
         // Format to match Post interface
-        let formatted = clientPosts.map(p => ({
+        let formatted = clientPosts.map((p: any) => ({
           ...p,
           createdAt: typeof p.createdAt === 'number' ? p.createdAt : Date.now(), // fallback
         })) as unknown as Post[];
