@@ -246,16 +246,10 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
-      <div className="flex flex-col gap-1">
-        <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2">
-          <Target size={22} className="text-[#3182f6]" strokeWidth={2.5} />
-          밸류에이션 분석
-        </h2>
-        <p className="text-[13px] text-[#8b95a1] ml-7 leading-relaxed flex items-center gap-2">
-          <span className="font-bold text-[#191f28] bg-[#f2f4f6] px-1.5 py-0.5 rounded text-[11px] uppercase tracking-wider">Metric 1</span>
-          시장이 인정하는 100% 순수 거주 가치(전세금) 기반의 금융 가치 평가 지표입니다.
-        </p>
-      </div>
+      <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2">
+        <Target size={22} className="text-[#3182f6]" strokeWidth={2.5} />
+        밸류에이션 분석
+      </h2>
 
       <div className="flex flex-col lg:flex-row gap-5">
         {/* Left: Main PER Metric Box */}

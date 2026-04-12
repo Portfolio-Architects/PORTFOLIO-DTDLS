@@ -71,15 +71,6 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
   // Review modal state
   const [showReviewModal, setShowReviewModal] = useState(false);
 
-  // Lounge compose & verify state
-  const [showCompose, setShowCompose] = useState(false);
-  const [postTitle, setPostTitle] = useState('');
-  const [postContent, setPostContent] = useState('');
-  const [postCategory, setPostCategory] = useState('자유');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showVerify, setShowVerify] = useState(false);
-  const [verifyDong, setVerifyDong] = useState('');
-  const [verifyApt, setVerifyApt] = useState('');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   // Dong filter state
@@ -498,6 +489,15 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
     return [...fieldReports];
   }, [fieldReports, selectedDong]);
 
+  // Resolve selected report with fallback metrics from sheetApartments if missing (e.g. from Firestore)
+  const resolvedReport = useMemo(() => {
+    if (!selectedReport) return null;
+    const raw = fullReportData || selectedReport;
+    if (raw.metrics) return raw;
+    const fallback = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, raw.apartmentName));
+    return { ...raw, metrics: fallback as any };
+  }, [selectedReport, fullReportData, sheetApartments]);
+
   return (
     <div className="min-h-screen bg-[#f2f4f6] font-sans selection:bg-[#3182f6]/20">
       
@@ -569,30 +569,41 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
           </div>
           {/* Bottom row: Tab navigation */}
           <nav aria-label="메인 네비게이션" className="flex items-center gap-1 -mb-px">
-            {[
-              { id: 'imjang' as const, label: '단지 분석', icon: Compass },
-              { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
-              { id: 'recommend' as const, label: '집 추천', icon: Home },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-bold transition-all duration-200 border-b-2 ${
-                  activeTab === tab.id
-                    ? 'border-[#3182f6] text-[#3182f6]'
-                    : 'border-transparent text-[#8b95a1] hover:text-[#4e5968] hover:border-[#d1d5db]'
-                }`}
-              >
-                <tab.icon size={14} strokeWidth={activeTab === tab.id ? 2.5 : 1.5} />
-                <span>{tab.label}</span>
-              </button>
-            ))}
+            <button
+              onClick={() => setActiveTab('imjang')}
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-bold transition-all duration-200 border-b-2 ${
+                activeTab === 'imjang'
+                  ? 'border-[#3182f6] text-[#3182f6]'
+                  : 'border-transparent text-[#8b95a1] hover:text-[#4e5968] hover:border-[#d1d5db]'
+              }`}
+            >
+              <Compass size={14} strokeWidth={activeTab === 'imjang' ? 2.5 : 1.5} />
+              <span>단지 분석</span>
+            </button>
+            <button
+              onClick={() => { router.push('/lounge'); }}
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-bold transition-all duration-200 border-b-2 border-transparent text-[#8b95a1] hover:text-[#4e5968] hover:border-[#d1d5db]`}
+            >
+              <MessageSquare size={14} strokeWidth={1.5} />
+              <span>커뮤니티</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('recommend')}
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-bold transition-all duration-200 border-b-2 ${
+                activeTab === 'recommend'
+                  ? 'border-[#3182f6] text-[#3182f6]'
+                  : 'border-transparent text-[#8b95a1] hover:text-[#4e5968] hover:border-[#d1d5db]'
+              }`}
+            >
+              <Home size={14} strokeWidth={activeTab === 'recommend' ? 2.5 : 1.5} />
+              <span>집 추천</span>
+            </button>
           </nav>
         </div>
       </header>
 
       {/* Main Container */}
-      <main id="main-content" className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 pt-3 sm:pt-4 md:pt-5 pb-8 animate-in fade-in duration-500">
+      <main id="main-content" className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 pt-3 sm:pt-4 md:pt-5 pb-[100px] sm:pb-8 animate-in fade-in duration-500">
 
         {/* ═══ TAB 1: 단지 분석 ═══ */}
         {mounted && activeTab === 'imjang' && (
@@ -666,7 +677,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
                             rank={index + 1}
                             isSelected={!!(selectedReport && isSameApartment(selectedReport.apartmentName, apt.name))}
                             isFavorited={userFavorites.has(apt.name)}
-                            favoriteCount={favoriteCounts[apt.name] || 0}
+                            favoriteCount={Math.max(userFavorites.has(apt.name) ? 1 : 0, favoriteCounts[apt.name] || 0)}
                             onToggleFavorite={() => handleToggleFavorite(apt.name)}
                             onClick={() => {
                               userHasSelected.current = true;
@@ -703,20 +714,20 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
 
             {/* RIGHT: 인라인 디테일 패널 (2/3, 데스크톱 전용) */}
             <div className="hidden md:block flex-1 md:sticky md:top-16 md:self-start md:h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden rounded-tr-2xl rounded-br-2xl custom-scrollbar">
-              {selectedReport ? (
+              {resolvedReport ? (
                 <FieldReportModal 
-                  report={fullReportData || selectedReport} 
+                  report={resolvedReport} 
                   onClose={() => setSelectedReport(null)} 
-                  comments={commentsData[selectedReport.id] || []}
-                  commentInput={commentInput[selectedReport.id] || ''}
-                  onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}
-                  onSubmitComment={() => handleSubmitComment(selectedReport.id)}
+                  comments={commentsData[selectedReport!.id] || []}
+                  commentInput={commentInput[selectedReport!.id] || ''}
+                  onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport!.id]: text }))}
+                  onSubmitComment={() => handleSubmitComment(selectedReport!.id)}
                   user={user}
                   transactions={modalTransactions}
                   typeMap={typeMap}
                   areaUnit={areaUnit}
                   isLoadingDetail={isLoadingDetail}
-                  isPurchased={purchasedReportIds.includes(selectedReport.id)}
+                  isPurchased={purchasedReportIds.includes(selectedReport!.id)}
                   isAdmin={dashboardFacade.isAdmin(user?.email)}
                   onPurchaseComplete={() => {
                     if (user) {
@@ -741,20 +752,20 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
         )}
 
         {/* 모바일 풀스크린 모달 (md 미만에서만 표시, 사용자 클릭 시에만) */}
-        {selectedReport && mobileModalOpen && (
+        {resolvedReport && mobileModalOpen && (
           <div className="fixed inset-0 z-50 bg-white overflow-y-auto md:hidden animate-in slide-in-from-bottom duration-300">
             <FieldReportModal
-              report={fullReportData || selectedReport}
+              report={resolvedReport}
               onClose={() => { setSelectedReport(null); setMobileModalOpen(false); }}
-              comments={commentsData[selectedReport.id] || []}
-              commentInput={commentInput[selectedReport.id] || ''}
-              onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}
-              onSubmitComment={() => handleSubmitComment(selectedReport.id)}
+              comments={commentsData[selectedReport!.id] || []}
+              commentInput={commentInput[selectedReport!.id] || ''}
+              onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport!.id]: text }))}
+              onSubmitComment={() => handleSubmitComment(selectedReport!.id)}
               user={user}
               transactions={modalTransactions}
               typeMap={typeMap}
               isLoadingDetail={isLoadingDetail}
-              isPurchased={purchasedReportIds.includes(selectedReport.id)}
+              isPurchased={purchasedReportIds.includes(selectedReport!.id)}
               isAdmin={dashboardFacade.isAdmin(user?.email)}
               onPurchaseComplete={() => {
                 if (user) {
@@ -765,182 +776,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
           </div>
         )}
 
-        {/* ═══ TAB 2: 라운지 ═══ */}
-        {activeTab === 'lounge' && (
-        <section>
-          <div className="flex justify-between items-start mb-6 w-full">
-            <div>
-              <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] mb-1">실시간 동탄라운지</h2>
-              <p className="text-[15px] text-[#8b95a1] font-medium">동탄 주민들의 솔직한 이야기</p>
-            </div>
-          </div>
-
-          {/* Profile & Verification Bar */}
-          {user && userProfile && (
-            <div className="bg-white rounded-2xl border border-[#e5e8eb] p-4 mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-[14px] font-bold text-[#191f28]">{getDisplayName(userProfile)}</span>
-                {userProfile.verifiedApartment && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#e8f3ff] text-[#3182f6] px-2 py-0.5 rounded-md">
-                    <ShieldCheck size={11} /> {userProfile.verifiedApartment.replace(/\[.*?\]\s*/, '')}
-                  </span>
-                )}
-              </div>
-              <button
-                onClick={() => setShowVerify(true)}
-                className="text-[12px] font-bold text-[#3182f6] bg-[#e8f3ff] px-3 py-1.5 rounded-lg hover:bg-[#d4e9ff] transition-colors flex items-center gap-1"
-              >
-                <Building2 size={13} />
-                {userProfile?.verifiedApartment ? '변경' : '아파트 인증'}
-              </button>
-            </div>
-          )}
-
-          {/* Feed */}
-          <div className="flex flex-col gap-3">
-            {newsFeed.length === 0 ? (
-              <div className="bg-white rounded-2xl p-12 text-center border border-[#e5e8eb]">
-                <MessageSquare size={40} className="mx-auto mb-4 text-[#d1d6db]" />
-                <p className="text-[15px] font-bold text-[#4e5968]">아직 글이 없습니다</p>
-              </div>
-            ) : (
-              newsFeed.map((news) => (
-                <div key={news.id} onClick={() => router.push(`/lounge/${news.id}`)} className="bg-white rounded-2xl border border-[#e5e8eb] px-5 py-4 hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex flex-col gap-1 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${news.category === '부동산' ? 'bg-[#ffe8e8] text-[#f04452]' : news.category === '교통' ? 'bg-[#e8f3ff] text-[#3182f6]' : 'bg-[#f2f4f6] text-[#4e5968]'}`}>{news.meta.split('·')[1]?.trim() || news.category || '자유'}</span>
-                      </div>
-                      <h3 className="text-[17px] font-extrabold text-[#191f28] leading-snug line-clamp-1">{news.title}</h3>
-                      {news.content && (
-                        <p className="text-[14px] text-[#4e5968] leading-relaxed line-clamp-2 mt-1">{news.content}</p>
-                      )}
-                    </div>
-                    {(user?.uid === news.authorUid || dashboardFacade.isAdmin(user?.email)) && (
-                      <button
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          if (!confirm('이 글을 삭제하시겠습니까?')) return;
-                          try {
-                            await dashboardFacade.deletePost(news.id);
-                          } catch {
-                            alert('삭제에 실패했습니다.');
-                          }
-                        }}
-                        className="shrink-0 p-1.5 rounded-lg hover:bg-[#fff0f0] text-[#adb5bd] hover:text-[#ff6b6b] transition-colors"
-                        title="삭제"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between border-t border-[#f2f4f6] pt-3 mt-3">
-                    <span className="text-[13px] text-[#8b95a1] font-medium">{news.author} · {news.meta.split('·')[0]?.trim()}</span>
-                    <div className="flex items-center gap-3">
-                      <span className="flex items-center gap-1 text-[12px] text-[#8b95a1]"><Eye size={14} /> {news.views || 0}</span>
-                      <span className="flex items-center gap-1 text-[12px] text-[#8b95a1]"><Heart size={14} /> {news.likes || 0}</span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Floating write button */}
-          {user && (
-            <button
-              onClick={() => setShowCompose(true)}
-              className="fixed bottom-6 right-6 w-14 h-14 bg-[#3182f6] hover:bg-[#1b6de8] text-white rounded-full shadow-lg shadow-[#3182f6]/30 flex items-center justify-center transition-all active:scale-95 z-20"
-            >
-              <PenLine size={22} />
-            </button>
-          )}
-
-          {/* Compose Modal */}
-          {showCompose && (
-            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowCompose(false)} />
-              <div className="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl">
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-[18px] font-extrabold text-[#191f28]">익명 글쓰기</h2>
-                  <button onClick={() => setShowCompose(false)} className="w-8 h-8 rounded-full bg-[#f2f4f6] flex items-center justify-center hover:bg-[#e5e8eb] transition-colors">
-                    <X size={16} className="text-[#4e5968]" />
-                  </button>
-                </div>
-                <div className="flex gap-2 mb-4 overflow-x-auto">
-                  {['부동산', '교통', '교육', '문화', '자유'].map((cat) => (
-                    <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#191f28] text-white border-[#191f28]' : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'}`}>{cat}</button>
-                  ))}
-                </div>
-                <input value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="글 제목을 입력하세요" className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-[#3182f6] focus:bg-white transition-colors mb-2" autoFocus />
-                <textarea value={postContent} onChange={(e) => setPostContent(e.target.value)} placeholder="동탄 이야기를 자유롭게 나눠보세요... 상세히 작성해주시면 더 많은 이웃들이 공감할 수 있습니다." rows={5} className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors resize-none focus:ring-4 focus:ring-[#3182f6]/10 mb-4" />
-                <div className="flex items-center justify-between">
-                  <span className="text-[12px] text-[#8b95a1]">🎭 {userProfile ? getDisplayName(userProfile) : '익명'}</span>
-                  <button
-                    onClick={async () => {
-                      if (!user || !postTitle.trim()) return;
-                      setIsSubmitting(true);
-                      try {
-                        await dashboardFacade.addPost(postTitle.trim(), postContent.trim(), postCategory, user.uid);
-                        setPostTitle(''); setPostContent(''); setPostCategory('자유'); setShowCompose(false);
-                      } catch { alert('글 작성에 실패했습니다.'); }
-                      finally { setIsSubmitting(false); }
-                    }}
-                    disabled={isSubmitting || !postTitle.trim()}
-                    className="flex items-center gap-2 px-6 py-3 bg-[#3182f6] hover:bg-[#1b6de8] disabled:bg-[#d1d6db] text-white rounded-xl font-bold text-[14px] transition-all active:scale-95"
-                  >
-                    <Send size={14} />
-                    {isSubmitting ? '게시 중...' : '게시하기'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Apartment Verification Modal */}
-          {showVerify && (
-            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowVerify(false)} />
-              <div className="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl max-h-[80vh] overflow-y-auto">
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-[18px] font-extrabold text-[#191f28]">🏠 아파트 인증</h2>
-                  <button onClick={() => setShowVerify(false)} className="w-8 h-8 rounded-full bg-[#f2f4f6] flex items-center justify-center hover:bg-[#e5e8eb] transition-colors">
-                    <X size={16} className="text-[#4e5968]" />
-                  </button>
-                </div>
-                <p className="text-[14px] font-bold text-[#191f28] mb-3">내 아파트를 선택해주세요</p>
-                <div className="flex gap-2 overflow-x-auto pb-3 mb-3">
-                  {Array.from(new Set(dongtanApartments.map(apt => apt.match(/\[(.*?)\]/)?.[1]).filter(Boolean))).map(dong => (
-                    <button key={dong} onClick={() => { setVerifyDong(dong as string); setVerifyApt(''); }} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${verifyDong === dong ? 'bg-[#191f28] text-white border-[#191f28]' : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'}`}>{dong}</button>
-                  ))}
-                </div>
-                {verifyDong && (
-                  <div className="bg-[#f9fafb] border border-[#d1d6db] rounded-xl overflow-hidden max-h-48 overflow-y-auto p-2 mb-5">
-                    {dongtanApartments.filter(apt => apt.includes(`[${verifyDong}]`)).map(apt => (
-                      <button key={apt} onClick={() => setVerifyApt(apt)} className={`w-full text-left px-4 py-3 text-[14px] font-medium rounded-lg transition-colors ${verifyApt === apt ? 'bg-[#e8f3ff] text-[#3182f6] font-bold' : 'text-[#191f28] hover:bg-[#f2f4f6]'}`}>{apt}</button>
-                    ))}
-                  </div>
-                )}
-                <button
-                  onClick={async () => {
-                    if (!user || !verifyApt) return;
-                    await UserRepo.setApartmentVerification(user.uid, verifyApt, 'self_declared');
-                    setUserProfile(prev => prev ? { ...prev, verifiedApartment: verifyApt, verificationLevel: 'self_declared' } : null);
-                    setShowVerify(false);
-                    alert('🏠 아파트 인증이 완료되었습니다!');
-                  }}
-                  disabled={!verifyApt}
-                  className="w-full py-4 rounded-xl font-bold text-[15px] transition-all active:scale-[0.98] disabled:bg-[#d1d6db] disabled:text-[#8b95a1] bg-[#191f28] text-white flex items-center justify-center gap-2"
-                >
-                  <Shield size={16} />
-                  자가선언 인증하기
-                </button>
-              </div>
-            </div>
-          )}
-
-        </section>
-        )}
+        {/* ═══ TAB 2: 라운지 제거됨 (별도 페이지로 이동) ═══ */}
 
         {/* ═══ TAB 3: 아파트 추천 ═══ */}
         {activeTab === 'recommend' && (
@@ -1061,7 +897,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
         <div className="flex items-center justify-between flex-1 gap-1">
           {[
             { id: 'imjang' as const, label: '단지 분석', icon: Compass },
-            { id: 'lounge' as const, label: '라운지', icon: MessageSquare },
+            { id: 'lounge' as const, label: '커뮤니티', icon: MessageSquare },
             { id: 'recommend' as const, label: '집 추천', icon: Home },
           ].map(tab => {
             const isActive = activeTab === tab.id;

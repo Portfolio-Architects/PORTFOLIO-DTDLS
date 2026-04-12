@@ -17,8 +17,17 @@ export default function LoungeComposeClient() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [showCompose, setShowCompose] = useState(false);
   const [postTitle, setPostTitle] = useState('');
+  const MARKDOWN_TEMPLATE = `## 대주제 (작성해주세요)
+
+여기에 내용을 작성해주세요...
+
+### 소주제 (선택사항)
+
+- 상세 내용을 입력하세요
+- 상세 내용을 입력하세요`;
+
   const [postContent, setPostContent] = useState('');
-  const [postCategory, setPostCategory] = useState('자유');
+  const [postCategory, setPostCategory] = useState('임장기');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -70,7 +79,12 @@ export default function LoungeComposeClient() {
 
       {user ? (
         <button
-          onClick={() => setShowCompose(true)}
+          onClick={() => {
+            setShowCompose(true);
+            if (isUserAdmin && !postContent) {
+              setPostContent(MARKDOWN_TEMPLATE);
+            }
+          }}
           className="fixed bottom-6 right-6 w-14 h-14 bg-[#3182f6] hover:bg-[#1b6de8] text-white rounded-full shadow-lg shadow-[#3182f6]/30 flex items-center justify-center transition-all active:scale-95 z-20"
         >
           <PenLine size={22} />
@@ -87,31 +101,28 @@ export default function LoungeComposeClient() {
       {showCompose && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowCompose(false)} />
-          <div className="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl">
+          <div className="relative w-full sm:max-w-3xl bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-[18px] font-extrabold text-[#191f28]">라운지 글쓰기</h2>
+              <h2 className="text-[18px] font-extrabold text-[#191f28]">커뮤니티 글쓰기</h2>
               <button onClick={() => setShowCompose(false)} className="w-8 h-8 rounded-full bg-[#f2f4f6] flex items-center justify-center hover:bg-[#e5e8eb] transition-colors">
                 <X size={16} className="text-[#4e5968]" />
               </button>
             </div>
             
-            <div className="bg-[#e8f3ff] p-3 rounded-lg mb-4">
-              <p className="text-[12px] text-[#3182f6] font-medium leading-relaxed">
-                <strong className="font-bold">✨ SEO 마크다운 팁:</strong><br/>
-                # 제목 (h1) — 사용하지 마세요 (기본 제목으로 제공됨)<br/>
-                ## 대주제 (h2)<br/>
-                ### 소주제 (h3)<br/>
-                처럼 구조적으로 작성하면 많은 방문자를 이끌 수 있습니다!
-              </p>
-            </div>
 
             <div className="flex gap-2 mb-4 overflow-x-auto">
-              {['부동산', '교통', '교육', '문화', '자유'].map((cat) => (
+              {['임장기', '부동산 기초', '정책자금 대출', '인프라'].map((cat) => (
                 <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#191f28] text-white border-[#191f28]' : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'}`}>{cat}</button>
               ))}
             </div>
             <input value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="검색에 노출될 확실한 글 제목을 입력하세요" className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-[#3182f6] focus:bg-white transition-colors mb-2" autoFocus />
-            <textarea value={postContent} onChange={(e) => setPostContent(e.target.value)} placeholder="동탄 이야기를 자유롭게 나눠보세요... 마크다운 문법을 사용하여 구조적인 글을 작성해보세요." rows={5} className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors resize-none focus:ring-4 focus:ring-[#3182f6]/10 mb-4" />
+            <textarea 
+              value={postContent} 
+              onChange={(e) => setPostContent(e.target.value)} 
+              placeholder={isUserAdmin ? "동탄 이야기를 자유롭게 나눠보세요... 마크다운 문법을 사용하여 구조적인 글을 작성해보세요." : "동탄 이야기를 자유롭게 나눠보세요... 글을 작성해보세요."} 
+              rows={12} 
+              className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors resize-none focus:ring-4 focus:ring-[#3182f6]/10 mb-4" 
+            />
             <div className="flex items-center justify-between">
               <span className="text-[12px] text-[#8b95a1]">🎭 {displayAuthorName}</span>
               <button
@@ -120,7 +131,7 @@ export default function LoungeComposeClient() {
                   setIsSubmitting(true);
                   try {
                     await dashboardFacade.addPost(postTitle.trim(), postContent.trim(), postCategory, user.uid, undefined, user.email);
-                    setPostTitle(''); setPostContent(''); setPostCategory('자유'); setShowCompose(false);
+                    setPostTitle(''); setPostContent(''); setPostCategory('임장기'); setShowCompose(false);
                     // Refresh the route to show the new post from the server component
                     router.refresh();
                   } catch { alert('글 작성에 실패했습니다.'); }

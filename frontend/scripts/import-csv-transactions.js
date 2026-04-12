@@ -9,23 +9,14 @@
  * 3. sync-transactions.js 와 동일한 로직으로 transaction-summary.ts 재생성
  */
 
-const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, query, orderBy, getDocs, doc, writeBatch, setDoc, where } = require('firebase/firestore');
+const admin = require('firebase-admin');
+const sa = require('../serviceAccountKey.json');
 const fs = require('fs');
 const path = require('path');
 const iconv = require('iconv-lite');
 const { validateTransactions, printValidationReport, saveValidationReport } = require('./validate-transactions');
 
 const OUTPUT_PATH = path.resolve(__dirname, '../src/lib/transaction-summary.ts');
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBv05nu9B8iVqDr68y8itgsDzg31aAuyf8",
-  authDomain: "portfolio-dtdls.firebaseapp.com",
-  projectId: "portfolio-dtdls",
-  storageBucket: "portfolio-dtdls.firebasestorage.app",
-  messagingSenderId: "294879479843",
-  appId: "1:294879479843:web:721124e99a10cdc9d04996",
-};
 
 function formatPriceEok(priceMan) {
   const eok = Math.floor(priceMan / 10000);
@@ -168,17 +159,19 @@ async function main() {
 
   // 2. Firestore에 업로드 (검증 통과 건만)
   console.log('\n📡 Firestore 연결 중...');
-  const app = initializeApp(firebaseConfig, 'import-csv');
-  const db = getFirestore(app);
+  if (!admin.apps.length) {
+    admin.initializeApp({ credential: admin.credential.cert(sa) });
+  }
+  const db = admin.firestore();
 
   let uploaded = 0;
   let skipped = 0;
 
   try {
-    const batch = writeBatch(db);
+    const batch = db.batch();
     for (const tx of validTxs) {
       const docId = `${normalizeAptName(tx.aptName)}_${tx.contractDate}_${tx.area}_${tx.floor}_${tx.price}`;
-      const docRef = doc(db, 'transactions', docId);
+      const docRef = db.collection('transactions').doc(docId);
       batch.set(docRef, tx, { merge: true });
       uploaded++;
     }
@@ -190,130 +183,8 @@ async function main() {
 
   console.log(`📤 Firestore 업로드: ${uploaded}건 성공, ${skipped}건 스킵`);
 
-  // 3. 전체 데이터 다시 읽어서 transaction-summary.ts 재생성
-  console.log('\n🔄 전체 데이터 동기화 중...');
-  const collRef = collection(db, 'transactions');
-  const q = query(collRef, orderBy('contractDate', 'desc'));
-  const snapshot = await getDocs(q);
-  console.log(`📋 총 ${snapshot.size}건 로드 완료`);
-
-  const byApt = {};
-  snapshot.forEach((docSnap) => {
-    const d = docSnap.data();
-    const aptName = d.aptName || '';
-    if (!aptName) return;
-    
-    // Summary 생성 시에도 동탄 데이터만 포함되도록 이중 필터 설정
-    if (d.dong && !['영천동','청계동','오산동','목동','산척동','방교동','장지동','송동','신동','능동','반송동','석우동'].includes(d.dong)) {
-      return; 
-    }
-
-    const key = normalizeAptName(aptName);
-    if (!byApt[key]) byApt[key] = [];
-    byApt[key].push({
-      contractYm: d.contractYm || '',
-      contractDay: d.contractDay || '',
-      price: d.price || 0,
-      priceEok: formatPriceEok(d.price || 0),
-      area: d.area || 0,
-      areaPyeong: d.areaPyeong || 0,
-      floor: d.floor || 0,
-      dong: d.dong || '',
-    });
-  });
-
-  // 요약 계산
-  const summaries = {};
-  let aptCount = 0;
-  for (const [aptName, txs] of Object.entries(byApt)) {
-    const prices = txs.map(t => t.price).filter(p => p > 0);
-    if (prices.length === 0) continue;
-    const maxPrice = Math.max(...prices);
-    const minPrice = Math.min(...prices);
-    const latestTx = txs[0];
-
-    summaries[aptName] = {
-      latestPrice: latestTx.price,
-      latestPriceEok: latestTx.priceEok,
-      latestArea: latestTx.areaPyeong,
-      latestFloor: latestTx.floor,
-      latestDate: `${latestTx.contractYm}${latestTx.contractDay}`,
-      maxPrice,
-      maxPriceEok: formatPriceEok(maxPrice),
-      minPrice,
-      minPriceEok: formatPriceEok(minPrice),
-      txCount: txs.length,
-      recent: txs.slice(0, 4).map(t => ({
-        date: `${t.contractYm.slice(4)}.${t.contractDay}`,
-        priceEok: t.priceEok,
-        areaPyeong: t.areaPyeong,
-        floor: t.floor,
-        area: t.area,
-      })),
-    };
-    aptCount++;
-  }
-
-  // TypeScript 파일 생성
-  let ts = `/**
- * 실거래가 요약 데이터 — 빌드 타임에 포함, API 호출 0
- * 
- * ⚠️ 이 파일은 자동 생성됩니다. 직접 수정하지 마세요!
- * 동기화: npm run sync-transactions
- * 마지막 동기화: ${new Date().toISOString().slice(0, 10)}
- */
-
-export interface RecentTx {
-  date: string;
-  priceEok: string;
-  areaPyeong: number;
-  floor: number;
-  area: number;
-}
-
-export interface AptTxSummary {
-  latestPrice: number;
-  latestPriceEok: string;
-  latestArea: number;
-  latestFloor: number;
-  latestDate: string;
-  maxPrice: number;
-  maxPriceEok: string;
-  minPrice: number;
-  minPriceEok: string;
-  txCount: number;
-  recent: RecentTx[];
-}
-
-/** 아파트명 → 거래 요약 */
-export const TX_SUMMARY: Record<string, AptTxSummary> = `;
-
-  ts += JSON.stringify(summaries, null, 2) + ';\n';
-  fs.writeFileSync(OUTPUT_PATH, ts, 'utf-8');
-
-  console.log(`\n📁 파일 생성: ${OUTPUT_PATH}`);
-  console.log(`✅ ${aptCount}개 아파트 동기화 완료!`);
-
-  // JSON 청크 생성
-  const TX_DATA_DIR = path.resolve(__dirname, '../public/tx-data');
-  if (fs.existsSync(TX_DATA_DIR)) fs.rmSync(TX_DATA_DIR, { recursive: true });
-  fs.mkdirSync(TX_DATA_DIR, { recursive: true });
-
-  let totalRecords = 0;
-  for (const [aptName, txs] of Object.entries(byApt)) {
-    const records = txs.map(t => ({
-      contractYm: t.contractYm,
-      contractDay: t.contractDay,
-      price: t.price,
-      area: t.area,
-      areaPyeong: t.areaPyeong,
-      floor: t.floor,
-    }));
-    fs.writeFileSync(path.join(TX_DATA_DIR, `${aptName}.json`), JSON.stringify(records), 'utf-8');
-    totalRecords += records.length;
-  }
-  fs.writeFileSync(path.join(TX_DATA_DIR, '_index.json'), JSON.stringify(Object.keys(byApt)), 'utf-8');
-  console.log(`📁 JSON 청크: ${Object.keys(byApt).length}개 아파트, ${totalRecords}건`);
+  // 3. 전체 데이터 다시 읽어서 transaction-summary.ts 재생성 -> sync-transactions.js 로 일임
+  console.log('\n✅ Firestore에만 업로드했습니다. 프론트엔드 UI용 JSON 갱신을 위해 "node scripts/sync-transactions.js" 를 별도로 실행하세요!');
 
   process.exit(0);
 }

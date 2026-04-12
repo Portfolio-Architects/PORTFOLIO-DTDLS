@@ -112,10 +112,10 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
   const TRACK_MAX_DISTANCE = 2000;
 
   return (
-    <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm">
+    <div className="bg-white rounded-3xl p-5 md:p-8 shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between mb-5 border-b border-[#e5e8eb] pb-3">
-        <h2 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2">
+        <h2 className="text-[16px] md:text-[18px] font-bold text-[#191f28] flex items-center gap-2">
           주요 편의시설 접근성
         </h2>
       </div>
@@ -131,11 +131,11 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
             <div key={anchor.id} className="group flex flex-col gap-2.5 py-4 border-b border-[#f2f4f6] last:border-0 relative">
               
               {/* Top Row: Label & Progress Bar */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 md:gap-4">
                 {/* Category Badge */}
-                <div className="w-[86px] shrink-0">
-                  <div className="flex items-center justify-center w-full px-2 py-1.5 rounded-lg bg-[#f9fafb] border border-[#f2f4f6]">
-                    <span className="text-[12px] font-bold whitespace-nowrap" style={{ color: anchor.color }}>
+                <div className="w-[72px] md:w-[86px] shrink-0">
+                  <div className="flex items-center justify-center w-full px-1 md:px-2 py-1.5 rounded-lg bg-[#f9fafb] border border-[#f2f4f6]">
+                    <span className="text-[11px] md:text-[12px] font-bold whitespace-nowrap" style={{ color: anchor.color }}>
                       {anchor.name}
                     </span>
                   </div>
@@ -150,12 +150,12 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
                     />
                   </div>
                   
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[13px] font-extrabold text-[#191f28] tabular-nums w-[50px] text-right">
+                  <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
+                    <span className="text-[12px] md:text-[13px] font-extrabold text-[#191f28] tabular-nums w-[42px] md:w-[50px] text-right">
                       {(anchor.distance / 1000).toFixed(2)}km
                     </span>
                     <span
-                      className="text-[10px] font-bold py-0.5 rounded-md whitespace-nowrap w-[52px] text-center"
+                      className="text-[10px] font-bold py-0.5 rounded-md whitespace-nowrap w-[44px] md:w-[52px] text-center"
                       style={{ color: grade.color, backgroundColor: grade.bg }}
                     >
                       {grade.label}
@@ -166,13 +166,13 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
 
               {/* Bottom Row: Detail Card (Aligned with Progress Bar) */}
               {anchor.metaName && (
-                <div className="ml-[102px]">
+                <div className="mt-1 md:mt-0 md:ml-[102px]">
                   <div className="flex items-center justify-between gap-3 bg-[#f9fafb]/50 border border-[#f2f4f6] group-hover:bg-white group-hover:border-[#3182f6]/30 group-hover:shadow-[0_2px_12px_rgba(49,130,246,0.06)] px-3.5 py-2.5 rounded-xl transition-all duration-300 relative overflow-hidden">
                     {/* Brand indicator stick */}
                     <div className="absolute left-0 top-0 bottom-0 w-[4px]" style={{ backgroundColor: anchor.color }} />
                     
                     <div className="flex flex-col min-w-0 flex-1 pl-1.5">
-                      <div className="flex items-center gap-1.5 text-[#191f28] font-bold text-[13px] truncate">
+                      <div className="flex items-center gap-1.5 text-[#191f28] font-bold text-[12px] md:text-[13px] truncate">
                         <span className="truncate">{anchor.metaName}</span>
                       </div>
                       {anchor.metaAddress && (
@@ -190,7 +190,7 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
                         className="shrink-0 text-[#8b95a1] bg-white border border-[#e5e8eb] group-hover:border-transparent group-hover:text-[#3182f6] group-hover:bg-[#e8f3ff] hover:!bg-[#3182f6] hover:!text-white px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
                       >
                         <MapPin size={12} strokeWidth={2.5} />
-                        <span className="text-[11px] font-extrabold tracking-tight">거리뷰</span>
+                        <span className="text-[11px] font-extrabold tracking-tight">지도</span>
                       </a>
                     )}
                   </div>
@@ -202,14 +202,14 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
       </div>
 
       {/* Footer — 기준 설명 */}
-      <div className="mt-4 pt-3 border-t border-[#f2f4f6] flex items-center justify-between text-[10px] font-bold text-[#8b95a1]">
-        <div className="flex gap-3">
+      <div className="mt-4 pt-3 border-t border-[#f2f4f6] flex flex-wrap items-center justify-between gap-y-2 text-[10px] font-bold text-[#8b95a1]">
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#03c75a]" />~300m</span>
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#3182f6]" />~500m</span>
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#f59e0b]" />~800m</span>
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#8b95a1]" />800m+</span>
         </div>
-        <span className="shrink-0 text-[#8b95a1] ml-2">기준 스케일: 최대 2km</span>
+        <span className="shrink-0 text-[#8b95a1]">기준 스케일: 최대 2km</span>
       </div>
     </div>
   );

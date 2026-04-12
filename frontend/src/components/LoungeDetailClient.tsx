@@ -1,5 +1,7 @@
 'use client';
 
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2, Eye } from 'lucide-react';
@@ -19,16 +21,24 @@ interface PostComment {
   createdAt: string;
 }
 
-export default function LoungeDetailClient({ postId }: { postId: string }) {
+export default function LoungeDetailClient({ postId, initialPost }: { postId: string, initialPost?: any }) {
   const router = useRouter();
 
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [post, setPost] = useState<Record<string, any> | null>(null);
+  const [post, setPost] = useState<Record<string, any> | null>(() => {
+    if (initialPost) {
+      return {
+        ...initialPost,
+        createdAt: initialPost.createdAt ? new Date(initialPost.createdAt).toLocaleDateString('ko-KR') : '방금 전'
+      };
+    }
+    return null;
+  });
   const [comments, setComments] = useState<PostComment[]>([]);
   const [commentText, setCommentText] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialPost);
 
   // Auth
   useEffect(() => {
@@ -195,10 +205,14 @@ export default function LoungeDetailClient({ postId }: { postId: string }) {
             </span>
             <span className="text-[13px] text-[#8b95a1] ml-auto">{String(post?.createdAt || "")}</span>
           </div>
-          <h2 className="text-[20px] font-extrabold text-[#191f28] leading-snug mt-2 mb-4">{String(post?.title || "")}</h2>
+          <h1 className="text-[20px] font-extrabold text-[#191f28] leading-snug mt-2 mb-4">{String(post?.title || "")}</h1>
           
           {post?.content && (
-            <p className="text-[15px] text-[#4e5968] leading-relaxed mb-6 whitespace-pre-wrap">{String(post.content)}</p>
+            <article className="[&>h2]:text-[18px] [&>h2]:font-extrabold [&>h2]:text-[#191f28] [&>h2]:mt-6 [&>h2]:mb-3 [&>h3]:text-[16px] [&>h3]:font-bold [&>h3]:text-[#191f28] [&>h3]:mt-5 [&>h3]:mb-2 [&>p]:mb-4 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-4 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:mb-4 text-[#4e5968] leading-relaxed mb-6 whitespace-pre-wrap">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {String(post.content)}
+              </ReactMarkdown>
+            </article>
           )}
 
           <div className="flex items-center justify-between border-t border-[#f2f4f6] pt-4">

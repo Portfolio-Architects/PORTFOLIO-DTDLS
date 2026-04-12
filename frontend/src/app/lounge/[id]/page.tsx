@@ -48,7 +48,36 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function LoungePostPage({ params }: Props) {
-  // Pass the ID to the client component to handle the rest of the dynamic interactions
-  return <LoungeDetailClient postId={params.id} />;
+export default async function LoungePostPage({ params }: Props) {
+  const { id } = params;
+  let initialPost = null;
+
+  if (adminDb) {
+    try {
+      const docSnap = await adminDb.collection('posts').doc(id).get();
+      if (docSnap.exists) {
+        const data = docSnap.data();
+        if (data) {
+          initialPost = {
+            id: docSnap.id,
+            title: data.title,
+            category: data.category,
+            content: data.content || '',
+            author: data.authorName || '익명',
+            likes: data.likes || 0,
+            views: data.views || 0,
+            authorUid: data.authorUid || null,
+            verifiedApartment: data.verifiedApartment || null,
+            verificationLevel: data.verificationLevel || null,
+            createdAt: data.createdAt ? data.createdAt.toMillis() : Date.now(),
+          };
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch initial post in server', error);
+    }
+  }
+
+  // Pass the ID and the prefetched data to the client component to render SSR
+  return <LoungeDetailClient postId={id} initialPost={initialPost} />;
 }
