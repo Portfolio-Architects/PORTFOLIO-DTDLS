@@ -404,7 +404,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
             price: r.price, priceEok: eokStr,
             deposit: r.deposit || 0, monthlyRent: r.monthlyRent || 0,
             floor: r.floor, buyer: '', seller: '',
-            buildYear: 0, roadName: '', cancelDate: '-',
+            buildYear: 0, roadName: '', cancelDate: r.cancelDate || '',
             dealType: r.dealType || '', agentLocation: '',
             registrationDate: '-', housingType: '',
             reqGb: r.reqGb || '', rnuYn: r.rnuYn || ''

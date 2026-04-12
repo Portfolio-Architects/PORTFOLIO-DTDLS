@@ -99,12 +99,23 @@ export function TransactionTable({
     });
   }, [filteredTransactions, txSort]);
 
-  const getBadgeColorClasses = (dealType: string | undefined, price: number) => {
-    if (!dealType) return 'bg-[#e5e8eb] text-[#4e5968]';
-    if (dealType === '매매') return 'bg-[#e8f3ff] text-[#1b64da]';
+  // '중개거래', '직거래' 등은 거래 방식이지 유형이 아님 — 사실상 매매
+  const isSaleDealType = (dealType: string | undefined) =>
+    !dealType || (dealType !== '전세' && dealType !== '월세');
+
+  const getBadgeColorClasses = (dealType: string | undefined) => {
+    if (!dealType || dealType === '-') return 'bg-[#e8f3ff] text-[#1b64da]'; // 매매 기본
     if (dealType === '전세') return 'bg-[#e6f4ea] text-[#0d652d]';
     if (dealType === '월세') return 'bg-[#fef0e6] text-[#c2410c]';
-    return 'bg-[#f2f4f6] text-[#4e5968]';
+    // 중개거래, 직거래, 매매 등 모두 매매 계열
+    return 'bg-[#e8f3ff] text-[#1b64da]';
+  };
+
+  const getDealTypeLabel = (dealType: string | undefined) => {
+    if (!dealType || dealType === '-') return '매매';
+    if (dealType === '전세' || dealType === '월세') return dealType;
+    // 중개거래, 직거래 → 표시 라벨
+    return dealType;
   };
 
   return (
@@ -190,21 +201,24 @@ export function TransactionTable({
              typeLabel = areaUnit === 'm2' ? `${tx.area}m²` : `${Math.round(tx.area * 0.3025)}평`;
           }
 
+          // cancelDate가 유효한 날짜(6자리 이상 숫자)인 경우에만 취소 거래로 판정
+          const isCancelled = !!(tx.cancelDate && /^\d{6,}$/.test(tx.cancelDate.trim()));
+
           return (
-            <div key={i} className={`flex items-center justify-between p-3.5 border-b border-[#f2f4f6] hover:bg-[#f9fafb] transition-colors ${tx.cancelDate ? 'opacity-50' : ''}`}>
-              <div className="flex flex-col gap-1 w-[80px]">
-                <div className="text-[12px] font-bold text-[#8b95a1] tracking-tight">{tx.contractYm.slice(2)}.{m}.{d}</div>
-                {tx.cancelDate && (
+            <div key={i} className={`flex items-center justify-between p-3.5 border-b border-[#f2f4f6] hover:bg-[#f9fafb] transition-colors ${isCancelled ? 'opacity-50' : ''}`}>
+              <div className="flex flex-col gap-1 w-[80px] shrink-0">
+                <div className="text-[12px] font-bold text-[#8b95a1] tracking-tight">{tx.contractYm.substring(2, 4)}.{m}.{d}</div>
+                {isCancelled && (
                   <div className="text-[10px] font-bold text-[#ef4444] leading-tight break-keep">
-                    취소 {tx.cancelDate.substring(2).replace(/(\d{2})(\d{2})/, '$1.$2')}
+                    취소 {tx.cancelDate!.substring(2).replace(/(\d{2})(\d{2})(\d{2})/, '$1.$2.$3')}
                   </div>
                 )}
               </div>
               
-              <div className="flex-1 flex flex-col justify-center items-end text-right">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <div className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${getBadgeColorClasses(tx.dealType, tx.price)}`}>
-                    {tx.dealType || '매매'}
+              <div className="flex-1 flex flex-col justify-center items-end text-right min-w-0 ml-2">
+                <div className="flex items-center justify-end gap-1.5 mb-0.5 w-full">
+                  <div className={`shrink-0 whitespace-nowrap text-[10px] font-extrabold px-1.5 py-0.5 rounded ${getBadgeColorClasses(tx.dealType)}`}>
+                    {getDealTypeLabel(tx.dealType)}
                   </div>
                   {tx.isOutlier && (
                     <div className="group relative flex items-center justify-center cursor-help">
@@ -214,7 +228,7 @@ export function TransactionTable({
                       </div>
                     </div>
                   )}
-                  <span className={`text-[15px] font-black ${tx.isOutlier ? 'text-[#8b95a1] line-through decoration-[#c8ced4] decoration-2' : 'text-[#191f28]'}`}>
+                  <span className={`shrink-0 whitespace-nowrap text-[15px] font-black ${tx.isOutlier ? 'text-[#8b95a1] line-through decoration-[#c8ced4] decoration-2' : 'text-[#191f28]'}`}>
                     {eok > 0 ? `${eok}억 ` : ''}{rem > 0 ? rem.toLocaleString() : (eok > 0 ? '' : '0')}
                   </span>
                 </div>
