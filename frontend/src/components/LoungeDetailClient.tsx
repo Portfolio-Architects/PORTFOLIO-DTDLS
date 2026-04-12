@@ -233,9 +233,11 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
   }
 
   return (
-    <div className="min-h-screen bg-[#f2f4f6]">
-      {/* Header */}
-      <header className="bg-white sticky top-0 z-10 border-b border-[#e5e8eb] px-4 py-3.5 flex items-center gap-3">
+    <>
+      <div className={`w-full ${isModal ? 'h-full bg-white relative' : 'min-h-screen bg-[#f2f4f6] pb-[100px]'} font-sans`}>
+        {/* Header - Only render if not modal, Modal has its own header */}
+        {!isModal && (
+          <header className="bg-white sticky top-0 z-10 border-b border-[#e5e8eb] px-4 py-3.5 flex items-center gap-3">
         <button onClick={() => router.push('/lounge')} className="text-[#191f28] hover:bg-[#f2f4f6] p-1.5 rounded-full transition-colors">
           <ChevronLeft size={24} />
         </button>
@@ -272,7 +274,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                   alert('삭제에 실패했습니다.');
                 }
               }}
-              className="p-2 rounded-full hover:bg-[#fff0f0] text-[#adb5bd] hover:text-[#ff6b6b] transition-colors"
+              className="p-2 rounded-full hover:bg-[#fff0f0] text-[#ff6b6b] transition-colors"
               title="삭제"
             >
               <Trash2 size={18} />
@@ -280,8 +282,9 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
           </div>
         )}
       </header>
+        )}
 
-      <main className="max-w-2xl mx-auto px-4 py-6 pb-32">
+      <main className={`max-w-2xl mx-auto w-full ${isModal ? 'pb-[100px] pt-4 px-4' : 'pb-[100px] sm:pb-8 pt-4 sm:pt-6'} flex flex-col gap-4 px-4 animate-in fade-in duration-500`}>
         <div className="bg-white rounded-2xl border border-[#e5e8eb] p-6 mb-6 shadow-sm">
           {isEditing ? (
             <div className="mt-4 flex flex-col gap-3">
@@ -402,8 +405,8 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
             </ul>
           )}
         </div>
+      </main>
       </div>
-
       {/* Comment Input Bar */}
       {user && (
         <div className={isModal ? "sticky bottom-0 bg-white border-t border-[#e5e8eb] px-4 py-3 z-20 w-full" : "fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e8eb] px-4 py-3 z-20"}>

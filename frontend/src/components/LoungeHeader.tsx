@@ -123,7 +123,7 @@ export default function LoungeHeader({ activeTab = 'lounge' }: { activeTab?: str
               }`}
             >
               <Home size={14} strokeWidth={activeTab === 'recommend' ? 2.5 : 1.5} />
-              <span>집 추천</span>
+              <span>아파트 검색</span>
             </Link>
           </nav>
         </div>

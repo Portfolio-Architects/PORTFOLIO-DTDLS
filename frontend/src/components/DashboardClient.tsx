@@ -605,8 +605,8 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
                   : 'border-transparent text-[#8b95a1] hover:text-[#4e5968] hover:border-[#d1d5db]'
               }`}
             >
-              <Home size={14} strokeWidth={activeTab === 'recommend' ? 2.5 : 1.5} />
-              <span>집 추천</span>
+              <Home size={16} className={`transition-transform duration-200 ${activeTab === 'recommend' ? 'text-[#3182f6]' : 'text-[#8b95a1] group-hover:-translate-y-0.5'}`} />
+              <span>아파트 검색</span>
             </button>
           </nav>
         </div>
@@ -908,7 +908,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
           {[
             { id: 'imjang' as const, label: '단지 분석', icon: Compass },
             { id: 'lounge' as const, label: '커뮤니티', icon: MessageSquare },
-            { id: 'recommend' as const, label: '집 추천', icon: Home },
+            { id: 'recommend' as const, label: '아파트 검색', icon: Home },
           ].map(tab => {
             const isActive = activeTab === tab.id;
             return (
