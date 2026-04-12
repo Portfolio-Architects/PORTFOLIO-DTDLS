@@ -310,8 +310,8 @@ export function FieldReportModal({
                   {activeDropdown && (
                     <div className="fixed inset-0 z-40" onClick={() => setActiveDropdown(null)} />
                   )}
-                  <div className={`relative transition-all duration-300 ${isTxExpanded ? 'h-[400px]' : 'h-[260px] overflow-hidden'}`}>
-                    <div className={`absolute inset-0 overflow-x-auto custom-scrollbar ${isTxExpanded ? 'overflow-y-auto' : 'overflow-y-hidden'}`}>
+                  <div className={`relative transition-all duration-300 ${isTxExpanded ? 'h-[400px]' : 'h-[260px]'} md:!h-auto md:flex-1 overflow-hidden`}>
+                    <div className={`absolute inset-0 overflow-x-auto custom-scrollbar ${isTxExpanded ? 'overflow-y-auto' : 'overflow-y-hidden'} md:!overflow-y-auto`}>
                       <table className="w-full text-xs md:text-sm">
                       <thead className="sticky top-0 bg-[#f9fafb] z-50">
                         {(() => {
@@ -434,9 +434,9 @@ export function FieldReportModal({
                       </tbody>
                     </table>
                     </div>
-                    {/* Gradient Overlay for "더보기" on Mobile & Desktop */}
+                    {/* Gradient Overlay for "더보기" on Mobile only */}
                     {!isTxExpanded && filteredTransactions.length > 5 && (
-                      <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-[#f9fafb] via-[#f9fafb]/80 to-transparent flex items-end justify-center pb-2 pointer-events-none">
+                      <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-[#f9fafb] via-[#f9fafb]/80 to-transparent flex items-end justify-center pb-2 pointer-events-none md:hidden">
                         <button 
                           onClick={() => setIsTxExpanded(true)} 
                           className="bg-white border border-[#e5e8eb] shadow-sm text-[#4e5968] text-[13px] font-bold px-4 py-2 rounded-full flex items-center gap-1 hover:bg-[#f2f4f6] transition-colors pointer-events-auto active:scale-95"
@@ -573,21 +573,19 @@ export function FieldReportModal({
                  const yearAgoEntry = monthlyData.find(d => d.ym >= yearAgoYm);
                  const yoyChange = yearAgoEntry ? ((latestAvg - yearAgoEntry.monthAvg) / yearAgoEntry.monthAvg * 100) : null;
 
-                 // 1M, 3M, 6M, 1Y 기준 모멘텀 계산 (차트 기간 필터와 무관하게 전체 rawData 기준)
+                 // 1M, 3M, 6M, 1Y 기준 모멘텀 계산 (정확한 일자 기준 롤링 윈도우 사용)
                  const getRecentAvgByMonths = (months: number) => {
-                   const cutoffDate = new Date(now.getFullYear(), now.getMonth() - months, 1);
-                   const cutoffYm = cutoffDate.getFullYear() * 100 + (cutoffDate.getMonth() + 1);
-                   const filtered = rawData.filter(d => d.yearMonth >= cutoffYm);
+                   const cutoffDate = new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
+                   const filtered = rawData.filter(d => {
+                     const y = Math.floor(d.yearMonth / 100);
+                     const m = d.yearMonth % 100;
+                     const day = d.contractDay || 1;
+                     return new Date(y, m - 1, day) >= cutoffDate;
+                   });
                    if (filtered.length === 0) return 0;
                    
-                   // 이상치(급매/오류) 제거 후 평균
-                   const sorted = [...filtered].sort((a,b) => a.price - b.price);
-                   const q1 = sorted[Math.floor(sorted.length * 0.05)]?.price || 0;
-                   const q3 = sorted[Math.floor(sorted.length * 0.95)]?.price || 10;
-                   const iqr = q3 - q1;
-                   const valid = sorted.filter(d => d.price >= q1 - iqr * 3 && d.price <= q3 + iqr * 3);
-                   if (valid.length === 0) return 0;
-                   return valid.reduce((acc, d) => acc + d.price, 0) / valid.length;
+                   // 단순 산술 평균으로 통일하여 좌측 카드와 숫자 일치 (이상치 제거 로직 해제)
+                   return filtered.reduce((acc, d) => acc + d.price, 0) / filtered.length;
                  };
 
                  const momentum = {
@@ -931,33 +929,51 @@ export function FieldReportModal({
                       <table className="w-full text-sm min-w-[600px] border-t border-[#f2f4f6]">
                         <thead>
                           <tr className="border-b border-[#e5e8eb] text-[#8b95a1] text-[12px] font-bold bg-[#f9fafb]">
-                            <th className="py-2.5 px-3 text-left w-[80px]">구분</th>
+                            <th className="py-2.5 px-2 text-center w-[52px] min-w-[52px] shrink-0">구분</th>
                             {periodData.map(p => (
-                              <th key={`th-${p.key}`} className="py-2.5 px-3 text-right whitespace-nowrap">{p.label}</th>
+                              <th key={`th-${p.key}`} className="py-2.5 px-3 text-center whitespace-nowrap">{p.label}</th>
                             ))}
                           </tr>
                         </thead>
                         <tbody>
                           <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
-                            <td className="py-3 px-3 text-[12px] md:text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50">평균가격</td>
+                            <td className="py-3 px-2 text-[12px] md:text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50 align-middle">
+                              <div className="flex flex-col items-center justify-center leading-tight">
+                                <span>평균</span>
+                                <span>가격</span>
+                              </div>
+                            </td>
                             {periodData.map(p => (
-                              <td key={`price-${p.key}`} className="py-3 px-3 text-right">
+                              <td key={`price-${p.key}`} className="py-3 px-3 text-center whitespace-nowrap">
                                 <span className="text-[13px] md:text-[14px] font-bold md:font-extrabold text-[#191f28]">{p.avgPriceEok}</span>
                               </td>
                             ))}
                           </tr>
                           <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
-                            <td className="py-3 px-3 text-[12px] md:text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50">평당가격</td>
+                            <td className="py-3 px-2 text-[12px] md:text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50 align-middle">
+                              <div className="flex flex-col items-center justify-center leading-tight">
+                                <span>평당</span>
+                                <span>가격</span>
+                              </div>
+                            </td>
                             {periodData.map(p => (
-                              <td key={`perpyeong-${p.key}`} className="py-3 px-3 text-right">
-                                <span className="text-[12px] md:text-[13px] font-bold text-[#4e5968]">{p.perPyeongEok}<span className="text-[10px] md:text-[11px] text-[#8b95a1] font-medium">/평</span></span>
+                              <td key={`perpyeong-${p.key}`} className="py-3 px-3 text-center">
+                                <div className="flex items-center justify-center gap-0.5 whitespace-nowrap">
+                                  <span className="text-[12px] md:text-[13px] font-bold text-[#4e5968]">{p.perPyeongEok}</span>
+                                  <span className="text-[10px] md:text-[11px] text-[#8b95a1] font-medium tracking-tight">/평</span>
+                                </div>
                               </td>
                             ))}
                           </tr>
                           <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
-                            <td className="py-3 px-3 text-[12px] md:text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50">거래건수</td>
+                            <td className="py-3 px-2 text-[12px] md:text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50 align-middle">
+                              <div className="flex flex-col items-center justify-center leading-tight">
+                                <span>거래</span>
+                                <span>건수</span>
+                              </div>
+                            </td>
                             {periodData.map(p => (
-                              <td key={`count-${p.key}`} className="py-3 px-3 text-right">
+                              <td key={`count-${p.key}`} className="py-3 px-3 text-center whitespace-nowrap">
                                 <span className="text-[12px] md:text-[13px] font-medium text-[#8b95a1]">{p.count}건</span>
                               </td>
                             ))}
