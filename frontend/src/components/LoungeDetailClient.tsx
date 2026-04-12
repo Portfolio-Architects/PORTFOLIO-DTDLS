@@ -23,7 +23,7 @@ interface PostComment {
   createdAt: string;
 }
 
-export default function LoungeDetailClient({ postId, initialPost }: { postId: string, initialPost?: any }) {
+export default function LoungeDetailClient({ postId, initialPost, isModal = false }: { postId: string, initialPost?: any, isModal?: boolean }) {
   const router = useRouter();
 
   const [user, setUser] = useState<User | null>(null);
@@ -402,11 +402,11 @@ export default function LoungeDetailClient({ postId, initialPost }: { postId: st
             </ul>
           )}
         </div>
-      </main>
+      </div>
 
       {/* Comment Input Bar */}
       {user && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e8eb] px-4 py-3 z-20">
+        <div className={isModal ? "sticky bottom-0 bg-white border-t border-[#e5e8eb] px-4 py-3 z-20 w-full" : "fixed bottom-0 left-0 right-0 bg-white border-t border-[#e5e8eb] px-4 py-3 z-20"}>
           <div className="max-w-2xl mx-auto flex items-center gap-3">
             <input
               value={commentText}
@@ -425,6 +425,6 @@ export default function LoungeDetailClient({ postId, initialPost }: { postId: st
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

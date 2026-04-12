@@ -13,7 +13,11 @@ import { useRouter } from 'next/navigation';
 import { isAdmin } from '@/lib/config/admin.config';
 import { compressImage } from '@/lib/utils/imageCompression';
 
-export default function LoungeComposeClient() {
+interface Props {
+  currentCategory?: string;
+}
+
+export default function LoungeComposeClient({ currentCategory = '동탄 임장/분석' }: Props) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -129,6 +133,7 @@ export default function LoungeComposeClient() {
       {user ? (
         <button
           onClick={() => {
+            setPostCategory(currentCategory);
             setShowCompose(true);
             if (isUserAdmin && !postContent) {
               setPostContent(MARKDOWN_TEMPLATE);

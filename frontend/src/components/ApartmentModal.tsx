@@ -9,7 +9,7 @@ import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, 
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { normalize84Price } from '@/lib/utils/valuation';
-import { normalizeAptName } from '@/lib/utils/apartmentMapping';
+import { normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import type { CommentData, FieldReportData } from '@/lib/DashboardFacade';
 import type { User } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
@@ -152,6 +152,7 @@ export function FieldReportModal({
   areaUnit?: 'm2' | 'pyeong';
 }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const displayAptName = getDisplayAptName(report.apartmentName);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [chartTimeframe, setChartTimeframe] = useState<'6M'|'1Y'|'3Y'|'ALL'>('ALL');
   const [isTxExpanded, setIsTxExpanded] = useState(false);
@@ -468,9 +469,9 @@ export function FieldReportModal({
                  </div>
                </div>
                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-[#191f28] flex items-center gap-2">
-                 {report.apartmentName}
+                 {displayAptName}
                  <a 
-                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(report.apartmentName + (report.apartmentName.includes('아파트') ? '' : ' 아파트'))}`}
+                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayAptName + (displayAptName.includes('아파트') ? '' : ' 아파트'))}`}
                    target="_blank" rel="noopener noreferrer"
                    className="text-[#3182f6] hover:bg-[#e8f3ff] p-1.5 md:p-2 rounded-full transition-colors group flex shrink-0 items-center justify-center -ml-1 md:ml-0"
                    title="구글 지도에서 아파트 위치 보기"
@@ -1033,7 +1034,7 @@ export function FieldReportModal({
                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
                     <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
                       <p className="text-[12px] text-[#8b95a1] font-bold mb-1">단지명 / 시공사</p>
-                      <p className="text-[15px] text-[#191f28] font-bold">{report.apartmentName} {report.metrics.brand && <span className="block text-[13px] text-[#4e5968] font-medium mt-0.5">({report.metrics.brand})</span>}</p>
+                      <p className="text-[15px] text-[#191f28] font-bold">{displayAptName} {report.metrics.brand && <span className="block text-[13px] text-[#4e5968] font-medium mt-0.5">({report.metrics.brand})</span>}</p>
                     </div>
                     <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
                       <p className="text-[12px] text-[#8b95a1] font-bold mb-1">사용승인일 (연차)</p>
