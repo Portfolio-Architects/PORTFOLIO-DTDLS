@@ -24,7 +24,7 @@ export default function LoungeDetailClient({ postId }: { postId: string }) {
 
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [post, setPost] = useState<Record<string, unknown> | null>(null);
+  const [post, setPost] = useState<Record<string, any> | null>(null);
   const [comments, setComments] = useState<PostComment[]>([]);
   const [commentText, setCommentText] = useState('');
   const [isSending, setIsSending] = useState(false);

@@ -274,30 +274,30 @@ export default function ApartmentInfoPage() {
             const apt = (apts as { name: string; [key: string]: unknown }[]).find(a => a.name === originalName);
             if (apt) {
               sheetsMeta = {
-                dong: (apt as Record<string, string | number | boolean>)?.dong as string, txKey: (apt as Record<string, string | number | boolean>)?.txKey as string | undefined, minFloor: (apt as Record<string, string | number | boolean>)?.minFloor as number | undefined, maxFloor: (apt as Record<string, string | number | boolean>)?.maxFloor as number | undefined, isPublicRental: (apt as Record<string, string | number | boolean>)?.isPublicRental || false, householdCount: (apt as Record<string, string | number | boolean>)?.householdCount,
-                yearBuilt: (apt as Record<string, string | number | boolean>)?.yearBuilt, brand: (apt as Record<string, string | number | boolean>)?.brand, ticker: (apt as Record<string, string | number | boolean>)?.ticker,
-                far: (apt as Record<string, string | number | boolean>)?.far, bcr: (apt as Record<string, string | number | boolean>)?.bcr, parkingCount: (apt as Record<string, string | number | boolean>)?.parkingCount,
+                dong: (apt as Record<string, any>)?.dong as string, txKey: (apt as Record<string, any>)?.txKey as string | undefined, minFloor: (apt as Record<string, any>)?.minFloor as number | undefined, maxFloor: (apt as Record<string, any>)?.maxFloor as number | undefined, isPublicRental: (apt as Record<string, any>)?.isPublicRental || false, householdCount: (apt as Record<string, any>)?.householdCount,
+                yearBuilt: (apt as Record<string, any>)?.yearBuilt, brand: (apt as Record<string, any>)?.brand, ticker: (apt as Record<string, any>)?.ticker,
+                far: (apt as Record<string, any>)?.far, bcr: (apt as Record<string, any>)?.bcr, parkingCount: (apt as Record<string, any>)?.parkingCount,
                 coordinates: (apt.lat && apt.lng) ? `${apt.lat}, ${apt.lng}` : undefined,
-                starbucksName: (apt as Record<string, string | number | boolean>)?.starbucksName as string | undefined,
-                starbucksAddress: (apt as Record<string, string | number | boolean>)?.starbucksAddress as string | undefined,
-                starbucksCoordinates: (apt as Record<string, string | number | boolean>)?.starbucksCoordinates as string | undefined,
-                oliveYoungName: (apt as Record<string, string | number | boolean>)?.oliveYoungName as string | undefined,
-                oliveYoungAddress: (apt as Record<string, string | number | boolean>)?.oliveYoungAddress as string | undefined,
-                oliveYoungCoordinates: (apt as Record<string, string | number | boolean>)?.oliveYoungCoordinates as string | undefined,
-                daisoName: (apt as Record<string, string | number | boolean>)?.daisoName as string | undefined,
-                daisoAddress: (apt as Record<string, string | number | boolean>)?.daisoAddress as string | undefined,
-                daisoCoordinates: (apt as Record<string, string | number | boolean>)?.daisoCoordinates as string | undefined,
-                mcdonaldsName: (apt as Record<string, string | number | boolean>)?.mcdonaldsName as string | undefined,
-                mcdonaldsAddress: (apt as Record<string, string | number | boolean>)?.mcdonaldsAddress as string | undefined,
-                mcdonaldsCoordinates: (apt as Record<string, string | number | boolean>)?.mcdonaldsCoordinates as string | undefined,
-                supermarketName: (apt as Record<string, string | number | boolean>)?.supermarketName as string | undefined,
-                supermarketAddress: (apt as Record<string, string | number | boolean>)?.supermarketAddress as string | undefined,
-                supermarketCoordinates: (apt as Record<string, string | number | boolean>)?.supermarketCoordinates as string | undefined,
-                distanceToStarbucks: (apt as Record<string, string | number | boolean>)?.distanceToStarbucks as number | undefined,
-                distanceToOliveYoung: (apt as Record<string, string | number | boolean>)?.distanceToOliveYoung as number | undefined,
-                distanceToDaiso: (apt as Record<string, string | number | boolean>)?.distanceToDaiso as number | undefined,
-                distanceToMcDonalds: (apt as Record<string, string | number | boolean>)?.distanceToMcDonalds as number | undefined,
-                distanceToSupermarket: (apt as Record<string, string | number | boolean>)?.distanceToSupermarket as number | undefined,
+                starbucksName: (apt as Record<string, any>)?.starbucksName as string | undefined,
+                starbucksAddress: (apt as Record<string, any>)?.starbucksAddress as string | undefined,
+                starbucksCoordinates: (apt as Record<string, any>)?.starbucksCoordinates as string | undefined,
+                oliveYoungName: (apt as Record<string, any>)?.oliveYoungName as string | undefined,
+                oliveYoungAddress: (apt as Record<string, any>)?.oliveYoungAddress as string | undefined,
+                oliveYoungCoordinates: (apt as Record<string, any>)?.oliveYoungCoordinates as string | undefined,
+                daisoName: (apt as Record<string, any>)?.daisoName as string | undefined,
+                daisoAddress: (apt as Record<string, any>)?.daisoAddress as string | undefined,
+                daisoCoordinates: (apt as Record<string, any>)?.daisoCoordinates as string | undefined,
+                mcdonaldsName: (apt as Record<string, any>)?.mcdonaldsName as string | undefined,
+                mcdonaldsAddress: (apt as Record<string, any>)?.mcdonaldsAddress as string | undefined,
+                mcdonaldsCoordinates: (apt as Record<string, any>)?.mcdonaldsCoordinates as string | undefined,
+                supermarketName: (apt as Record<string, any>)?.supermarketName as string | undefined,
+                supermarketAddress: (apt as Record<string, any>)?.supermarketAddress as string | undefined,
+                supermarketCoordinates: (apt as Record<string, any>)?.supermarketCoordinates as string | undefined,
+                distanceToStarbucks: (apt as Record<string, any>)?.distanceToStarbucks as number | undefined,
+                distanceToOliveYoung: (apt as Record<string, any>)?.distanceToOliveYoung as number | undefined,
+                distanceToDaiso: (apt as Record<string, any>)?.distanceToDaiso as number | undefined,
+                distanceToMcDonalds: (apt as Record<string, any>)?.distanceToMcDonalds as number | undefined,
+                distanceToSupermarket: (apt as Record<string, any>)?.distanceToSupermarket as number | undefined,
               };
               break;
             }
@@ -621,7 +621,7 @@ export default function ApartmentInfoPage() {
               if (a.yearBuilt) entry['yearBuilt'] = a.yearBuilt;
               if (a.brand) entry['brand'] = a.brand;
               if (a.ticker) entry['ticker'] = a.ticker;
-              clean[a.name] = entry;
+              clean[a.name as string] = entry;
             });
           }
           delete clean[originalName];

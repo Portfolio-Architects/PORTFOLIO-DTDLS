@@ -54,10 +54,13 @@ export interface ObjectiveMetrics {
   };
   nearestStationName?: string;
   nearestStationLine?: string;
+  nearestStationCoords?: string;
   nearestIndeokwonStationName?: string;
   nearestIndeokwonLine?: string;
+  nearestIndeokwonCoords?: string;
   nearestTramStationName?: string;
   nearestTramLine?: string;
+  nearestTramCoords?: string;
 }
 
 export interface AdSlot {

@@ -1097,7 +1097,7 @@ export function FieldReportModal({
                       <span className="text-[13px] font-bold text-[#4e5968] tracking-wide uppercase">학군</span>
                       <div className="flex-1 h-px bg-gradient-to-r from-[#e5e8eb] to-transparent ml-2" />
                     </div>
-                    <div className="grid grid-cols-3 gap-2.5">
+                    <div className="grid grid-cols-3 gap-1.5 md:gap-2.5">
                       {[
                         { label: '초등학교', dist: report.metrics.distanceToElementary, name: report.metrics.nearestSchoolNames?.elementary },
                         { label: '중학교', dist: report.metrics.distanceToMiddle, name: report.metrics.nearestSchoolNames?.middle },
@@ -1112,26 +1112,26 @@ export function FieldReportModal({
                         };
                         const s = gradeStyles[grade];
                         return (
-                          <div key={school.label} className={`${s.bg} rounded-2xl p-4 flex flex-col border ${s.border} hover:shadow-md transition-all duration-200 group`}>
-                            <div className="flex items-center justify-between mb-2.5">
-                              <span className="text-[13px] font-bold text-[#4e5968]">
+                          <div key={school.label} className={`${s.bg} rounded-xl md:rounded-2xl p-2.5 md:p-4 flex flex-col border ${s.border} hover:shadow-md transition-all duration-200 group`}>
+                            <div className="flex items-center justify-between mb-1.5 md:mb-2.5">
+                              <span className="text-[11px] md:text-[13px] font-bold text-[#4e5968] truncate pr-1">
                                 {school.label}
                               </span>
-                              <span className={`w-2 h-2 rounded-full ${s.dot} animate-pulse`} />
+                              <span className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full shrink-0 ${s.dot} animate-pulse`} />
                             </div>
-                            <div className="flex items-baseline gap-0.5">
-                              <span className={`text-[28px] font-black ${s.text} tracking-tight tabular-nums leading-none`}>{(school.dist! / 1000).toFixed(2)}</span>
-                              <span className={`text-[13px] font-semibold ${s.text} opacity-60 ml-0.5`}>km</span>
+                            <div className="flex items-baseline gap-0.5 whitespace-nowrap">
+                              <span className={`text-[20px] md:text-[28px] font-black ${s.text} tracking-tight tabular-nums leading-none`}>{(school.dist! / 1000).toFixed(2)}</span>
+                              <span className={`text-[10px] md:text-[13px] font-semibold ${s.text} opacity-60 ml-0.5 mt-auto`}>km</span>
                             </div>
                             {school.name && (
                               <a 
                                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(school.name + ' 화성시')}`}
                                 target="_blank" rel="noopener noreferrer"
-                                className={`text-[12px] flex items-center justify-center gap-1 font-semibold ${s.text} mt-2.5 ${s.badge} rounded-lg px-2.5 py-1.5 text-center hover:opacity-80 transition-opacity`}
+                                className={`text-[10px] md:text-[12px] flex items-center justify-center gap-0.5 md:gap-1 font-semibold ${s.text} mt-2 md:mt-2.5 ${s.badge} rounded-md md:rounded-lg px-1.5 py-1 md:px-2.5 md:py-1.5 text-center hover:opacity-80 transition-opacity`}
                                 title={`${school.name} 구글 지도에서 보기`}
                               >
-                                <MapPin size={12} className="shrink-0" />
-                                <span className="truncate">{school.name}</span>
+                                <MapPin size={10} className="shrink-0 md:w-3 md:h-3" />
+                                <span className="truncate leading-tight block pt-px">{school.name}</span>
                               </a>
                             )}
                           </div>
@@ -1149,39 +1149,39 @@ export function FieldReportModal({
                       <span className="text-[13px] font-bold text-[#4e5968] tracking-wide uppercase">교통</span>
                       <div className="flex-1 h-px bg-gradient-to-r from-[#e5e8eb] to-transparent ml-2" />
                     </div>
-                    <div className="grid grid-cols-3 gap-2.5">
+                    <div className="grid grid-cols-3 gap-1.5 md:gap-2.5">
                       {[
                         { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#3182f6', bgFrom: '#eef6ff', bgTo: '#dbeafe' },
                         { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestIndeokwonCoords, color: '#7c3aed', bgFrom: '#f5f3ff', bgTo: '#ede9fe' },
                         { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#0891b2', bgFrom: '#ecfeff', bgTo: '#cffafe' },
                       ].filter(s => s.dist != null && s.dist > 0).map(station => (
                         <div key={station.label}
-                          className="rounded-2xl p-4 flex flex-col border hover:shadow-md transition-all duration-200 group relative overflow-hidden"
+                          className="rounded-xl md:rounded-2xl p-2.5 md:p-4 flex flex-col border hover:shadow-md transition-all duration-200 group relative overflow-hidden"
                           style={{
                             background: `linear-gradient(135deg, ${station.bgFrom}, ${station.bgTo})`,
                             borderColor: `${station.color}25`,
                           }}>
                           {/* Subtle gradient accent bar */}
                           <div className="absolute top-0 left-0 right-0 h-[3px] opacity-80" style={{ background: `linear-gradient(90deg, ${station.color}, ${station.color}60)` }} />
-                          <div className="flex items-center justify-between mb-2.5">
-                            <span className="text-[13px] font-bold" style={{ color: station.color }}>
+                          <div className="flex items-center justify-between mb-1.5 md:mb-2.5">
+                            <span className="text-[11px] md:text-[13px] font-bold truncate pr-1" style={{ color: station.color }}>
                               {station.label}
                             </span>
                           </div>
-                          <div className="flex items-baseline gap-0.5">
-                            <span className="text-[28px] font-black tracking-tight tabular-nums leading-none" style={{ color: station.color }}>{(station.dist! / 1000).toFixed(2)}</span>
-                            <span className="text-[13px] font-semibold opacity-50 ml-0.5" style={{ color: station.color }}>km</span>
+                          <div className="flex items-baseline gap-0.5 whitespace-nowrap">
+                            <span className="text-[20px] md:text-[28px] font-black tracking-tight tabular-nums leading-none" style={{ color: station.color }}>{(station.dist! / 1000).toFixed(2)}</span>
+                            <span className="text-[10px] md:text-[13px] font-semibold opacity-60 ml-0.5 mt-auto" style={{ color: station.color }}>km</span>
                           </div>
                           {station.name && (
                             <a 
                               href={station.coords ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.coords)}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.name + (station.name.includes('정거장') ? ' 동탄' : ' 역'))}`}
                               target="_blank" rel="noopener noreferrer"
-                              className="text-[12px] flex items-center justify-center gap-1 font-semibold mt-2.5 rounded-lg px-2.5 py-1.5 text-center bg-white/80 backdrop-blur-sm hover:opacity-80 transition-opacity"
+                              className="text-[10px] md:text-[12px] flex items-center justify-center gap-0.5 md:gap-1 font-semibold mt-2 md:mt-2.5 rounded-md md:rounded-lg px-1.5 py-1 md:px-2.5 md:py-1.5 text-center bg-white/80 backdrop-blur-sm hover:opacity-80 transition-opacity"
                               style={{ color: station.color, border: `1px solid ${station.color}20` }}
                               title={`${station.name} 구글 지도에서 보기`}
                             >
-                              <MapPin size={12} className="shrink-0" />
-                              <span className="truncate">{station.name}</span>
+                              <MapPin size={10} className="shrink-0 md:w-3 md:h-3" />
+                              <span className="truncate leading-tight block pt-px">{station.name}</span>
                             </a>
                           )}
                         </div>

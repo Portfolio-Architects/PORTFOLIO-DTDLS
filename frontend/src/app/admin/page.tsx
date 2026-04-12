@@ -114,9 +114,9 @@ export default function AdminDashboard() {
         if (data.byDong) {
           for (const [dong, apts] of Object.entries(data.byDong)) {
             (apts as Record<string, unknown>[]).forEach(apt => {
-              sheetMap[apt.name] = {
+              sheetMap[apt.name as string] = {
                 dong: (apt as Record<string, string>)?.dong,
-                txKey: (apt as Record<string, string>)?.txKey || autoSuggest(apt.name) || undefined,
+                txKey: (apt as Record<string, string>)?.txKey || autoSuggest(apt.name as string) || undefined,
                 maxFloor: (apt as Record<string, number>)?.maxFloor || 0,
                 isPublicRental: (apt as Record<string, boolean>)?.isPublicRental || false,
                 householdCount: (apt as Record<string, number>)?.householdCount,
@@ -139,16 +139,16 @@ export default function AdminDashboard() {
             const data = metaDoc.data() as Record<string, unknown>;
             const fbMap: MetaMap = {};
             for (const [name, m] of Object.entries(data)) {
-              if (m && typeof m === 'object' && m.dong) {
+              if (m && typeof m === 'object' && (m as any).dong) {
                 fbMap[name] = {
-                  dong: m.dong,
-                  txKey: m.txKey || autoSuggest(name) || undefined,
-                  maxFloor: m.maxFloor || 0,
-                  isPublicRental: m.isPublicRental || false,
-                  householdCount: m.householdCount,
-                  yearBuilt: m.yearBuilt,
-                  brand: m.brand,
-                  ticker: m.ticker,
+                  dong: (m as any).dong,
+                  txKey: (m as any).txKey || autoSuggest(name) || undefined,
+                  maxFloor: (m as any).maxFloor || 0,
+                  isPublicRental: (m as any).isPublicRental || false,
+                  householdCount: (m as any).householdCount,
+                  yearBuilt: (m as any).yearBuilt,
+                  brand: (m as any).brand,
+                  ticker: (m as any).ticker,
                 };
               }
             }

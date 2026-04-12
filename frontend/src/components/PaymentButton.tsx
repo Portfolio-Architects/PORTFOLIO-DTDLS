@@ -59,7 +59,7 @@ export default function PaymentButton({
         failUrl,
         customerEmail: userEmail,
       });
-    } catch (error: unknown) {
+    } catch (error: any) {
       // User cancelled or error
       if (error?.code === 'USER_CANCEL') {
         // User closed the payment window — do nothing

@@ -99,27 +99,27 @@ export async function GET() {
     };
 
     for (const r of rows) {
-      const name = getVal(r, ['아파트명', 'name', '이름']);
-      const dong = getVal(r, ['dong', '동']);
+      const name = getVal(r as any, ['아파트명', 'name', '이름']);
+      const dong = getVal(r as any, ['dong', '동']);
       if (!name || !dong) continue;
 
-      const coordStr = getVal(r, ['좌표', 'coordinates', 'coord']);
+      const coordStr = getVal(r as any, ['좌표', 'coordinates', 'coord']);
       const coord = coordStr ? parseCoordString(coordStr) : null;
       
-      const hh = getVal(r, ['세대수', 'householdcount', 'households']);
-      const year = getVal(r, ['시공&준공인', '사용승인', '준공연도', 'yearbuilt', '준공']);
-      const farStr = getVal(r, ['용적률', 'far']);
-      const bcrStr = getVal(r, ['건폐율', 'bcr']);
-      const parkStr = getVal(r, ['주차대수', 'parkingcount', '주차']);
-      const brand = getVal(r, ['시공사', 'brand', '브랜드']);
-      const floorStr = getVal(r, ['최고층', 'maxfloor', 'floors', '층수', '층']);
-      const minFloorStr = getVal(r, ['최저층', 'minfloor']);
-      const txKey = getVal(r, ['txkey', '실거래키']);
-      const rentalStr = getVal(r, ['공공임대', 'public', 'rental', 'ispublicrental']);
-      const ticker = getVal(r, ['ticker', '티커']);
-      const starbucksName = getVal(r, ['스타벅스지점명', '스타벅스 명', '스타벅스 지점', '스타벅스명', '스타벅스이름', 'starbucksname', 'starbucks_name', '지점명']);
-      const starbucksAddress = getVal(r, ['스타벅스주소', '스타벅스 주소', 'starbucksaddress', 'starbucks_address', '스타벅스상세주소', '상세주소']);
-      const starbucksCoordinates = getVal(r, ['스타벅스좌표', '스타벅스 좌표', '스타벅스 맵좌표', 'starbuckscoordinates', 'starbucks_coord', 'starbucks_coordinates', '구글맵좌표']);
+      const hh = getVal(r as any, ['세대수', 'householdcount', 'households']);
+      const year = getVal(r as any, ['시공&준공인', '사용승인', '준공연도', 'yearbuilt', '준공']);
+      const farStr = getVal(r as any, ['용적률', 'far']);
+      const bcrStr = getVal(r as any, ['건폐율', 'bcr']);
+      const parkStr = getVal(r as any, ['주차대수', 'parkingcount', '주차']);
+      const brand = getVal(r as any, ['시공사', 'brand', '브랜드']);
+      const floorStr = getVal(r as any, ['최고층', 'maxfloor', 'floors', '층수', '층']);
+      const minFloorStr = getVal(r as any, ['최저층', 'minfloor']);
+      const txKey = getVal(r as any, ['txkey', '실거래키']);
+      const rentalStr = getVal(r as any, ['공공임대', 'public', 'rental', 'ispublicrental']);
+      const ticker = getVal(r as any, ['ticker', '티커']);
+      const starbucksName = getVal(r as any, ['스타벅스지점명', '스타벅스 명', '스타벅스 지점', '스타벅스명', '스타벅스이름', 'starbucksname', 'starbucks_name', '지점명']);
+      const starbucksAddress = getVal(r as any, ['스타벅스주소', '스타벅스 주소', 'starbucksaddress', 'starbucks_address', '스타벅스상세주소', '상세주소']);
+      const starbucksCoordinates = getVal(r as any, ['스타벅스좌표', '스타벅스 좌표', '스타벅스 맵좌표', 'starbuckscoordinates', 'starbucks_coord', 'starbucks_coordinates', '구글맵좌표']);
 
       const householdCount = hh ? parseInt(hh.replace(/,/g, '')) : undefined;
       const parkingCount = parkStr ? parseInt(parkStr.replace(/,/g, '')) : undefined;
@@ -248,19 +248,19 @@ export async function GET() {
         };
 
         const sb = findNearest(tenants.starbucks);
-        if (sb.item) { apt.distanceToStarbucks = Math.round(sb.dist); apt.starbucksName = sb.item.name; apt.starbucksAddress = sb.item.address; apt.starbucksCoordinates = `${sb.item.lat}, ${sb.item.lng}`; }
+        if (sb.item) { (apt as any).distanceToStarbucks = Math.round(sb.dist); (apt as any).starbucksName = sb.item.name; (apt as any).starbucksAddress = sb.item.address; (apt as any).starbucksCoordinates = `${sb.item.lat}, ${sb.item.lng}`; }
         
         const oy = findNearest(tenants.oliveyoung);
-        if (oy.item) { apt.distanceToOliveYoung = Math.round(oy.dist); apt.oliveYoungName = oy.item.name; apt.oliveYoungAddress = oy.item.address; apt.oliveYoungCoordinates = `${oy.item.lat}, ${oy.item.lng}`; }
+        if (oy.item) { (apt as any).distanceToOliveYoung = Math.round(oy.dist); (apt as any).oliveYoungName = oy.item.name; (apt as any).oliveYoungAddress = oy.item.address; (apt as any).oliveYoungCoordinates = `${oy.item.lat}, ${oy.item.lng}`; }
         
         const ds = findNearest(tenants.daiso);
-        if (ds.item) { apt.distanceToDaiso = Math.round(ds.dist); apt.daisoName = ds.item.name; apt.daisoAddress = ds.item.address; apt.daisoCoordinates = `${ds.item.lat}, ${ds.item.lng}`; }
+        if (ds.item) { (apt as any).distanceToDaiso = Math.round(ds.dist); (apt as any).daisoName = ds.item.name; (apt as any).daisoAddress = ds.item.address; (apt as any).daisoCoordinates = `${ds.item.lat}, ${ds.item.lng}`; }
         
         const mc = findNearest(tenants.mcdonalds);
-        if (mc.item) { apt.distanceToMcDonalds = Math.round(mc.dist); apt.mcdonaldsName = mc.item.name; apt.mcdonaldsAddress = mc.item.address; apt.mcdonaldsCoordinates = `${mc.item.lat}, ${mc.item.lng}`; }
+        if (mc.item) { (apt as any).distanceToMcDonalds = Math.round(mc.dist); (apt as any).mcdonaldsName = mc.item.name; (apt as any).mcdonaldsAddress = mc.item.address; (apt as any).mcdonaldsCoordinates = `${mc.item.lat}, ${mc.item.lng}`; }
         
         const sm = findNearest(tenants.supermarket);
-        if (sm.item) { apt.distanceToSupermarket = Math.round(sm.dist); apt.supermarketName = sm.item.name; apt.supermarketAddress = sm.item.address; apt.supermarketCoordinates = `${sm.item.lat}, ${sm.item.lng}`; }
+        if (sm.item) { (apt as any).distanceToSupermarket = Math.round(sm.dist); (apt as any).supermarketName = sm.item.name; (apt as any).supermarketAddress = sm.item.address; (apt as any).supermarketCoordinates = `${sm.item.lat}, ${sm.item.lng}`; }
       }
     }
 
@@ -280,7 +280,7 @@ export async function GET() {
       byDong,
     });
   } catch (err: unknown) {
-    console.error('[apartments-by-dong] Error:', (err as Error).message, err.stack?.split('\n')[1]);
+    console.error('[apartments-by-dong] Error:', (err as Error).message, (err as Error).stack?.split('\n')[1]);
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }
 }

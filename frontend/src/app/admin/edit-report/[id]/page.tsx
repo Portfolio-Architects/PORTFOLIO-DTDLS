@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import ReportEditorForm from '@/components/admin/ReportEditorForm';
+import ReportEditorForm, { FormValues } from '@/components/admin/ReportEditorForm';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import { ScoutingReport } from '@/lib/types/scoutingReport';
@@ -25,7 +25,7 @@ export default function EditReportPage() {
           const report = docSnap.data() as ScoutingReport;
           
           // Map Firebase data back exactly to React Hook Form's FormValues structure
-          const formValues = {
+          const formValues: any = {
             dong: report.dong,
             apartmentName: report.apartmentName,
             metrics: report.metrics,

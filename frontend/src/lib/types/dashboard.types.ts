@@ -57,10 +57,11 @@ export interface NewsItemData {
   views?: number;
   /** 작성자 UID (삭제 권한 확인용) */
   authorUid?: string;
-  /** 인증된 아파트명 */
   verifiedApartment?: string;
   /** 인증 등급 ('self_declared' | 'registry_verified') */
   verificationLevel?: string;
+  /** 카테고리 (e.g., '부동산', '교통') */
+  category?: string;
 }
 
 /** 광고 배너 데이터 */

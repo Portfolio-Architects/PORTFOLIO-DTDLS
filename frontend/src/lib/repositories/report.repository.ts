@@ -17,7 +17,7 @@ import type { FieldReportData } from '@/lib/types/report.types';
 export function listenToReports(callback: (reports: FieldReportData[]) => void): () => void {
   const q = query(collection(db, 'scoutingReports'), limit(30));
 
-  const mapSnapshot = (snapshot: unknown): FieldReportData[] => {
+  const mapSnapshot = (snapshot: any): FieldReportData[] => {
     const reports: FieldReportData[] = [];
     snapshot.forEach((docSnap: FirebaseFirestore.QueryDocumentSnapshot) => {
       const data = docSnap.data();

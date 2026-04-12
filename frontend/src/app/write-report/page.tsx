@@ -241,7 +241,7 @@ export default function WriteFieldReport() {
 
   // Emoji Rating Component
   const EmojiRating = ({ section, field, label }: { section: keyof ReportSections, field: string, label: string }) => {
-    const value = Number((sections[section] as Record<string, number>)[field]) || 0;
+    const value = Number((sections[section] as any)[field]) || 0;
     return (
       <div className="mb-4">
         <label className="block text-[13px] font-bold text-[#4e5968] mb-2">{label}</label>
@@ -377,7 +377,7 @@ export default function WriteFieldReport() {
   };
 
   const TextInput = ({ section, field, label, placeholder, isTextarea = false }: { section: keyof ReportSections, field: string, label: string, placeholder: string, isTextarea?: boolean }) => {
-    const value = String((sections[section] as Record<string, string>)[field] || "");
+    const value = String((sections[section] as any)[field] || "");
     return (
       <div className="mb-4">
         <label className="block text-[13px] font-bold text-[#191f28] mb-1.5">{label}</label>
@@ -397,7 +397,7 @@ export default function WriteFieldReport() {
   }
 
   const SelectInput = ({ section, field, label, options }: { section: keyof ReportSections, field: string, label: string, options: {value: string, label: string}[] }) => {
-    const value = String((sections[section] as Record<string, string>)[field] || "");
+    const value = String((sections[section] as any)[field] || "");
     return (
       <div className="mb-4">
         <label className="block text-[13px] font-bold text-[#191f28] mb-1.5">{label}</label>

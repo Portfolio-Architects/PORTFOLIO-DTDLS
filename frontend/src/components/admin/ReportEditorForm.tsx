@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { getPremiumScoresAction } from '@/app/actions/scoring';
 
 // Basic Types for the form matching our Firestore Schema
-type FormValues = {
+export type FormValues = {
   dong: string;
   apartmentName: string;
   thumbnailUrl: string;
@@ -37,6 +37,18 @@ type FormValues = {
     starbucksName: string;
     starbucksAddress: string;
     starbucksCoordinates: string;
+    mcdonaldsName: string;
+    mcdonaldsAddress: string;
+    mcdonaldsCoordinates: string;
+    oliveYoungName: string;
+    oliveYoungAddress: string;
+    oliveYoungCoordinates: string;
+    daisoName: string;
+    daisoAddress: string;
+    daisoCoordinates: string;
+    supermarketName: string;
+    supermarketAddress: string;
+    supermarketCoordinates: string;
     academyDensity: string;
     restaurantDensity: string;
   };
@@ -216,7 +228,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
     if (initialData) {
       reset(initialData);
       // Preserve existing category data so editing doesn't drop them
-      const m = initialData.metrics as Record<string, unknown>;
+      const m = initialData.metrics as any;
       if (m) {
         setApiCategories(prev => ({
           ...prev,
@@ -371,7 +383,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
     if (e.dataTransfer.files) handleBatchFiles(e.dataTransfer.files);
   };
 
-  const onSubmit = async (data: FormValues) => {
+  const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     
     try {
@@ -381,7 +393,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
 
       // 1. Upload Images to Firebase Storage
       const uploadedImages: {url: string, caption: string, locationTag: string, isPremium: boolean, capturedAt?: string}[] = [];
-      const imagesToProcess = data.images.filter(img => img.file || img.url);
+      const imagesToProcess = data.images.filter((img: any) => img.file || img.url);
       const totalImages = imagesToProcess.length;
       let uploadedCount = 0;
       setUploadProgress({ done: 0, total: totalImages });
@@ -391,7 +403,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
       for (let i = 0; i < imagesToProcess.length; i += BATCH_SIZE) {
         const batch = imagesToProcess.slice(i, i + BATCH_SIZE);
         const results = await Promise.all(
-          batch.map(async (img) => {
+          batch.map(async (img: any) => {
             let finalUrl = img.url;
             if (img.file) {
               finalUrl = await uploadImage(img.file, 'report_images');
@@ -520,7 +532,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
     <div className={label ? "mb-4" : ""}>
       {label && <label className="block text-[14px] font-bold text-[#4e5968] mb-2">{label}</label>}
       <select 
-        {...register(name, { required: true })}
+        {...register(name as any, { required: true })}
         className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-all appearance-none cursor-pointer"
       >
         <option value="" disabled>선택하세요</option>
@@ -1119,7 +1131,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
               // Strip non-serializable File/Blob objects from images
               const safeData = {
                 ...data,
-                images: (data.images || []).map((img: { url: string; file?: File; category: string }) => ({
+                images: (data.images || []).map((img: any) => ({
                   url: img.url || '',
                   previewUrl: img.previewUrl || '',
                   caption: img.caption || '',

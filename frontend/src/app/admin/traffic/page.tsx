@@ -77,7 +77,7 @@ export default function TrafficPage() {
           viewCount: viewMap[name] || 0,
           likes: likeMap[name] || 0,
         }));
-        setTrafficData(rows);
+        setTrafficData(rows as any);
       } finally {
         setLoading(false);
       }

@@ -151,7 +151,7 @@ export async function GET() {
         for (let i = 0; i < monthRecords.length; i += BATCH_SIZE) {
           const batch = writeBatch(db);
           const slice = monthRecords.slice(i, i + BATCH_SIZE);
-          for (const r of slice) {
+          for (const r of (slice as any[])) {
             batch.set(doc(collRef, r._key), r, { merge: true });
           }
           await batch.commit();

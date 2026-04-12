@@ -49,7 +49,7 @@ export interface DashboardDataStrategy {
   subscribe?(callback: () => void): () => void;
   addPost?(title: string, content: string, category: string, authorUid: string, imageFile?: File): Promise<void>;
   incrementPostView?(postId: string, title?: string): Promise<void>;
-  addFieldReport?(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number>, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void): Promise<void>;
+  addFieldReport?(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number> | null, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void): Promise<void>;
   incrementFieldReportView?(reportId: string, title?: string): Promise<void>;
   addFieldReportComment?(reportId: string, text: string, authorUid: string): Promise<void>;
   incrementLike?(postId: string): Promise<void>;
@@ -169,7 +169,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     }
   }
 
-  async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number>, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) {
+  async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number> | null, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) {
     try {
       const profile = await UserRepo.getOrCreateProfile(authorUid);
       const total = imageEntries.length;
@@ -340,7 +340,7 @@ export class DashboardFacade {
   public getUserReviews(): UserReview[] { return this.strategy.getUserReviews ? this.strategy.getUserReviews() : []; }
   public getAdBanner(): AdBannerData { return this.strategy.getAdBanner(); }
   public async addPost(title: string, content: string, category: string, authorUid: string, imageFile?: File) { if (this.strategy.addPost) await this.strategy.addPost(title, content, category, authorUid, imageFile); }
-  public async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number>, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) { if (this.strategy.addFieldReport) await this.strategy.addFieldReport(apartmentName, sections, premiumScores, authorUid, imageEntries, onProgress); }
+  public async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number> | null, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) { if (this.strategy.addFieldReport) await this.strategy.addFieldReport(apartmentName, sections, premiumScores, authorUid, imageEntries, onProgress); }
   public async addFieldReportComment(reportId: string, text: string, authorUid: string) { if (this.strategy.addFieldReportComment) await this.strategy.addFieldReportComment(reportId, text, authorUid); }
   public async addUserReview(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File) { if (this.strategy.addUserReview) await this.strategy.addUserReview(apartmentName, rating, content, authorUid, imageFile); }
   public listenToComments(reportId: string, callback: (comments: CommentData[]) => void) { return this.strategy.listenToComments ? this.strategy.listenToComments(reportId, callback) : () => {}; }

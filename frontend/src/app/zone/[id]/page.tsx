@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
 import { Camera, MapPin, ArrowLeft } from 'lucide-react';
-import { useDashboardData, dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
+import { useDashboardData, dashboardFacade, FieldReportData, CommentData } from '@/lib/DashboardFacade';
 import { ZONES, dongToZoneId, getZoneById } from '@/lib/zones';
 import { FieldReportModal } from '@/components/ApartmentModal';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
@@ -22,7 +22,7 @@ export default function ZoneDetailPage() {
   const [user, setUser] = useState<User | null>(null);
 
   // Comments state for modal
-  const [commentsData, setCommentsData] = useState<Record<string, unknown[]>>({});
+  const [commentsData, setCommentsData] = useState<Record<string, CommentData[]>>({});
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
 
   useEffect(() => {

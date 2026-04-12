@@ -1,7 +1,7 @@
 'use client';
 
 import { MessageSquare, UserCircle } from 'lucide-react';
-import type { CommentData } from '@/lib/DashboardFacade';
+import type { CommentData } from '@/lib/types/report.types';
 import type { User } from 'firebase/auth';
 
 interface CommentSectionProps {
