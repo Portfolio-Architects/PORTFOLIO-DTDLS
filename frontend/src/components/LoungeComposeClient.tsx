@@ -1,0 +1,140 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { PenLine, X, ShieldCheck, Building2 } from 'lucide-react';
+import { auth, googleProvider } from '@/lib/firebaseConfig';
+import { onAuthStateChanged, signInWithPopup, User } from 'firebase/auth';
+import { dashboardFacade, UserReview } from '@/lib/DashboardFacade';
+import * as UserRepo from '@/lib/repositories/user.repository';
+import type { UserProfile } from '@/lib/types/user.types';
+import { getDisplayName } from '@/lib/types/user.types';
+import { useRouter } from 'next/navigation';
+import { isAdmin } from '@/lib/config/admin.config';
+
+export default function LoungeComposeClient() {
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [showCompose, setShowCompose] = useState(false);
+  const [postTitle, setPostTitle] = useState('');
+  const [postContent, setPostContent] = useState('');
+  const [postCategory, setPostCategory] = useState('자유');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        const profile = await UserRepo.getOrCreateProfile(currentUser.uid);
+        setUserProfile(profile);
+      } else {
+        setUserProfile(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error("Login failed", error);
+    }
+  };
+
+  const isUserAdmin = isAdmin(user?.email);
+  const displayAuthorName = isUserAdmin ? '매니저' : (userProfile ? getDisplayName(userProfile) : '익명');
+  const displayApartment = isUserAdmin ? '마스터' : (userProfile?.verifiedApartment?.replace(/\[.*?\]\s*/, '') || '');
+
+  return (
+    <>
+      {(user && (userProfile || isUserAdmin)) && (
+        <div className="bg-white rounded-2xl border border-[#e5e8eb] p-4 mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-[14px] font-bold text-[#191f28]">{displayAuthorName}</span>
+            {displayApartment && (
+              <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md ${isUserAdmin ? 'bg-[#191f28] text-[#ffffff]' : 'bg-[#e8f3ff] text-[#3182f6]'}`}>
+                <ShieldCheck size={11} /> {displayApartment}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => { /* TODO: open verify modal */ }}
+            className={`text-[12px] font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 ${isUserAdmin ? 'text-[#8b95a1] bg-[#f2f4f6] hover:bg-[#e5e8eb]' : 'text-[#3182f6] bg-[#e8f3ff] hover:bg-[#d4e9ff]'}`}
+          >
+            <Building2 size={13} />
+            {displayApartment ? '변경' : '아파트 인증'}
+          </button>
+        </div>
+      )}
+
+      {user ? (
+        <button
+          onClick={() => setShowCompose(true)}
+          className="fixed bottom-6 right-6 w-14 h-14 bg-[#3182f6] hover:bg-[#1b6de8] text-white rounded-full shadow-lg shadow-[#3182f6]/30 flex items-center justify-center transition-all active:scale-95 z-20"
+        >
+          <PenLine size={22} />
+        </button>
+      ) : (
+        <button
+          onClick={handleLogin}
+          className="fixed bottom-6 right-6 w-14 h-14 bg-[#191f28] hover:bg-[#333d4b] text-white rounded-full shadow-lg shadow-[#191f28]/30 flex items-center justify-center transition-all active:scale-95 z-20"
+        >
+          <PenLine size={22} />
+        </button>
+      )}
+
+      {showCompose && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowCompose(false)} />
+          <div className="relative w-full sm:max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-[18px] font-extrabold text-[#191f28]">라운지 글쓰기</h2>
+              <button onClick={() => setShowCompose(false)} className="w-8 h-8 rounded-full bg-[#f2f4f6] flex items-center justify-center hover:bg-[#e5e8eb] transition-colors">
+                <X size={16} className="text-[#4e5968]" />
+              </button>
+            </div>
+            
+            <div className="bg-[#e8f3ff] p-3 rounded-lg mb-4">
+              <p className="text-[12px] text-[#3182f6] font-medium leading-relaxed">
+                <strong className="font-bold">✨ SEO 마크다운 팁:</strong><br/>
+                # 제목 (h1) — 사용하지 마세요 (기본 제목으로 제공됨)<br/>
+                ## 대주제 (h2)<br/>
+                ### 소주제 (h3)<br/>
+                처럼 구조적으로 작성하면 많은 방문자를 이끌 수 있습니다!
+              </p>
+            </div>
+
+            <div className="flex gap-2 mb-4 overflow-x-auto">
+              {['부동산', '교통', '교육', '문화', '자유'].map((cat) => (
+                <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#191f28] text-white border-[#191f28]' : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'}`}>{cat}</button>
+              ))}
+            </div>
+            <input value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="검색에 노출될 확실한 글 제목을 입력하세요" className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-[#3182f6] focus:bg-white transition-colors mb-2" autoFocus />
+            <textarea value={postContent} onChange={(e) => setPostContent(e.target.value)} placeholder="동탄 이야기를 자유롭게 나눠보세요... 마크다운 문법을 사용하여 구조적인 글을 작성해보세요." rows={5} className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors resize-none focus:ring-4 focus:ring-[#3182f6]/10 mb-4" />
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-[#8b95a1]">🎭 {displayAuthorName}</span>
+              <button
+                onClick={async () => {
+                  if (!user || !postTitle.trim()) return;
+                  setIsSubmitting(true);
+                  try {
+                    await dashboardFacade.addPost(postTitle.trim(), postContent.trim(), postCategory, user.uid, undefined, user.email);
+                    setPostTitle(''); setPostContent(''); setPostCategory('자유'); setShowCompose(false);
+                    // Refresh the route to show the new post from the server component
+                    router.refresh();
+                  } catch { alert('글 작성에 실패했습니다.'); }
+                  finally { setIsSubmitting(false); }
+                }}
+                disabled={isSubmitting || !postTitle.trim()}
+                className="flex items-center gap-2 px-6 py-3 bg-[#3182f6] hover:bg-[#1b6de8] disabled:bg-[#d1d6db] text-white rounded-xl font-bold text-[14px] transition-all active:scale-95"
+              >
+                {isSubmitting ? '작성 중...' : '작성 완료'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

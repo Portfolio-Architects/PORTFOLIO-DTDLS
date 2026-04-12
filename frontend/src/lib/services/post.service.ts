@@ -25,9 +25,11 @@ export async function createPost(
   content: string,
   category: string,
   authorUid: string,
-  imageFile?: File
+  imageFile?: File,
+  authorEmail?: string | null
 ): Promise<void> {
   try {
+    const { isAdmin } = await import('@/lib/config/admin.config');
     // 1. Resolve user profile for display name
     const profile = await UserRepo.getOrCreateProfile(authorUid);
 
@@ -42,7 +44,11 @@ export async function createPost(
     }
 
     // 3. Persist to Firestore (include apartment verification if present)
-    const displayName = `${profile.frontName || '동탄사는'} ${profile.nickname}`;
+    const isUserAdmin = isAdmin(authorEmail);
+    const displayName = isUserAdmin ? '매니저' : `${profile.frontName || '동탄사는'} ${profile.nickname}`;
+    const verifiedApartment = isUserAdmin ? '마스터' : profile.verifiedApartment;
+    const verificationLevel = isUserAdmin ? 'registry_verified' : profile.verificationLevel;
+
     await PostRepo.createPost({
       title,
       category,
@@ -50,8 +56,8 @@ export async function createPost(
       authorName: displayName,
       authorUid,
       imageUrl,
-      verifiedApartment: profile.verifiedApartment,
-      verificationLevel: profile.verificationLevel,
+      verifiedApartment,
+      verificationLevel,
     });
 
     logger.info('PostService.createPost', 'Post created successfully', { title, category });
