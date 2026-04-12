@@ -13,8 +13,11 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-export const db = initializeFirestore(app, { ignoreUndefinedProperties: true });
-export const auth = getAuth(app);
+const app = getApps().length === 0 && firebaseConfig.apiKey
+  ? initializeApp(firebaseConfig) 
+  : (getApps().length > 0 ? getApps()[0] : null);
+
+export const db = app ? initializeFirestore(app, { ignoreUndefinedProperties: true }) : null as any;
+export const auth = app ? getAuth(app) : null as any;
 export const googleProvider = new GoogleAuthProvider();
-export const storage = getStorage(app);
+export const storage = app ? getStorage(app) : null as any;
