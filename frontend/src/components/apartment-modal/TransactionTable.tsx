@@ -42,7 +42,7 @@ export function TransactionTable({
   const [txFilterDealType, setTxFilterDealType] = useState<string>('ALL');
   const [activeDropdown, setActiveDropdown] = useState<'sort' | 'area' | 'dealType' | null>(null);
   
-  const INITIAL_DISPLAY_COUNT = 20;
+  const INITIAL_DISPLAY_COUNT = 10;
   const [displayedCount, setDisplayedCount] = useState(INITIAL_DISPLAY_COUNT);
 
   // Reset displayed count when filters change
@@ -266,7 +266,7 @@ export function TransactionTable({
       {displayedCount < filteredTransactions.length && (
         <>
           <button
-            onClick={() => setDisplayedCount(prev => prev + 20)}
+            onClick={() => setDisplayedCount(prev => prev + 10)}
             className="md:hidden relative -mt-4 w-[160px] mx-auto z-20 flex items-center justify-center gap-1.5 bg-[#191f28] text-white py-2.5 px-4 rounded-full text-[13px] font-extrabold shadow-lg hover:bg-[#191f28]/90 transition-colors mb-4"
           >
             더보기 <ChevronDown size={14} />
