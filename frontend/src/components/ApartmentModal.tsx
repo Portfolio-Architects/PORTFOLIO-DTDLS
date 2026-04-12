@@ -1198,17 +1198,17 @@ export function FieldReportModal({
                       <span className="text-[13px] font-bold text-[#4e5968] tracking-wide uppercase">생활 인프라</span>
                       <div className="flex-1 h-px bg-gradient-to-r from-[#e5e8eb] to-transparent ml-2" />
                     </div>
-                    <div className="grid grid-cols-2 gap-2.5">
+                    <div className="grid grid-cols-2 gap-1.5 md:gap-2.5">
                       {/* Academy Density */}
                       {report.metrics.academyDensity > 0 && (
-                        <div className="bg-gradient-to-br from-[#f0fdf4] to-[#dcfce7]/50 rounded-2xl p-4 md:p-5 flex flex-col border border-[#bbf7d0] hover:shadow-md transition-all duration-200 relative overflow-hidden">
+                        <div className="bg-gradient-to-br from-[#f0fdf4] to-[#dcfce7]/50 rounded-xl md:rounded-2xl p-3 md:p-5 flex flex-col border border-[#bbf7d0] hover:shadow-md transition-all duration-200 relative overflow-hidden">
                           <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#22c55e] to-[#22c55e]/40" />
-                          <div className="text-[13px] font-bold text-[#15803d] mb-2">
+                          <div className="text-[11px] md:text-[13px] font-bold text-[#15803d] mb-1 md:mb-2 truncate pr-1">
                             학원 · 500m 반경
                           </div>
-                          <div className="flex items-baseline gap-0.5 mb-3">
-                            <span className="text-[30px] font-black text-[#15803d] tracking-tight tabular-nums leading-none">{report.metrics.academyDensity}</span>
-                            <span className="text-[13px] font-semibold text-[#15803d]/60 ml-0.5">개</span>
+                          <div className="flex items-baseline gap-0.5 mb-2.5 md:mb-3 whitespace-nowrap">
+                            <span className="text-[22px] md:text-[30px] font-black text-[#15803d] tracking-tight tabular-nums leading-none">{report.metrics.academyDensity}</span>
+                            <span className="text-[11px] md:text-[13px] font-semibold text-[#15803d]/60 ml-0.5">개</span>
                           </div>
                           {report.metrics.academyCategories && Object.keys(report.metrics.academyCategories).length > 0 && (
                             <div className="flex flex-col gap-1.5 mt-auto">
@@ -1216,9 +1216,9 @@ export function FieldReportModal({
                                 .sort(([,a], [,b]) => (b as number) - (a as number))
                                 .slice(0, 5)
                                 .map(([cat, cnt]) => (
-                                  <div key={cat} className="flex justify-between items-center bg-white/80 backdrop-blur-sm rounded-lg px-2.5 py-1.5 border border-[#bbf7d0]/60">
-                                    <span className="text-[12px] text-[#4e5968] font-medium truncate mr-2">{cat}</span>
-                                    <span className="font-extrabold text-[12px] text-[#15803d] shrink-0 tabular-nums">{cnt as number}개</span>
+                                  <div key={cat} className="flex justify-between items-center bg-white/80 backdrop-blur-sm rounded-lg px-2 md:px-2.5 py-1 md:py-1.5 border border-[#bbf7d0]/60">
+                                    <span className="text-[10px] md:text-[12px] text-[#4e5968] font-medium truncate mr-1 md:mr-2">{cat}</span>
+                                    <span className="font-extrabold text-[10px] md:text-[12px] text-[#15803d] shrink-0 tabular-nums">{cnt as number}개</span>
                                   </div>
                                 ))}
                             </div>
@@ -1227,14 +1227,14 @@ export function FieldReportModal({
                       )}
                       {/* Restaurant/Cafe Density */}
                       {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
-                        <div className="bg-gradient-to-br from-[#fffbeb] to-[#fef3c7]/50 rounded-2xl p-4 md:p-5 flex flex-col border border-[#fde68a] hover:shadow-md transition-all duration-200 relative overflow-hidden">
+                        <div className="bg-gradient-to-br from-[#fffbeb] to-[#fef3c7]/50 rounded-xl md:rounded-2xl p-3 md:p-5 flex flex-col border border-[#fde68a] hover:shadow-md transition-all duration-200 relative overflow-hidden">
                           <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#f59e0b] to-[#f59e0b]/40" />
-                          <div className="text-[13px] font-bold text-[#b45309] mb-2">
-                            음식점 · 카페 · 500m
+                          <div className="text-[11px] md:text-[13px] font-bold text-[#b45309] mb-1 md:mb-2 truncate pr-1">
+                            음식점·카페·500m
                           </div>
-                          <div className="flex items-baseline gap-0.5 mb-3">
-                            <span className="text-[30px] font-black text-[#b45309] tracking-tight tabular-nums leading-none">{report.metrics.restaurantDensity}</span>
-                            <span className="text-[13px] font-semibold text-[#b45309]/60 ml-0.5">개</span>
+                          <div className="flex items-baseline gap-0.5 mb-2.5 md:mb-3 whitespace-nowrap">
+                            <span className="text-[22px] md:text-[30px] font-black text-[#b45309] tracking-tight tabular-nums leading-none">{report.metrics.restaurantDensity}</span>
+                            <span className="text-[11px] md:text-[13px] font-semibold text-[#b45309]/60 ml-0.5">개</span>
                           </div>
                           {report.metrics.restaurantCategories && Object.keys(report.metrics.restaurantCategories).length > 0 && (
                             <div className="flex flex-col gap-1.5 mt-auto">
@@ -1242,9 +1242,9 @@ export function FieldReportModal({
                                 .sort(([,a], [,b]) => (b as number) - (a as number))
                                 .slice(0, 5)
                                 .map(([cat, cnt]) => (
-                                  <div key={cat} className="flex justify-between items-center bg-white/80 backdrop-blur-sm rounded-lg px-2.5 py-1.5 border border-[#fde68a]/60">
-                                    <span className="text-[12px] text-[#4e5968] font-medium truncate mr-2">{cat}</span>
-                                    <span className="font-extrabold text-[12px] text-[#b45309] shrink-0 tabular-nums">{cnt as number}개</span>
+                                  <div key={cat} className="flex justify-between items-center bg-white/80 backdrop-blur-sm rounded-lg px-2 md:px-2.5 py-1 md:py-1.5 border border-[#fde68a]/60">
+                                    <span className="text-[10px] md:text-[12px] text-[#4e5968] font-medium truncate mr-1 md:mr-2">{cat}</span>
+                                    <span className="font-extrabold text-[10px] md:text-[12px] text-[#b45309] shrink-0 tabular-nums">{cnt as number}개</span>
                                   </div>
                                 ))}
                             </div>
