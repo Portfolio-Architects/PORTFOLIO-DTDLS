@@ -129,10 +129,18 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
         if (data.byDong && Object.keys(data.byDong).length > 0) {
           // Apply display name overriding dynamically from the mapping
           const updatedByDong = Object.fromEntries(
-            Object.entries(data.byDong).map(([dong, apts]) => [
-              dong,
-              (apts as DongApartment[]).map(a => ({ ...a, name: getDisplayAptName(a.name) }))
-            ])
+            Object.entries(data.byDong).map(([dong, apts]) => {
+              const mappedApts = (apts as DongApartment[]).map(a => ({ ...a, name: getDisplayAptName(a.name) }));
+              // Deduplicate by name: keep the one with more valid data
+              const dedupedMap = new Map<string, DongApartment>();
+              for (const a of mappedApts) {
+                const existing = dedupedMap.get(a.name);
+                if (!existing || (a.lat !== 0 && existing.lat === 0) || (a.householdCount && !existing.householdCount)) {
+                  dedupedMap.set(a.name, a);
+                }
+              }
+              return [dong, Array.from(dedupedMap.values())];
+            })
           );
           setSheetApartments(updatedByDong);
         }

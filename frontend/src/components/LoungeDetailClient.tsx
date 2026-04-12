@@ -48,6 +48,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
   const [editCategory, setEditCategory] = useState('');
 
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -63,9 +64,10 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
     return () => unsub();
   }, []);
 
-  // Fetch post and Track View
   useEffect(() => {
     if (!postId) return;
+    const liked = localStorage.getItem(`post_liked_${postId}`);
+    if (liked) setIsLiked(true);
     
     // View Tracking
     let viewIncremented = false;
@@ -128,9 +130,16 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
   }, [postId]);
 
   const handleLike = async () => {
-    if (!postId) return;
-    await updateDoc(doc(db, 'posts', postId), { likes: increment(1) });
-    setPost((prev: any) => prev ? { ...prev, likes: (prev.likes || 0) + 1 } : prev);
+    if (!postId || isLiked) return;
+    try {
+      setIsLiked(true);
+      localStorage.setItem(`post_liked_${postId}`, 'true');
+      await updateDoc(doc(db, 'posts', postId), { likes: increment(1) });
+      setPost((prev: any) => prev ? { ...prev, likes: (prev.likes || 0) + 1 } : prev);
+    } catch(e) {
+      setIsLiked(false);
+      localStorage.removeItem(`post_liked_${postId}`);
+    }
   };
 
   const handleComment = async () => {
@@ -372,8 +381,12 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                 <Eye size={16} />
                 <span className="text-[13px] font-bold">{Number(post?.views || 0)}</span>
               </div>
-              <button onClick={handleLike} className="flex items-center gap-1.5 text-[#8b95a1] hover:text-[#f04452] transition-colors">
-                <Heart size={16} />
+              <button 
+                onClick={handleLike} 
+                disabled={isLiked}
+                className={`flex items-center gap-1.5 transition-colors ${isLiked ? 'text-[#f04452]' : 'text-[#8b95a1] hover:text-[#f04452]'}`}
+              >
+                <Heart size={16} fill={isLiked ? "#f04452" : "none"} />
                 <span className="text-[13px] font-bold">{Number(post?.likes || 0)}</span>
               </button>
             </div>
