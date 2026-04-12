@@ -42,8 +42,13 @@ jobs:
 
       # Step 1: 국토부 API → Firestore
       - name: Fetch transactions from 국토부 API
-        if: secrets.BUILDING_API_KEY != '' && github.event_name != 'push'
-        run: node scripts/fetch-transactions.js
+        if: github.event_name != 'push'
+        run: |
+          if [ -z "${BUILDING_API_KEY}" ]; then
+            echo "BUILDING_API_KEY is not set. Skipping api fetch."
+            exit 0
+          fi
+          node scripts/fetch-transactions.js
         env:
           BUILDING_API_KEY: ${{ secrets.BUILDING_API_KEY }}
           PROXY_URL: ${{ secrets.PROXY_URL }}
