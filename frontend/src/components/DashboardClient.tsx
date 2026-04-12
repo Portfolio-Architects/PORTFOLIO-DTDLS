@@ -307,13 +307,13 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
     if (!hasViewData) return;
     // Apply same sorting as visible list (default: 조회수)
     const sorted = [...allApts].sort((a, b) => {
-      const aReport = fieldReports.find(r => isSameApartment(r.apartmentName, a.name));
-      const bReport = fieldReports.find(r => isSameApartment(r.apartmentName, b.name));
+      const aReport = fieldReports.find(r => isSameApartment(r.apartmentName, a.name, nameMapping));
+      const bReport = fieldReports.find(r => isSameApartment(r.apartmentName, b.name, nameMapping));
       const diff = (bReport?.viewCount || 0) - (aReport?.viewCount || 0);
       return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
     });
     const first = sorted[0];
-    const report = fieldReports.find(r => isSameApartment(r.apartmentName, first.name));
+    const report = fieldReports.find(r => isSameApartment(r.apartmentName, first.name, nameMapping));
     if (report) {
       setSelectedReport(report);
     } else {
@@ -494,7 +494,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
     if (!selectedReport) return null;
     const raw = fullReportData || selectedReport;
     if (raw.metrics) return raw;
-    const fallback = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, raw.apartmentName));
+    const fallback = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, raw.apartmentName, nameMapping));
     return { ...raw, metrics: fallback as any };
   }, [selectedReport, fullReportData, sheetApartments]);
 
@@ -625,8 +625,8 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
             // 정렬 로직
             const sorted = [...allApts].sort((a, b) => {
               if (listSort === 'views') {
-                const aReport = fieldReports.find(r => isSameApartment(r.apartmentName, a.name));
-                const bReport = fieldReports.find(r => isSameApartment(r.apartmentName, b.name));
+                const aReport = fieldReports.find(r => isSameApartment(r.apartmentName, a.name, nameMapping));
+                const bReport = fieldReports.find(r => isSameApartment(r.apartmentName, b.name, nameMapping));
                 const diff = (bReport?.viewCount || 0) - (aReport?.viewCount || 0);
                 return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
               }
@@ -665,7 +665,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
                       const apt = sorted[index];
                       const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
                       const txSummary = txKey ? txSummaryData[txKey] : undefined;
-                      const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name));
+                      const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name, nameMapping));
                       return (
                         <div style={style}>
                           <ApartmentCard
@@ -675,7 +675,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
                             report={report}
                             isPublicRental={publicRentalSet.has(apt.name)}
                             rank={index + 1}
-                            isSelected={!!(selectedReport && isSameApartment(selectedReport.apartmentName, apt.name))}
+                            isSelected={!!(selectedReport && isSameApartment(selectedReport.apartmentName, apt.name, nameMapping))}
                             isFavorited={userFavorites.has(apt.name)}
                             favoriteCount={Math.max(userFavorites.has(apt.name) ? 1 : 0, favoriteCounts[apt.name] || 0)}
                             onToggleFavorite={() => handleToggleFavorite(apt.name)}

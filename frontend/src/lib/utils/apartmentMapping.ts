@@ -23,14 +23,33 @@ export function normalizeAptName(name: string): string {
     .trim();
 }
 
+const HARDCODED_MAPPING: Record<string, string> = {
+  '그린힐반도유보라아이비파크10.0': '그린힐반도유보라아이비파크101단지',
+  '레이크힐반도유보라아이비파크10.0': '레이크힐반도유보라아이비파크10.2',
+};
+
 /**
- * 두 아파트명이 같은 단지인지 확인 (정확 일치만)
- * "힐스테이트동탄" ≠ "힐스테이트동탄역" (다른 아파트)
+ * 두 아파트명이 같은 단지인지 확인 (정확 일치 및 수동/예외 매핑 허용)
  */
-export function isSameApartment(reportName: string, txName: string): boolean {
+export function isSameApartment(reportName: string, txName: string, manualMapping?: Record<string, string>): boolean {
+  if (!reportName || !txName) return false;
   const a = normalizeAptName(reportName);
   const b = normalizeAptName(txName);
-  return a === b;
+  if (a === b) return true;
+
+  // 하드코딩 매핑 체크 (양방향)
+  if (HARDCODED_MAPPING[a] === b || HARDCODED_MAPPING[b] === a) return true;
+  
+  // 수동 매핑 체크
+  if (manualMapping) {
+    const mapA = manualMapping[reportName] || manualMapping[a];
+    const mapB = manualMapping[txName] || manualMapping[b];
+    if (mapA && mapA === b) return true;
+    if (mapB && mapB === a) return true;
+    if (mapA && mapB && mapA === mapB) return true;
+  }
+  
+  return false;
 }
 
 /**
@@ -111,10 +130,6 @@ function deepNormalize(name: string): string {
  * 
  * @returns 매칭된 키 (없으면 null)
  */
-const HARDCODED_MAPPING: Record<string, string> = {
-  '그린힐반도유보라아이비파크10.0': '그린힐반도유보라아이비파크101단지',
-  '레이크힐반도유보라아이비파크10.0': '레이크힐반도유보라아이비파크10.2',
-};
 
 export function findTxKey<T>(aptName: string, txMap: Record<string, T>, manualMapping?: Record<string, string>): string | null {
   const norm = normalizeAptName(aptName);
