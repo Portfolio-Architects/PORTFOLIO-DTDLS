@@ -1,5 +1,5 @@
 # 📋 PORTFOLIO D-VIEW — Engineering Report
-> **Date**: 2026-04-11 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
+> **Date**: 2026-04-12 | **Grade**: A | **Branch**: master | **Status**: Active Development & Stabilization
 
 
 ---
@@ -165,9 +165,8 @@ src/
 ## 9. Roadmap
 
 ### Phase 1 (단기)
-- [ ] **[Security Hotfix 🚨] 백엔드 API JWT 인가(Authorization) 도입**: 클라이언트가 전송하는 `userId` 기반 취약점(좋아요 조작 가능) 방어를 위해, Firebase ID Token(`admin.auth().verifyIdToken`) 디코딩 기반 무결성 검증 로직으로 API 엔드포인트 전면 격상
-- [ ] **[Security 🛡️] Upstash Redis 글로벌 Rate Limiting 연동**: Vercel Serverless 분산 메모리 한계를 극복하기 위해 기존 인메모리(Map) 기반 어뷰징 방어벽을 Redis 캐시 글로벌 추적 모델로 업그레이드
-- [ ] **[Security 🔒] Firebase Config 환경변수 은닉**: `firebaseConfig.ts`에 하드코딩된 클라이언트 API Key 등 민감정보를 `.env`로 추출하여 GitHub 노출 완벽 차단
+- [x] **[Security Hotfix 🚨] 백엔드 API JWT 인가(Authorization) 도입**: 클라이언트가 전송하는 `userId` 기반 취약점(좋아요 조작 가능) 방어를 위해, Firebase ID Token(`admin.auth().verifyIdToken`) 디코딩 기반 무결성 검증 로직으로 API 엔드포인트 전면 격상
+- [x] **[Security 🔒] Firebase Config 환경변수 은닉**: `firebaseConfig.ts`에 하드코딩된 클라이언트 API Key 등 민감정보를 `.env`로 추출하여 GitHub 노출 완벽 차단
 - [ ] **구글 애드센스(Google AdSense)** 컴포넌트 선행 환경 구성 및 네이티브 광고/배너 레이아웃 명당 설계 (수익화 인프라 준비)
 - [ ] 동탄 아파트 관계도 구축 (3D Force Graph — 단지 간 거리·가격 상관관계 시각화)
 - [ ] 아파트 비교 기능 (2~3개 단지 나란히 비교 — 가격·세대수·인프라 대시보드)
@@ -201,6 +200,10 @@ src/
 
 | 일시 | 주요 항목 | 요약 내용 |
 |:---|:---|:---|
+| 2026-04-12 | **라운지(Lounge) 피드 UI 모던화 및 SEO 렌더링 고도화** | 토스증권 스타일 3단 레이아웃 및 Intercepting Route 모달로 라운지 개편. 무한 스크롤 및 IP 기반 좋아요 중복 방지 구현. 클라이언트 탭 방식에서 SSR 기반 Page 연동으로 Google SEO 시맨틱 헤딩(H1-H3) 및 메타데이터 인덱싱 최적화 완료 |
+| 2026-04-12 | **데이터 파이프라인 회복 탄력성(Resilience) 인프라 격상** | 범용 Raw Caching 도입으로 빌드 및 API 다운 시 오프라인 데이터 보존(Macro, Ontology 등). Vercel 환경에서 Firebase SDK gRPC 타임아웃 런타임 행(Hang) 문제 디버깅 및 동적 API 라우팅 강제로 빌드 I/O 누락 방호 |
+| 2026-04-12 | **모바일 제스처 UX 및 UI 컴포넌트 안정화 패치** | 모바일 스플래시 화면 Dock Z-Index 버그 픽스, 물리 기반 Pull-to-Refresh와 햅틱 피드백 연동. 모바일 Sticky 헤더 이탈 버그 및 통합 포트폴리오 아이콘 벡터 디자인(M100 65) 일원화로 프론트엔드 강건성 확보 |
+| 2026-04-12 | **API Security Architecture 강화 (Hotfix 달성)** | Firebase 인증 JWT(IdToken) 검증 파이프라인 서버리스 전면 배치로 API 데이터 불법 조작 차단 및 `firebaseConfig` 등 모든 하드코딩 환경변수 `.env` 로컬/운영 은닉화 이관 완료 |
 | 2026-04-11 | **오가닉 트래픽 무결성 확보 (Admin Exclusion)** | `SiteTracker` 로직에 관리자 접속 세션(Localhost 및 /admin 파이어베이스 권한)을 영구적으로 식별하여 일일 방문자수 중복 카운팅 데이터에서 개발자 트래픽을 원천 배제하는 토큰 연동 달성 |
 | 2026-04-11 | **주요 편의시설(AnchorTenant) UI 레이아웃 최적화** | AnchorTenantCard 내의 브랜드 배지(Badge) 도입 및 리스트 간격(Divider) 시인성 강화. 매장 메타데이터 카드를 진행 바 영역에 완벽히 스냅 밀착시켜 가독성 극대화 |
 | 2026-04-11 | **데이터 파이프라인 신뢰도 격상 및 입지분석 현황판** | 정규표현식(`^이마트(?!24)`)을 통한 푸드코트 등 추출 결함(False Positive) 해결 및 Admin Dashboard 상단에 '입지분석 완료' 추적 탭 신설 |
