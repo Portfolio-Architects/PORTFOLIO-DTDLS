@@ -40,10 +40,13 @@ function extractDong(umdNm: string): string {
   return umdNm || '';
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     if (!API_KEY) {
       return NextResponse.json({ error: 'BUILDING_API_KEY not set' }, { status: 500 });
+    }
+    if (!db) {
+      return NextResponse.json({ error: 'Firebase DB not initialized' }, { status: 500 });
     }
 
     // 1. Find the latest contractDate in Firestore to determine sync range
