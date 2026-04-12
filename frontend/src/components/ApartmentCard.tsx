@@ -110,7 +110,7 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
       <div className="flex items-center shrink-0">
         {txSummary ? (
           <div className="text-right min-w-[80px]">
-            <div className="text-base font-extrabold text-[#191f28] tabular-nums leading-none mb-1 flex items-center justify-end gap-1">
+            <div className="text-base font-extrabold text-[#191f28] tabular-nums leading-none mb-1">
               {(() => {
                 if (txSummary.avg1MPrice > 0) {
                   const rounded = Math.round(txSummary.avg1MPrice / 100) * 100;
@@ -126,15 +126,6 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
                 }
                 return '-';
               })()}
-              {txSummary.avg1MPrice > 0 && (
-                <div className="group relative flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#f2f4f6] cursor-help transition-colors hover:bg-[#e5e8eb]">
-                  <span className="text-[9px] font-bold text-[#8b95a1] leading-none">?</span>
-                  <div className="absolute right-0 bottom-full mb-1.5 hidden w-max px-2 py-1.5 bg-[#191f28] text-white text-[11px] rounded-md shadow-lg group-hover:block z-50">
-                    최근 1개월 평균가
-                    <div className="absolute right-1 -bottom-1 border-[3px] border-transparent border-t-[#191f28]"></div>
-                  </div>
-                </div>
-              )}
             </div>
             <div className="flex items-center justify-end gap-1.5">
               {(() => {
