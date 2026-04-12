@@ -112,8 +112,11 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
           <div className="text-right min-w-[80px]">
             <div className="text-base font-extrabold text-[#191f28] tabular-nums leading-none mb-1">
               {(() => {
-                if (txSummary.avg1MPriceEok && txSummary.avg1MPriceEok !== '0만' && txSummary.avg1MPrice > 0) {
-                  return txSummary.avg1MPriceEok;
+                if (txSummary.avg1MPrice > 0) {
+                  const rounded = Math.round(txSummary.avg1MPrice / 100) * 100;
+                  const eok = Math.floor(rounded / 10000);
+                  const rem = rounded % 10000;
+                  return `${eok >= 1 ? `${eok}억` : ''}${rem > 0 ? rem.toLocaleString() : (eok > 0 ? '' : '0')}`;
                 }
                 if (txSummary.recent && txSummary.recent.length > 0) {
                   return txSummary.recent[0].priceEok;
