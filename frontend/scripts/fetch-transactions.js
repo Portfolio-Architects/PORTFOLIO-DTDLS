@@ -13,6 +13,8 @@
 
 const { initializeApp } = require('firebase/app');
 const { getFirestore, collection, doc, writeBatch, query, orderBy, limit, getDocs } = require('firebase/firestore');
+const { HttpsProxyAgent } = require('https-proxy-agent');
+const axios = require('axios');
 
 const API_KEY = process.env.BUILDING_API_KEY || '';
 const LAWD_CD = '41590'; // 화성시 (동탄 지역은 코드 내에서 필터링)
@@ -89,14 +91,17 @@ async function main() {
     do {
       const url = `${API_BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${LAWD_CD}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000`;
 
-      const res = await fetch(url);
-      if (!res.ok) {
-        syncLog.push(`${ym} page ${page}: HTTP ${res.status}`);
-        console.error(`   ❌ HTTP ${res.status}`);
+      const agent = process.env.PROXY_URL ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
+      let text = '';
+      try {
+        const res = await axios.get(url, { httpAgent: agent, httpsAgent: agent, proxy: false });
+        text = res.data;
+      } catch (err) {
+        const status = err.response ? err.response.status : (err.code || 'Unknown');
+        syncLog.push(`${ym} page ${page}: HTTP ${status}`);
+        console.error(`   ❌ HTTP ${status} - ${err.message}`);
         break;
       }
-
-      const text = await res.text();
 
       // 에러 응답 체크
       const errMatch = text.match(/<returnAuthMsg>(.*?)<\/returnAuthMsg>/);

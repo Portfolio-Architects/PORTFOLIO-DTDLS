@@ -2,8 +2,8 @@ name: Sync Transactions
 
 on:
   schedule:
-    # 매일 KST 06:00 (UTC 21:00) 실행
-    - cron: '0 21 * * *'
+    # 매일 KST 04:00 (UTC 19:00) 실행
+    - cron: '0 19 * * *'
   workflow_dispatch: # 수동 실행 지원
 
 jobs:
@@ -38,6 +38,7 @@ jobs:
         run: node scripts/fetch-transactions.js
         env:
           BUILDING_API_KEY: ${{ secrets.BUILDING_API_KEY }}
+          PROXY_URL: ${{ secrets.PROXY_URL }}
 
       # Step 2: Firestore → Static files (transaction-summary.ts + tx-data/*.json)
       - name: Generate static transaction files
@@ -54,7 +55,7 @@ jobs:
             echo "✅ No changes to commit"
           else
             TODAY=$(date +%Y-%m-%d)
-            git commit -m "data: auto-sync transactions ($TODAY)"
+            git commit -m "data: auto-sync transactions via github actions ($TODAY)"
             git push
             echo "🚀 Changes pushed — Vercel will auto-deploy"
           fi
