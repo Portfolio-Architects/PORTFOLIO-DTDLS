@@ -9,6 +9,8 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebaseConfig';
 import { collection, doc, writeBatch, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
+export const dynamic = 'force-dynamic';
+
 const API_KEY = process.env.BUILDING_API_KEY || '';
 const LAWD_CD = '41597'; // 동탄구
 const API_BASE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev';
