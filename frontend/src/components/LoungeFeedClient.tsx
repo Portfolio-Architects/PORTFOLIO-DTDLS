@@ -38,10 +38,37 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
   const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Reset posts when tab changes. Note: initialPosts also changes from Server, but setting state here syncs it.
+    // Reset from SSR initially.
     setPosts(initialPosts);
     setHasMore(initialPosts.length === 100);
-  }, [initialPosts]);
+
+    // Add a client-side fallback / real-time sync.
+    // This ensures production shows posts immediately even if Vercel SSR cache is stale or adminDb fails.
+    let unsubscribe: (() => void) | undefined;
+    import('@/lib/repositories/post.repository').then(({ listenToPosts }) => {
+      unsubscribe = listenToPosts((clientPosts) => {
+        // Format to match Post interface
+        let formatted = clientPosts.map(p => ({
+          ...p,
+          createdAt: typeof p.createdAt === 'number' ? p.createdAt : Date.now(), // fallback
+        })) as unknown as Post[];
+
+        if (currentTab !== '전체') {
+          const allowedCategories = CATEGORY_MAP[currentTab] || [currentTab];
+          formatted = formatted.filter((p) => allowedCategories.includes(p.category));
+        }
+        
+        if (formatted.length > 0) {
+          setPosts(formatted);
+          setHasMore(formatted.length >= 30); // limit(30) is used in listenToPosts
+        }
+      });
+    }).catch(console.error);
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [initialPosts, currentTab]);
 
   const loadMorePosts = useCallback(async () => {
     if (isLoadingMore || !hasMore || posts.length === 0) return;

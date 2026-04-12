@@ -94,6 +94,9 @@ export interface DongApartment {
   householdCount?: number;
   yearBuilt?: string;
   brand?: string;
+  lat?: number;
+  lng?: number;
+  txKey?: string;
 }
 
 /** 데이터를 byDong 형식으로 변환 */

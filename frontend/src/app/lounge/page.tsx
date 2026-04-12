@@ -4,7 +4,7 @@ import { adminDb } from '@/lib/firebaseAdmin';
 import LoungeHeader from '@/components/LoungeHeader';
 import LoungeComposeClient from '@/components/LoungeComposeClient';
 import LoungeFeedClient from '@/components/LoungeFeedClient';
-import { Post } from '@/lib/DashboardFacade';
+
 
 export const revalidate = 60; // SSR Data revalidation every 60 seconds
 

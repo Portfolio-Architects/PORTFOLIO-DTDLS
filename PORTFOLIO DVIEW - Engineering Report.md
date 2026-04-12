@@ -164,6 +164,11 @@ src/
 
 ## 9. Roadmap
 
+### 🚀 스파게티 코드 리팩토링 마스터플랜 (Architecture Refactoring)
+- [x] **[Phase 1] ApartmentModal 분해**: 1,450줄의 거대 모달을 Header, TransactionChart, TransactionTable, Gallery 등 독립 서브 컴포넌트로 분할하여 단일 책임 원칙(SRP) 확보
+- [ ] **[Phase 2] ReportEditorForm 모듈화**: 1,120줄의 어드민 폼을 BasicInfo, Metrics, ImageUpload 등 독립적인 입력 단위(Sub-form) 컴포넌트로 쪼개기
+- [ ] **[Phase 3] Dashboard Data Hooks 캡슐화**: DashboardClient 컴포넌트 내에 혼재된 API Fetching 등 비즈니스 로직을 `useDashboardInitialization` 형태의 Custom Hooks로 추출하여 UI와 데이터 레이어 분리
+
 ### Phase 1 (단기)
 - [x] **[Security Hotfix 🚨] 백엔드 API JWT 인가(Authorization) 도입**: 클라이언트가 전송하는 `userId` 기반 취약점(좋아요 조작 가능) 방어를 위해, Firebase ID Token(`admin.auth().verifyIdToken`) 디코딩 기반 무결성 검증 로직으로 API 엔드포인트 전면 격상
 - [x] **[Security 🔒] Firebase Config 환경변수 은닉**: `firebaseConfig.ts`에 하드코딩된 클라이언트 API Key 등 민감정보를 `.env`로 추출하여 GitHub 노출 완벽 차단

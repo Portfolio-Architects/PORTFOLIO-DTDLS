@@ -17,7 +17,7 @@ const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').the
 const WriteReviewModal = dynamic(() => import('@/components/WriteReviewModal'), { ssr: false });
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
 import { ZONES } from '@/lib/zones';
-import { buildInitialApartments } from '@/lib/dong-apartments';
+import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartments';
 
 interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }
 import { TX_SUMMARY, type AptTxSummary } from '@/lib/transaction-summary';

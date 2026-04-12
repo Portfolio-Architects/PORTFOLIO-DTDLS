@@ -15,7 +15,9 @@ import type { User } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { signInWithPopup } from 'firebase/auth';
 import CommentSection from '@/components/CommentSection';
-
+import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
+import { TransactionTable } from './apartment-modal/TransactionTable';
+import { TransactionChartSection } from './apartment-modal/TransactionChartSection';
 
 const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics'), { ssr: false });
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard'), { ssr: false });
@@ -39,84 +41,7 @@ interface TransactionRecord {
   reqGb?: string;
   rnuYn?: string;
 }
-/** GalleryGrid — Horizontal Category-based Scroll for quick point-catching */
-function GalleryGrid({ images, tags, tagLabels, onImageClick }: {
-  images: {url: string; caption?: string; locationTag?: string; isPremium?: boolean; capturedAt?: string}[];
-  tags: string[];
-  tagLabels: Record<string, string>;
-  onImageClick: (url: string) => void;
-}) {
-  const categories = tags.filter(t => t !== '전체');
-  
-  const groupedImages: Record<string, typeof images> = {};
-  categories.forEach(tag => {
-    groupedImages[tag] = images.filter(img => (img.locationTag || '기타') === tag);
-  });
 
-  return (
-    <div className="flex flex-col gap-8 mt-2">
-      {categories.map(tag => {
-        const categoryImages = groupedImages[tag];
-        if (!categoryImages || categoryImages.length === 0) return null;
-        
-        const label = tagLabels[tag] || tag;
-        
-        return (
-          <div key={tag} className="flex flex-col">
-            <div className="flex items-center justify-between mb-3 px-1">
-              <h3 className="text-[15px] font-extrabold text-[#191f28] flex items-center gap-1.5">
-                <span className="w-1.5 h-4 bg-[#3182f6] rounded-full inline-block"></span>
-                {label}
-              </h3>
-              <span className="text-[12px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-0.5 rounded-md">
-                {categoryImages.length}장
-              </span>
-            </div>
-            
-            <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x shrink-0 w-full [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {categoryImages.map((img, i) => (
-                <div
-                  key={i}
-                  className="relative shrink-0 w-[240px] md:w-[280px] aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer group border border-[#e5e8eb] shadow-sm snap-start"
-                  onClick={() => onImageClick(img.url)}
-                >
-                  <Image
-                    src={img.url}
-                    alt={img.caption || img.locationTag || `Photo ${i + 1}`}
-                    fill
-                    sizes="(max-width: 768px) 240px, 280px"
-                    className="object-cover bg-[#f2f4f6]"
-                  />
-                  {(img.caption || img.isPremium || img.capturedAt) && (
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-3.5 pt-8">
-                      <div className="flex flex-col gap-1.5">
-                        {img.isPremium && (
-                          <span className="w-fit text-[9px] font-bold bg-[#ffc107] text-[#191f28] px-1.5 py-0.5 rounded-md">★ PRO</span>
-                        )}
-                        {img.caption && (
-                          <p className="text-[12px] font-medium text-white line-clamp-2 leading-snug">{img.caption}</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  {img.capturedAt && (
-                    <span className="absolute top-2 right-2 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
-                      {img.capturedAt}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })}
-
-      {categories.length === 0 && (
-        <div className="text-center py-8 text-[#8b95a1] text-[13px]">등록된 갤러리 사진이 없습니다.</div>
-      )}
-    </div>
-  );
-}
 
 export function FieldReportModal({ 
   report, 
@@ -154,24 +79,15 @@ export function FieldReportModal({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const displayAptName = getDisplayAptName(report.apartmentName);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
-  const [chartTimeframe, setChartTimeframe] = useState<'6M'|'1Y'|'3Y'|'ALL'>('ALL');
-  const [isTxExpanded, setIsTxExpanded] = useState(false);
   const [priceTypeFilter, setPriceTypeFilter] = useState<string>('ALL');
-  const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: any } | null>(null);
   const [showPriceHelp, setShowPriceHelp] = useState(false);
-  const [txFilterArea, setTxFilterArea] = useState<string>('ALL');
-  const [txFilterDealType, setTxFilterDealType] = useState<string>('ALL');
-  const [txSort, setTxSort] = useState<{key: string, dir: 'asc'|'desc'}>({key: 'date', dir: 'desc'});
-  const [activeDropdown, setActiveDropdown] = useState<'floor' | 'type' | 'area' | null>(null);
   const [activeTab, setActiveTab] = useState('sec-summary');
 
   // 차트 매매/전월세 토글
   const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
   const [periodDealType, setPeriodDealType] = useState<'sale' | 'jeonse'>('sale');
 
-  const handleTxSort = (key: string) => {
-    setTxSort(prev => ({ key, dir: prev.key === key && prev.dir === 'desc' ? 'asc' : 'desc' }));
-  };
+
   // TODO: 유료 모델 전환 시 아래 라인 복원
   // const isUnlocked = !!(isPurchased || isAdmin);
   const isUnlocked = true; // 프리미엄 콘텐츠 전면 개방 (Vercel Hobby Plan 대응)
@@ -248,43 +164,7 @@ export function FieldReportModal({
     active ? 'bg-[#e8f3ff] text-[#3182f6]' : 'bg-transparent text-[#4e5968] hover:bg-[#f2f4f6]'
   }`;
 
-  const filteredTransactions = useMemo(() => {
-    return transactions.filter(tx => {
-      // 차트 토글 연동 필터
-      if (chartType === 'sale' && (tx.dealType === '전세' || tx.dealType === '월세')) return false;
-      if (chartType === 'jeonse' && tx.dealType !== '전세' && tx.dealType !== '월세') return false;
-      if (txFilterArea !== 'ALL') {
-        const norm = normalizeAptName(tx.aptName);
-        const t = typeMap[norm]?.[String(tx.area)];
-        const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : (areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`);
-        if (label !== txFilterArea) return false;
-      }
-      if (txFilterDealType !== 'ALL' && tx.dealType !== txFilterDealType) return false;
-      return true;
-    });
-  }, [transactions, txFilterArea, txFilterDealType, typeMap, areaUnit, chartType]);
 
-  const sortedFilteredTransactions = useMemo(() => {
-    return [...filteredTransactions].sort((a, b) => {
-      let cmp = 0;
-      if (txSort.key === 'date') {
-        const aDate = parseInt(a.contractYm) * 100 + (parseInt(a.contractDay) || 15);
-        const bDate = parseInt(b.contractYm) * 100 + (parseInt(b.contractDay) || 15);
-        cmp = aDate - bDate;
-      } else if (txSort.key === 'price') {
-        cmp = a.price - b.price;
-      } else if (txSort.key === 'area') {
-        cmp = a.area - b.area;
-      } else if (txSort.key === 'floor') {
-        const af = Number(a.floor) || 0;
-        const bf = Number(b.floor) || 0;
-        cmp = af - bf;
-      } else if (txSort.key === 'type') {
-        cmp = (a.dealType || '').localeCompare(b.dealType || '');
-      }
-      return txSort.dir === 'asc' ? cmp : -cmp;
-    });
-  }, [filteredTransactions, txSort]);
 
   const content = (
     <>
@@ -293,477 +173,26 @@ export function FieldReportModal({
             
             {/* Left: 실거래가 전체 리스트 — mobile: 2번째, desktop: 1번째 (40%) */}
             <div className="w-full md:w-[40%] shrink-0 order-2 md:order-1 flex flex-col">
-              {transactions.length > 0 ? (
-                <div className="bg-[#f9fafb] rounded-2xl p-4 ring-1 ring-black/5 h-full flex flex-col">
-                  {/* 필터 영역 */}
-                  <div className="mb-2 flex items-center justify-between px-1">
-                    <h4 className="text-sm font-bold text-[#8b95a1] flex items-center gap-1.5 shrink-0">
-                      <TrendingUp size={16} className="text-[#03c75a]" />
-                      <span className="flex items-center gap-1.5">실거래가 내역 <span className="text-sm font-medium ml-0.5">총 {filteredTransactions.length.toLocaleString()}건</span></span>
-                    </h4>
-                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-0.5 rounded-md">
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3182f6]" />
-                      <span>최근 1개월</span>
-                    </div>
-                  </div>
-                  
-                  {/* 팝업 오버레이 닫기용 투명 배경 - 레이아웃 간섭(Layout Shift) 방지를 위해 독립 배치 */}
-                  {activeDropdown && (
-                    <div className="fixed inset-0 z-40" onClick={() => setActiveDropdown(null)} />
-                  )}
-                  <div className={`relative transition-all duration-300 ${isTxExpanded ? 'h-[400px]' : 'h-[260px]'} md:!h-auto md:flex-1 overflow-hidden`}>
-                    <div className={`absolute inset-0 overflow-x-auto custom-scrollbar ${isTxExpanded ? 'overflow-y-auto' : 'overflow-y-hidden'} md:!overflow-y-auto`}>
-                      <table className="w-full text-xs md:text-sm">
-                      <thead className="sticky top-0 bg-[#f9fafb] z-50">
-                        {(() => {
-                          const renderSortIcon = (key: string, hasFilter: boolean = false) => (
-                            <div className={`p-0.5 rounded cursor-pointer flex items-center justify-center transition-colors ${activeDropdown === key ? 'bg-[#e5e8eb]' : 'hover:bg-[#e5e8eb]'}`} onClick={(e) => {
-                              e.stopPropagation();
-                              if (hasFilter) {
-                                setActiveDropdown((activeDropdown === key ? null : key) as any);
-                              } else {
-                                handleTxSort(key);
-                              }
-                            }}>
-                              <ChevronDown size={14} className={`transition-transform duration-200 ${(txSort.key === key && !hasFilter) ? 'text-[#191f28] ' + (txSort.dir === 'asc' ? 'rotate-180' : '') : (activeDropdown === key ? 'text-[#191f28]' : 'text-[#d1d6db] group-hover:text-[#8b95a1]')}`} />
-                            </div>
-                          );
-                          return (
-                            <tr className="border-b border-[#e5e8eb] text-[#8b95a1]">
-                              <th className="py-2.5 text-center font-bold rounded-tl-lg">
-                                <div className="flex items-center justify-center gap-0.5 w-full relative">
-                                  <span>계약일</span>
-                                </div>
-                              </th>
-                              <th className="py-2.5 text-center font-bold w-[25%]">
-                                <div className="flex items-center justify-center gap-0.5 w-full">
-                                  <span>금액</span>
-                                </div>
-                              </th>
-                              <th className="py-2.5 text-center font-bold w-[16%] group hover:bg-[#f2f4f6] transition-colors relative">
-                                <div className="flex items-center justify-center gap-0.5">
-                                  <span className="cursor-pointer" onClick={() => handleTxSort('area')}>{areaUnit === 'm2' ? 'm²' : '평'}</span>
-                                  {renderSortIcon('area', true)}
-                                </div>
-                                {activeDropdown === 'area' && (
-                                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-white ring-1 ring-black/5 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex flex-col min-w-[150px] font-normal z-50 text-left" onClick={e => e.stopPropagation()}>
-                                    <div className="text-[11px] font-bold text-[#8b95a1] mb-2 px-3 pt-1">타입 필터</div>
-                                    <div className="flex flex-col items-stretch max-h-[250px] overflow-y-auto custom-scrollbar">
-                                      <button className={chipClass(txFilterArea === 'ALL')} onClick={() => {setTxFilterArea('ALL'); setActiveDropdown(null);}}>전체보기</button>
-                                      {areaTypes.map(a => (
-                                        <button key={a} className={chipClass(txFilterArea === a)} onClick={() => {setTxFilterArea(a); setActiveDropdown(null);}}>{a}</button>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </th>
-                              <th className="py-2.5 text-center font-bold w-[13%] group hover:bg-[#f2f4f6] transition-colors relative">
-                                <div className="flex items-center justify-center gap-0.5 cursor-pointer" onClick={() => handleTxSort('floor')}>
-                                  <span>층</span>
-                                  {renderSortIcon('floor', false)}
-                                </div>
-                              </th>
-                              <th className="py-2.5 pr-2 text-right font-bold w-[22%] group hover:bg-[#f2f4f6] transition-colors rounded-tr-lg relative">
-                                <div className="flex items-center justify-end gap-0.5 tracking-tight">
-                                  <span className="cursor-pointer" onClick={() => handleTxSort('type')}>유형</span>
-                                  {renderSortIcon('type', true)}
-                                </div>
-                                {activeDropdown === 'type' && (
-                                  <div className="absolute top-full right-0 mt-2 bg-white ring-1 ring-black/5 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 flex flex-col min-w-[150px] font-normal z-50 text-left" onClick={e => e.stopPropagation()}>
-                                    <div className="text-[11px] font-bold text-[#8b95a1] mb-2 px-3 pt-1">거래 유형</div>
-                                    <div className="flex flex-col items-stretch max-h-[250px] overflow-y-auto custom-scrollbar">
-                                      <button className={chipClass(txFilterDealType === 'ALL')} onClick={() => {setTxFilterDealType('ALL'); setActiveDropdown(null);}}>전체보기</button>
-                                      {dealTypes.map(dt => (
-                                        <button key={dt} className={chipClass(txFilterDealType === dt)} onClick={() => {setTxFilterDealType(dt); setActiveDropdown(null);}}>{dt}</button>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                              </th>
-                            </tr>
-                          );
-                        })()}
-                      </thead>
-                      <tbody>
-                        {(() => {
-                          return sortedFilteredTransactions.map((tx, idx) => {
-                            const txDate = new Date(parseInt(tx.contractYm.slice(0, 4)), parseInt(tx.contractYm.slice(4)) - 1, parseInt(tx.contractDay) || 15);
-                            const now = new Date();
-                            const isRecent = txDate >= new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-                            const norm = normalizeAptName(tx.aptName);
-                            const t = typeMap[norm]?.[String(tx.area)];
-                            const label = t ? (areaUnit === 'm2' ? t.typeM2 : (t.typePyeong || t.typeM2)) : null;
-                            const badgeEl = (() => {
-                              if (!label) return <span className="text-[10px] md:text-xs">{areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`}</span>;
-                              const [tc, bgc] = getBadgeColorClasses(label);
-                              return <span className={`font-bold ${tc} ${bgc} px-1.5 py-0.5 rounded text-[10px] md:text-xs`} title={areaUnit === 'm2' ? `${tx.areaPyeong}평` : `${tx.area}m²`}>{label}</span>;
-                            })();
-                            return (
-                              <tr key={idx} className={`border-b border-[#f2f4f6] hover:bg-white/60 transition-colors ${isRecent ? 'bg-[#f0f7ff]' : ''}`}>
-                                <td className={`py-2.5 pl-1 md:pl-2 whitespace-nowrap align-middle tracking-tight ${isRecent ? 'text-[#191f28] font-bold' : 'text-[#4e5968]'}`}>
-                                  <div className="flex items-center w-full">
-                                    {isRecent ? <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#3182f6] mr-1 shrink-0" /> : <span className="inline-block w-1.5 h-1.5 mr-1 shrink-0" />}
-                                    <span>{tx.contractYm.slice(2,4)}.{tx.contractYm.slice(4)}.{tx.contractDay}</span>
-                                  </div>
-                                </td>
-                                <td className={`py-2.5 pr-1 text-right font-extrabold align-middle whitespace-nowrap tracking-tighter ${isRecent ? 'text-[#3182f6]' : 'text-[#191f28]'}`}>{tx.priceEok}</td>
-                                <td className="py-2.5 text-center align-middle">{badgeEl}</td>
-                                <td className="py-2.5 text-center text-[#4e5968] align-middle">{tx.floor}</td>
-                                <td className="py-2.5 pr-1 md:pr-2 text-right align-middle text-[#8b95a1] w-[22%]">
-                                  <div className="flex items-center justify-end gap-1.5">
-                                    <span className="whitespace-nowrap truncate">{tx.dealType}</span>
-                                    {(tx.reqGb || tx.rnuYn === '사용') && (
-                                      <div className="flex items-center gap-0.5">
-                                        {tx.reqGb === '신규' && (
-                                          <span className="shrink-0 whitespace-nowrap text-[9px] md:text-[10px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-1 py-0.5 rounded leading-none">신규</span>
-                                        )}
-                                        {tx.rnuYn === '사용' ? (
-                                          <span className="shrink-0 whitespace-nowrap text-[9px] md:text-[10px] font-bold bg-[#f0fdf4] text-[#03c75a] px-1 py-0.5 rounded leading-none">청구권</span>
-                                        ) : (
-                                          tx.reqGb === '갱신' && (
-                                            <span className="shrink-0 whitespace-nowrap text-[9px] md:text-[10px] font-bold bg-[#e8f3ff] text-[#3182f6] px-1 py-0.5 rounded leading-none">재계약</span>
-                                          )
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          });
-                        })()}
-                      </tbody>
-                    </table>
-                    </div>
-                    {/* Gradient Overlay for "더보기" on Mobile only */}
-                    {!isTxExpanded && filteredTransactions.length > 5 && (
-                      <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-[#f9fafb] via-[#f9fafb]/80 to-transparent flex items-end justify-center pb-2 pointer-events-none md:hidden">
-                        <button 
-                          onClick={() => setIsTxExpanded(true)} 
-                          className="bg-white border border-[#e5e8eb] shadow-sm text-[#4e5968] text-[13px] font-bold px-4 py-2 rounded-full flex items-center gap-1 hover:bg-[#f2f4f6] transition-colors pointer-events-auto active:scale-95"
-                        >
-                          더보기 <ChevronDown size={14} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                </div>
-              ) : (
-                <div className="bg-[#f9fafb] rounded-2xl p-8 flex items-center justify-center ring-1 ring-black/5 h-full min-h-[200px]">
-                  <span className="text-[#8b95a1] text-sm font-bold">매매 기록이 없습니다</span>
-                </div>
-              )}
+              <TransactionTable 
+                transactions={transactions as any} 
+                typeMap={typeMap} 
+                areaUnit={areaUnit} 
+                chartType={chartType} 
+                normalizeAptName={normalizeAptName} 
+              />
             </div>
 
             {/* Right: Title + Chart — mobile: 1번째, desktop: 2번째 (60%) */}
-             <div className="w-full md:w-[60%] flex flex-col order-1 md:order-2">
-               <div className="flex items-center justify-between mb-3 w-full">
-                 <div className="flex items-center gap-2">
-                   <span className="bg-[#3182f6] text-white text-sm font-bold px-3 py-1 rounded-full">{report.dong || '동탄'}</span>
-                 </div>
-                 {/* 전역 마스터 스위치 */}
-                 <div className="bg-[#f2f4f6] p-0.5 rounded-xl flex items-center shadow-inner">
-                   <button onClick={() => setChartType('sale')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>매매</button>
-                   <button onClick={() => setChartType('jeonse')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>전월세</button>
-                 </div>
-               </div>
-               <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-[#191f28] flex items-center gap-2">
-                 {displayAptName}
-                 <a 
-                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayAptName + (displayAptName.includes('아파트') ? '' : ' 아파트'))}`}
-                   target="_blank" rel="noopener noreferrer"
-                   className="text-[#3182f6] hover:bg-[#e8f3ff] p-1.5 md:p-2 rounded-full transition-colors group flex shrink-0 items-center justify-center -ml-1 md:ml-0"
-                   title="구글 지도에서 아파트 위치 보기"
-                 >
-                   <MapPin className="w-6 h-6 md:w-8 md:h-8 group-hover:scale-110 transition-transform" />
-                 </a>
-               </h1>
-
-               {/* 매매가/전세가 추이 차트 — 산점도(층수별) + 거래량 막대 + 이동평균선 */}
-               {transactions.length > 0 && (() => {
-                 const relevantTxs = transactions.filter(tx => 
-                   chartType === 'sale' 
-                     ? (tx.dealType !== '전세' && tx.dealType !== '월세') 
-                     : (tx.dealType === '전세' || tx.dealType === '월세')
-                 );
-
-                 if (relevantTxs.length === 0) {
-                   return (
-                     <div className="bg-[#f9fafb] rounded-2xl p-8 flex items-center justify-center ring-1 ring-black/5 mt-4 min-h-[300px]">
-                       <span className="text-[#8b95a1] text-sm font-bold">해당 유형의 거래 기록이 없습니다</span>
-                     </div>
-                   );
-                 }
-
-                 const rawData = relevantTxs.map((tx) => {
-                   let rawPrice = tx.price;
-                   // 월세 -> 전세 환산 공식 (전월세전환율 약 5.5% 가정)
-                   if (chartType === 'jeonse') {
-                     rawPrice = (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
-                   }
-
-                   let priceEokNum = rawPrice / 10000;
-                   if (priceEokNum > 100) priceEokNum = rawPrice / 100000000;
-                   const ym = tx.contractYm;
-                   const year = parseInt(ym.slice(0, 4));
-                   const month = parseInt(ym.slice(4));
-                   const day = parseInt(tx.contractDay) || 15;
-                   return {
-                     ts: new Date(year, month - 1, day).getTime(),
-                     yearMonth: parseInt(ym), contractDay: day,
-                     price: Math.round(priceEokNum * 1000) / 1000,
-                     area: tx.areaPyeong, rawArea: tx.area,
-                     floor: tx.floor, priceEok: tx.priceEok, dealType: tx.dealType,
-                     fullDate: `${year}.${String(month).padStart(2,'0')}.${String(day).padStart(2,'0')}`,
-                   };
-                 });
-
-                 const now = new Date();
-                 const cutoffMap: Record<string, number> = { '6M': 6, '1Y': 12, '3Y': 36, 'ALL': 9999 };
-                 const monthsCut = cutoffMap[chartTimeframe];
-                 const cutoffDate = new Date(now.getFullYear(), now.getMonth() - monthsCut, 1);
-                 const cutoffYm = cutoffDate.getFullYear() * 100 + (cutoffDate.getMonth() + 1);
-                 const timeFiltered = rawData.filter(d => d.yearMonth >= cutoffYm);
-
-                 // IQR 이상치 필터 (P5~P95)
-                 const sortedPrices = [...timeFiltered].sort((a, b) => a.price - b.price);
-                 const q1 = sortedPrices[Math.floor(sortedPrices.length * 0.05)]?.price || 0;
-                 const q3 = sortedPrices[Math.floor(sortedPrices.length * 0.95)]?.price || 10;
-                 const iqr = q3 - q1;
-                 const bandLow = q1;
-                 const bandHigh = q3;
-                 const scatterData = timeFiltered.map(d => ({
-                   ...d,
-                   isOutlier: d.price < q1 - iqr * 2 || d.price > q3 + iqr * 2,
-                 })).filter(d => d.price >= q1 - iqr * 3 && d.price <= q3 + iqr * 3);
-                 if (scatterData.length === 0) return null;
-
-                 // 단일 색상
-                 const getFloorColor = (floor: number) => '#3182f6';
-
-                 // 월별 평균 + 거래량
-                 const byMonthTier = new Map<number, { all: number[] }>();
-                 scatterData.forEach(d => {
-                   if (!byMonthTier.has(d.yearMonth)) byMonthTier.set(d.yearMonth, { all: [] });
-                   const bucket = byMonthTier.get(d.yearMonth)!;
-                   bucket.all.push(d.price);
-                 });
-                 const avg = (arr: number[]) => arr.length > 0 ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 1000) / 1000 : undefined;
-                 const monthlyData = Array.from(byMonthTier.entries())
-                   .map(([ym, buckets]) => ({
-                     ts: new Date(Math.floor(ym / 100), (ym % 100) - 1, 15).getTime(),
-                     monthAvg: avg(buckets.all)!,
-                     volume: buckets.all.length, ym,
-                     bandHigh, bandLow,
-                   }))
-                   .sort((a, b) => a.ts - b.ts);
-
-                 const prices = scatterData.map(d => d.price);
-                 let minP = Infinity, maxP = -Infinity, sumP = 0;
-                 for (const p of prices) { if (p < minP) minP = p; if (p > maxP) maxP = p; sumP += p; }
-                 const domainMin = Math.floor(minP * 10) / 10 - 0.3;
-                 const domainMax = Math.ceil(maxP * 10) / 10 + 0.5;
-                 const maxVol = Math.max(...monthlyData.map(d => d.volume), 1);
-                 const latestAvg = monthlyData[monthlyData.length - 1]?.monthAvg || (prices.length > 0 ? sumP / prices.length : 0);
-                 const firstAvg = monthlyData[0]?.monthAvg || latestAvg;
-                 const changePercent = firstAvg > 0 ? ((latestAvg - firstAvg) / firstAvg * 100) : 0;
-
-                 // 상승률 기준점 텍스트
-                 const yearAgoYm = (now.getFullYear() - 1) * 100 + (now.getMonth() + 1);
-                 const yearAgoEntry = monthlyData.find(d => d.ym >= yearAgoYm);
-                 const yoyChange = yearAgoEntry ? ((latestAvg - yearAgoEntry.monthAvg) / yearAgoEntry.monthAvg * 100) : null;
-
-                 // 1M, 3M, 6M, 1Y 기준 모멘텀 계산 (정확한 일자 기준 롤링 윈도우 사용)
-                 const getRecentAvgByMonths = (months: number) => {
-                   const cutoffDate = new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
-                   const filtered = rawData.filter(d => {
-                     const y = Math.floor(d.yearMonth / 100);
-                     const m = d.yearMonth % 100;
-                     const day = d.contractDay || 1;
-                     return new Date(y, m - 1, day) >= cutoffDate;
-                   });
-                   if (filtered.length === 0) return 0;
-                   
-                   // 단순 산술 평균으로 통일하여 좌측 카드와 숫자 일치 (이상치 제거 로직 해제)
-                   return filtered.reduce((acc, d) => acc + d.price, 0) / filtered.length;
-                 };
-
-                 const momentum = {
-                 m1: getRecentAvgByMonths(1),
-                 m3: getRecentAvgByMonths(3),
-                 m6: getRecentAvgByMonths(6),
-                 y1: getRecentAvgByMonths(12),
-                   y3: getRecentAvgByMonths(36)
-                  };
-
-                 const formatAvgPriceEok = (avg: number) => {
-                   if (!avg) return '-';
-                   const roundedAvg = Math.round(avg * 100) / 100;
-                   const eok = Math.floor(roundedAvg);
-                   const rem = Math.round((roundedAvg % 1) * 10000);
-                   return `${eok >= 1 ? `${eok}억` : ''}${rem > 0 ? rem.toLocaleString() : (eok > 0 ? '' : '0')}`;
-                 };
-
-                 return (
-                   <div className="mt-4 bg-white rounded-2xl p-5 ring-1 ring-black/5 flex-1">
-                      <div className="flex items-center justify-between mb-3 w-full">
-                        <h4 className="text-[14px] font-extrabold text-[#191f28] flex items-center gap-1.5 shrink-0">
-                          <TrendingUp size={15} className="text-[#3182f6]" /> {chartType === 'sale' ? '매매가 추이' : '전월세 추이'}
-                        </h4>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-0.5 bg-[#f2f4f6] p-0.5 rounded-lg shadow-inner">
-                            {(['6M','1Y','3Y','ALL'] as const).map(tf => (
-                              <button key={tf} onClick={() => setChartTimeframe(tf)}
-                                className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
-                                  chartTimeframe === tf ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:bg-[#e5e8eb]'
-                                }`}>{tf}</button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      
-                     <div className="flex w-full divide-x divide-[#e5e8eb] mb-5 bg-[#f9fafb] py-3 rounded-xl border border-[#e5e8eb] overflow-x-auto custom-scrollbar [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
-                       <div className="flex flex-col items-center px-3 sm:px-5 shrink-0 min-w-[76px] sm:min-w-[85px] flex-1 snap-center">
-                         <span className="text-[10px] sm:text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">1개월 평균</span>
-                         <span className="text-[13px] sm:text-[16px] font-bold sm:font-extrabold text-[#191f28] whitespace-nowrap">{formatAvgPriceEok(momentum.m1)}</span>
-                       </div>
-                       <div className="flex flex-col items-center px-3 sm:px-5 shrink-0 min-w-[76px] sm:min-w-[85px] flex-1 snap-center">
-                         <span className="text-[10px] sm:text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">3개월 평균</span>
-                         <span className="text-[13px] sm:text-[16px] font-bold sm:font-extrabold text-[#191f28] whitespace-nowrap">{formatAvgPriceEok(momentum.m3)}</span>
-                       </div>
-                       <div className="flex flex-col items-center px-3 sm:px-5 shrink-0 min-w-[76px] sm:min-w-[85px] flex-1 snap-center">
-                         <span className="text-[10px] sm:text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">6개월 평균</span>
-                         <span className="text-[13px] sm:text-[16px] font-bold sm:font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.m6)}</span>
-                       </div>
-                       <div className="flex flex-col items-center px-3 sm:px-5 shrink-0 min-w-[76px] sm:min-w-[85px] flex-1 snap-center">
-                         <span className="text-[10px] sm:text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">1년 평균</span>
-                         <span className="text-[13px] sm:text-[16px] font-bold sm:font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.y1)}</span>
-                       </div>
-                       <div className="flex flex-col items-center px-3 sm:px-5 shrink-0 min-w-[76px] sm:min-w-[85px] flex-1 snap-center border-r-0">
-                         <span className="text-[10px] sm:text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">3년 평균</span>
-                         <span className="text-[13px] sm:text-[16px] font-bold sm:font-extrabold text-[#4e5968] whitespace-nowrap">{formatAvgPriceEok(momentum.y3)}</span>
-                       </div>
-                     </div>
-                     <div className="h-[300px] relative">
-                       <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                         <ComposedChart data={monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
-                           <defs>
-                             <linearGradient id="avgGrad" x1="0" y1="0" x2="0" y2="1">
-                               <stop offset="5%" stopColor="#3182f6" stopOpacity={0.08}/>
-                               <stop offset="95%" stopColor="#3182f6" stopOpacity={0.01}/>
-                             </linearGradient>
-                             <linearGradient id="bandGrad" x1="0" y1="0" x2="0" y2="1">
-                               <stop offset="0%" stopColor="#e5e8eb" stopOpacity={0.3}/>
-                               <stop offset="100%" stopColor="#e5e8eb" stopOpacity={0.05}/>
-                             </linearGradient>
-                           </defs>
-                           <CartesianGrid strokeDasharray="3 3" stroke="#f2f4f6" vertical={false} />
-                           <XAxis dataKey="ts" type="number" scale="time" domain={['dataMin', 'dataMax']}
-                             tick={{ fill: '#8b95a1', fontSize: 10, fontWeight: 600 }} axisLine={{ stroke: '#e5e8eb' }}
-                             tickLine={false} tickMargin={6}
-                             tickFormatter={(ts: number) => { const d = new Date(ts); return `${String(d.getFullYear()).slice(2)}.${String(d.getMonth()+1).padStart(2,'0')}`; }}
-                           />
-                           <YAxis yAxisId="price" orientation="left" domain={[Math.max(0, domainMin), domainMax]}
-                             tick={{ fill: '#8b95a1', fontSize: 10, fontWeight: 600 }} axisLine={false} tickLine={false}
-                             width={48} dx={-3}
-                             tickFormatter={(v: number) => v >= 1 ? `${v.toFixed(1)}억` : `${Math.round(v * 10000)}만`}
-                           />
-                           <YAxis yAxisId="volume" orientation="right" domain={[0, maxVol * 4]}
-                             tick={false} axisLine={false} tickLine={false} width={0}
-                           />
-                           <RechartsTooltip
-                             content={({ active, payload }) => {
-                               if (!active || !payload?.length) return null;
-                               const item = payload[0]?.payload;
-                               const vol = item?.volume;
-                               return (
-                                 <div style={{ background: '#ffffff', borderRadius: 10, padding: '8px 12px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', border: '1px solid #f2f4f6' }}>
-                                   <div style={{ color: '#8b95a1', fontSize: 11, marginBottom: 4 }}>
-                                     {new Date(item?.ts).getFullYear()}.{String(new Date(item?.ts).getMonth()+1).padStart(2,'0')}월
-                                   </div>
-                                   {item?.monthAvg && <div style={{ color: '#191f28', fontSize: 12, fontWeight: 700 }}>평균 {item.monthAvg.toFixed(2)}억</div>}
-                                   {vol != null && <div style={{ color: '#8b95a1', fontSize: 11, marginTop: 2 }}>거래 {vol}건</div>}
-                                 </div>
-                               );
-                             }}
-                             cursor={{ stroke: '#d1d6db', strokeWidth: 1, strokeDasharray: '3 3' }}
-                           />
-                           {/* 가격 밴드 (P5~P95) - 배경이 탁해 보여 유저 요청으로 삭제 */}
-                           {/* 거래량 막대그래프 */}
-                           <Bar dataKey="volume" yAxisId="volume" fill="#e5e8eb" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.6} isAnimationActive={false} />
-                           {/* 월별 평균선 — 실선 */}
-                           <Line type="monotone" dataKey="monthAvg" yAxisId="price" stroke="#3182f6" strokeWidth={2} dot={false} activeDot={false} connectNulls isAnimationActive={false} />
-                           {/* 산점도 — 층수별 색상 */}
-                           <Customized
-                             component={(rechartProps: any) => {
-                               const { xAxisMap, yAxisMap } = rechartProps;
-                               if (!xAxisMap || !yAxisMap) return null;
-                                const xAx = Object.values((rechartProps as any).xAxisMap || {})[0] as any;
-                                const yAx = Object.values((rechartProps as any).yAxisMap || {})[0] as any;
-                               if (!xAx?.scale || !yAx?.scale) return null;
-                               return (
-                                 <g>
-                                   {scatterData.map((d, i) => {
-                                     const cx = xAx.scale(d.ts);
-                                     const cy = yAx.scale(d.price);
-                                     if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
-                                     const isHov = hoveredDot?.data === d;
-                                     const floorColor = getFloorColor(d.floor);
-                                     return (
-                                       <circle key={i} cx={cx} cy={cy}
-                                         r={isHov ? 5 : 3} fill={floorColor}
-                                         opacity={d.isOutlier ? 0.1 : (isHov ? 1 : 0.35)}
-                                         stroke={isHov ? '#fbbf24' : 'none'}
-                                         strokeWidth={isHov ? 2 : 0}
-                                         style={{ cursor: 'pointer', transition: 'r 0.15s, opacity 0.15s' }}
-                                         onMouseEnter={() => setHoveredDot({ x: cx, y: cy, data: d })}
-                                         onMouseLeave={() => setHoveredDot(null)}
-                                       />
-                                     );
-                                   })}
-                                 </g>
-                               );
-                             }}
-                           />
-                           <Legend wrapperStyle={{ display: 'none' }} />
-                         </ComposedChart>
-                       </ResponsiveContainer>
-                       {hoveredDot && (() => {
-                         const d = hoveredDot.data;
-                         const aptKey = normalizeAptName(report.apartmentName);
-                         const typeData = typeMap[aptKey]?.[String(d.rawArea)];
-                        const typeName = typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
-                         return (
-                           <div style={{
-                             position: 'absolute', left: hoveredDot.x + 48, top: hoveredDot.y + 10,
-                             transform: 'translate(-50%, -100%) translateY(-12px)',
-                             background: '#ffffff', borderRadius: 10, padding: '10px 14px', border: '1px solid #f2f4f6',
-                             boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                             pointerEvents: 'none', zIndex: 10, whiteSpace: 'nowrap',
-                           }}>
-                             <div style={{ color: '#8b95a1', fontSize: 11, marginBottom: 4 }}>{d.fullDate}</div>
-                             <div style={{ color: '#191f28', fontSize: 16, fontWeight: 800, marginBottom: 3 }}>
-                               {d.priceEok || `${d.price.toFixed(2)}억`}
-                             </div>
-                             <div style={{ color: '#8b95a1', fontSize: 11, display: 'flex', gap: 6, alignItems: 'center' }}>
-                               {typeName ? <span style={{ color: '#3182f6', fontWeight: 600 }}>{typeName}</span> : <span>{areaUnit === 'm2' ? `${d.rawArea}m²` : `${d.area}평`}</span>}
-                               <span>·</span><span style={{ color: getFloorColor(d.floor) }}>{d.floor}층</span>
-                               {d.dealType && <><span>·</span><span>{d.dealType}</span></>}
-                             </div>
-                           </div>
-                         );
-                       })()}
-                     </div>
-                     {/* 범례 */}
-                     <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 mt-2 px-1 text-[12px] sm:text-[13px] font-bold text-[#8b95a1]">
-                       <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[1.5px] bg-[#3182f6] rounded"/>평균가</span>
-                       <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-3.5 h-3.5 bg-[#e5e8eb] rounded-sm"/>거래량</span>
-                     </div>
-                   </div>
-                 );
-               })()}
-            </div>
+            <TransactionChartSection 
+              transactions={transactions as any} 
+              chartType={chartType} 
+              setChartType={setChartType as any} 
+              displayAptName={displayAptName} 
+              dong={report.dong || ''} 
+              typeMap={typeMap as any} 
+              areaUnit={areaUnit || 'm2'} 
+              normalizeAptName={normalizeAptName} 
+            />
 
           </div>
 
@@ -1328,7 +757,7 @@ export function FieldReportModal({
                     </summary>
 
                     {/* Category Filter Chips */}
-                    <GalleryGrid images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
+                    <ApartmentGallery images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
                   </details>
                 </div>
               );
