@@ -191,8 +191,8 @@ export function TransactionTable({
         </div>
       </div>
 
-      <div className={`overflow-y-auto custom-scrollbar flex-1 relative ${displayedCount <= INITIAL_DISPLAY_COUNT ? 'max-h-[360px] lg:max-h-none' : 'max-h-none'}`}>
-        {sortedFilteredTransactions.slice(0, displayedCount).map((tx, i) => {
+      <div className="overflow-y-auto custom-scrollbar flex-1 relative max-h-[360px] md:max-h-[500px] xl:max-h-[560px]">
+        {sortedFilteredTransactions.map((tx, i) => {
           const m = tx.contractYm.substring(4, 6);
           const d = tx.contractDay;
           const eok = Math.floor(tx.price / 10000);
@@ -212,9 +212,11 @@ export function TransactionTable({
           const isCancelled = !!(tx.cancelDate && /^\d{6,}$/.test(tx.cancelDate.trim()));
 
           return (
-            <div key={i} className={`flex items-center justify-between p-3.5 border-b border-[#f2f4f6] hover:bg-[#f9fafb] transition-colors ${isCancelled ? 'opacity-50' : ''}`}>
-              <div className="flex flex-col gap-1 w-[80px] shrink-0">
-                <div className="text-[12px] font-bold text-[#8b95a1] tracking-tight">{tx.contractYm.substring(2, 4)}.{m}.{d}</div>
+            <div key={i} className={`flex items-center justify-between p-3.5 border-b border-[#f2f4f6] hover:bg-[#f9fafb] transition-colors ${i >= displayedCount ? 'hidden md:flex' : 'flex'} ${isCancelled ? 'opacity-50' : ''}`}>
+              
+              {/* 1열: 날짜 (좌측 패널) */}
+              <div className="flex flex-col gap-1 w-[70px] shrink-0 text-left">
+                <div className="text-[13px] font-bold text-[#8b95a1] tracking-tight">{tx.contractYm.substring(2, 4)}.{m}.{d}</div>
                 {isCancelled && (
                   <div className="text-[10px] font-bold text-[#ef4444] leading-tight break-keep">
                     취소 {tx.cancelDate!.substring(2).replace(/(\d{2})(\d{2})(\d{2})/, '$1.$2.$3')}
@@ -222,29 +224,35 @@ export function TransactionTable({
                 )}
               </div>
               
-              <div className="flex-1 flex flex-col justify-center items-end text-right min-w-0 ml-2">
-                <div className="flex items-center justify-end gap-1.5 mb-0.5 w-full">
-                  <div className={`shrink-0 whitespace-nowrap text-[10px] font-extrabold px-1.5 py-0.5 rounded ${getBadgeColorClasses(tx.dealType)}`}>
-                    {getDealTypeLabel(tx.dealType)}
-                  </div>
-                  {tx.isOutlier && (
-                    <div className="group relative flex items-center justify-center cursor-help">
-                      <AlertTriangle size={13} className="text-[#f59e0b] drop-shadow-sm" />
-                      <div className="absolute right-0 bottom-full mb-1 sm:bottom-auto sm:-left-2 sm:translate-x-0 w-36 sm:w-max opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all bg-[#191f28] text-white text-[10px] sm:text-[11px] p-2 rounded-lg shadow-lg z-50 pointer-events-none break-keep text-center sm:text-left">
-                        시세 대비 이례적 편차
-                      </div>
-                    </div>
-                  )}
-                  <span className={`shrink-0 whitespace-nowrap text-[15px] font-black ${tx.isOutlier ? 'text-[#8b95a1] line-through decoration-[#c8ced4] decoration-2' : 'text-[#191f28]'}`}>
-                    {eok > 0 ? `${eok}억 ` : ''}{rem > 0 ? rem.toLocaleString() : (eok > 0 ? '' : '0')}
-                  </span>
-                </div>
-                <div className="text-[12px] font-bold text-[#8b95a1] flex items-center justify-end gap-1.5 w-full">
-                  <span className="truncate max-w-[80px] text-right" title={typeLabel}>{typeLabel}</span>
-                  <span className="shrink-0">·</span>
+              {/* 2열: 스펙 (가운데 정렬로 빈 공간 전체 점유) */}
+              <div className="flex-1 px-2 flex justify-center items-center min-w-0">
+                <div className="text-[13px] font-bold text-[#333d4b] flex items-center justify-center gap-1.5 truncate">
+                  <span className="truncate max-w-[100px] text-center" title={typeLabel}>{typeLabel}</span>
+                  <span className="text-[#8b95a1] shrink-0">·</span>
                   <span className="shrink-0" style={{ color: getFloorColor(tx.floor) }}>{tx.floor}층</span>
                 </div>
               </div>
+
+              {/* 3열: 배지 + 가격 (우측 패널) */}
+              <div className="flex items-center justify-end gap-1.5 w-[140px] shrink-0 text-right">
+                {tx.dealType === '직거래' && (
+                  <div className={`shrink-0 whitespace-nowrap text-[10px] font-extrabold px-1.5 py-0.5 rounded ${getBadgeColorClasses(tx.dealType)}`}>
+                    {getDealTypeLabel(tx.dealType)}
+                  </div>
+                )}
+                {tx.isOutlier && (
+                  <div className="group relative flex items-center justify-center cursor-help">
+                    <AlertTriangle size={13} className="text-[#f59e0b] drop-shadow-sm" />
+                    <div className="absolute right-0 bottom-full mb-1 sm:bottom-auto sm:-left-2 sm:translate-x-0 w-36 sm:w-max opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all bg-[#191f28] text-white text-[10px] sm:text-[11px] p-2 rounded-lg shadow-lg z-50 pointer-events-none break-keep text-center sm:text-left">
+                      시세 대비 이례적 편차
+                    </div>
+                  </div>
+                )}
+                <span className={`shrink-0 whitespace-nowrap text-[15px] font-black ${tx.isOutlier ? 'text-[#8b95a1] line-through decoration-[#c8ced4] decoration-2' : 'text-[#191f28]'}`}>
+                  {eok > 0 ? `${eok}억 ` : ''}{rem > 0 ? rem.toLocaleString() : (eok > 0 ? '' : '0')}
+                </span>
+              </div>
+
             </div>
           );
         })}
@@ -258,7 +266,7 @@ export function TransactionTable({
 
         {/* Gradient Fade for unexpanded state */}
         {displayedCount < filteredTransactions.length && (
-          <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent pointer-events-none flex items-end justify-center pb-2 z-10" />
+          <div className="md:hidden absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent pointer-events-none flex items-end justify-center pb-2 z-10" />
         )}
       </div>
 
