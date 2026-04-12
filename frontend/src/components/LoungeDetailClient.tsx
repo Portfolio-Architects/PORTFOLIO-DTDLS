@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2, Eye, Edit2, ImagePlus, Loader2 } from 'lucide-react';
+import { ChevronLeft, Heart, Send, Shield, ShieldCheck, MessageSquare, Trash2, Eye, Edit2, ImagePlus, Loader2, X } from 'lucide-react';
 import { db, auth, storage } from '@/lib/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { doc, getDoc, collection, onSnapshot, addDoc, updateDoc, increment, deleteDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
@@ -244,6 +244,15 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
   return (
     <>
       <div className={`w-full ${isModal ? 'h-full bg-white relative' : 'min-h-screen bg-[#f2f4f6] pb-[100px]'} font-sans`}>
+        {/* Modal Close Button */}
+        {isModal && (
+          <button 
+            onClick={() => router.back()} 
+            className="absolute top-4 right-4 z-50 p-2 bg-[#f2f4f6] text-[#8b95a1] rounded-full hover:bg-[#e5e8eb] hover:text-[#191f28] transition-colors"
+          >
+            <X size={20} />
+          </button>
+        )}
         {/* Header - Only render if not modal, Modal has its own header */}
         {!isModal && (
           <header className="bg-white sticky top-0 z-10 border-b border-[#e5e8eb] px-4 py-3.5 flex items-center gap-3">

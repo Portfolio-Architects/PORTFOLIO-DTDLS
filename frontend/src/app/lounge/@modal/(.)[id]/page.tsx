@@ -1,4 +1,5 @@
 import LoungeDetailClient from '@/components/LoungeDetailClient';
+import LoungeModalBackdrop from '@/components/LoungeModalBackdrop';
 import { adminDb } from '@/lib/firebaseAdmin';
 
 interface Props {
@@ -38,10 +39,8 @@ export default async function ModalRoute(props: Props) {
 
   // To hide the scrolling of the body when modal is open
   return (
-    <div className="fixed inset-0 z-50 flex justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto w-full pt-16 pb-16 px-4">
-      <div className="w-full max-w-[800px] h-fit bg-white rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
-        <LoungeDetailClient postId={id} initialPost={initialPost} isModal={true} />
-      </div>
-    </div>
+    <LoungeModalBackdrop>
+      <LoungeDetailClient postId={id} initialPost={initialPost} isModal={true} />
+    </LoungeModalBackdrop>
   );
 }
