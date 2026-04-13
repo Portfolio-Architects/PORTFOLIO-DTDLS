@@ -206,6 +206,7 @@ src/
 
 | 일시 | 주요 항목 | 요약 내용 |
 |:---|:---|:---|
+| 2026-04-13 | **[Phase 2] Security & Caching Layer 구축 및 IP Spoofing 100% 차단** | `x-real-ip` 및 `request.ip` 헤더 우선 참조로 악의적 조회수/트래픽 위조 스푸핑 공격 원천 차단. 백엔드 API 레이어에 Firebase Full Scan 비용 방어를 위한 Upstash Redis 기반 `Cache-Aside` 아키텍처 결합(`dashboard-init`). 모바일 내비게이션 독의 라운지 라우팅 결함 픽스로 UX/UI 강건성 격상 |
 | 2026-04-12 | **[Phase 2] ReportEditorForm 모듈화 및 실거래가 UI 레이아웃 최적화** | 1,179줄 모놀리식 어드민 폼을 `FormProvider` 컨테이너(230줄) + 4개 Sub-module(`BasicInfoSection`, `ThumbnailSection`, `MetricsSection`, `ImageUploadSection`)로 아키텍처 분할 완료. TransactionTable 하드코딩 높이(`lg:h-[760px]`) 제거 및 Flexbox `self-start` 적용으로 데이터 건수 대비 불필요 하단 여백 완전 해소 |
 | 2026-04-12 | **라운지(Lounge) 피드 UI 모던화 및 SEO 렌더링 고도화** | 토스증권 스타일 3단 레이아웃 및 Intercepting Route 모달로 라운지 개편. 무한 스크롤 및 IP 기반 좋아요 중복 방지 구현. 클라이언트 탭 방식에서 SSR 기반 Page 연동으로 Google SEO 시맨틱 헤딩(H1-H3) 및 메타데이터 인덱싱 최적화 완료 |
 | 2026-04-12 | **데이터 파이프라인 회복 탄력성(Resilience) 인프라 격상** | 범용 Raw Caching 도입으로 빌드 및 API 다운 시 오프라인 데이터 보존(Macro, Ontology 등). Vercel 환경에서 Firebase SDK gRPC 타임아웃 런타임 행(Hang) 문제 디버깅 및 동적 API 라우팅 강제로 빌드 I/O 누락 방호 |

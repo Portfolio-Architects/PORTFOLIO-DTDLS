@@ -37,10 +37,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ counted: false, reason: 'admin' });
     }
 
-    // ── Extract & hash client IP ──
+    // ── Extract & hash client IP (Spoofing Protection prioritized) ──
     const forwarded = request.headers.get('x-forwarded-for');
     const realIp = request.headers.get('x-real-ip');
-    const rawIp = forwarded?.split(',')[0]?.trim() || realIp || 'unknown';
+    const rawIp = request.ip || realIp || forwarded?.split(',')[0]?.trim() || 'unknown';
     const ipHash = createHash('sha256').update(rawIp).digest('hex').slice(0, 16);
 
     // ── Daily dedup key: reportId_ipHash_YYYY-MM-DD ──

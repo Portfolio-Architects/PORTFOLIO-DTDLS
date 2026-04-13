@@ -1,51 +1,58 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { Ratelimit } from "@upstash/ratelimit";
+import { redis } from "@/lib/redis";
 
-// 인메모리 간이 Rate Limiter 
-// Edge 환경에서는 Worker 인스턴스별 단독 상태를 갖지만, 일반적인 무차별 대입이나 크롤러 방어에는 효과적입니다.
-interface RateLimitInfo {
-  count: number;
-  resetTime: number;
+// Upstash 글로벌 Rate Limiter (Edge 호환)
+const RATE_LIMIT_POINTS = 60; // 분당 60회 허용
+
+let ratelimit: Ratelimit | null = null;
+
+try {
+  // 환경변수가 없어도 빌트 및 구동 단계에서 앱이 멈추지 않도록 안전하게 예외처리
+  if (redis) {
+    ratelimit = new Ratelimit({
+      redis: redis,
+      limiter: Ratelimit.slidingWindow(RATE_LIMIT_POINTS, "1 m"),
+      analytics: false,
+      prefix: "DTDLS:ratelimit", // 멀티 프로젝트 Isolation을 위한 Prefix
+    });
+  }
+} catch (error) {
+  console.warn("Failed to initialize Upstash Ratelimit:", error);
 }
 
-const rateLimitMap = new Map<string, RateLimitInfo>();
-
-const RATE_LIMIT_POINTS = 60; // 분당 60회 허용 (엔드유저 1명 기준 넉넉한 수치)
-const DURATION = 60 * 1000; // 1분 유지
-
-export function middleware(request: NextRequest) {
-  // 클라이언트 IP 추출 (Vercel 환경 지원)
+export async function middleware(request: NextRequest) {
+  // 클라이언트 IP 추출 (Vercel 환경 지원 시 x-real-ip 최우선)
   const ip = request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || '127.0.0.1';
   
   // 1. Rate Limiting (API 라우트에 국한)
   if (request.nextUrl.pathname.startsWith('/api/')) {
-    const currentTime = Date.now();
-    const limitInfo = rateLimitMap.get(ip) || { count: 0, resetTime: currentTime + DURATION };
-
-    // 타이머가 지났으면 카운트 초기화
-    if (currentTime > limitInfo.resetTime) {
-      limitInfo.count = 0;
-      limitInfo.resetTime = currentTime + DURATION;
-    }
-
-    limitInfo.count += 1;
-    rateLimitMap.set(ip, limitInfo);
-
-    // 제한 횟수 초과 시 즉각 차단
-    if (limitInfo.count > RATE_LIMIT_POINTS) {
-      return new NextResponse(
-        JSON.stringify({ 
-          error: 'Too Many Requests', 
-          message: '비정상적인 트래픽이 감지되어 요청이 차단되었습니다. 잠시 후 다시 시도해주십시오.' 
-        }),
-        { 
-          status: 429, 
-          headers: { 
-            'Content-Type': 'application/json',
-            'Retry-After': Math.ceil((limitInfo.resetTime - currentTime) / 1000).toString(),
-          } 
+    if (ratelimit) {
+      try {
+        const { success, limit, reset, remaining } = await ratelimit.limit(ip);
+        if (!success) {
+          return new NextResponse(
+            JSON.stringify({ 
+              error: 'Too Many Requests', 
+              message: '비정상적인 트래픽이 감지되어 요청이 차단되었습니다. 잠시 후 다시 시도해주십시오.' 
+            }),
+            { 
+              status: 429, 
+              headers: { 
+                'Content-Type': 'application/json',
+                'X-RateLimit-Limit': limit.toString(),
+                'X-RateLimit-Remaining': remaining.toString(),
+                'X-RateLimit-Reset': reset.toString(),
+                'Retry-After': Math.ceil((reset - Date.now()) / 1000).toString(),
+              } 
+            }
+          );
         }
-      );
+      } catch (err) {
+        // Redis 연결 에러 시 요청을 차단하지 않고 Bypass (Fail-Open 방식)
+        console.warn("Upstash RateLimiter Error, bypassing:", err);
+      }
     }
   }
 

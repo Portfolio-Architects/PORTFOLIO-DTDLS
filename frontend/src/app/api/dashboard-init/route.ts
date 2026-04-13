@@ -11,6 +11,7 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
+import { redis } from '@/lib/redis';
 
 export const dynamic = 'force-dynamic'; // Vercel build-time network isolation 대비 (런타임에 동적으로 실행 후 CDN 캐시)
 
@@ -31,9 +32,30 @@ export async function GET() {
       new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Firebase timeout')), ms))
     ]);
 
-  // 1. Favorite counts (Firebase Admin)
+  // 1. Favorite counts (Redis First -> Firebase Fallback)
   try {
-    if (adminDb) {
+    if (redis) {
+      // 1-A. Redis 캐시 우선 조회 (HGETALL은 Firebase 과금을 유발하지 않음)
+      const cachedCounts = await redis.hgetall('DTDLS:cache:favoriteCounts');
+      if (cachedCounts && Object.keys(cachedCounts).length > 0) {
+        result.favoriteCounts = cachedCounts as Record<string, number>;
+      } else if (adminDb) {
+        // 1-B. 캐시 미스 스 Fallback (1회 한정 Full Scan)
+        const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 5000);
+        snap.docs.forEach(doc => {
+          const data = doc.data();
+          if (data.count > 0) {
+            result.favoriteCounts[data.aptName || doc.id] = data.count;
+          }
+        });
+        
+        // Background Async: Redis 캐시에 복제 저장
+        if (Object.keys(result.favoriteCounts).length > 0) {
+          redis.hmset('DTDLS:cache:favoriteCounts', result.favoriteCounts).catch(err => console.warn('Redis HMSET error:', err));
+        }
+      }
+    } else if (adminDb) {
+      // 1-C. Redis가 없는 레거시 환경 Fallback
       const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 5000);
       snap.docs.forEach(doc => {
         const data = doc.data();

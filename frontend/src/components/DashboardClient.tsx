@@ -931,7 +931,13 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  if (tab.id === 'lounge') {
+                    router.push('/lounge');
+                  } else {
+                    setActiveTab(tab.id);
+                  }
+                }}
                 className={`flex flex-col items-center justify-center w-full min-h-[50px] rounded-[22px] transition-all duration-300 relative ${
                   isActive ? 'text-[#3182f6]' : 'text-[#8b95a1] hover:text-[#4e5968]'
                 }`}

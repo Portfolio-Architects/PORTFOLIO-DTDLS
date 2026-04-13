@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { verifyAuthHeader } from '@/lib/authUtils';
+import { redis } from '@/lib/redis';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,6 +41,9 @@ export async function POST(request: NextRequest) {
       // Decrement count
       const countRef = adminDb.collection('favoriteCounts').doc(aptName);
       await countRef.set({ count: FieldValue.increment(-1), aptName }, { merge: true });
+      if (redis) {
+        await redis.hincrby('DTDLS:cache:favoriteCounts', aptName, -1).catch(err => console.warn('Redis HINCRBY error:', err));
+      }
       return NextResponse.json({ favorited: false });
     } else {
       // Add favorite
@@ -47,6 +51,9 @@ export async function POST(request: NextRequest) {
       // Increment count
       const countRef = adminDb.collection('favoriteCounts').doc(aptName);
       await countRef.set({ count: FieldValue.increment(1), aptName }, { merge: true });
+      if (redis) {
+        await redis.hincrby('DTDLS:cache:favoriteCounts', aptName, 1).catch(err => console.warn('Redis HINCRBY error:', err));
+      }
       return NextResponse.json({ favorited: true });
     }
   } catch (error: any) {
