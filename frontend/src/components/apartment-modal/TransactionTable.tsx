@@ -89,19 +89,20 @@ export function TransactionTable({
 
   const sortedFilteredTransactions = useMemo(() => {
     return [...filteredTransactions].sort((a, b) => {
+      const getP = (t: TransactionRecord) => (t.dealType === '전세' || t.dealType === '월세') ? (t.deposit || 0) : t.price;
       if (txSort === 'date_desc') {
         const da = a.contractYm + a.contractDay.padStart(2, '0');
         const db = b.contractYm + b.contractDay.padStart(2, '0');
         if (da !== db) return parseInt(db) - parseInt(da);
-        return b.price - a.price;
+        return getP(b) - getP(a);
       }
       if (txSort === 'date_asc') {
         const da = a.contractYm + a.contractDay.padStart(2, '0');
         const db = b.contractYm + b.contractDay.padStart(2, '0');
         return parseInt(da) - parseInt(db);
       }
-      if (txSort === 'price_desc') return b.price - a.price;
-      if (txSort === 'price_asc') return a.price - b.price;
+      if (txSort === 'price_desc') return getP(b) - getP(a);
+      if (txSort === 'price_asc') return getP(a) - getP(b);
       return 0;
     });
   }, [filteredTransactions, txSort]);
@@ -195,8 +196,11 @@ export function TransactionTable({
         {sortedFilteredTransactions.map((tx, i) => {
           const m = tx.contractYm.substring(4, 6);
           const d = tx.contractDay;
-          const eok = Math.floor(tx.price / 10000);
-          const rem = tx.price % 10000;
+          const isRent = tx.dealType === '전세' || tx.dealType === '월세';
+          const displayPrice = isRent ? (tx.deposit || 0) : tx.price;
+          const displayMonthly = isRent ? (tx.monthlyRent || 0) : 0;
+          const eok = Math.floor(displayPrice / 10000);
+          const rem = displayPrice % 10000;
           const key = String(tx.area);
           const txAptNorm = normalizeAptName(tx.aptName);
           const typeData = typeMap[txAptNorm]?.[key];
@@ -250,6 +254,7 @@ export function TransactionTable({
                 )}
                 <span className={`shrink-0 whitespace-nowrap text-[15px] font-black ${tx.isOutlier ? 'text-[#8b95a1] line-through decoration-[#c8ced4] decoration-2' : 'text-[#191f28]'}`}>
                   {eok > 0 ? `${eok}억 ` : ''}{rem > 0 ? rem.toLocaleString() : (eok > 0 ? '' : '0')}
+                  {displayMonthly > 0 && <span className="text-[#8b95a1] ml-0.5 text-[13px] font-bold">/ {displayMonthly}</span>}
                 </span>
               </div>
 

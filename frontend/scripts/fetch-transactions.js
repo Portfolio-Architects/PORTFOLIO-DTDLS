@@ -94,8 +94,8 @@ async function main() {
       const agent = process.env.PROXY_URL ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
       let text = '';
       try {
-        const res = await axios.get(url, { httpAgent: agent, httpsAgent: agent, proxy: false });
-        text = res.data;
+        const res = await axios.get(url, { httpAgent: agent, httpsAgent: agent, proxy: false, responseType: 'text' });
+        text = typeof res.data === 'string' ? res.data : JSON.stringify(res.data || '');
       } catch (err) {
         const status = err.response ? err.response.status : (err.code || 'Unknown');
         syncLog.push(`${ym} page ${page}: HTTP ${status}`);

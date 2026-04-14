@@ -372,7 +372,28 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
               
               {post?.content && (
                 <article className="text-[#4e5968] text-[15px] leading-[1.65] break-keep [&>h2]:text-[18px] [&>h2]:font-extrabold [&>h2]:text-[#191f28] [&>h2]:mt-7 [&>h2]:mb-2.5 [&>h3]:text-[16px] [&>h3]:font-bold [&>h3]:text-[#191f28] [&>h3]:mt-5 [&>h3]:mb-1.5 [&>p]:mb-1 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-2 [&>ol]:list-decimal [&>ol]:pl-5 [&>ol]:mb-2 [&_li]:pl-1 [&_li]:mb-0.5 [&_li>p]:inline [&_p]:whitespace-pre-wrap [&_li]:whitespace-pre-wrap marker:text-[#8b95a1] [&_img]:rounded-xl [&_img]:border [&_img]:border-[#e5e8eb] [&_img]:my-3">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      img: ({node, ...props}) => {
+                        if (!props.src) return null;
+                        return (
+                          <div className="relative w-full rounded-xl overflow-hidden border border-[#e5e8eb] my-3 bg-[#f2f4f6] flex items-center justify-center min-h-[250px]">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img 
+                              src={props.src} 
+                              alt={props.alt || '첨부 이미지'} 
+                              sizes="(max-width: 768px) 100vw, 800px"
+                              decoding="async"
+                              fetchPriority="high"
+                              className="w-full h-auto object-contain max-h-[70vh]"
+                              loading="eager"
+                            />
+                          </div>
+                        );
+                      }
+                    }}
+                  >
                     {String(post.content).replace(/\n{3,}/g, '\n\n')}
                   </ReactMarkdown>
                 </article>

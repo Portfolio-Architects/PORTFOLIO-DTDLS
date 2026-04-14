@@ -10,8 +10,14 @@ import { adminDb } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { verifyAuthHeader } from '@/lib/authUtils';
 import { redis } from '@/lib/redis';
+import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
+
+// 보안: NoSQL Injection 및 오버플로우 공격 방어용 인바운드 스키마 검증
+const favSchema = z.object({
+  aptName: z.string().min(1).max(100).trim(), // 아파트 이름 길이 제한 및 스크러빙
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,10 +32,12 @@ export async function POST(request: NextRequest) {
     }
     const userId = decodedToken.uid;
 
-    const { aptName } = await request.json();
-    if (!aptName) {
-      return NextResponse.json({ error: 'aptName is required' }, { status: 400 });
+    const rawBody = await request.json();
+    const parsed = favSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Bad Request: Invalid Payload', details: parsed.error.issues }, { status: 400 });
     }
+    const { aptName } = parsed.data;
 
     const docId = `${userId}_${aptName}`;
     const favRef = adminDb.collection('favorites').doc(docId);

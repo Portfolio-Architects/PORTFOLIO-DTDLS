@@ -8,6 +8,7 @@ import Image from 'next/image';
 
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
 import ApartmentCard from '@/components/ApartmentCard';
+import ApartmentDiscoveryClient from '@/components/ApartmentDiscoveryClient';
 import DongFilterBar from '@/components/DongFilterBar';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import dynamic from 'next/dynamic';
@@ -25,57 +26,48 @@ import { isSameApartment, normalizeAptName, findTxKey, getDisplayAptName } from 
 import * as PurchaseRepo from '@/lib/repositories/purchase.repository';
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth, googleProvider } from '@/lib/firebaseConfig';
-import { signInWithPopup, signOut, onAuthStateChanged, User } from 'firebase/auth';
-import * as UserRepo from '@/lib/repositories/user.repository';
-import type { UserProfile } from '@/lib/types/user.types';
 import { getDisplayName } from '@/lib/types/user.types';
 import { FixedSizeList } from 'react-window';
+import { useDashboardInitialization } from '@/hooks/useDashboardInitialization';
 
-interface TransactionRecord {
-  dong: string;
-  aptName: string;
-  area: number;
-  areaPyeong: number;
-  contractYm: string;
-  contractDay: string;
-  price: number;
-  priceEok: string;
-  deposit?: number;
-  monthlyRent?: number;
-  floor: number;
-  buildYear: number;
-  dealType: string;
-}
-
-
-export default function DashboardClient({ initialDashboardData }: { initialDashboardData?: any }) {
+export default function DashboardClient({ initialDashboardData, preselectedAptName }: { initialDashboardData?: any, preselectedAptName?: string }) {
   const router = useRouter();
   const { kpis, newsFeed, fieldReports, userReviews, dongtanApartments, adBanner } = useDashboardData();
-  const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
-  const [fullReportData, setFullReportData] = useState<FieldReportData | null>(null);
-  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
-  // Comments State
-  const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
-  const [commentsData, setCommentsData] = useState<Record<string, CommentData[]>>({});
-  const [commentInput, setCommentInput] = useState<Record<string, string>>({});
+  
+  const {
+    auth: { user, handleLogin, purchasedReportIds, refreshPurchasedReports },
+    data: { sheetApartments, typeMap, nameMapping, publicRentalSet, txSummaryData },
+    favorites: { userFavorites, favoriteCounts, handleToggleFavorite },
+    reports: { selectedReport, setSelectedReport, resolvedReport, fullReportData, isLoadingDetail },
+    tx: { modalTransactions, isTxLoading },
+    comments: { commentsData, commentInput, setCommentInput, handleSubmitComment }
+  } = useDashboardInitialization(initialDashboardData);
 
-  // Transaction summary — direct static import (no API fetch needed)
-  const txSummaryData: Record<string, AptTxSummary> = TX_SUMMARY;
-
-  // Tab state
   const [activeTab, setActiveTab] = useState<'imjang' | 'lounge' | 'recommend'>('imjang');
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
 
-  // Review modal state
+  useEffect(() => {
+    setMounted(true);
+    if (typeof window !== 'undefined') {
+      if (window.location.hash === '#recommend') {
+        setActiveTab('recommend');
+      } else if (window.location.hash === '#imjang') {
+        setActiveTab('imjang');
+      }
+
+      const handleHashChange = () => {
+        if (window.location.hash === '#recommend') setActiveTab('recommend');
+        else if (window.location.hash === '#imjang' || window.location.hash === '') setActiveTab('imjang');
+      };
+      window.addEventListener('hashchange', handleHashChange);
+      return () => window.removeEventListener('hashchange', handleHashChange);
+    }
+  }, []);
+
   const [showReviewModal, setShowReviewModal] = useState(false);
-
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-
-  // Dong filter state
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
@@ -92,14 +84,13 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
   }, []);
 
   const [listSort, setListSort] = useState<'views' | 'likes' | 'name'>('views');
-
   const [listHeight, setListHeight] = useState(600);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const updateHeight = () => {
         if (window.innerWidth >= 768) {
-          setListHeight(Math.max(400, window.innerHeight - 128 - 65)); // 100vh - 8rem(128px) - filterBar(65px)
+          setListHeight(Math.max(400, window.innerHeight - 128 - 65));
         } else {
           setListHeight(600);
         }
@@ -110,232 +101,50 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
     }
   }, []);
 
-  // Mobile modal: only open when user explicitly taps an apartment
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
-
-  // Track explicit user selection to prevent auto-select override
   const userHasSelected = useRef(false);
 
-  // Favorites state
-  const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
-  const [favoriteCounts, setFavoriteCounts] = useState<Record<string, number>>({});
-
-  // Apartment data — 구글 시트 자동 동기화 (정적 데이터는 폴백)
-  const [sheetApartments, setSheetApartments] = useState(buildInitialApartments);
-  useEffect(() => {
-    fetch('/api/apartments-by-dong')
-      .then(r => r.json())
-      .then(data => {
-        if (data.byDong && Object.keys(data.byDong).length > 0) {
-          // Apply display name overriding dynamically from the mapping
-          const updatedByDong = Object.fromEntries(
-            Object.entries(data.byDong).map(([dong, apts]) => {
-              const mappedApts = (apts as DongApartment[]).map(a => ({ ...a, name: getDisplayAptName(a.name) }));
-              // Deduplicate by name: keep the one with more valid data
-              const dedupedMap = new Map<string, DongApartment>();
-              for (const a of mappedApts) {
-                const existing = dedupedMap.get(a.name);
-                if (!existing || (a.lat !== 0 && existing.lat === 0) || (a.householdCount && !existing.householdCount)) {
-                  dedupedMap.set(a.name, a);
-                }
-              }
-              return [dong, Array.from(dedupedMap.values())];
-            })
-          );
-          setSheetApartments(updatedByDong);
-        }
-      })
-      .catch((err) => { logger.warn('Dashboard', 'Failed to fetch apartments, falling back to static', {}, err); }); // 실패 시 정적 폴백 유지
-  }, []);
-
-  // 거래내역, 평/면적 토글 상태
-  const [typeMap, setTypeMap] = useState<Record<string, Record<string, { typeM2: string; typePyeong: string }>>>({});
-  const [areaUnit, setAreaUnit] = useState<'m2' | 'pyeong'>('m2');
-
-  // Name mapping + public rental
-  const [nameMapping, setNameMapping] = useState<Record<string, string> | undefined>(undefined);
-  const [publicRentalSet, setPublicRentalSet] = useState<Set<string>>(new Set());
-
-  // Consolidated dashboard init — replaces 3 separate API calls + 1 Firestore read
-  useEffect(() => {
-    if (initialDashboardData) {
-      if (initialDashboardData.favoriteCounts) setFavoriteCounts(initialDashboardData.favoriteCounts);
-      if (initialDashboardData.typeMap) {
-        const map: Record<string, Record<string, { typeM2: string; typePyeong: string }>> = {};
-        for (const e of initialDashboardData.typeMap) {
-          const key = normalizeAptName(e.aptName);
-          if (!map[key]) map[key] = {};
-          const normalizedArea = String(Number(e.area));
-          map[key][normalizedArea] = { typeM2: e.typeM2, typePyeong: e.typePyeong };
-        }
-        setTypeMap(map);
-      }
-      if (initialDashboardData.apartmentMeta) {
-        const mapping: Record<string, string> = {};
-        const rentals = new Set<string>();
-        for (const [name, meta] of Object.entries(initialDashboardData.apartmentMeta)) {
-          if (!meta || typeof meta !== 'object' || !(meta as Record<string, unknown>).dong) continue;
-          if ((meta as Record<string, string>).txKey) mapping[name] = (meta as Record<string, string>).txKey;
-          if ((meta as Record<string, unknown>).isPublicRental) rentals.add(name);
-        }
-        setNameMapping(mapping);
-        setPublicRentalSet(rentals);
-      } else {
-        setNameMapping({});
-      }
-      return;
-    }
-
-    const initTimeout = setTimeout(() => {
-      setNameMapping(prev => prev === undefined ? {} : prev);
-    }, 5000);
-
-    fetch('/api/dashboard-init').then(r => r.json()).then(data => {
-      clearTimeout(initTimeout);
-
-      // Favorite counts
-      if (data.favoriteCounts) setFavoriteCounts(data.favoriteCounts);
-
-      // Type map
-      if (data.typeMap) {
-        const map: Record<string, Record<string, { typeM2: string; typePyeong: string }>> = {};
-        for (const e of data.typeMap) {
-          const key = normalizeAptName(e.aptName);
-          if (!map[key]) map[key] = {};
-          const normalizedArea = String(Number(e.area));
-          map[key][normalizedArea] = { typeM2: e.typeM2, typePyeong: e.typePyeong };
-        }
-        setTypeMap(map);
-      }
-
-      // Apartment meta (name mapping + public rental)
-      if (data.apartmentMeta) {
-        const mapping: Record<string, string> = {};
-        const rentals = new Set<string>();
-        for (const [name, meta] of Object.entries(data.apartmentMeta)) {
-          if (!meta || typeof meta !== 'object' || !(meta as Record<string, unknown>).dong) continue;
-          if ((meta as Record<string, string>).txKey) mapping[name] = (meta as Record<string, string>).txKey;
-          if ((meta as Record<string, unknown>).isPublicRental) rentals.add(name);
-        }
-        setNameMapping(mapping);
-        setPublicRentalSet(rentals);
-      } else {
-        setNameMapping({});
-      }
-    }).catch(() => {
-      clearTimeout(initTimeout);
-      setNameMapping({});
-    });
-  }, []);
-
-  // Auth & Profile State
-  const [user, setUser] = useState<User | null>(null);
-  const [anonProfile, setAnonProfile] = useState<{nickname: string; frontName?: string; photoURL?: string} | null>(null);
-  const [purchasedReportIds, setPurchasedReportIds] = useState<string[]>([]);
-
-  // (Optional) Image State - For when storage is unpaused
-  const [imageFile, setImageFile] = useState<File | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        const profile = await dashboardFacade.getUserProfile(currentUser.uid);
-        setAnonProfile(profile);
-        const up = await UserRepo.getOrCreateProfile(currentUser.uid);
-        setUserProfile(up);
-        // Load purchased report IDs for paywall
-        const purchased = await PurchaseRepo.getUserPurchasedReportIds(currentUser.uid);
-        setPurchasedReportIds(purchased);
-      } else {
-        setAnonProfile(null);
-        setUserProfile(null);
-        setPurchasedReportIds([]);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // Fetch user favorites when auth changes
-  useEffect(() => {
-    if (user) {
-      user.getIdToken().then(idToken => {
-        fetch(`/api/favorite?userId=${user.uid}`, {
-          headers: { 'Authorization': `Bearer ${idToken}` }
-        }).then(r => r.json()).then(data => {
-          if (data.favorites) setUserFavorites(new Set(data.favorites));
-        }).catch((err) => { logger.warn('Dashboard', 'Failed to fetch favorites', { userId: user.uid }, err); });
-      }).catch(err => logger.warn('Dashboard', 'Auth token fetch failed', {}, err));
-    } else {
-      setUserFavorites(new Set());
-    }
-  }, [user]);
-
-  // Toggle favorite handler
-  const handleToggleFavorite = async (aptName: string) => {
-    if (!user) {
-      // Trigger login
-      const { signInWithPopup } = await import('firebase/auth');
-      const { auth, googleProvider } = await import('@/lib/firebaseConfig');
-      try { await signInWithPopup(auth, googleProvider); } catch { /* cancelled */ }
-      return;
-    }
-    // Optimistic update
-    const wasFavorited = userFavorites.has(aptName);
-    setUserFavorites(prev => {
-      const next = new Set(prev);
-      wasFavorited ? next.delete(aptName) : next.add(aptName);
-      return next;
-    });
-    setFavoriteCounts(prev => ({
-      ...prev,
-      [aptName]: Math.max(0, (prev[aptName] || 0) + (wasFavorited ? -1 : 1))
-    }));
-    // Server sync
-    try {
-      const idToken = await user.getIdToken();
-      const res = await fetch('/api/favorite', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
-        },
-        body: JSON.stringify({ aptName }),
-      });
-      if (!res.ok) throw new Error('API failed');
-    } catch {
-      // Revert on failure
-      setUserFavorites(prev => {
-        const next = new Set(prev);
-        wasFavorited ? next.add(aptName) : next.delete(aptName);
-        return next;
-      });
-      setFavoriteCounts(prev => ({
-        ...prev,
-        [aptName]: Math.max(0, (prev[aptName] || 0) + (wasFavorited ? 1 : -1))
-      }));
-    }
-  };
-
-  // Auto-select first apartment as default for desktop detail panel
-  // Skip on mobile (<768px) to prevent the full-screen modal from auto-opening
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 768) return;
-    // Skip if user has explicitly clicked an apartment
     if (userHasSelected.current) return;
     if (selectedReport) return;
     const allApts = Object.values(sheetApartments).flat();
     if (allApts.length === 0) return;
-    // Don't auto-select until viewCount data is loaded (prevents wrong-apartment flash)
+    
+    // If preselectedAptName is passed from the SEO page wrapper
+    if (preselectedAptName) {
+      userHasSelected.current = true;
+      const targetApt = allApts.find(a => isSameApartment(a.name, preselectedAptName, nameMapping));
+      if (targetApt) {
+        const report = fieldReports.find(r => isSameApartment(r.apartmentName, targetApt.name, nameMapping));
+        if (report) {
+          setSelectedReport(report);
+        } else {
+          setSelectedReport({
+            id: `stub-${normalizeAptName(targetApt.name)}`,
+            apartmentName: targetApt.name,
+            dong: targetApt.dong,
+            author: '',
+            likes: 0,
+            commentCount: 0,
+            createdAt: null,
+            metrics: targetApt as any,
+          });
+        }
+      }
+      return; 
+    }
+
     const hasViewData = fieldReports.some(r => (r.viewCount || 0) > 0);
     if (!hasViewData) return;
-    // Apply same sorting as visible list (default: 조회수)
+    
     const sorted = [...allApts].sort((a, b) => {
       const aReport = fieldReports.find(r => isSameApartment(r.apartmentName, a.name, nameMapping));
       const bReport = fieldReports.find(r => isSameApartment(r.apartmentName, b.name, nameMapping));
       const diff = (bReport?.viewCount || 0) - (aReport?.viewCount || 0);
       return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
     });
+    
     const first = sorted[0];
     const report = fieldReports.find(r => isSameApartment(r.apartmentName, first.name, nameMapping));
     if (report) {
@@ -353,141 +162,21 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fieldReports]);
+  }, [fieldReports, preselectedAptName]);
 
-  // Type map is now loaded via /api/dashboard-init above
-
-  // Fetch transactions from per-apartment JSON chunks (not 16MB import)
-  const [modalTransactions, setModalTransactions] = useState<TransactionRecord[]>([]);
-  const [isTxLoading, setIsTxLoading] = useState(false);
-
-  // 가격 포맷팅 (JSON에서 priceEok 제거했으므로 런타임 계산)
-  const formatPriceEok = (priceMan: number) => {
-    const eok = Math.floor(priceMan / 10000);
-    const remainder = priceMan % 10000;
-    if (eok === 0) return `${priceMan.toLocaleString()}만`;
-    if (remainder === 0) return `${eok}억`;
-    return `${eok}억${remainder.toLocaleString()}`;
-  };
-
+  // Handle Browser Back Button for soft-navigation URL routing
   useEffect(() => {
-    if (!selectedReport) { setModalTransactions([]); return; }
-    setIsTxLoading(true);
-
-    // Find raw google sheet entry to check for explicit txKey
-    const rawApt = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping));
-    
-    // findTxKey로 JSON 파일명 결정 (접두사 자동 strip), Google Sheets explicit txKey 최우선
-    const txKey = (rawApt as any)?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
-    const fileKey = txKey || normalizeAptName(selectedReport.apartmentName);
-
-    // 캐시를 방지하기 위해 쿼리스트링(v=Date.now()) 추가
-    fetch(`/tx-data/${encodeURIComponent(fileKey)}.json?v=${Date.now()}`)
-      .then(res => res.ok ? res.json() : [])
-      .then((records: { contractYm: string; contractDay: string; price: number; deposit?: number; monthlyRent?: number; area: number; areaPyeong: number; floor: number; dealType?: string; reqGb?: string; rnuYn?: string }[]) => {
-        const mapped: TransactionRecord[] = records.map((r, i) => {
-          let eokStr = '';
-          if (r.dealType === '전세' || r.dealType === '월세') {
-             eokStr = formatPriceEok(r.deposit || 0);
-             if (r.dealType === '월세' && r.monthlyRent) {
-               eokStr += ` / ${r.monthlyRent}만`;
-             }
-          } else {
-             eokStr = formatPriceEok(r.price);
-          }
-          return {
-            no: i + 1,
-            sigungu: '', dong: '', aptName: fileKey,
-            area: r.area, areaPyeong: r.areaPyeong,
-            contractYm: r.contractYm, contractDay: r.contractDay,
-            contractDate: `${r.contractYm}${String(r.contractDay).padStart(2, '0')}`,
-            price: r.price, priceEok: eokStr,
-            deposit: r.deposit || 0, monthlyRent: r.monthlyRent || 0,
-            floor: r.floor, buyer: '', seller: '',
-            buildYear: 0, roadName: '', cancelDate: (r as any).cancelDate || '',
-            dealType: (r as any).dealType || '', agentLocation: '',
-            registrationDate: '-', housingType: '',
-            reqGb: (r as any).reqGb || '', rnuYn: (r as any).rnuYn || ''
-          };
-        });
-        setModalTransactions(mapped);
-      })
-      .catch(err => console.warn('거래내역 로딩 실패:', err))
-      .finally(() => setIsTxLoading(false));
-  }, [selectedReport]);
-
-  const handleLogin = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (error) {
-      console.error("Login failed", error);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
-  };
-
-  const handleSubmitComment = async (reportId: string) => {
-    if (!user) { alert("로그인 후 댓글을 남길 수 있습니다."); handleLogin(); return; }
-    const text = commentInput[reportId];
-    if (!text?.trim()) return;
-
-    await dashboardFacade.addFieldReportComment(reportId, text, user.uid);
-    setCommentInput(prev => ({ ...prev, [reportId]: '' }));
-  };
-
-  // Fetch full report detail data when modal opens (lazy loading)
-  // stub 리포트 (id가 'stub-'로 시작)는 Firestore 조회 스킵
-  const isStubReport = selectedReport?.id?.startsWith('stub-') ?? false;
-  useEffect(() => {
-    if (selectedReport && !isStubReport) {
-      setIsLoadingDetail(true);
-      setFullReportData(null);
-      dashboardFacade.getFullReport(selectedReport.id).then((data) => {
-        setFullReportData(data);
-        setIsLoadingDetail(false);
-      }).catch(() => {
-        setIsLoadingDetail(false);
-      });
-      // Track view (fire-and-forget, non-blocking)
-      const trackView = () => {
-        fetch('/api/report-view', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reportId: selectedReport.id, userEmail: user?.email }),
-        }).catch((err) => { logger.error('Dashboard', 'View tracking failed', { reportId: selectedReport.id }, err); }); // silently ignore errors
-      };
-
-      if (user) {
-        user.getIdTokenResult().then(idTokenResult => {
-          // 관리자 권한(admin claim)이 있으면 조회수 집계를 건너뜀
-          if (!idTokenResult.claims.admin) trackView();
-        }).catch(() => trackView());
-      } else {
-        trackView();
+    const handlePopState = () => {
+      // If we go back to the root, clear selection (soft close)
+      if (window.location.pathname === '/' || window.location.pathname === '') {
+        setSelectedReport(null);
+        userHasSelected.current = true;
       }
-    } else {
-      setFullReportData(null);
-      setIsLoadingDetail(false);
-    }
-  }, [selectedReport]);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [setSelectedReport]);
 
-  // Fetch comments automatically when a report modal is opened (stub은 스킵)
-  useEffect(() => {
-    if (selectedReport && !isStubReport && !commentsData[selectedReport.id]) {
-      const unsubscribe = dashboardFacade.listenToComments(selectedReport.id, (comments) => {
-        setCommentsData(prev => ({ ...prev, [selectedReport.id]: comments }));
-      });
-      return () => unsubscribe();
-    }
-  }, [selectedReport]);
-
-  // Count apartments per dong (from Google Sheet), excluding public rentals
   const dongAptCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     Object.entries(sheetApartments).forEach(([dong, apts]) => { 
@@ -496,7 +185,6 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
     return counts;
   }, [sheetApartments, publicRentalSet]);
 
-  // Count field reports by dong (for dong filter chip counts)
   const dongReportCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     getAllDongNames().forEach(d => { counts[d] = 0; });
@@ -506,8 +194,6 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
     return counts;
   }, [fieldReports]);
 
-
-  // Filtered reports based on dong selection
   const filteredReports = useMemo(() => {
     if (!fieldReports) return [];
     if (selectedDong) {
@@ -516,14 +202,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
     return [...fieldReports];
   }, [fieldReports, selectedDong]);
 
-  // Resolve selected report with fallback metrics from sheetApartments if missing (e.g. from Firestore)
-  const resolvedReport = useMemo(() => {
-    if (!selectedReport) return null;
-    const raw = fullReportData || selectedReport;
-    if (raw.metrics) return raw;
-    const fallback = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, raw.apartmentName, nameMapping));
-    return { ...raw, metrics: fallback as any };
-  }, [selectedReport, fullReportData, sheetApartments]);
+  const [areaUnit, setAreaUnit] = useState<'m2' | 'pyeong'>('m2');
 
   return (
     <div className="min-h-screen bg-[#f2f4f6] font-sans selection:bg-[#3182f6]/20">
@@ -589,7 +268,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
                   평
                 </button>
               </div>
-              <div className="hidden sm:block">
+              <div className="block">
                 <FloatingUserBar />
               </div>
             </div>
@@ -623,7 +302,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
               }`}
             >
               <Home size={16} className={`transition-transform duration-200 ${activeTab === 'recommend' ? 'text-[#3182f6]' : 'text-[#8b95a1] group-hover:-translate-y-0.5'}`} />
-              <span>아파트 검색</span>
+              <span>아파트 탐색</span>
             </button>
           </nav>
         </div>
@@ -721,6 +400,9 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
                                   createdAt: null,
                                 });
                               }
+                              // Soft URL update for SEO capturing
+                              window.history.pushState(null, '', `/apartment/${encodeURIComponent(apt.name)}`);
+
                               // Open mobile modal on explicit tap
                               if (typeof window !== 'undefined' && window.innerWidth < 768) {
                                 setMobileModalOpen(true);
@@ -744,7 +426,10 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
               {resolvedReport ? (
                 <FieldReportModal 
                   report={resolvedReport} 
-                  onClose={() => setSelectedReport(null)} 
+                  onClose={() => {
+                    setSelectedReport(null);
+                    window.history.pushState(null, '', '/');
+                  }} 
                   comments={commentsData[selectedReport!.id] || []}
                   commentInput={commentInput[selectedReport!.id] || ''}
                   onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport!.id]: text }))}
@@ -758,16 +443,42 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
                   isAdmin={dashboardFacade.isAdmin(user?.email)}
                   onPurchaseComplete={() => {
                     if (user) {
-                      PurchaseRepo.getUserPurchasedReportIds(user.uid).then(setPurchasedReportIds);
+                      refreshPurchasedReports();
                     }
                   }}
                   inline
                 />
               ) : (
-                <div className="h-full flex items-center justify-center bg-[#f9fafb]">
-                  <div className="text-center">
-                    <Building className="mx-auto mb-3 text-[#d1d6db]" size={40} />
-                    <p className="text-[14px] font-bold text-[#8b95a1]">좌측에서 아파트를 선택하세요</p>
+                <div className="h-full flex items-center justify-center bg-[#f9fafb] p-6 lg:p-10">
+                  <div className="w-full h-full max-h-[500px] bg-gradient-to-br from-[#191f28] via-[#222a35] to-[#3182f6] rounded-[24px] p-8 text-center shadow-xl relative overflow-hidden group flex flex-col items-center justify-center">
+                    {/* Background noise/pattern */}
+                    <div className="absolute inset-0 bg-black/10 mix-blend-overlay pointer-events-none"></div>
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#3182f6] rounded-full mix-blend-screen filter blur-[80px] opacity-30 transform translate-x-1/2 -translate-y-1/2"></div>
+                    
+                    {/* AD Badge */}
+                    <div className="absolute top-5 right-5 bg-white/10 backdrop-blur-md px-2.5 py-1 rounded text-[11px] text-white/90 font-extrabold uppercase tracking-widest border border-white/20">
+                      AD
+                    </div>
+                    
+                    <div className="relative z-10 w-full max-w-[280px]">
+                      <div className="w-16 h-16 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                        <Building2 className="text-white drop-shadow-sm" size={32} strokeWidth={1.5} />
+                      </div>
+                      
+                      <h3 className="text-[22px] font-extrabold text-white tracking-tight mb-3 leading-snug">
+                        동탄 하이엔드 타겟<br/>가장 확실한 광고 구좌
+                      </h3>
+                      
+                      <p className="text-[14.5px] text-blue-100/90 font-medium leading-[1.6] mb-8">
+                        동탄 실거주민과 투자자들이<br/>
+                        매일 접속하는 D-VIEW에서<br/>
+                        귀사의 브랜드를 돋보이게 하세요.
+                      </p>
+                      
+                      <button className="w-full bg-white text-[#191f28] text-[15px] font-extrabold py-3.5 rounded-xl shadow-[0_4px_14px_0_rgba(255,255,255,0.39)] hover:bg-[#f2f4f6] hover:shadow-[0_6px_20px_rgba(255,255,255,0.23)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 duration-200">
+                        광고/제휴 문의하기
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -783,7 +494,11 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
           <div className="fixed inset-0 z-50 bg-white overflow-y-auto md:hidden animate-in slide-in-from-bottom duration-300">
             <FieldReportModal
               report={resolvedReport}
-              onClose={() => { setSelectedReport(null); setMobileModalOpen(false); }}
+              onClose={() => {
+                setSelectedReport(null);
+                setMobileModalOpen(false);
+                window.history.pushState(null, '', '/');
+              }}
               comments={commentsData[selectedReport!.id] || []}
               commentInput={commentInput[selectedReport!.id] || ''}
               onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport!.id]: text }))}
@@ -796,7 +511,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
               isAdmin={dashboardFacade.isAdmin(user?.email)}
               onPurchaseComplete={() => {
                 if (user) {
-                  PurchaseRepo.getUserPurchasedReportIds(user.uid).then(setPurchasedReportIds);
+                  refreshPurchasedReports();
                 }
               }}
             />
@@ -805,69 +520,29 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
 
         {/* ═══ TAB 2: 라운지 제거됨 (별도 페이지로 이동) ═══ */}
 
-        {/* ═══ TAB 3: 아파트 추천 ═══ */}
+        {/* ═══ TAB 3: 아파트 추천 (Toss-Style Discovery) ═══ */}
         {activeTab === 'recommend' && (
-        <section>
-          <div className="flex justify-between items-start mb-8 w-full">
-            <div>
-              <h2 className="text-[28px] font-extrabold tracking-tight text-[#191f28] mb-1">아파트 추천</h2>
-              <p className="text-[15px] text-[#8b95a1] font-medium">동탄 맞춤 아파트 추천 & 분석</p>
-            </div>
-          </div>
-          <div className="flex flex-col gap-6">
-            <div className="w-full h-[180px] sm:h-[200px] bg-gradient-to-br from-[#3182f6] to-[#2b72d6] rounded-3xl p-5 sm:p-8 flex flex-col justify-end text-white relative overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-[#3182f6]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 group-hover:bg-white/20 transition-colors"></div>
-              <h3 className="text-[18px] sm:text-[24px] font-extrabold mb-1 relative z-10">우리 아파트 탈탈 털어드림!</h3>
-              <p className="text-white/80 text-[12px] sm:text-[14px] relative z-10">장점부터 숨기고 싶은 단점까지 속 시원하게 분석 신청하기</p>
-              <div className="absolute top-6 right-6 sm:top-8 sm:right-8 bg-white text-[#3182f6] w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold shadow-lg shadow-black/10">&rarr;</div>
-            </div>
-
-            {/* ── 7대 투자 권역 ── */}
-            <div>
-              <h3 className="text-[18px] font-extrabold text-[#191f28] mb-4 flex items-center gap-2">
-                <MapPin size={18} className="text-[#3182f6]" />
-                7대 투자 권역
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {ZONES.map(zone => (
-                  <div
-                    key={zone.id}
-                    onClick={() => router.push(`/zone/${zone.id}`)}
-                    className="bg-white rounded-2xl border border-[#e5e8eb] p-5 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer transition-all duration-200 group"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
-                        style={{ backgroundColor: zone.color }}
-                      />
-                      <span className="text-[15px] font-extrabold text-[#191f28] group-hover:text-[#3182f6] transition-colors">{zone.name}</span>
-                    </div>
-                    <span className="text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-0.5 rounded-md inline-block mb-2">{zone.dongLabel}</span>
-                    <p className="text-[13px] text-[#4e5968] leading-relaxed line-clamp-2">{zone.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* KPI Cards */}
-            {kpis.map(kpi => (
-              <div key={kpi.id} className="bg-white p-6 rounded-3xl border border-[#e5e8eb] shadow-sm hover:shadow-md transition-shadow">
-                <h3 className="text-[13px] text-[#4e5968] font-bold mb-3">{kpi.title}</h3>
-                <div className="text-[24px] font-extrabold text-[#191f28]">{kpi.mainValue}</div>
-                {kpi.subValue && <p className="text-[12px] text-[#8b95a1] font-medium mt-1">{kpi.subValue}</p>}
-              </div>
-            ))}
-
-
-
-            {/* Ad Banner */}
-            <div className="w-full bg-[#f2f4f6] border border-[#e5e8eb] rounded-3xl p-8 flex flex-col items-center justify-center text-center">
-              <span className="bg-[#191f28] text-white text-[11px] font-bold px-2 py-0.5 rounded mb-2">AD</span>
-              <h3 className="text-[18px] font-bold text-[#191f28] mb-1">여기에 광고 배너가 표시됩니다</h3>
-              <p className="text-[#8b95a1] text-[14px]">광고 구좌 (e.g., 부동산 플랫폼 배너, 인테리어 광고 등)</p>
-            </div>
-          </div>
-        </section>
+          <section className="h-full">
+            <ApartmentDiscoveryClient
+              sheetApartments={sheetApartments}
+              fieldReports={fieldReports || []}
+              userFavorites={userFavorites}
+              nameMapping={nameMapping || {}}
+              publicRentalSet={publicRentalSet}
+              txSummaryData={txSummaryData}
+              favoriteCounts={favoriteCounts}
+              onToggleFavorite={handleToggleFavorite}
+              onSelectReport={(report) => {
+                setSelectedReport(report as any);
+                window.history.pushState(null, '', `/apartment/${encodeURIComponent(report.apartmentName)}`);
+                if (window.innerWidth < 768) {
+                  setMobileModalOpen(true);
+                }
+              }}
+              typeMap={typeMap}
+              areaUnit={areaUnit}
+            />
+          </section>
         )}
         
       </main>
@@ -925,7 +600,7 @@ export default function DashboardClient({ initialDashboardData }: { initialDashb
           {[
             { id: 'imjang' as const, label: '단지 분석', icon: Compass },
             { id: 'lounge' as const, label: '커뮤니티', icon: MessageSquare },
-            { id: 'recommend' as const, label: '아파트 검색', icon: Home },
+            { id: 'recommend' as const, label: '아파트 탐색', icon: Home },
           ].map(tab => {
             const isActive = activeTab === tab.id;
             return (

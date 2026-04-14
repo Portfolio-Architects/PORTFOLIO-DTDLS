@@ -57,32 +57,48 @@ export async function middleware(request: NextRequest) {
   }
 
   // 2. HTTP Security 헤더 주입 파이프라인
-  const response = NextResponse.next();
+  const nonce = btoa(crypto.randomUUID());
+  const isDev = process.env.NODE_ENV === 'development';
 
-  // CSP: XSS 방어를 위해 허가된 리소스만 로딩
-  // Next.js 개발 및 런타임을 위해 호환되는 플래그('unsafe-inline', 'unsafe-eval')만 최소 허용하며, 서드파티 스크립트 도메인을 제어합니다.
-    const cspHeader = `
-      default-src 'self';
-      script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://maps.googleapis.com https://www.google.com https://www.gstatic.com;
-      worker-src 'self' blob:;
-      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
-      img-src 'self' blob: data: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://maps.gstatic.com https://maps.googleapis.com;
-      font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net;
-      connect-src 'self' https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://firebasestorage.googleapis.com https://maps.googleapis.com https://vitals.vercel-insights.com https://cdn.jsdelivr.net;
-      frame-src 'self' https://www.google.com https://www.youtube.com https://portfolio-dtdls.firebaseapp.com;
-      object-src 'none';
-      base-uri 'self';
-      form-action 'self';
-      frame-ancestors 'none';
+  // CSP: XSS 실시간 방어를 위해 동적 Nonce 난수를 적용하고, 엄격한 스크립트 실행 환경 제한
+  const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${isDev ? "'unsafe-eval'" : ""} https: http: 'unsafe-inline';
+    worker-src 'self' blob:;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
+    img-src 'self' blob: data: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://maps.gstatic.com https://maps.googleapis.com;
+    font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net;
+    connect-src 'self' https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://firebasestorage.googleapis.com https://maps.googleapis.com https://vitals.vercel-insights.com https://cdn.jsdelivr.net;
+    frame-src 'self' https://www.google.com https://www.youtube.com https://portfolio-dtdls.firebaseapp.com;
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
     upgrade-insecure-requests;
   `.replace(/\s{2,}/g, ' ').trim();
 
-  // 헤더 부여
+  // Next.js 번들러가 SSR 단계에서 script 태그에 nonce를 자동 부착하도록 Request Headers 에 주입
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('Content-Security-Policy', cspHeader);
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
+  // 공통 보안 헤더 (A 레벨)
   response.headers.set('Content-Security-Policy', cspHeader);
-  response.headers.set('X-Frame-Options', 'DENY'); // Clickjacking 원천 차단 (iframe 임베딩 방지)
+  response.headers.set('X-Frame-Options', 'DENY'); // Clickjacking 원천 차단
   response.headers.set('X-Content-Type-Options', 'nosniff'); // MIME 타입 변조 방지 
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin'); // 외부 링크 이동 시 리퍼러 보호
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)'); // 하드웨어 API 권한 탈취 방지
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin'); // 리퍼러 보호
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)'); // 하드웨어 권한 탈취 방지
+
+  // A+ 등급 승급용 심화 보안 헤더
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload'); // 전 구간 강제 HTTPS화
+  response.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups'); // Spectre 공격 방어 (Firebase OAuth 팝업을 위해 allow-popups 필수)
+  response.headers.set('Cross-Origin-Resource-Policy', 'same-origin'); // 타 도메인의 브라우저 메모리 로딩 차단
 
   return response;
 }

@@ -58,5 +58,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
+  // Apartment Routes
+  try {
+    const { buildInitialApartments } = await import('@/lib/dong-apartments');
+    const apts = buildInitialApartments();
+    const allApts = Object.values(apts).flat();
+    
+    allApts.forEach((apt) => {
+      routes.push({
+        url: `${baseUrl}/apartment/${encodeURIComponent(apt.name)}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.95,
+      });
+    });
+  } catch (error) {
+    console.error('Failed to generate apartment sitemap', error);
+  }
+
   return routes;
 }

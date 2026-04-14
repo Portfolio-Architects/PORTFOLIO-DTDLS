@@ -9,7 +9,8 @@ import { db } from '@/lib/firebaseConfig';
 interface Post {
   id: string;
   title: string;
-  content: string;
+  summary: string;
+  imageUrl: string | null;
   category: string;
   author: string;
   meta: string;
@@ -34,40 +35,13 @@ const CATEGORY_MAP: Record<string, string[]> = {
 export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFeedClientProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(initialPosts.length === 100); // Because SSR requested limit 100
+  const [hasMore, setHasMore] = useState(initialPosts.length === 50); // Because SSR requested limit 50
   const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Reset from SSR initially.
     setPosts(initialPosts);
-    setHasMore(initialPosts.length === 100);
-
-    // Add a client-side fallback / real-time sync.
-    // This ensures production shows posts immediately even if Vercel SSR cache is stale or adminDb fails.
-    let unsubscribe: (() => void) | undefined;
-    import('@/lib/repositories/post.repository').then(({ listenToPosts }) => {
-      unsubscribe = listenToPosts((clientPosts) => {
-        // Format to match Post interface
-        let formatted = clientPosts.map((p: any) => ({
-          ...p,
-          createdAt: typeof p.createdAt === 'number' ? p.createdAt : Date.now(), // fallback
-        })) as unknown as Post[];
-
-        if (currentTab !== '전체') {
-          const allowedCategories = CATEGORY_MAP[currentTab] || [currentTab];
-          formatted = formatted.filter((p) => allowedCategories.includes(p.category));
-        }
-        
-        if (formatted.length > 0) {
-          setPosts(formatted);
-          setHasMore(formatted.length >= 30); // limit(30) is used in listenToPosts
-        }
-      });
-    }).catch(console.error);
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
+    setHasMore(initialPosts.length === 50);
   }, [initialPosts, currentTab]);
 
   const loadMorePosts = useCallback(async () => {
@@ -90,16 +64,18 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
       // I will just use a load-more button or observer, but for now I'll just keep it simple.
       
       const snap = await getDocs(q);
-      let newPosts = snap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toMillis() || 0,
-      })) as Post[];
-
-      if (currentTab !== '전체') {
-        const allowedCategories = CATEGORY_MAP[currentTab] || [currentTab];
-        newPosts = newPosts.filter((p) => allowedCategories.includes(p.category));
-      }
+      let newPosts = snap.docs.map(doc => {
+        const data = doc.data();
+        const rawContent = data.content || '';
+        const imgMatch = rawContent.match(/!\[.*?\]\((.*?)\)/);
+        return {
+          id: doc.id,
+          ...data,
+          summary: rawContent.replace(/!\[.*?\]\(.*?\)/g, '').replace(/\[.*?\]\(.*?\)/g, '').replace(/[#*~_\-`(]/g, '').replace(/\s+/g, ' ').replace(/https?:\/\/[^\s]+/g, '').trim(),
+          imageUrl: imgMatch ? imgMatch[1] : null,
+          createdAt: data.createdAt?.toMillis() || 0,
+        };
+      }) as Post[];
 
       // Filter duplicates
       const existingIds = new Set(posts.map(p => p.id));
@@ -135,34 +111,26 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
     return () => observer.disconnect();
   }, [loadMorePosts]);
 
-  if (posts.length === 0) {
+  const filteredPosts = currentTab === '전체'
+    ? posts
+    : posts.filter((p) => (CATEGORY_MAP[currentTab] || [currentTab]).includes(p.category));
+
+  if (filteredPosts.length === 0) {
     return (
       <div className="bg-transparent rounded-2xl p-12 text-center border border-dashed border-[#d1d6db]">
         <MessageSquare size={40} className="mx-auto mb-4 text-[#d1d6db]" />
-        <p className="text-[15px] font-bold text-[#4e5968]">아직 글이 없습니다</p>
+        <p className="text-[15px] font-bold text-[#4e5968]">아직 '{currentTab}' 관련 글이 없습니다</p>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-3">
-      {posts.map((news) => {
-        // Extract first image to make full width feed image
-        const imgMatch = news.content?.match(/!\[.*?\]\((.*?)\)/);
-        const imageUrl = imgMatch ? imgMatch[1] : null;
-        
-        // Clean text content
-        const cleanContent = news.content
-            ? news.content.replace(/!\[.*?\]\(.*?\)/g, '').replace(/\[.*?\]\(.*?\)/g, '').replace(/[#*~_\-`(]/g, '').replace(/\s+/g, ' ').replace(/https?:\/\/[^\s]+/g, '').trim()
-            : '';
-
+      {filteredPosts.map((news) => {
         return (
           <Link key={news.id} href={`/lounge/${news.id}`} scroll={false} className="bg-white rounded-2xl border border-[#e5e8eb] px-5 pt-4 pb-0 hover:bg-[#f9fafb] transition-colors cursor-pointer block overflow-hidden">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-[#f2f4f6] flex items-center justify-center flex-shrink-0 border border-[#e5e8eb]">
-                   <span className="text-[12px] font-bold text-[#8b95a1]">{news.author?.charAt(0) || '익'}</span>
-                </div>
                 <div>
                   <div className="text-[14px] font-extrabold text-[#191f28] leading-none mb-1">
                     {news.author || '익명'}
@@ -190,27 +158,27 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
             
             <div className="mb-3">
               <h2 className="text-[16px] font-extrabold text-[#191f28] leading-snug mb-1.5">{news.title}</h2>
-              {cleanContent && (
+              {news.summary && (
                 <div className="flex flex-col gap-1">
                   <p className="text-[14.5px] text-[#4e5968] leading-[1.6] line-clamp-3">
-                    {cleanContent}
+                    {news.summary}
                   </p>
-                  {cleanContent.length > 80 && (
+                  {news.summary.length > 80 && (
                     <span className="text-[13px] font-bold text-[#3182f6] hover:underline">자세히 보기...</span>
                   )}
                 </div>
               )}
             </div>
 
-            {imageUrl && (
+            {news.imageUrl && (
               <div className="w-full aspect-[4/3] sm:aspect-video rounded-xl overflow-hidden mb-3 border border-[#f2f4f6] bg-[#f9fafb]">
-                <img src={imageUrl} alt="post image" className="w-full h-full object-cover" loading="lazy" />
+                <img src={news.imageUrl} alt="post image" className="w-full h-full object-cover" loading="lazy" />
               </div>
             )}
 
             <div className="flex items-center gap-4 py-3 border-t border-[#f2f4f6] mt-4">
-              <div className="flex items-center gap-1.5 text-[13px] text-[#8b95a1] font-medium">
-                <Heart size={16} /> {news.likes || 0}
+              <div className={`flex items-center gap-1.5 text-[13px] font-medium ${news.likes > 0 ? 'text-[#f04452]' : 'text-[#8b95a1]'}`}>
+                <Heart size={16} className={news.likes > 0 ? 'fill-current' : ''} /> {news.likes || 0}
               </div>
               <div className="flex items-center gap-1.5 text-[13px] text-[#8b95a1] font-medium">
                 <MessageSquare size={16} /> {/* If we had commentCount we'd put it here */}
