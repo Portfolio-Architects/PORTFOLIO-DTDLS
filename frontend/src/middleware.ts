@@ -57,13 +57,13 @@ export async function middleware(request: NextRequest) {
   }
 
   // 2. HTTP Security 헤더 주입 파이프라인
-  const nonce = btoa(crypto.randomUUID());
   const isDev = process.env.NODE_ENV === 'development';
 
-  // CSP: XSS 실시간 방어를 위해 동적 Nonce 난수를 적용하고, 엄격한 스크립트 실행 환경 제한
+  // CSP: ISR/Static Generation 과의 충돌(nonce 불일치)을 방지하기 위해 strict-dynamic 및 nonce를 제거.
+  // 대신 엄격한 Host 기반 Allowlist 유지.
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${isDev ? "'unsafe-eval'" : ""} https: http: 'unsafe-inline';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://www.googletagmanager.com;
     worker-src 'self' blob:;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
     img-src 'self' blob: data: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://maps.gstatic.com https://maps.googleapis.com;
@@ -77,9 +77,7 @@ export async function middleware(request: NextRequest) {
     upgrade-insecure-requests;
   `.replace(/\s{2,}/g, ' ').trim();
 
-  // Next.js 번들러가 SSR 단계에서 script 태그에 nonce를 자동 부착하도록 Request Headers 에 주입
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-nonce', nonce);
   requestHeaders.set('Content-Security-Policy', cspHeader);
 
   const response = NextResponse.next({
