@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function LoungePage() {
   let posts: any[] = [];
+  let errorMessage: string | null = null;
   
   try {
     if (adminDb) {
@@ -20,6 +21,18 @@ export default async function LoungePage() {
         // Clean text content for summary
         const summary = rawContent.replace(/!\[.*?\]\(.*?\)/g, '').replace(/\[.*?\]\(.*?\)/g, '').replace(/[#*~_\-`(]/g, '').replace(/\s+/g, ' ').replace(/https?:\/\/[^\s]+/g, '').trim();
 
+        // Safely handle createdAt
+        let createdAtMillis = 0;
+        if (data.createdAt) {
+          if (typeof data.createdAt.toMillis === 'function') {
+            createdAtMillis = data.createdAt.toMillis();
+          } else if (data.createdAt instanceof Date) {
+            createdAtMillis = data.createdAt.getTime();
+          } else if (typeof data.createdAt === 'number') {
+            createdAtMillis = data.createdAt;
+          }
+        }
+
         return {
           id: doc.id,
           title: data.title || '',
@@ -30,16 +43,24 @@ export default async function LoungePage() {
           meta: data.meta || '',
           views: data.views || 0,
           likes: data.likes || 0,
-          createdAt: data.createdAt?.toMillis() || 0,
+          createdAt: createdAtMillis,
         };
       });
+    } else {
+      errorMessage = "adminDb is null";
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to fetch lounge posts server-side', error);
+    errorMessage = error.message || String(error);
   }
 
   return (
     <main id="main-content" className="w-full max-w-[1100px] mx-auto px-4 sm:px-6 pt-6 pb-[100px] sm:pb-12 animate-in fade-in duration-500">
+      {errorMessage && (
+        <div className="bg-red-50 text-red-500 p-4 rounded-xl mb-4 text-sm font-bold border border-red-200">
+          🚧 Server Error: {errorMessage}
+        </div>
+      )}
       <LoungeContainerClient initialPosts={posts} />
     </main>
   );
