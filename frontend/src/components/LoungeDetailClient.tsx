@@ -389,7 +389,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                               className="w-full h-auto object-contain max-h-[70vh]"
                               loading="eager"
                             />
-                          </div>
+                          </span>
                         );
                       }
                     }}

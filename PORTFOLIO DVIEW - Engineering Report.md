@@ -203,6 +203,7 @@ src/
 
 | 일시 | 주요 항목 | 요약 내용 |
 |:---|:---|:---|
+| 2026-04-15 | **실거래가 데이터 무결성 보존 및 UI/UX 렌더링 고도화** | 국토부 원천 데이터 내 월세 누락(0원) 거래를 임의로 '전세'로 덮어쓰는 논리적 오류를 제거해 렌더링 신뢰성을 회복함. 월세 단위 '만' 트랜지션 고도화 및 10단지(그린힐/레이크힐) 아파트명 정규화 매핑 완료. 추가로 마크다운 내 이미지 컴포넌트(`<div>` in `<p>`)로 인해 발생하던 치명적인 React Hydration 불일치 에러를 HTML5 DOM 구조에 맞춰 `<span>` 블록으로 이식해 원천 해결 |
 | 2026-04-14 | **[Phase 1] 오가닉 트래픽 스케일업을 위한 검색엔진 SEO 아키텍처 토대 완료** | 아파트 상세 모달에 갇혀있던 179개 실거래 데이터를 구글에 등재시키기 위해 듀얼 트랙(Dual-Track) 라우팅을 구현함. 유저 클릭 시 `window.history.pushState` 로직으로 네이티브 앱 UX를 해치지 않고 URL만 변경하며, 엔진 봇 접속 시 Next.js `generateMetadata` SSR 페이지가 렌더링되게 설계하여 트래픽 잭팟 기반 마련 완료 |
 | 2026-04-14 | **[Phase 1 & 2] 완벽한 A+ 등급 보안 아키텍처(Security Scale-up) 구축 달성** | 브라우저 레벨에서 HSTS 강제화 및 Nonce 기반 동적 CSP 적용으로 XSS 완벽 방어. Zod를 활용한 뮤테이션 API 인바운드 스키마 강제 검증 및 리캡챠(reCAPTCHA v3) 기반 Firebase App Check 도메인 락다운 활성화 완료. 이로써 외부 스크립트 실행 및 비정상 API 접근을 원천 봉쇄함. |
 | 2026-04-13 | **[Phase 2] Security & Caching Layer 구축 및 IP Spoofing 100% 차단** | `x-real-ip` 및 `request.ip` 헤더 우선 참조로 악의적 조회수/트래픽 위조 스푸핑 공격 원천 차단. 백엔드 API 레이어에 Firebase Full Scan 비용 방어를 위한 Upstash Redis 기반 `Cache-Aside` 아키텍처 결합(`dashboard-init`). 모바일 내비게이션 독의 라운지 라우팅 결함 픽스로 UX/UI 강건성 격상 |
