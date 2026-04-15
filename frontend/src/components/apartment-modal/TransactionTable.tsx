@@ -195,7 +195,11 @@ export function TransactionTable({
         {sortedFilteredTransactions.map((tx, i) => {
           const m = tx.contractYm.substring(4, 6);
           const d = tx.contractDay;
-          const isRent = tx.dealType === '전세' || tx.dealType === '월세';
+          let dType = tx.dealType;
+          if (dType === '월세' && (!tx.monthlyRent || tx.monthlyRent === 0)) {
+            dType = '전세';
+          }
+          const isRent = dType === '전세' || dType === '월세';
           const displayPrice = isRent ? (tx.deposit || 0) : tx.price;
           const displayMonthly = isRent ? (tx.monthlyRent || 0) : 0;
           const eok = Math.floor(displayPrice / 10000);
@@ -243,9 +247,9 @@ export function TransactionTable({
               {/* 우측: 직거래 배지 + 덴시티 최적화 가격 */}
               <div className="flex flex-col items-end gap-1 shrink-0 text-right ml-2 w-auto">
                 <div className="flex items-center gap-1.5">
-                  {(tx.dealType === '직거래' || tx.dealType === '전세' || tx.dealType === '월세') && (
-                    <div className={`shrink-0 whitespace-nowrap text-[10px] font-extrabold px-1.5 py-0.5 rounded ${getBadgeColorClasses(tx.dealType)}`}>
-                      {getDealTypeLabel(tx.dealType)}
+                  {(dType === '직거래' || dType === '전세' || dType === '월세') && (
+                    <div className={`shrink-0 whitespace-nowrap text-[10px] font-extrabold px-1.5 py-0.5 rounded ${getBadgeColorClasses(dType)}`}>
+                      {getDealTypeLabel(dType)}
                     </div>
                   )}
                   {tx.isOutlier && (
@@ -262,7 +266,7 @@ export function TransactionTable({
                     {eok > 0 && <span className={`text-[15px] font-black mr-0.5 ${!(tx.isOutlier || isCancelled) ? 'text-[#191f28]' : ''}`}>{eok}억</span>}
                     {rem > 0 && <span className={`text-[14px] ${eok > 0 ? 'font-bold' : 'font-black'} ${!(tx.isOutlier || isCancelled) ? (eok > 0 ? 'text-[#4e5968]' : 'text-[#191f28]') : ''}`}>{rem.toLocaleString()}{eok === 0 ? '만' : ''}</span>}
                     {eok === 0 && rem === 0 && <span className={`text-[15px] font-black ${!(tx.isOutlier || isCancelled) ? 'text-[#191f28]' : ''}`}>0</span>}
-                    {displayMonthly > 0 && <span className="text-[#8b95a1] ml-1 text-[13px] font-bold">/ {displayMonthly}</span>}
+                    {displayMonthly > 0 && <span className="text-[#8b95a1] ml-1 text-[13px] font-bold">/ {displayMonthly.toLocaleString()}만</span>}
                   </div>
                 </div>
               </div>
