@@ -195,11 +195,7 @@ export function TransactionTable({
         {sortedFilteredTransactions.map((tx, i) => {
           const m = tx.contractYm.substring(4, 6);
           const d = tx.contractDay;
-          let dType = tx.dealType;
-          if (dType === '월세' && (!tx.monthlyRent || tx.monthlyRent === 0)) {
-            dType = '전세';
-          }
-          const isRent = dType === '전세' || dType === '월세';
+          const isRent = tx.dealType === '전세' || tx.dealType === '월세';
           const displayPrice = isRent ? (tx.deposit || 0) : tx.price;
           const displayMonthly = isRent ? (tx.monthlyRent || 0) : 0;
           const eok = Math.floor(displayPrice / 10000);
@@ -247,9 +243,9 @@ export function TransactionTable({
               {/* 우측: 직거래 배지 + 덴시티 최적화 가격 */}
               <div className="flex flex-col items-end gap-1 shrink-0 text-right ml-2 w-auto">
                 <div className="flex items-center gap-1.5">
-                  {(dType === '직거래' || dType === '전세' || dType === '월세') && (
-                    <div className={`shrink-0 whitespace-nowrap text-[10px] font-extrabold px-1.5 py-0.5 rounded ${getBadgeColorClasses(dType)}`}>
-                      {getDealTypeLabel(dType)}
+                  {(tx.dealType === '직거래' || tx.dealType === '전세' || tx.dealType === '월세') && (
+                    <div className={`shrink-0 whitespace-nowrap text-[10px] font-extrabold px-1.5 py-0.5 rounded ${getBadgeColorClasses(tx.dealType)}`}>
+                      {getDealTypeLabel(tx.dealType)}
                     </div>
                   )}
                   {tx.isOutlier && (
