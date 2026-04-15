@@ -1,7 +1,7 @@
 import { adminDb } from '@/lib/firebaseAdmin';
 import LoungeContainerClient from '@/components/LoungeContainerClient';
 
-export const revalidate = 60; // SSR Data revalidation every 60 seconds
+export const dynamic = 'force-dynamic';
 
 export default async function LoungePage() {
   let posts: any[] = [];
