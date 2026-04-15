@@ -378,7 +378,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                       img: ({node, ...props}) => {
                         if (!props.src) return null;
                         return (
-                          <div className="relative w-full rounded-xl overflow-hidden border border-[#e5e8eb] my-3 bg-[#f2f4f6] flex items-center justify-center min-h-[250px]">
+                          <span className="block relative w-full rounded-xl overflow-hidden border border-[#e5e8eb] my-3 bg-[#f2f4f6] flex items-center justify-center min-h-[250px]">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img 
                               src={props.src} 
