@@ -36,7 +36,6 @@ export function TransactionTable({
   chartType,
   normalizeAptName
 }: TransactionTableProps) {
-  const getFloorColor = (floor: number) => '#3182f6';
   const [txSort, setTxSort] = useState<'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'>('date_desc');
   const [txFilterArea, setTxFilterArea] = useState<string>('ALL');
   const [txFilterDealType, setTxFilterDealType] = useState<string>('ALL');
@@ -216,46 +215,56 @@ export function TransactionTable({
           const isCancelled = !!(tx.cancelDate && /^\d{6,}$/.test(tx.cancelDate.trim()));
 
           return (
-            <div key={i} className={`flex items-center justify-between p-3.5 border-b border-[#f2f4f6] hover:bg-[#f9fafb] transition-colors ${i >= displayedCount ? 'hidden md:flex' : 'flex'} ${isCancelled ? 'opacity-50' : ''}`}>
+            <div key={i} className={`flex items-center justify-between p-4 border-b border-[#f2f4f6] hover:bg-[#f9fafb] transition-colors ${i >= displayedCount ? 'hidden md:flex' : 'flex'} ${isCancelled ? 'opacity-40' : ''}`}>
               
-              {/* 1열: 날짜 (좌측 패널) */}
-              <div className="flex flex-col gap-1 w-[70px] shrink-0 text-left">
-                <div className="text-[13px] font-bold text-[#8b95a1] tracking-tight">{tx.contractYm.substring(2, 4)}.{m}.{d}</div>
-                {isCancelled && (
-                  <div className="text-[10px] font-bold text-[#ef4444] leading-tight break-keep">
-                    취소 {tx.cancelDate!.substring(2).replace(/(\d{2})(\d{2})(\d{2})/, '$1.$2.$3')}
+              {/* 좌측: 날짜 + 스펙 결합으로 시선 흐름 최적화 */}
+              <div className="flex items-center gap-3 md:gap-5 flex-1 min-w-0">
+                {/* 1. 날짜 */}
+                <div className="flex flex-col w-[60px] md:w-[70px] shrink-0 text-left">
+                  <div className={`text-[13px] font-bold tracking-tight ${isCancelled ? 'text-[#8b95a1] line-through decoration-[#ef4444]' : 'text-[#6b7684]'}`}>
+                    {tx.contractYm.substring(2, 4)}. {m}. {d}.
                   </div>
-                )}
-              </div>
-              
-              {/* 2열: 스펙 (가운데 정렬로 빈 공간 전체 점유) */}
-              <div className="flex-1 px-2 flex justify-center items-center min-w-0">
-                <div className="text-[13px] font-bold text-[#333d4b] flex items-center justify-center gap-1.5 truncate">
-                  <span className="truncate max-w-[100px] text-center" title={typeLabel}>{typeLabel}</span>
-                  <span className="text-[#8b95a1] shrink-0">·</span>
-                  <span className="shrink-0" style={{ color: getFloorColor(tx.floor) }}>{tx.floor}층</span>
+                  {isCancelled && (
+                    <div className="text-[10px] font-bold text-[#ef4444] mt-0.5 leading-tight break-keep">
+                      취소 {tx.cancelDate!.substring(2).replace(/(\d{2})(\d{2})(\d{2})/, '$1.$2.$3')}
+                    </div>
+                  )}
+                </div>
+                
+                {/* 2. 평형(강조) & 층수(감소) */}
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className={`shrink-0 text-[12px] font-extrabold px-1.5 py-0.5 rounded bg-[#f2f4f6] ${isCancelled ? 'text-[#8b95a1]' : 'text-[#333d4b]'}`} title={typeLabel}>
+                    {typeLabel}
+                  </span>
+                  <span className="text-[13px] font-semibold text-[#8b95a1] shrink-0">{tx.floor}층</span>
                 </div>
               </div>
 
-              {/* 3열: 배지 + 가격 (우측 패널) */}
-              <div className="flex items-center justify-end gap-1.5 w-[140px] shrink-0 text-right">
-                {tx.dealType === '직거래' && (
-                  <div className={`shrink-0 whitespace-nowrap text-[10px] font-extrabold px-1.5 py-0.5 rounded ${getBadgeColorClasses(tx.dealType)}`}>
-                    {getDealTypeLabel(tx.dealType)}
-                  </div>
-                )}
-                {tx.isOutlier && (
-                  <div className="group relative flex items-center justify-center cursor-help">
-                    <AlertTriangle size={13} className="text-[#f59e0b] drop-shadow-sm" />
-                    <div className="absolute right-0 bottom-full mb-1 sm:bottom-auto sm:-left-2 sm:translate-x-0 w-36 sm:w-max opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all bg-[#191f28] text-white text-[10px] sm:text-[11px] p-2 rounded-lg shadow-lg z-50 pointer-events-none break-keep text-center sm:text-left">
-                      시세 대비 이례적 편차
+              {/* 우측: 직거래 배지 + 덴시티 최적화 가격 */}
+              <div className="flex flex-col items-end gap-1 shrink-0 text-right ml-2 w-auto">
+                <div className="flex items-center gap-1.5">
+                  {tx.dealType === '직거래' && (
+                    <div className={`shrink-0 whitespace-nowrap text-[10px] font-extrabold px-1.5 py-0.5 rounded ${getBadgeColorClasses(tx.dealType)}`}>
+                      {getDealTypeLabel(tx.dealType)}
                     </div>
+                  )}
+                  {tx.isOutlier && (
+                    <div className="group relative flex items-center justify-center cursor-help">
+                      <AlertTriangle size={13} className="text-[#f59e0b] drop-shadow-sm" />
+                      <div className="absolute right-0 bottom-full mb-1 sm:bottom-auto sm:-left-2 sm:translate-x-0 w-36 sm:w-max opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all bg-[#191f28] text-white text-[10px] sm:text-[11px] p-2 rounded-lg shadow-lg z-50 pointer-events-none break-keep text-center sm:text-left">
+                        시세 대비 이례적 편차
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* 가격 위계 분리 (억 단위 강조, 만 단위 80% 축소) */}
+                  <div className={`flex items-baseline shrink-0 whitespace-nowrap tracking-tight ${tx.isOutlier || isCancelled ? 'text-[#8b95a1] line-through decoration-[#c8ced4] decoration-2' : ''}`}>
+                    {eok > 0 && <span className={`text-[15px] font-black mr-0.5 ${!(tx.isOutlier || isCancelled) ? 'text-[#191f28]' : ''}`}>{eok}억</span>}
+                    {rem > 0 && <span className={`text-[14px] ${eok > 0 ? 'font-bold' : 'font-black'} ${!(tx.isOutlier || isCancelled) ? (eok > 0 ? 'text-[#4e5968]' : 'text-[#191f28]') : ''}`}>{rem.toLocaleString()}</span>}
+                    {eok === 0 && rem === 0 && <span className={`text-[15px] font-black ${!(tx.isOutlier || isCancelled) ? 'text-[#191f28]' : ''}`}>0</span>}
+                    {displayMonthly > 0 && <span className="text-[#8b95a1] ml-1 text-[13px] font-bold">/ {displayMonthly}</span>}
                   </div>
-                )}
-                <span className={`shrink-0 whitespace-nowrap text-[15px] font-black ${tx.isOutlier ? 'text-[#8b95a1] line-through decoration-[#c8ced4] decoration-2' : 'text-[#191f28]'}`}>
-                  {eok > 0 ? `${eok}억 ` : ''}{rem > 0 ? rem.toLocaleString() : (eok > 0 ? '' : '0')}
-                  {displayMonthly > 0 && <span className="text-[#8b95a1] ml-0.5 text-[13px] font-bold">/ {displayMonthly}</span>}
-                </span>
+                </div>
               </div>
 
             </div>
