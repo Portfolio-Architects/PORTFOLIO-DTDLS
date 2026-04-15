@@ -14,20 +14,34 @@ if (!admin.apps.length) {
     
     credential = admin.credential.cert(serviceAccount);
   } catch (error) {
-    // 2. Fallback to an environment variable (for production/Vercel)
-    if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+    // 1. 통째로 붙여넣은 JSON 문자열 환경변수를 최우선으로 사용 (Vercel 개행문자 파싱 오류 방지용 완벽 해결책)
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
       try {
-        credential = admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY));
+        const parsedAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+        credential = admin.credential.cert(parsedAccount);
+        
+        // REST API 전용 크레덴셜도 동일하게 세팅
+        restCredentials = {
+          client_email: parsedAccount.client_email,
+          private_key: parsedAccount.private_key
+        };
       } catch (parseError) {
-        console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY JSON.');
+        console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON. Is it valid JSON?');
       }
-    } else if (process.env.GOOGLE_PRIVATE_KEY && process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
+    } 
+    // 2. Vercel에 분리되어 세팅된 변수 (오입력/개행 오류 위험 있음)
+    else if (process.env.FIREBASE_ADMIN_PRIVATE_KEY || process.env.GOOGLE_PRIVATE_KEY) {
       // 3. Fallback to standard Google Service Account env vars (used in Vercel)
         credential = admin.credential.cert({
           projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'portfolio-dtdls',
-          clientEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-          privateKey: process.env.GOOGLE_PRIVATE_KEY.replace(/^"|"$/g, '').replace(/\\n/g, '\n'),
+          clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+          privateKey: (process.env.FIREBASE_ADMIN_PRIVATE_KEY || process.env.GOOGLE_PRIVATE_KEY).replace(/^"|"$/g, '').replace(/\\n/g, '\n'),
         });
+        
+        restCredentials = {
+          client_email: process.env.FIREBASE_ADMIN_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+          private_key: (process.env.FIREBASE_ADMIN_PRIVATE_KEY || process.env.GOOGLE_PRIVATE_KEY).replace(/^"|"$/g, '').replace(/\\n/g, '\n')
+        };
       } else {
       console.warn('⚠️ Firebase Admin credential not found. Admin features calling this module will fail.');
       console.warn('Place serviceAccountKey.json in the project root or set FIREBASE_SERVICE_ACCOUNT_KEY env var.');
