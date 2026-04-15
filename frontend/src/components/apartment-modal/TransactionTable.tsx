@@ -243,7 +243,7 @@ export function TransactionTable({
               {/* 우측: 직거래 배지 + 덴시티 최적화 가격 */}
               <div className="flex flex-col items-end gap-1 shrink-0 text-right ml-2 w-auto">
                 <div className="flex items-center gap-1.5">
-                  {tx.dealType === '직거래' && (
+                  {(tx.dealType === '직거래' || tx.dealType === '전세' || tx.dealType === '월세') && (
                     <div className={`shrink-0 whitespace-nowrap text-[10px] font-extrabold px-1.5 py-0.5 rounded ${getBadgeColorClasses(tx.dealType)}`}>
                       {getDealTypeLabel(tx.dealType)}
                     </div>
@@ -260,7 +260,7 @@ export function TransactionTable({
                   {/* 가격 위계 분리 (억 단위 강조, 만 단위 80% 축소) */}
                   <div className={`flex items-baseline shrink-0 whitespace-nowrap tracking-tight ${tx.isOutlier || isCancelled ? 'text-[#8b95a1] line-through decoration-[#c8ced4] decoration-2' : ''}`}>
                     {eok > 0 && <span className={`text-[15px] font-black mr-0.5 ${!(tx.isOutlier || isCancelled) ? 'text-[#191f28]' : ''}`}>{eok}억</span>}
-                    {rem > 0 && <span className={`text-[14px] ${eok > 0 ? 'font-bold' : 'font-black'} ${!(tx.isOutlier || isCancelled) ? (eok > 0 ? 'text-[#4e5968]' : 'text-[#191f28]') : ''}`}>{rem.toLocaleString()}</span>}
+                    {rem > 0 && <span className={`text-[14px] ${eok > 0 ? 'font-bold' : 'font-black'} ${!(tx.isOutlier || isCancelled) ? (eok > 0 ? 'text-[#4e5968]' : 'text-[#191f28]') : ''}`}>{rem.toLocaleString()}{eok === 0 ? '만' : ''}</span>}
                     {eok === 0 && rem === 0 && <span className={`text-[15px] font-black ${!(tx.isOutlier || isCancelled) ? 'text-[#191f28]' : ''}`}>0</span>}
                     {displayMonthly > 0 && <span className="text-[#8b95a1] ml-1 text-[13px] font-bold">/ {displayMonthly}</span>}
                   </div>

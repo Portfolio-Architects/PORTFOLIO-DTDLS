@@ -31,6 +31,8 @@ const HARDCODED_MAPPING: Record<string, string> = {
 
 const DISPLAY_NAME_MAPPING: Record<string, string> = {
   '동탄풍성신미주': '동탄역 신미주',
+  '그린힐반도유보라아이비파크101단지': '그린힐 반도유보라 아이비파크 10단지',
+  '레이크힐반도유보라아이비파크10.2': '레이크힐 반도유보라 아이비파크 10-2단지',
 };
 
 /**
