@@ -45,9 +45,40 @@ export const adminAuth = admin.apps.length ? admin.auth() : null;
 export const adminDb = admin.apps.length ? admin.firestore() : null;
 
 // Fix for Vercel Serverless Function 500 timeouts (gRPC connection hangs)
+// Important: When using preferRest, the REST client ignores the `initializeApp` credentials
+// and falls back to Application Default Credentials (which fails on Vercel). We MUST pass credentials explicitly.
 if (adminDb) {
   try {
-    adminDb.settings({ preferRest: true });
+    let restCredentials: { client_email?: string; private_key?: string } = {};
+    
+    if (process.env.GOOGLE_PRIVATE_KEY && process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
+      restCredentials = {
+        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/^"|"$/g, '').replace(/\\n/g, '\n')
+      };
+    } else {
+      // For local development
+      try {
+        const serviceAccountPath = path.resolve(process.cwd(), 'serviceAccountKey.json');
+        const serviceAccountRaw = fs.readFileSync(serviceAccountPath, 'utf-8');
+        const serviceAccount = JSON.parse(serviceAccountRaw);
+        restCredentials = {
+          client_email: serviceAccount.client_email,
+          private_key: serviceAccount.private_key
+        };
+      } catch (e) {
+        // Ignore fallback error
+      }
+    }
+
+    if (restCredentials.client_email && restCredentials.private_key) {
+      adminDb.settings({ 
+        preferRest: true, 
+        credentials: restCredentials 
+      });
+    } else {
+      adminDb.settings({ preferRest: true });
+    }
   } catch (e) {
     // Ignore if already set
   }
