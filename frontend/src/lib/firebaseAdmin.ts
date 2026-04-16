@@ -2,56 +2,54 @@ import * as admin from 'firebase-admin';
 import path from 'path';
 import fs from 'fs';
 
-// Initialize Firebase Admin safely in Next.js to avoid multiple initializations
-if (!admin.apps.length) {
-  let credential;
-  
+// Helper to properly extract credentials across different environments (Local, Vercel JSON, Vercel split keys)
+function getAdminCredentials() {
+  // 1. Local Development (serviceAccountKey.json)
   try {
-    // 1. Try to load from a local file first (for easy local development)
     const serviceAccountPath = path.resolve(process.cwd(), 'serviceAccountKey.json');
-    const serviceAccountRaw = fs.readFileSync(serviceAccountPath, 'utf-8');
-    const serviceAccount = JSON.parse(serviceAccountRaw);
-    
-    credential = admin.credential.cert(serviceAccount);
-  } catch (error) {
-    // 1. 통째로 붙여넣은 JSON 문자열 환경변수를 최우선으로 사용 (Vercel 개행문자 파싱 오류 방지용 완벽 해결책)
-    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-      try {
-        const parsedAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-        credential = admin.credential.cert(parsedAccount);
-        
-        // REST API 전용 크레덴셜도 동일하게 세팅
-        restCredentials = {
-          client_email: parsedAccount.client_email,
-          private_key: parsedAccount.private_key
-        };
-      } catch (parseError) {
-        console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON. Is it valid JSON?');
-      }
-    } 
-    // 2. Vercel에 분리되어 세팅된 변수 (오입력/개행 오류 위험 있음)
-    else if (process.env.FIREBASE_ADMIN_PRIVATE_KEY || process.env.GOOGLE_PRIVATE_KEY) {
-      // 3. Fallback to standard Google Service Account env vars (used in Vercel)
-        credential = admin.credential.cert({
-          projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'portfolio-dtdls',
-          clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-          privateKey: (process.env.FIREBASE_ADMIN_PRIVATE_KEY || process.env.GOOGLE_PRIVATE_KEY).replace(/^"|"$/g, '').replace(/\\n/g, '\n'),
-        });
-        
-        restCredentials = {
-          client_email: process.env.FIREBASE_ADMIN_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-          private_key: (process.env.FIREBASE_ADMIN_PRIVATE_KEY || process.env.GOOGLE_PRIVATE_KEY).replace(/^"|"$/g, '').replace(/\\n/g, '\n')
-        };
-      } else {
-      console.warn('⚠️ Firebase Admin credential not found. Admin features calling this module will fail.');
-      console.warn('Place serviceAccountKey.json in the project root or set FIREBASE_SERVICE_ACCOUNT_KEY env var.');
+    if (fs.existsSync(serviceAccountPath)) {
+      return JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'));
+    }
+  } catch (e) {
+    // Ignore and fallback to env
+  }
+
+  // 2. Vercel Single JSON Object String
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    try {
+      return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+    } catch (e) {
+      console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON. Is it valid JSON?');
     }
   }
 
-  if (credential) {
+  // 3. Vercel Split Environment Variables
+  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY || process.env.GOOGLE_PRIVATE_KEY;
+  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'portfolio-dtdls';
+  
+  if (privateKey && clientEmail) {
+    return {
+      projectId,
+      clientEmail, // Firebase Admin SDK accepts both clientEmail and client_email
+      client_email: clientEmail, 
+      privateKey: privateKey.replace(/^"|"$/g, '').replace(/\\n/g, '\n'),
+      private_key: privateKey.replace(/^"|"$/g, '').replace(/\\n/g, '\n')
+    };
+  }
+
+  return null;
+}
+
+if (!admin.apps.length) {
+  const accountInfo = getAdminCredentials();
+  
+  if (accountInfo) {
     admin.initializeApp({
-      credential: credential,
+      credential: admin.credential.cert(accountInfo),
     });
+  } else {
+    console.warn('⚠️ Firebase Admin credential not found. Admin features calling this module will fail.');
   }
 }
 
@@ -60,40 +58,24 @@ export const adminDb = admin.apps.length ? admin.firestore() : null;
 
 // Fix for Vercel Serverless Function 500 timeouts (gRPC connection hangs)
 // Important: When using preferRest, the REST client ignores the `initializeApp` credentials
-// and falls back to Application Default Credentials (which fails on Vercel). We MUST pass credentials explicitly.
+// and falls back to Application Default Credentials (which fails on Vercel unless explicitly provided).
 if (adminDb) {
   try {
-    let restCredentials: { client_email?: string; private_key?: string } = {};
+    const accountInfo = getAdminCredentials();
     
-    if (process.env.GOOGLE_PRIVATE_KEY && process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
-      restCredentials = {
-        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/^"|"$/g, '').replace(/\\n/g, '\n')
-      };
-    } else {
-      // For local development
-      try {
-        const serviceAccountPath = path.resolve(process.cwd(), 'serviceAccountKey.json');
-        const serviceAccountRaw = fs.readFileSync(serviceAccountPath, 'utf-8');
-        const serviceAccount = JSON.parse(serviceAccountRaw);
-        restCredentials = {
-          client_email: serviceAccount.client_email,
-          private_key: serviceAccount.private_key
-        };
-      } catch (e) {
-        // Ignore fallback error
-      }
-    }
-
-    if (restCredentials.client_email && restCredentials.private_key) {
+    if (accountInfo && accountInfo.client_email && accountInfo.private_key) {
       adminDb.settings({ 
         preferRest: true, 
-        credentials: restCredentials 
+        credentials: {
+          client_email: accountInfo.client_email,
+          private_key: accountInfo.private_key
+        }
       });
     } else {
+      // Fallback
       adminDb.settings({ preferRest: true });
     }
   } catch (e) {
-    // Ignore if already set
+    console.error('Failed to configure Firestore Rest settings', e);
   }
 }
