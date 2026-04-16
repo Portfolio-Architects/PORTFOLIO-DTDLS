@@ -46,6 +46,55 @@ function formatPriceEok(priceMan) {
   return `${eok}억${remainder.toLocaleString()}`;
 }
 
+const SHEET_ID = '1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1AGnY7XXE7pCEE';
+function parseCsvLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') {
+      inQuotes = !inQuotes;
+    } else if (c === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += c;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
+async function fetchTypeMap() {
+  const typeMap = {};
+  try {
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=TYPE_MAP`;
+    const res = await fetch(csvUrl);
+    if (res.ok) {
+      const csvText = await res.text();
+      const lines = csvText.split('\n').filter(l => l.trim());
+      for (let i = 1; i < lines.length; i++) {
+        const cols = parseCsvLine(lines[i]);
+        if (cols.length < 3) continue;
+        const aptName = normalizeAptName(cols[1] || '');
+        const area = (cols[2] || '').trim();
+        const typeM2Str = (cols[3] || '').trim();
+        if (aptName && area && typeM2Str) {
+          if (!typeMap[aptName]) typeMap[aptName] = {};
+          const match = typeM2Str.match(/\d+(\.\d+)?/);
+          if (match) {
+            typeMap[aptName][area] = parseFloat(match[0]) * 0.3025;
+          }
+        }
+      }
+    }
+  } catch(e) {
+    console.error('Failed to fetch typeMap', e);
+  }
+  return typeMap;
+}
+
 /** page.tsx와 동일한 정규화 — 공백·괄호·[동이름] 제거 */
 function normalizeAptName(name) {
   return name
@@ -159,6 +208,9 @@ async function main() {
   const now = new Date();
   const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
 
+  console.log('🔗 타입 맵 다운로드 중 (공급면적 기준 평당가 계산)...');
+  const typeMap = await fetchTypeMap();
+
   for (const [aptName, txs] of Object.entries(byApt)) {
     // 매매와 전월세 분리 ('전세', '월세'가 명시된 것만 임대차 거래로 치고 나머지는 모두 매매로 취급)
     const rentTxs = txs.filter(t => t.dealType === '전세' || t.dealType === '월세');
@@ -166,6 +218,17 @@ async function main() {
     
     // 매매/임대 데이터가 둘 다 없으면 스킵
     if (saleTxs.length === 0 && rentTxs.length === 0) continue;
+
+    // 공급면적(분양평수) 평당 가격으로 재조정 (DB의 d.areaPyeong는 전용면적 기반이므로 치명적인 왜곡 발생 방지)
+    const getSupplyPyeong = (t) => {
+      const dbAptName = normalizeAptName(aptName);
+      const supplyPyeong = typeMap[dbAptName]?.[String(t.area)];
+      if (supplyPyeong) return supplyPyeong;
+      return t.area * 0.3025 * 1.33; // Fallback
+    };
+    
+    saleTxs.forEach(t => { t.areaPyeong = getSupplyPyeong(t); });
+    rentTxs.forEach(t => { t.areaPyeong = getSupplyPyeong(t); });
 
     // --- 매매 요약 ---
     const prices = saleTxs.map(t => t.price).filter(p => p > 0);

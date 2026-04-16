@@ -4,7 +4,9 @@ import DashboardClient from '@/components/DashboardClient';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 
 // --- SEO: Dynamic Metadata Generator ---
-export async function generateMetadata({ params }: { params: { aptName: string } }): Promise<Metadata> {
+// Await the params Promise for Next.js 15+
+export async function generateMetadata(props: { params: Promise<{ aptName: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const decodedName = decodeURIComponent(params.aptName);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
   
@@ -83,7 +85,8 @@ async function getInitialData() {
   return result;
 }
 
-export default async function ApartmentPage({ params }: { params: { aptName: string } }) {
+export default async function ApartmentPage(props: { params: Promise<{ aptName: string }> }) {
+  const params = await props.params;
   const decodedName = decodeURIComponent(params.aptName);
   const initialData = await getInitialData();
 

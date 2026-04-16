@@ -129,50 +129,28 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
             </div>
             <div className="flex items-center justify-end gap-1.5">
               {(() => {
-                let priceMan = 0;
-                let refArea = 0;
-                
-                if (txSummary.avg1MPrice > 0) {
-                  priceMan = txSummary.avg1MPrice;
-                  refArea = txSummary.recent?.[0]?.area || 0;
-                } else if (txSummary.recent && txSummary.recent.length > 0) {
+                // 1. If we have 1-month average, display the accurate 1-month per-pyeong calculation
+                if (txSummary.avg1MPrice > 0 && txSummary.avg1MPerPyeong > 0) {
+                  return <span className="text-xs font-bold text-[#3182f6]">{txSummary.avg1MPerPyeong.toLocaleString()}만/평</span>;
+                }
+
+                // 2. Otherwise, if we have recent transaction, calculate per-pyeong of that specific transaction
+                if (txSummary.recent && txSummary.recent.length > 0) {
                   const r = txSummary.recent[0];
-                  refArea = r.area;
-                  // Extract priceMan from priceEok
+                  let priceMan = 0;
                   const match = r.priceEok.match(/(\d+)억\s*([\d,]*)/);
                   if (match) {
                     priceMan = parseInt(match[1]) * 10000 + parseInt((match[2] || '0').replace(/,/g, ''));
                   } else if (r.priceEok.includes('만')) {
                     priceMan = parseInt(r.priceEok.replace(/[^\d]/g, ''));
                   }
-                } else {
-                  priceMan = txSummary.avg1MPrice || 0; // fallback
-                }
-
-                if (typeMap && refArea) {
-                  const aptNorm = apt.name.replace(/\[.*?\]\s*/g, '').replace(/\s+/g, '').replace(/[()（）]/g, '').trim();
-                  const t = typeMap[aptNorm]?.[String(refArea)];
-                  if (t) {
-                    const supplyM2Match = t.typeM2?.match(/\d+(\.\d+)?/);
-                    const supplyM2 = supplyM2Match ? parseFloat(supplyM2Match[0]) : null;
-                    const supplyPyeong = supplyM2 ? Math.round(supplyM2 * 0.3025 * 10) / 10 : null;
-                    const perPyeong = supplyPyeong && priceMan > 0
-                      ? Math.round(priceMan / supplyPyeong)
-                      : null;
-                    if (perPyeong) {
-                      return <span className="text-xs font-bold text-[#3182f6]">{perPyeong.toLocaleString()}만/평</span>;
-                    }
+                  
+                  if (priceMan > 0 && r.areaPyeong > 0) {
+                    return <span className="text-xs font-bold text-[#3182f6]">{Math.round(priceMan / r.areaPyeong).toLocaleString()}만/평</span>;
                   }
                 }
-                  
-                // Fallback to scaled avg if calculation failed
-                if (priceMan > 0 && txSummary.avg1MPrice && txSummary.avg1MPerPyeong) {
-                   const ratio = priceMan / txSummary.avg1MPrice;
-                   return <span className="text-xs font-bold text-[#3182f6]">{Math.round(txSummary.avg1MPerPyeong * ratio).toLocaleString()}만/평</span>;
-                }
-
-                if (!txSummary.avg1MPerPyeong) return null;
-                return <span className="text-xs font-bold text-[#3182f6]">{txSummary.avg1MPerPyeong.toLocaleString()}만/평</span>;
+                
+                return null;
               })()}
             </div>
           </div>

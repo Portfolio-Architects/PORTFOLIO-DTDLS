@@ -238,9 +238,11 @@ export function FieldReportModal({
               { key: 'ALL', label: '전체', months: 9999 },
             ];
 
-            const getYm = (monthsAgo: number) => {
-              const d = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1);
-              return d.getFullYear() * 100 + (d.getMonth() + 1);
+            const getTxDate = (tx: TransactionRecord) => {
+              const y = parseInt(tx.contractYm.slice(0, 4));
+              const m = parseInt(tx.contractYm.slice(4, 6));
+              const d = parseInt(tx.contractDay) || 1;
+              return new Date(y, m - 1, d);
             };
 
             const periodTransactions = transactions.filter(tx => {
@@ -284,8 +286,8 @@ export function FieldReportModal({
             const overallAvgPrice = baseTx.length > 0 ? baseTx.reduce((s, t) => s + t.price, 0) / baseTx.length : 0;
 
             const periodData = periods.map(p => {
-              const cutoffYm = p.months >= 9999 ? 0 : getYm(p.months);
-              const filtered = baseTx.filter(tx => parseInt(tx.contractYm) >= cutoffYm);
+              const cutoffDate = new Date(now.getFullYear(), now.getMonth() - p.months, now.getDate());
+              const filtered = baseTx.filter(tx => p.months >= 9999 || getTxDate(tx) >= cutoffDate);
               const rawAvgPrice = filtered.length > 0 ? filtered.reduce((s, t) => s + t.price, 0) / filtered.length : 0;
               const avgPrice = Math.round(rawAvgPrice / 100) * 100;
               
@@ -293,8 +295,8 @@ export function FieldReportModal({
               const trendPct = overallAvgPrice > 0 && p.months < 9999 
                 ? ((avgPrice - overallAvgPrice) / overallAvgPrice * 100) 
                 : null;
-              const perPyeong = avgPrice > 0 && avgAreaPyeong > 0
-                ? Math.round(avgPrice / avgAreaPyeong)
+              const perPyeong = filtered.length > 0
+                ? Math.round(filtered.reduce((s, tx) => s + (tx.price / getTxSupplyPyeong(tx)), 0) / filtered.length)
                 : 0;
               return {
                 ...p,
