@@ -3,7 +3,7 @@
  * 
  * ⚠️ 이 파일은 자동 생성됩니다. 직접 수정하지 마세요!
  * 동기화: npm run sync-transactions
- * 마지막 동기화: 2026-04-14
+ * 마지막 동기화: 2026-04-16
  */
 
 export interface RecentTx {
@@ -301,8 +301,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "3억5,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260410",
-    "avg1MRentDeposit": 15313,
-    "avg1MRentDepositEok": "1억5,313"
+    "avg1MRentDeposit": 16786,
+    "avg1MRentDepositEok": "1억6,786"
   },
   "나루마을월드메르디앙반도유보라": {
     "latestPrice": 69900,
@@ -368,10 +368,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 33279,
     "minPriceEok": "3억3,279",
     "txCount": 494,
-    "avg1MPrice": 53494,
-    "avg1MPriceEok": "5억3,494",
-    "avg1MPerPyeong": 1950,
-    "avg1MTxCount": 16,
+    "avg1MPrice": 53321,
+    "avg1MPriceEok": "5억3,321",
+    "avg1MPerPyeong": 1944,
+    "avg1MTxCount": 14,
     "recent": [
       {
         "date": "04.11",
@@ -407,8 +407,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "3억7,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260413",
-    "avg1MRentDeposit": 22625,
-    "avg1MRentDepositEok": "2억2,625"
+    "avg1MRentDeposit": 23933,
+    "avg1MRentDepositEok": "2억3,933"
   },
   "나루마을한화꿈에그린": {
     "latestPrice": 86000,
@@ -484,8 +484,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "5,952만",
     "latestRentMonthly": 69,
     "latestRentDate": "20260413",
-    "avg1MRentDeposit": 16452,
-    "avg1MRentDepositEok": "1억6,452"
+    "avg1MRentDeposit": 16607,
+    "avg1MRentDepositEok": "1억6,607"
   },
   "시범한빛마을금호어울림": {
     "latestPrice": 80350,
@@ -498,10 +498,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 28000,
     "minPriceEok": "2억8,000",
     "txCount": 600,
-    "avg1MPrice": 81388,
-    "avg1MPriceEok": "8억1,388",
-    "avg1MPerPyeong": 3381,
-    "avg1MTxCount": 4,
+    "avg1MPrice": 78717,
+    "avg1MPriceEok": "7억8,717",
+    "avg1MPerPyeong": 3344,
+    "avg1MTxCount": 3,
     "recent": [
       {
         "date": "03.27",
@@ -551,10 +551,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 31000,
     "minPriceEok": "3억1,000",
     "txCount": 1174,
-    "avg1MPrice": 78917,
-    "avg1MPriceEok": "7억8,917",
-    "avg1MPerPyeong": 4180,
-    "avg1MTxCount": 6,
+    "avg1MPrice": 79000,
+    "avg1MPriceEok": "7억9,000",
+    "avg1MPerPyeong": 4144,
+    "avg1MTxCount": 5,
     "recent": [
       {
         "date": "04.08",
@@ -643,8 +643,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "4억5,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260412",
-    "avg1MRentDeposit": 29333,
-    "avg1MRentDepositEok": "2억9,333"
+    "avg1MRentDeposit": 31000,
+    "avg1MRentDepositEok": "3억1,000"
   },
   "자연앤데시앙": {
     "latestPrice": 49500,
@@ -749,8 +749,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "3억8,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260409",
-    "avg1MRentDeposit": 28856,
-    "avg1MRentDepositEok": "2억8,856"
+    "avg1MRentDeposit": 28450,
+    "avg1MRentDepositEok": "2억8,450"
   },
   "동탄역센트럴상록아파트": {
     "latestPrice": 95000,
@@ -763,10 +763,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 44800,
     "minPriceEok": "4억4,800",
     "txCount": 630,
-    "avg1MPrice": 92322,
-    "avg1MPriceEok": "9억2,322",
-    "avg1MPerPyeong": 4891,
-    "avg1MTxCount": 9,
+    "avg1MPrice": 91488,
+    "avg1MPriceEok": "9억1,488",
+    "avg1MPerPyeong": 4937,
+    "avg1MTxCount": 8,
     "recent": [
       {
         "date": "04.09",
@@ -802,8 +802,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "3억6,750",
     "latestRentMonthly": 0,
     "latestRentDate": "20260411",
-    "avg1MRentDeposit": 29270,
-    "avg1MRentDepositEok": "2억9,270"
+    "avg1MRentDeposit": 30338,
+    "avg1MRentDepositEok": "3억338"
   },
   "제일풍경채에듀앤파크": {
     "latestPrice": 56000,
@@ -869,10 +869,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 35000,
     "minPriceEok": "3억5,000",
     "txCount": 642,
-    "avg1MPrice": 61217,
-    "avg1MPriceEok": "6억1,217",
-    "avg1MPerPyeong": 2383,
-    "avg1MTxCount": 9,
+    "avg1MPrice": 60733,
+    "avg1MPriceEok": "6억733",
+    "avg1MPerPyeong": 2365,
+    "avg1MTxCount": 6,
     "recent": [
       {
         "date": "04.07",
@@ -908,8 +908,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "5,000만",
     "latestRentMonthly": 160,
     "latestRentDate": "20260411",
-    "avg1MRentDeposit": 24650,
-    "avg1MRentDepositEok": "2억4,650"
+    "avg1MRentDeposit": 23231,
+    "avg1MRentDepositEok": "2억3,231"
   },
   "동탄파크푸르지오": {
     "latestPrice": 56000,
@@ -922,10 +922,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 34200,
     "minPriceEok": "3억4,200",
     "txCount": 359,
-    "avg1MPrice": 56244,
-    "avg1MPriceEok": "5억6,244",
-    "avg1MPerPyeong": 2293,
-    "avg1MTxCount": 8,
+    "avg1MPrice": 56564,
+    "avg1MPriceEok": "5억6,564",
+    "avg1MPerPyeong": 2280,
+    "avg1MTxCount": 7,
     "recent": [
       {
         "date": "04.11",
@@ -961,8 +961,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "5,000만",
     "latestRentMonthly": 170,
     "latestRentDate": "20260406",
-    "avg1MRentDeposit": 32600,
-    "avg1MRentDepositEok": "3억2,600"
+    "avg1MRentDeposit": 31250,
+    "avg1MRentDepositEok": "3억1,250"
   },
   "호수공원역센트럴시티": {
     "latestPrice": 90500,
@@ -975,10 +975,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 36000,
     "minPriceEok": "3억6,000",
     "txCount": 265,
-    "avg1MPrice": 86586,
-    "avg1MPriceEok": "8억6,586",
-    "avg1MPerPyeong": 3535,
-    "avg1MTxCount": 7,
+    "avg1MPrice": 86767,
+    "avg1MPriceEok": "8억6,767",
+    "avg1MPerPyeong": 3568,
+    "avg1MTxCount": 6,
     "recent": [
       {
         "date": "04.02",
@@ -1014,8 +1014,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "5억8,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260411",
-    "avg1MRentDeposit": 37256,
-    "avg1MRentDepositEok": "3억7,256"
+    "avg1MRentDeposit": 39413,
+    "avg1MRentDepositEok": "3억9,413"
   },
   "더레이크시티부영6단지": {
     "latestPrice": 48200,
@@ -1028,10 +1028,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 30100,
     "minPriceEok": "3억100",
     "txCount": 361,
-    "avg1MPrice": 52100,
-    "avg1MPriceEok": "5억2,100",
-    "avg1MPerPyeong": 2868,
-    "avg1MTxCount": 6,
+    "avg1MPrice": 51820,
+    "avg1MPriceEok": "5억1,820",
+    "avg1MPerPyeong": 2851,
+    "avg1MTxCount": 5,
     "recent": [
       {
         "date": "04.08",
@@ -1187,10 +1187,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 27500,
     "minPriceEok": "2억7,500",
     "txCount": 940,
-    "avg1MPrice": 66018,
-    "avg1MPriceEok": "6억6,018",
-    "avg1MPerPyeong": 2659,
-    "avg1MTxCount": 11,
+    "avg1MPrice": 66420,
+    "avg1MPriceEok": "6억6,420",
+    "avg1MPerPyeong": 2683,
+    "avg1MTxCount": 10,
     "recent": [
       {
         "date": "04.07",
@@ -1226,8 +1226,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "1억5,000",
     "latestRentMonthly": 124,
     "latestRentDate": "20260411",
-    "avg1MRentDeposit": 33072,
-    "avg1MRentDepositEok": "3억3,072"
+    "avg1MRentDeposit": 34943,
+    "avg1MRentDepositEok": "3억4,943"
   },
   "동탄2신도시호반베르디움22단지": {
     "latestPrice": 57700,
@@ -1240,10 +1240,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 27468,
     "minPriceEok": "2억7,468",
     "txCount": 524,
-    "avg1MPrice": 55738,
-    "avg1MPriceEok": "5억5,738",
-    "avg1MPerPyeong": 3437,
-    "avg1MTxCount": 16,
+    "avg1MPrice": 55600,
+    "avg1MPriceEok": "5억5,600",
+    "avg1MPerPyeong": 3427,
+    "avg1MTxCount": 13,
     "recent": [
       {
         "date": "04.09",
@@ -1293,10 +1293,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 30000,
     "minPriceEok": "3억",
     "txCount": 151,
-    "avg1MPrice": 52775,
-    "avg1MPriceEok": "5억2,775",
-    "avg1MPerPyeong": 3194,
-    "avg1MTxCount": 8,
+    "avg1MPrice": 52386,
+    "avg1MPriceEok": "5억2,386",
+    "avg1MPerPyeong": 3169,
+    "avg1MTxCount": 7,
     "recent": [
       {
         "date": "04.11",
@@ -1332,8 +1332,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "3억9,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260404",
-    "avg1MRentDeposit": 38150,
-    "avg1MRentDepositEok": "3억8,150"
+    "avg1MRentDeposit": 37533,
+    "avg1MRentDepositEok": "3억7,533"
   },
   "동탄호수자이파밀리에": {
     "latestPrice": 63400,
@@ -1346,10 +1346,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 27300,
     "minPriceEok": "2억7,300",
     "txCount": 527,
-    "avg1MPrice": 50136,
-    "avg1MPriceEok": "5억136",
-    "avg1MPerPyeong": 3113,
-    "avg1MTxCount": 11,
+    "avg1MPrice": 50400,
+    "avg1MPriceEok": "5억400",
+    "avg1MPerPyeong": 3122,
+    "avg1MTxCount": 10,
     "recent": [
       {
         "date": "04.06",
@@ -1385,8 +1385,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "4억",
     "latestRentMonthly": 30,
     "latestRentDate": "20260411",
-    "avg1MRentDeposit": 26402,
-    "avg1MRentDepositEok": "2억6,402"
+    "avg1MRentDeposit": 24758,
+    "avg1MRentDepositEok": "2억4,758"
   },
   "동탄금강펜테리움센트럴파크Ⅳ": {
     "latestPrice": 56800,
@@ -1399,10 +1399,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 32050,
     "minPriceEok": "3억2,050",
     "txCount": 475,
-    "avg1MPrice": 57990,
-    "avg1MPriceEok": "5억7,990",
-    "avg1MPerPyeong": 2436,
-    "avg1MTxCount": 10,
+    "avg1MPrice": 57778,
+    "avg1MPriceEok": "5억7,778",
+    "avg1MPerPyeong": 2447,
+    "avg1MTxCount": 9,
     "recent": [
       {
         "date": "04.11",
@@ -1438,8 +1438,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "4억1,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260411",
-    "avg1MRentDeposit": 30910,
-    "avg1MRentDepositEok": "3억910"
+    "avg1MRentDeposit": 30836,
+    "avg1MRentDepositEok": "3억836"
   },
   "동탄역반도유보라아이비파크5.0": {
     "latestPrice": 115000,
@@ -1452,10 +1452,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 54700,
     "minPriceEok": "5억4,700",
     "txCount": 181,
-    "avg1MPrice": 106100,
-    "avg1MPriceEok": "10억6,100",
-    "avg1MPerPyeong": 4563,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 103875,
+    "avg1MPriceEok": "10억3,875",
+    "avg1MPerPyeong": 4722,
+    "avg1MTxCount": 4,
     "recent": [
       {
         "date": "04.09",
@@ -1491,8 +1491,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "5억9,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260411",
-    "avg1MRentDeposit": 30588,
-    "avg1MRentDepositEok": "3억588"
+    "avg1MRentDeposit": 29000,
+    "avg1MRentDepositEok": "2억9,000"
   },
   "동탄역더힐": {
     "latestPrice": 70000,
@@ -1558,10 +1558,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 29800,
     "minPriceEok": "2억9,800",
     "txCount": 1096,
-    "avg1MPrice": 76723,
-    "avg1MPriceEok": "7억6,723",
-    "avg1MPerPyeong": 3987,
-    "avg1MTxCount": 13,
+    "avg1MPrice": 77560,
+    "avg1MPriceEok": "7억7,560",
+    "avg1MPerPyeong": 4039,
+    "avg1MTxCount": 10,
     "recent": [
       {
         "date": "04.11",
@@ -1597,8 +1597,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "1억5,000",
     "latestRentMonthly": 95,
     "latestRentDate": "20260410",
-    "avg1MRentDeposit": 28408,
-    "avg1MRentDepositEok": "2억8,408"
+    "avg1MRentDeposit": 29567,
+    "avg1MRentDepositEok": "2억9,567"
   },
   "동탄역호반써밋": {
     "latestPrice": 76500,
@@ -1703,8 +1703,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "7억7,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260411",
-    "avg1MRentDeposit": 60521,
-    "avg1MRentDepositEok": "6억521"
+    "avg1MRentDeposit": 58411,
+    "avg1MRentDepositEok": "5억8,411"
   },
   "동탄역신안인스빌리베라1차": {
     "latestPrice": 83000,
@@ -1862,8 +1862,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "3억8,500",
     "latestRentMonthly": 0,
     "latestRentDate": "20260411",
-    "avg1MRentDeposit": 43500,
-    "avg1MRentDepositEok": "4억3,500"
+    "avg1MRentDeposit": 43375,
+    "avg1MRentDepositEok": "4억3,375"
   },
   "동탄역대방디엠시티더센텀": {
     "latestPrice": 68000,
@@ -1915,8 +1915,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "3,000만",
     "latestRentMonthly": 180,
     "latestRentDate": "20260411",
-    "avg1MRentDeposit": 21140,
-    "avg1MRentDepositEok": "2억1,140"
+    "avg1MRentDeposit": 16188,
+    "avg1MRentDepositEok": "1억6,188"
   },
   "동탄역이지더원": {
     "latestPrice": 58000,
@@ -1968,8 +1968,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "3억9,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260409",
-    "avg1MRentDeposit": 33985,
-    "avg1MRentDepositEok": "3억3,985"
+    "avg1MRentDeposit": 33181,
+    "avg1MRentDepositEok": "3억3,181"
   },
   "더레이크시티부영5단지": {
     "latestPrice": 77300,
@@ -2035,10 +2035,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 53000,
     "minPriceEok": "5억3,000",
     "txCount": 201,
-    "avg1MPrice": 73800,
-    "avg1MPriceEok": "7억3,800",
-    "avg1MPerPyeong": 3177,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 72875,
+    "avg1MPriceEok": "7억2,875",
+    "avg1MPerPyeong": 3217,
+    "avg1MTxCount": 4,
     "recent": [
       {
         "date": "04.04",
@@ -2088,10 +2088,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 25000,
     "minPriceEok": "2억5,000",
     "txCount": 460,
-    "avg1MPrice": 76762,
-    "avg1MPriceEok": "7억6,762",
-    "avg1MPerPyeong": 3256,
-    "avg1MTxCount": 13,
+    "avg1MPrice": 78117,
+    "avg1MPriceEok": "7억8,117",
+    "avg1MPerPyeong": 3258,
+    "avg1MTxCount": 12,
     "recent": [
       {
         "date": "04.11",
@@ -2180,8 +2180,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "6억8,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260411",
-    "avg1MRentDeposit": 34500,
-    "avg1MRentDepositEok": "3억4,500"
+    "avg1MRentDeposit": 41000,
+    "avg1MRentDepositEok": "4억1,000"
   },
   "동탄역센트럴자이A-10": {
     "latestPrice": 99800,
@@ -2247,10 +2247,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 16440,
     "minPriceEok": "1억6,440",
     "txCount": 756,
-    "avg1MPrice": 58400,
-    "avg1MPriceEok": "5억8,400",
-    "avg1MPerPyeong": 2528,
-    "avg1MTxCount": 3,
+    "avg1MPrice": 58250,
+    "avg1MPriceEok": "5억8,250",
+    "avg1MPerPyeong": 2522,
+    "avg1MTxCount": 2,
     "recent": [
       {
         "date": "04.10",
@@ -2300,10 +2300,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 62500,
     "minPriceEok": "6억2,500",
     "txCount": 175,
-    "avg1MPrice": 95643,
-    "avg1MPriceEok": "9억5,643",
-    "avg1MPerPyeong": 3427,
-    "avg1MTxCount": 7,
+    "avg1MPrice": 95500,
+    "avg1MPriceEok": "9억5,500",
+    "avg1MPerPyeong": 3369,
+    "avg1MTxCount": 6,
     "recent": [
       {
         "date": "04.10",
@@ -2353,10 +2353,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 28000,
     "minPriceEok": "2억8,000",
     "txCount": 473,
-    "avg1MPrice": 59290,
-    "avg1MPriceEok": "5억9,290",
-    "avg1MPerPyeong": 2443,
-    "avg1MTxCount": 10,
+    "avg1MPrice": 58433,
+    "avg1MPriceEok": "5억8,433",
+    "avg1MPerPyeong": 2424,
+    "avg1MTxCount": 9,
     "recent": [
       {
         "date": "04.10",
@@ -2498,8 +2498,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "3억8,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260410",
-    "avg1MRentDeposit": 31519,
-    "avg1MRentDepositEok": "3억1,519"
+    "avg1MRentDeposit": 30307,
+    "avg1MRentDepositEok": "3억307"
   },
   "동탄2아이파크1단지": {
     "latestPrice": 62800,
@@ -2512,10 +2512,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 38000,
     "minPriceEok": "3억8,000",
     "txCount": 113,
-    "avg1MPrice": 57700,
-    "avg1MPriceEok": "5억7,700",
-    "avg1MPerPyeong": 2145,
-    "avg1MTxCount": 6,
+    "avg1MPrice": 59000,
+    "avg1MPriceEok": "5억9,000",
+    "avg1MPerPyeong": 2146,
+    "avg1MTxCount": 4,
     "recent": [
       {
         "date": "04.03",
@@ -2671,10 +2671,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 40500,
     "minPriceEok": "4억500",
     "txCount": 144,
-    "avg1MPrice": 91117,
-    "avg1MPriceEok": "9억1,117",
-    "avg1MPerPyeong": 3552,
-    "avg1MTxCount": 6,
+    "avg1MPrice": 91840,
+    "avg1MPriceEok": "9억1,840",
+    "avg1MPerPyeong": 3582,
+    "avg1MTxCount": 5,
     "recent": [
       {
         "date": "04.04",
@@ -2710,8 +2710,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "1억2,000",
     "latestRentMonthly": 170,
     "latestRentDate": "20260410",
-    "avg1MRentDeposit": 41950,
-    "avg1MRentDepositEok": "4억1,950"
+    "avg1MRentDeposit": 39800,
+    "avg1MRentDepositEok": "3억9,800"
   },
   "반도유보라아이비파크3": {
     "latestPrice": 59500,
@@ -2724,10 +2724,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 27903,
     "minPriceEok": "2억7,903",
     "txCount": 655,
-    "avg1MPrice": 69660,
-    "avg1MPriceEok": "6억9,660",
-    "avg1MPerPyeong": 3406,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 68375,
+    "avg1MPriceEok": "6억8,375",
+    "avg1MPerPyeong": 3434,
+    "avg1MTxCount": 4,
     "recent": [
       {
         "date": "04.04",
@@ -2763,8 +2763,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "5,000만",
     "latestRentMonthly": 160,
     "latestRentDate": "20260410",
-    "avg1MRentDeposit": 24800,
-    "avg1MRentDepositEok": "2억4,800"
+    "avg1MRentDeposit": 20567,
+    "avg1MRentDepositEok": "2억567"
   },
   "동탄역반도유보라아이비파크6.0": {
     "latestPrice": 114000,
@@ -2869,8 +2869,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "4억5,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260327",
-    "avg1MRentDeposit": 22875,
-    "avg1MRentDepositEok": "2억2,875"
+    "avg1MRentDeposit": 23126,
+    "avg1MRentDepositEok": "2억3,126"
   },
   "우미린제일풍경채": {
     "latestPrice": 75000,
@@ -2922,8 +2922,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "3억",
     "latestRentMonthly": 0,
     "latestRentDate": "20260321",
-    "avg1MRentDeposit": 26000,
-    "avg1MRentDepositEok": "2억6,000"
+    "avg1MRentDeposit": 30000,
+    "avg1MRentDepositEok": "3억"
   },
   "동탄역중흥에스클래스": {
     "latestPrice": 62500,
@@ -2936,10 +2936,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 37000,
     "minPriceEok": "3억7,000",
     "txCount": 157,
-    "avg1MPrice": 62600,
-    "avg1MPriceEok": "6억2,600",
-    "avg1MPerPyeong": 2494,
-    "avg1MTxCount": 8,
+    "avg1MPrice": 62300,
+    "avg1MPriceEok": "6억2,300",
+    "avg1MPerPyeong": 2482,
+    "avg1MTxCount": 7,
     "recent": [
       {
         "date": "04.09",
@@ -2989,10 +2989,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 26500,
     "minPriceEok": "2억6,500",
     "txCount": 473,
-    "avg1MPrice": 53575,
-    "avg1MPriceEok": "5억3,575",
-    "avg1MPerPyeong": 2173,
-    "avg1MTxCount": 4,
+    "avg1MPrice": 54600,
+    "avg1MPriceEok": "5억4,600",
+    "avg1MPerPyeong": 2213,
+    "avg1MTxCount": 3,
     "recent": [
       {
         "date": "04.09",
@@ -3211,8 +3211,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "8억4,500",
     "latestRentMonthly": 0,
     "latestRentDate": "20260409",
-    "avg1MRentDeposit": 67900,
-    "avg1MRentDepositEok": "6억7,900"
+    "avg1MRentDeposit": 68050,
+    "avg1MRentDepositEok": "6억8,050"
   },
   "동탄더샵레이크에듀타운": {
     "latestPrice": 89800,
@@ -3264,8 +3264,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "5억",
     "latestRentMonthly": 0,
     "latestRentDate": "20260409",
-    "avg1MRentDeposit": 44313,
-    "avg1MRentDepositEok": "4억4,313"
+    "avg1MRentDeposit": 43500,
+    "avg1MRentDepositEok": "4억3,500"
   },
   "새강마을휴먼시아5단지": {
     "latestPrice": 0,
@@ -3519,8 +3519,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "4억2,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260409",
-    "avg1MRentDeposit": 28517,
-    "avg1MRentDepositEok": "2억8,517"
+    "avg1MRentDeposit": 22275,
+    "avg1MRentDepositEok": "2억2,275"
   },
   "푸른마을모아미래도": {
     "latestPrice": 52000,
@@ -3625,8 +3625,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "4,000만",
     "latestRentMonthly": 120,
     "latestRentDate": "20260407",
-    "avg1MRentDeposit": 19814,
-    "avg1MRentDepositEok": "1억9,814"
+    "avg1MRentDeposit": 12222,
+    "avg1MRentDepositEok": "1억2,222"
   },
   "동탄역반도유보라아이비파크8.0": {
     "latestPrice": 118000,
@@ -3678,8 +3678,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "2,000만",
     "latestRentMonthly": 75,
     "latestRentDate": "20260406",
-    "avg1MRentDeposit": 31840,
-    "avg1MRentDepositEok": "3억1,840"
+    "avg1MRentDeposit": 37300,
+    "avg1MRentDepositEok": "3억7,300"
   },
   "동탄2아이파크2단지": {
     "latestPrice": 53000,
@@ -3692,10 +3692,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 35700,
     "minPriceEok": "3억5,700",
     "txCount": 140,
-    "avg1MPrice": 54820,
-    "avg1MPriceEok": "5억4,820",
-    "avg1MPerPyeong": 2021,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 54200,
+    "avg1MPriceEok": "5억4,200",
+    "avg1MPerPyeong": 2017,
+    "avg1MTxCount": 3,
     "recent": [
       {
         "date": "04.08",
@@ -3745,10 +3745,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 26000,
     "minPriceEok": "2억6,000",
     "txCount": 627,
-    "avg1MPrice": 43910,
-    "avg1MPriceEok": "4억3,910",
-    "avg1MPerPyeong": 2212,
-    "avg1MTxCount": 10,
+    "avg1MPrice": 43211,
+    "avg1MPriceEok": "4억3,211",
+    "avg1MPerPyeong": 2241,
+    "avg1MTxCount": 9,
     "recent": [
       {
         "date": "04.07",
@@ -4073,8 +4073,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "4억7,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260404",
-    "avg1MRentDeposit": 39600,
-    "avg1MRentDepositEok": "3억9,600"
+    "avg1MRentDeposit": 39250,
+    "avg1MRentDepositEok": "3억9,250"
   },
   "동탄파크한양수자인": {
     "latestPrice": 40800,
@@ -4323,10 +4323,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 32500,
     "minPriceEok": "3억2,500",
     "txCount": 250,
-    "avg1MPrice": 67000,
-    "avg1MPriceEok": "6억7,000",
-    "avg1MPerPyeong": 2772,
-    "avg1MTxCount": 2,
+    "avg1MPrice": 64000,
+    "avg1MPriceEok": "6억4,000",
+    "avg1MPerPyeong": 2819,
+    "avg1MTxCount": 1,
     "recent": [
       {
         "date": "03.17",
@@ -4492,10 +4492,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 34000,
     "minPriceEok": "3억4,000",
     "txCount": 76,
-    "avg1MPrice": 42129,
-    "avg1MPriceEok": "4억2,129",
-    "avg1MPerPyeong": 2552,
-    "avg1MTxCount": 14,
+    "avg1MPrice": 41936,
+    "avg1MPriceEok": "4억1,936",
+    "avg1MPerPyeong": 2557,
+    "avg1MTxCount": 11,
     "recent": [
       {
         "date": "04.03",
@@ -4584,8 +4584,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "3,000만",
     "latestRentMonthly": 140,
     "latestRentDate": "20260407",
-    "avg1MRentDeposit": 20800,
-    "avg1MRentDepositEok": "2억800"
+    "avg1MRentDeposit": 18000,
+    "avg1MRentDepositEok": "1억8,000"
   },
   "솔빛마을신도브래뉴": {
     "latestPrice": 74500,
@@ -4690,8 +4690,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "5억4,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260330",
-    "avg1MRentDeposit": 45000,
-    "avg1MRentDepositEok": "4억5,000"
+    "avg1MRentDeposit": 52500,
+    "avg1MRentDepositEok": "5억2,500"
   },
   "동탄역반도유보라아이비파크7.0": {
     "latestPrice": 112000,
@@ -4988,10 +4988,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 34766,
     "minPriceEok": "3억4,766",
     "txCount": 226,
-    "avg1MPrice": 56767,
-    "avg1MPriceEok": "5억6,767",
-    "avg1MPerPyeong": 2319,
-    "avg1MTxCount": 3,
+    "avg1MPrice": 55250,
+    "avg1MPriceEok": "5억5,250",
+    "avg1MPerPyeong": 2150,
+    "avg1MTxCount": 2,
     "recent": [
       {
         "date": "03.24",
@@ -5027,8 +5027,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "1억8,000",
     "latestRentMonthly": 100,
     "latestRentDate": "20260406",
-    "avg1MRentDeposit": 22333,
-    "avg1MRentDepositEok": "2억2,333"
+    "avg1MRentDeposit": 31000,
+    "avg1MRentDepositEok": "3억1,000"
   },
   "동탄에스원센트로빌": {
     "latestPrice": 3000,
@@ -5133,8 +5133,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "2억",
     "latestRentMonthly": 0,
     "latestRentDate": "20260317",
-    "avg1MRentDeposit": 25750,
-    "avg1MRentDepositEok": "2억5,750"
+    "avg1MRentDeposit": 20000,
+    "avg1MRentDepositEok": "2억"
   },
   "동탄역센트럴예미지": {
     "latestPrice": 87500,
@@ -5210,8 +5210,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "4억",
     "latestRentMonthly": 0,
     "latestRentDate": "20260405",
-    "avg1MRentDeposit": 33375,
-    "avg1MRentDepositEok": "3억3,375"
+    "avg1MRentDeposit": 31833,
+    "avg1MRentDepositEok": "3억1,833"
   },
   "동탄역시범우남퍼스트빌아파트": {
     "latestPrice": 120000,
@@ -5263,8 +5263,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "6억5,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260404",
-    "avg1MRentDeposit": 52917,
-    "avg1MRentDepositEok": "5억2,917"
+    "avg1MRentDeposit": 50000,
+    "avg1MRentDepositEok": "5억"
   },
   "신일유토빌": {
     "latestPrice": 83000,
@@ -5489,10 +5489,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 45000,
     "minPriceEok": "4억5,000",
     "txCount": 669,
-    "avg1MPrice": 112767,
-    "avg1MPriceEok": "11억2,767",
-    "avg1MPerPyeong": 4388,
-    "avg1MTxCount": 3,
+    "avg1MPrice": 114250,
+    "avg1MPriceEok": "11억4,250",
+    "avg1MPerPyeong": 4446,
+    "avg1MTxCount": 2,
     "recent": [
       {
         "date": "04.02",
@@ -5687,8 +5687,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "3억1,500",
     "latestRentMonthly": 0,
     "latestRentDate": "20260404",
-    "avg1MRentDeposit": 32169,
-    "avg1MRentDepositEok": "3억2,169"
+    "avg1MRentDeposit": 29470,
+    "avg1MRentDepositEok": "2억9,470"
   },
   "동탄역유림노르웨이숲": {
     "latestPrice": 116500,
@@ -5754,10 +5754,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 29500,
     "minPriceEok": "2억9,500",
     "txCount": 1136,
-    "avg1MPrice": 85600,
-    "avg1MPriceEok": "8억5,600",
-    "avg1MPerPyeong": 2663,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 84500,
+    "avg1MPriceEok": "8억4,500",
+    "avg1MPerPyeong": 2659,
+    "avg1MTxCount": 4,
     "recent": [
       {
         "date": "04.04",
@@ -5952,8 +5952,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "4억",
     "latestRentMonthly": 0,
     "latestRentDate": "20260323",
-    "avg1MRentDeposit": 26000,
-    "avg1MRentDepositEok": "2억6,000"
+    "avg1MRentDeposit": 37500,
+    "avg1MRentDepositEok": "3억7,500"
   },
   "동탄역시범한화꿈에그린프레스티지": {
     "latestPrice": 156000,
@@ -6005,8 +6005,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "1억",
     "latestRentMonthly": 250,
     "latestRentDate": "20260402",
-    "avg1MRentDeposit": 53659,
-    "avg1MRentDepositEok": "5억3,659"
+    "avg1MRentDeposit": 47071,
+    "avg1MRentDepositEok": "4억7,071"
   },
   "동탄역롯데캐슬": {
     "latestPrice": 160000,
@@ -6058,8 +6058,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "4억5,000",
     "latestRentMonthly": 55,
     "latestRentDate": "20260403",
-    "avg1MRentDeposit": 68800,
-    "avg1MRentDepositEok": "6억8,800"
+    "avg1MRentDeposit": 69000,
+    "avg1MRentDepositEok": "6억9,000"
   },
   "METAPOLIS": {
     "latestPrice": 172000,
@@ -11405,10 +11405,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 33400,
     "minPriceEok": "3억3,400",
     "txCount": 158,
-    "avg1MPrice": 50500,
-    "avg1MPriceEok": "5억500",
-    "avg1MPerPyeong": 2033,
-    "avg1MTxCount": 3,
+    "avg1MPrice": 51500,
+    "avg1MPriceEok": "5억1,500",
+    "avg1MPerPyeong": 2004,
+    "avg1MTxCount": 2,
     "recent": [
       {
         "date": "03.31",
@@ -12695,8 +12695,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "4억5,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260315",
-    "avg1MRentDeposit": 47500,
-    "avg1MRentDepositEok": "4억7,500"
+    "avg1MRentDeposit": 45000,
+    "avg1MRentDepositEok": "4억5,000"
   },
   "한신더휴": {
     "latestPrice": 65000,
@@ -16150,10 +16150,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 61000,
     "minPriceEok": "6억1,000",
     "txCount": 309,
-    "avg1MPrice": 119800,
-    "avg1MPriceEok": "11억9,800",
-    "avg1MPerPyeong": 4469,
-    "avg1MTxCount": 3,
+    "avg1MPrice": 122350,
+    "avg1MPriceEok": "12억2,350",
+    "avg1MPerPyeong": 4463,
+    "avg1MTxCount": 2,
     "recent": [
       {
         "date": "03.27",
@@ -16189,8 +16189,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "5억9,850",
     "latestRentMonthly": 0,
     "latestRentDate": "20260401",
-    "avg1MRentDeposit": 42444,
-    "avg1MRentDepositEok": "4억2,444"
+    "avg1MRentDeposit": 38221,
+    "avg1MRentDepositEok": "3억8,221"
   },
   "수완지구호반베르디움2차": {
     "latestPrice": 43000,
@@ -19939,10 +19939,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 45100,
     "minPriceEok": "4억5,100",
     "txCount": 204,
-    "avg1MPrice": 80700,
-    "avg1MPriceEok": "8억700",
-    "avg1MPerPyeong": 3177,
-    "avg1MTxCount": 5,
+    "avg1MPrice": 81667,
+    "avg1MPriceEok": "8억1,667",
+    "avg1MPerPyeong": 3215,
+    "avg1MTxCount": 3,
     "recent": [
       {
         "date": "04.01",
@@ -20392,8 +20392,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "5,000만",
     "latestRentMonthly": 0,
     "latestRentDate": "20260331",
-    "avg1MRentDeposit": 20799,
-    "avg1MRentDepositEok": "2억799"
+    "avg1MRentDeposit": 24749,
+    "avg1MRentDepositEok": "2억4,749"
   },
   "풍림아이원THELAKE": {
     "latestPrice": 0,
@@ -21622,8 +21622,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "latestRentDepositEok": "6억5,000",
     "latestRentMonthly": 0,
     "latestRentDate": "20260316",
-    "avg1MRentDeposit": 60000,
-    "avg1MRentDepositEok": "6억"
+    "avg1MRentDeposit": 65000,
+    "avg1MRentDepositEok": "6억5,000"
   },
   "동탄숲속마을광명메이루즈": {
     "latestPrice": 58900,
@@ -21636,10 +21636,10 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
     "minPrice": 21352,
     "minPriceEok": "2억1,352",
     "txCount": 409,
-    "avg1MPrice": 58200,
-    "avg1MPriceEok": "5억8,200",
-    "avg1MPerPyeong": 2278,
-    "avg1MTxCount": 2,
+    "avg1MPrice": 58900,
+    "avg1MPriceEok": "5억8,900",
+    "avg1MPerPyeong": 2301,
+    "avg1MTxCount": 1,
     "recent": [
       {
         "date": "03.16",

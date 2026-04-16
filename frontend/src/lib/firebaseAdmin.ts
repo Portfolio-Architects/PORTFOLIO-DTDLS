@@ -4,7 +4,19 @@ import fs from 'fs';
 
 // Helper to properly extract credentials across different environments (Local, Vercel JSON, Vercel split keys)
 function getAdminCredentials() {
-  // 1. Vercel Single JSON Object String (Highest Priority if set)
+  // 1. Local Development (serviceAccountKey.json) 
+  // THIS MUST BE FIRST. Otherwise, local .env.local variables like GOOGLE_PRIVATE_KEY (which are for Google Sheets)
+  // will incorrectly override the primary Firebase Admin credentials.
+  try {
+    const serviceAccountPath = path.resolve(process.cwd(), 'serviceAccountKey.json');
+    if (fs.existsSync(serviceAccountPath)) {
+      return JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'));
+    }
+  } catch (e) {
+    // Ignore and fallback
+  }
+
+  // 2. Vercel Single JSON Object String
   if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
     try {
       return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
@@ -13,7 +25,7 @@ function getAdminCredentials() {
     }
   }
 
-  // 2. Vercel Split Environment Variables (Standard Vercel Setup)
+  // 3. Vercel Split Environment Variables
   const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY || process.env.GOOGLE_PRIVATE_KEY;
   const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'portfolio-dtdls';
@@ -26,16 +38,6 @@ function getAdminCredentials() {
       privateKey: privateKey.replace(/^"|"$/g, '').replace(/\\n/g, '\n'),
       private_key: privateKey.replace(/^"|"$/g, '').replace(/\\n/g, '\n')
     };
-  }
-
-  // 3. Local Development (serviceAccountKey.json) Fallback
-  try {
-    const serviceAccountPath = path.resolve(process.cwd(), 'serviceAccountKey.json');
-    if (fs.existsSync(serviceAccountPath)) {
-      return JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'));
-    }
-  } catch (e) {
-    // Ignore and fallback
   }
 
   return null;

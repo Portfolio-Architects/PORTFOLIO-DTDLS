@@ -167,7 +167,7 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
               {/* Bottom Row: Detail Card (Aligned with Progress Bar) */}
               {anchor.metaName && (
                 <div className="mt-1 md:mt-0 md:ml-[102px]">
-                  <div className="flex items-center justify-between gap-3 bg-[#f9fafb]/50 border border-[#f2f4f6] group-hover:bg-white group-hover:border-[#3182f6]/30 group-hover:shadow-[0_2px_12px_rgba(49,130,246,0.06)] px-3.5 py-2.5 rounded-xl transition-all duration-300 relative overflow-hidden">
+                  <div className="flex items-center justify-between gap-3 bg-[#f9fafb]/50 border border-[#f2f4f6] group-hover:bg-white group-hover:border-[#3182f6]/30 group-hover:shadow-[0_2px_12px_rgba(49, 130, 246,0.06)] px-3.5 py-2.5 rounded-xl transition-all duration-300 relative overflow-hidden">
                     {/* Brand indicator stick */}
                     <div className="absolute left-0 top-0 bottom-0 w-[4px]" style={{ backgroundColor: anchor.color }} />
                     

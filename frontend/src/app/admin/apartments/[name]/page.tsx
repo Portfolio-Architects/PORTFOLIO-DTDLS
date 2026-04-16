@@ -497,7 +497,7 @@ export default function ApartmentInfoPage() {
     if (!meta) return;
     setIsCalculating(true);
     try {
-      const res = await fetch(`/api/location-scores?apartment=${encodeURIComponent(originalName)}&refresh=1`);
+      const res = await fetch(`/api/location-scores?apartment=${encodeURIComponent(originalName)}&refresh=1&t=${Date.now()}`);
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
         alert(`좌표 데이터를 찾을 수 없습니다.\n\n💡 ${errData.hint || ''}`);

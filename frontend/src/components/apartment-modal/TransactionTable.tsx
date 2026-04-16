@@ -231,12 +231,18 @@ export function TransactionTable({
                   )}
                 </div>
                 
-                {/* 2. 평형(강조) & 층수(감소) */}
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className={`shrink-0 text-[12px] font-extrabold px-1.5 py-0.5 rounded bg-[#f2f4f6] ${isCancelled ? 'text-[#8b95a1]' : 'text-[#333d4b]'}`} title={typeLabel}>
+                {/* 2. 평형 (독립 칼럼 & 폰트 크기 확대) */}
+                <div className="w-[45px] md:w-[55px] shrink-0 flex justify-center">
+                  <span className={`w-full text-center text-[13px] md:text-[14px] tracking-tight font-extrabold py-0.5 rounded bg-[#f2f4f6] ${isCancelled ? 'text-[#8b95a1]' : 'text-[#333d4b]'}`} title={typeLabel}>
                     {typeLabel}
                   </span>
-                  <span className="text-[13px] font-semibold text-[#8b95a1] shrink-0">{tx.floor}층</span>
+                </div>
+
+                {/* 3. 층수 (독립 칼럼 & 폰트 크기 확대) */}
+                <div className="w-[32px] md:w-[40px] shrink-0 text-right">
+                  <span className={`text-[13px] md:text-[14px] font-bold ${isCancelled ? 'text-[#c8ced4]' : 'text-[#8b95a1]'}`}>
+                    {tx.floor}층
+                  </span>
                 </div>
               </div>
 

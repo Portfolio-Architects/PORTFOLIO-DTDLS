@@ -284,10 +284,12 @@ export async function GET(request: NextRequest) {
     // Station distances by line type
     const gtxSrtLine = stations.filter(s => s.line.includes('GTX') || s.line.includes('SRT'));
     const indeokwonLine = stations.filter(s => s.line.includes('인덕원') || s.line.includes('동탄인덕원'));
-    const tramLine = stations.filter(s => s.line.includes('트램') || s.line.includes('동탄트램'));
+    const tramLine = stations.filter(s => s.line.includes('트램') || s.line.includes('동탄트램') || s.line.includes('도시철도'));
+    console.log('[DEBUG] tramLine =>', tramLine);
     const nearestStationBase = gtxSrtLine.length > 0 ? findNearest(aptCoord, gtxSrtLine) : findNearest(aptCoord, stations);
     const nearestIndeokwonBase = indeokwonLine.length > 0 ? findNearest(aptCoord, indeokwonLine) : null;
     const nearestTramBase = tramLine.length > 0 ? findNearest(aptCoord, tramLine) : null;
+    console.log('[DEBUG] nearestTramBase =>', nearestTramBase);
 
     // Enrich with line name from sheet column C
     const findStationLine = (name: string | undefined, pool: StationPOI[]) => pool.find(s => s.name === name)?.line || null;
