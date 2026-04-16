@@ -18,12 +18,24 @@ const path = require('path');
 const OUTPUT_PATH = path.resolve(__dirname, '../src/lib/transaction-summary.ts');
 
 const serviceAccountPath = path.resolve(__dirname, '../serviceAccountKey.json');
-const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+let serviceAccount;
+
+if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+  try {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+  } catch (e) {
+    console.error('❌ FIREBASE_SERVICE_ACCOUNT_KEY 환경 변수 파싱 실패', e);
+  }
+} else if (fs.existsSync(serviceAccountPath)) {
+  serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+} else {
+  console.log('⚠️ serviceAccountKey.json과 FIREBASE_SERVICE_ACCOUNT_KEY 모두 찾을 수 없습니다.');
+  console.log('   기본 자격 증명을 시도합니다.');
+}
 
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
+  const config = serviceAccount ? { credential: admin.credential.cert(serviceAccount) } : {};
+  admin.initializeApp(config);
 }
 
 function formatPriceEok(priceMan) {
