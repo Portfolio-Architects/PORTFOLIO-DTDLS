@@ -60,13 +60,17 @@ export const adminDb = admin.apps.length ? admin.firestore() : null;
 // Fix for Vercel Serverless Function 500 timeouts (gRPC connection hangs)
 // Important: When using preferRest, the REST client ignores the `initializeApp` credentials
 // and falls back to Application Default Credentials (which fails on Vercel unless explicitly provided).
-if (adminDb) {
+const globalAny: any = global;
+
+if (adminDb && process.env.VERCEL === '1' && !globalAny.__FIREBASE_REST_CONFIGURED) {
   try {
+    globalAny.__FIREBASE_REST_CONFIGURED = true;
     const accountInfo = getAdminCredentials();
     
     if (accountInfo && accountInfo.client_email && accountInfo.private_key) {
       adminDb.settings({ 
         preferRest: true, 
+        projectId: accountInfo.project_id || accountInfo.projectId || 'portfolio-dtdls',
         credentials: {
           client_email: accountInfo.client_email,
           private_key: accountInfo.private_key
