@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useFormContext, useWatch } from 'react-hook-form';
+import { useFormContext, useWatch, Path } from 'react-hook-form';
 import { FormValues } from './types';
 import { FALLBACK_DONG_DATA } from './constants';
 
@@ -41,7 +41,7 @@ export function BasicInfoSection({ lockedMeta }: BasicInfoSectionProps) {
     <div className={label ? "mb-4" : ""}>
       {label && <label className="block text-[14px] font-bold text-[#4e5968] mb-2">{label}</label>}
       <select 
-        {...register(name as any, { required: true })}
+        {...register(name as Path<FormValues>, { required: true })}
         className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-all appearance-none cursor-pointer"
       >
         <option value="" disabled>선택하세요</option>

@@ -64,9 +64,9 @@ export async function POST(request: NextRequest) {
       }
       return NextResponse.json({ favorited: true });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[favorite] Error:', error);
-    return NextResponse.json({ error: 'Internal server error', details: error?.message || String(error) }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error', details: (error as Error)?.message || String(error) }, { status: 500 });
   }
 }
 
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
     const snap = await withTimeout(adminDb.collection('favorites').where('userId', '==', userId).get(), 5000);
     const favorites = snap.docs.map(d => d.data().aptName as string);
     return NextResponse.json({ favorites });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[favorite GET] Error:', error);
     // Return [] instead of 500 to prevent app crashes if Firebase hangs
     return NextResponse.json({ favorites: [], error: String(error) }, { status: 200 });

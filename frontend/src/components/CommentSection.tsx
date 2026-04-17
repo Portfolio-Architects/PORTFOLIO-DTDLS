@@ -112,7 +112,7 @@ function CommentItem({ comment }: { comment: CommentData }) {
       <div className="flex-1">
         <div className="flex items-baseline gap-2 mb-1">
           <span className="font-bold text-[14px] text-[#191f28]">{comment.author}</span>
-          <span className="text-[12px] text-[#8b95a1]">{comment.createdAt}</span>
+          <span className="text-[12px] text-[#8b95a1]">{String(comment.createdAt)}</span>
         </div>
         <p className="text-[14px] text-[#4e5968] leading-relaxed break-all whitespace-pre-wrap">{comment.text}</p>
       </div>

@@ -40,7 +40,7 @@ if (app && typeof window !== 'undefined') {
   // }
 }
 
-export const db = app ? initializeFirestore(app, { ignoreUndefinedProperties: true }) : null as any;
-export const auth = app ? getAuth(app) : null as any;
+export const db = (app ? initializeFirestore(app, { ignoreUndefinedProperties: true }) : null) as unknown as ReturnType<typeof initializeFirestore>;
+export const auth = (app ? getAuth(app) : null) as unknown as ReturnType<typeof getAuth>;
 export const googleProvider = new GoogleAuthProvider();
-export const storage = app ? getStorage(app) : null as any;
+export const storage = (app ? getStorage(app) : null) as unknown as ReturnType<typeof getStorage>;

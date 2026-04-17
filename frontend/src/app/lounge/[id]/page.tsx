@@ -57,7 +57,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 export default async function LoungePostPage(props: Props) {
   const params = await props.params;
   const { id } = params;
-  let initialPost = null;
+  let initialPost: Record<string, unknown> | undefined = undefined;
 
   if (adminDb && id) {
     try {

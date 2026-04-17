@@ -18,7 +18,7 @@ interface DiscoveryProps {
   txSummaryData: Record<string, AptTxSummary>;
   favoriteCounts: Record<string, number>;
   onToggleFavorite: (name: string) => void;
-  onSelectReport: (report: FieldReportData | {id: string, apartmentName: string, dong: string, author: string, likes: number, commentCount: number, createdAt: null, metrics: any}) => void;
+  onSelectReport: (report: FieldReportData | {id: string, apartmentName: string, dong: string, author: string, likes: number, commentCount: number, createdAt: null, metrics: unknown}) => void;
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   areaUnit: 'm2' | 'pyeong';
 }
@@ -111,7 +111,7 @@ export default function ApartmentDiscoveryClient({
         likes: 0,
         commentCount: 0,
         createdAt: null,
-        metrics: apt as any,
+        metrics: apt as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
       });
     }
   };
@@ -235,7 +235,7 @@ export default function ApartmentDiscoveryClient({
               return (
                 <ApartmentCard
                   key={apt.name}
-                  apt={apt as any} // StaticApartment compatible
+                  apt={apt as unknown as { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; txKey?: string; }} // StaticApartment compatible
                   txSummary={matchedSummary}
                   report={matchedReport}
                   isPublicRental={publicRentalSet.has(apt.name)}

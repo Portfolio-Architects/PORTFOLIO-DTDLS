@@ -59,9 +59,9 @@ export default function PaymentButton({
         failUrl,
         customerEmail: userEmail,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       // User cancelled or error
-      if (error?.code === 'USER_CANCEL') {
+      if ((error as { code?: string })?.code === 'USER_CANCEL') {
         // User closed the payment window — do nothing
       } else {
         console.error('Payment request failed:', error);

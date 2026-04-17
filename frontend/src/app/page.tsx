@@ -9,7 +9,7 @@ async function getInitialData() {
   const result: {
     favoriteCounts: Record<string, number>;
     typeMap: { aptName: string; area: string; typeM2: string; typePyeong: string }[];
-    apartmentMeta: Record<string, unknown>;
+    apartmentMeta: Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
   } = {
     favoriteCounts: {},
     typeMap: [],
@@ -25,13 +25,13 @@ async function getInitialData() {
   try {
     if (adminDb) {
       const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 5000);
-      snap.docs.forEach((doc: any) => {
+      snap.docs.forEach((doc) => {
         const data = doc.data();
         if (data.count > 0) result.favoriteCounts[data.aptName || doc.id] = data.count;
       });
       const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 5000);
       if (metaDoc.exists) {
-        result.apartmentMeta = metaDoc.data() || {};
+        result.apartmentMeta = (metaDoc.data() || {}) as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
       }
     }
   } catch (e) {

@@ -4,7 +4,7 @@
  * Architecture Layer: Repository (CRUD only, no business logic)
  */
 import { db } from '@/lib/firebaseConfig';
-import { collection, onSnapshot, query, orderBy, limit, doc, updateDoc, increment, getDoc } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, limit, doc, updateDoc, increment, getDoc, QuerySnapshot, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import type { FieldReportData } from '@/lib/types/report.types';
 
 /**
@@ -17,9 +17,9 @@ import type { FieldReportData } from '@/lib/types/report.types';
 export function listenToReports(callback: (reports: FieldReportData[]) => void): () => void {
   const q = query(collection(db, 'scoutingReports'), limit(30));
 
-  const mapSnapshot = (snapshot: any): FieldReportData[] => {
+  const mapSnapshot = (snapshot: QuerySnapshot<DocumentData>): FieldReportData[] => {
     const reports: FieldReportData[] = [];
-    snapshot.forEach((docSnap: FirebaseFirestore.QueryDocumentSnapshot) => {
+    snapshot.forEach((docSnap: QueryDocumentSnapshot<DocumentData>) => {
       const data = docSnap.data();
       reports.push({
         id: docSnap.id,
@@ -40,9 +40,9 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
         createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
         // keep raw timestamp for sorting
         _rawTimestamp: data.createdAt?.toDate ? data.createdAt.toDate().getTime() : 0, 
-      } as unknown as FieldReportData);
+      } as FieldReportData & { _rawTimestamp: number });
     });
-    return reports.sort((a: FieldReportData, b: FieldReportData) => (b as unknown as { _rawTimestamp: number })._rawTimestamp - (a as unknown as { _rawTimestamp: number })._rawTimestamp);
+    return reports.sort((a, b) => (b as FieldReportData & { _rawTimestamp: number })._rawTimestamp - (a as FieldReportData & { _rawTimestamp: number })._rawTimestamp);
   };
 
   return onSnapshot(q, (snapshot) => {

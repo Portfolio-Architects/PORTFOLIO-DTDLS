@@ -39,7 +39,7 @@ export interface CommentData {
   /** 작성자 닉네임 */
   author: string;
   /** 작성 시각 */
-  createdAt?: any;
+  createdAt?: unknown;
 }
 
 /** 현장 임장기 리포트 데이터 */

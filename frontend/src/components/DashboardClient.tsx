@@ -11,6 +11,7 @@ import ApartmentCard from '@/components/ApartmentCard';
 import ApartmentDiscoveryClient from '@/components/ApartmentDiscoveryClient';
 import DongFilterBar from '@/components/DongFilterBar';
 import FloatingUserBar from '@/components/FloatingUserBar';
+import Footer from '@/components/Footer';
 import dynamic from 'next/dynamic';
 
 // Heavy components — loaded on demand (saves ~200KB initial JS)
@@ -28,9 +29,9 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getDisplayName } from '@/lib/types/user.types';
 import { FixedSizeList } from 'react-window';
-import { useDashboardInitialization } from '@/hooks/useDashboardInitialization';
+import { useDashboardInitialization, DashboardInitialData } from '@/hooks/useDashboardInitialization';
 
-export default function DashboardClient({ initialDashboardData, preselectedAptName }: { initialDashboardData?: any, preselectedAptName?: string }) {
+export default function DashboardClient({ initialDashboardData, preselectedAptName }: { initialDashboardData?: DashboardInitialData, preselectedAptName?: string }) {
   const router = useRouter();
   const { kpis, newsFeed, fieldReports, userReviews, dongtanApartments, adBanner } = useDashboardData();
   
@@ -128,7 +129,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             likes: 0,
             commentCount: 0,
             createdAt: null,
-            metrics: targetApt as any,
+            metrics: targetApt as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
           });
         }
       }
@@ -158,7 +159,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         likes: 0,
         commentCount: 0,
         createdAt: null,
-        metrics: first as any,
+        metrics: first as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -533,7 +534,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               favoriteCounts={favoriteCounts}
               onToggleFavorite={handleToggleFavorite}
               onSelectReport={(report) => {
-                setSelectedReport(report as any);
+                setSelectedReport(report as FieldReportData);
                 window.history.pushState(null, '', `/apartment/${encodeURIComponent(report.apartmentName)}`);
                 if (window.innerWidth < 768) {
                   setMobileModalOpen(true);
@@ -545,6 +546,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
           </section>
         )}
         
+        <Footer />
       </main>
 
 

@@ -10,6 +10,11 @@ import {
 } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import type { Purchase } from '@/lib/types/purchase.types';
+import { z } from 'zod';
+
+const PurchaseDataSchema = z.object({
+  reportId: z.string()
+});
 
 const COLLECTION = 'purchases';
 
@@ -61,7 +66,10 @@ export async function getUserPurchasedReportIds(userId: string): Promise<string[
       where('status', '==', 'DONE')
     );
     const snap = await getDocs(q);
-    return snap.docs.map(d => d.data().reportId as string);
+    return snap.docs
+      .map(d => PurchaseDataSchema.safeParse(d.data()))
+      .filter(result => result.success)
+      .map(result => result.data.reportId);
   } catch (e) {
     logger.error('PurchaseRepo.getUserPurchasedReportIds', 'Query failed', { userId }, e);
     return [];

@@ -23,16 +23,16 @@ interface PostComment {
   createdAt: string;
 }
 
-export default function LoungeDetailClient({ postId, initialPost, isModal = false }: { postId: string, initialPost?: any, isModal?: boolean }) {
+export default function LoungeDetailClient({ postId, initialPost, isModal = false }: { postId: string, initialPost?: Record<string, unknown>, isModal?: boolean }) {
   const router = useRouter();
 
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [post, setPost] = useState<Record<string, any> | null>(() => {
+  const [post, setPost] = useState<Record<string, unknown> | null>(() => {
     if (initialPost) {
       return {
         ...initialPost,
-        createdAt: initialPost.createdAt ? new Date(initialPost.createdAt).toLocaleDateString('ko-KR') : '방금 전'
+        createdAt: initialPost.createdAt ? new Date(initialPost.createdAt as string | number | Date).toLocaleDateString('ko-KR') : '방금 전'
       };
     }
     return null;
@@ -98,7 +98,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
               await dashboardFacade.incrementPostView(postId, data.title);
             }
             // Optionally update UI view count locally immediately
-            setPost((p: any) => p ? { ...p, views: (p.views || 0) + 1 } : p);
+            setPost((p) => p ? { ...p, views: (Number(p.views) || 0) + 1 } : p);
           } catch (e) {
             console.error('View tracking failed', e);
           }
@@ -135,7 +135,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       setIsLiked(true);
       localStorage.setItem(`post_liked_${postId}`, 'true');
       await updateDoc(doc(db, 'posts', postId), { likes: increment(1) });
-      setPost((prev: any) => prev ? { ...prev, likes: (prev.likes || 0) + 1 } : prev);
+      setPost((prev) => prev ? { ...prev, likes: (Number(prev.likes) || 0) + 1 } : prev);
     } catch(e) {
       setIsLiked(false);
       localStorage.removeItem(`post_liked_${postId}`);
@@ -171,7 +171,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
         category: editCategory,
         updatedAt: serverTimestamp(),
       });
-      setPost((prev: any) => prev ? { ...prev, title: editTitle.trim(), content: editContent.trim(), category: editCategory } : prev);
+      setPost((prev) => prev ? { ...prev, title: editTitle.trim(), content: editContent.trim(), category: editCategory } : prev);
       setIsEditing(false);
     } catch (e) {
       alert('수정에 실패했습니다.');
@@ -271,9 +271,9 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
             {!isEditing && (
               <button
                 onClick={() => {
-                  setEditTitle(post?.title || '');
-                  setEditContent(post?.content || '');
-                  setEditCategory(post?.category || '동탄 임장/분석');
+                  setEditTitle((post?.title as string) || '');
+                  setEditContent((post?.content as string) || '');
+                  setEditCategory((post?.category as string) || '동탄 임장/분석');
                   setIsEditing(true);
                 }}
                 className="p-2 rounded-full hover:bg-[#f2f4f6] text-[#adb5bd] hover:text-[#3182f6] transition-colors"

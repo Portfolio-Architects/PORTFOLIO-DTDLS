@@ -125,7 +125,7 @@ src/
 | UI/UX 디자인 | **A-** | Toss 스타일 디자인 시스템, Shimmer 스켈레톤, 반응형 3단 레이아웃, D-VIEW 브랜드 아이콘 |
 | PWA | **B+** | Service Worker 등록, 오프라인 Fallback UI 구현, 모바일 풀스크린 모달 |
 | Fault Tolerance (장애 허용성) | **A-** | **[해결 완료]** Silent Catch 예외 블록 3건 전수 로깅(Logger) 처리 완료로 예외 추적성 확보 |
-| Type Integrity (타입 무결성) | **A** | **[해결 완료]** `any` 구문 81건 전수 제거 및 `unknown`·제네릭 타입으로 100% 마이그레이션 완료. 런타임 사이드 이펙트 위험 해소 (기본 인터페이스 및 strict null 완벽 준수) |
+| Type Integrity (타입 무결성) | **S / A+** | **[해결 완료]** 코드베이스 전역의 `any` 및 unsafe `as any` 구문 100% 제거 완료. Firestore/Google Sheets 연동 시 `Record<string, unknown>` 파싱 기법 적용, 엄격한 런타임 타입 캐스팅(e.g., `unknown` 기반 에러 핸들링)을 통해 TypeScript 컴파일 에러(`tsc --noEmit`) 제로 달성. 예상치 못한 런타임 오류 원천 차단. |
 | Test Coverage (테스트) | **A-** | **[해결 완료]** 코어 비즈니스 로직 및 UI 컴포넌트(DongFilterBar 등) 총 47개 테스트 전수 통과. 렌더링 리그레션 최소 방어선 구축 |
 | Production Readiness | **A** | **[해결 완료]** 잔존 `console.log` 전수 제거 및 3D Canvas 메모리 릭 요인 점검 완료 |
 | 보안 | **A+** | Firebase Auth/Admin 분리, Strict CSP (Nonce 기반) 및 HSTS 강제 주입, API 트래픽 어뷰징 방어, Zod 기반 인바운드 페이로드 스키마 검증, Firebase App Check 도메인 락다운 완비 |

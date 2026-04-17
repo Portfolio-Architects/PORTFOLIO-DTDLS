@@ -174,7 +174,7 @@ export function FieldReportModal({
             {/* Left: 실거래가 전체 리스트 — mobile: 2번째, desktop: 1번째 (40%) */}
             <div className="w-full md:w-[40%] shrink-0 order-2 md:order-1 flex flex-col self-start">
               <TransactionTable 
-                transactions={transactions as any} 
+                transactions={transactions} 
                 typeMap={typeMap} 
                 areaUnit={areaUnit} 
                 chartType={chartType} 
@@ -184,12 +184,12 @@ export function FieldReportModal({
 
             {/* Right: Title + Chart — mobile: 1번째, desktop: 2번째 (60%) */}
             <TransactionChartSection 
-              transactions={transactions as any} 
+              transactions={transactions} 
               chartType={chartType} 
-              setChartType={setChartType as any} 
+              setChartType={setChartType} 
               displayAptName={displayAptName} 
               dong={report.dong || ''} 
-              typeMap={typeMap as any} 
+              typeMap={typeMap} 
               areaUnit={areaUnit || 'm2'} 
               normalizeAptName={normalizeAptName} 
             />

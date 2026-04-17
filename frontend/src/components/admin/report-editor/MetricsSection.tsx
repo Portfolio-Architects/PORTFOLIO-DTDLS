@@ -1,5 +1,5 @@
 import React from 'react';
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, Path } from 'react-hook-form';
 import { FormValues } from './types';
 
 // Export type to be used by parent
@@ -29,7 +29,7 @@ const NumberInput = ({ name, label, placeholder, unit }: { name: string, label: 
         <input 
           type="number"
           step="0.01"
-          {...register(name as any, { required: false })}
+          {...register(name as Path<FormValues>, { required: false })}
           className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-all placeholder-[#b0b8c1]"
           placeholder={placeholder}
         />
@@ -46,7 +46,7 @@ const TextInput = ({ name, label, placeholder }: { name: string, label: string, 
       <label className="text-[12px] font-bold text-[#4e5968] mb-1.5">{label}</label>
       <input 
         type="text" 
-        {...register(name as any, { required: false })} 
+        {...register(name as Path<FormValues>, { required: false })} 
         placeholder={placeholder} 
         className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-all placeholder-[#b0b8c1]" 
       />

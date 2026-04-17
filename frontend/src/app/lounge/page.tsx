@@ -4,7 +4,7 @@ import LoungeContainerClient from '@/components/LoungeContainerClient';
 export const revalidate = 30; // 30초 주기 ISR 재생성 (TTFB 0ms 목표)
 
 export default async function LoungePage() {
-  let posts: any[] = [];
+  let posts: Record<string, unknown>[] = [];
   let errorMessage: string | null = null;
   
   try {
@@ -49,9 +49,9 @@ export default async function LoungePage() {
     } else {
       errorMessage = "adminDb is null";
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to fetch lounge posts server-side', error);
-    errorMessage = error.message || String(error);
+    errorMessage = (error as Error)?.message || String(error);
   }
 
   return (
@@ -61,7 +61,7 @@ export default async function LoungePage() {
           🚧 Server Error: {errorMessage}
         </div>
       )}
-      <LoungeContainerClient initialPosts={posts} />
+      <LoungeContainerClient initialPosts={posts as any} />
     </main>
   );
 }

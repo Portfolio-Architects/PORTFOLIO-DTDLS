@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     // ── Extract & hash client IP (Spoofing Protection prioritized) ──
     const forwarded = request.headers.get('x-forwarded-for');
     const realIp = request.headers.get('x-real-ip');
-    const rawIp = request.ip || realIp || forwarded?.split(',')[0]?.trim() || 'unknown';
+    const rawIp = realIp || forwarded?.split(',')[0]?.trim() || 'unknown';
     const ipHash = createHash('sha256').update(rawIp).digest('hex').slice(0, 16);
 
     // ── Daily dedup key: reportId_ipHash_YYYY-MM-DD ──
@@ -81,8 +81,8 @@ export async function POST(request: NextRequest) {
     await batch.commit();
 
     return NextResponse.json({ counted: true });
-  } catch (error) {
-    console.error('[report-view] Error:', error);
+  } catch (error: unknown) {
+    console.error('[report-view] Error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

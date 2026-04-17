@@ -379,13 +379,20 @@ import { useState, useEffect } from 'react';
 export function useDashboardData() {
   // To avoid hydration mismatch, initialize with perfectly empty/default arrays 
   // exactly as the server would see them before any singleton effects run.
-  const [data, setData] = useState({
-    kpis: [] as KPIData[],
-    newsFeed: [] as NewsItemData[],
-    fieldReports: [] as FieldReportData[],
-    userReviews: [] as UserReview[],
-    dongtanApartments: [] as string[],
-    adBanner: { title: '', description: '', buttonText: '' } as AdBannerData,
+  const [data, setData] = useState<{
+    kpis: KPIData[];
+    newsFeed: NewsItemData[];
+    fieldReports: FieldReportData[];
+    userReviews: UserReview[];
+    dongtanApartments: string[];
+    adBanner: AdBannerData;
+  }>({
+    kpis: [],
+    newsFeed: [],
+    fieldReports: [],
+    userReviews: [],
+    dongtanApartments: [],
+    adBanner: { title: '', description: '', buttonText: '' },
   });
 
   const [isHydrated, setIsHydrated] = useState(false);

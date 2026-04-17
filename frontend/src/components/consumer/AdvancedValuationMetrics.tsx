@@ -6,9 +6,19 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Cell } from 'recharts
 import type { FieldReportData } from '@/lib/DashboardFacade';
 import { getBrandMultiplier } from '@/lib/utils/scoring';
 
+interface TxRecord {
+  dealType?: string;
+  price: number;
+  deposit?: number;
+  monthlyRent?: number;
+  contractYm?: string;
+  contractDay?: string;
+  contractDate?: string;
+}
+
 interface Props {
   report: FieldReportData;
-  transactions: any[];
+  transactions: TxRecord[];
 }
 
 // --------------------------------------------------------------------------
@@ -43,14 +53,14 @@ const GaugeBar = ({ score, max }: { score: number, max: number }) => {
 function calculateUtilityScoreV2(report: FieldReportData) {
   let score = 0;
   const breakDown = { specs: 0, infra: 0 };
-  const logs: any[] = [];
+  const logs: { icon: React.ElementType; category: string; score: number; max: number; label: string; isInfra: boolean; }[] = [];
   
   // 1. 단지 스펙 (Max 40점)
   let scaleScore = 5, parkScore = 0, yearScore = 0, brandScore = 0;
   let scaleLabel = '-', parkLabel = '-', yearLabel = '-', brandLabel = '-';
 
   if (report.metrics) {
-    const m = report.metrics as any;
+    const m = report.metrics as import('@/lib/types/scoutingReport').ObjectiveMetrics & Record<string, unknown>;
     
     // 브랜드 파워 (Max 5점) - getBrandMultiplier 사용
     let brandVal = m.brand || report.apartmentName || '';
@@ -116,7 +126,7 @@ function calculateUtilityScoreV2(report: FieldReportData) {
   let subLabel = '1km 초과', schLabel = '800m 초과', storeLabel = '상권 빈약', parkDistLabel = '500m 초과';
 
   if (report.metrics) {
-    const m = report.metrics as any;
+    const m = report.metrics as import('@/lib/types/scoutingReport').ObjectiveMetrics & Record<string, unknown>;
     
     // 교통 (역 거리 - 세분화) (Max 20점)
     if (m.distanceToSubway <= 300) { subScore = 20; subLabel = '300m 이내 (초역세권)'; }
@@ -135,7 +145,7 @@ function calculateUtilityScoreV2(report: FieldReportData) {
     // 상권 (거점 상권 / 앵커 테넌트 가산) (Max 15점)
     const stores = (m.academyDensity || 0) + (m.restaurantDensity || 0);
     // 스타벅스 혹은 대형마트가 500m 내에 있다면 +3점 앵커 가산점
-    const hasAnchor = (m.distanceToStarbucks <= 500) || (m.distanceToSupermarket <= 500);
+    const hasAnchor = ((m.distanceToStarbucks ?? Infinity) <= 500) || ((m.distanceToSupermarket ?? Infinity) <= 500);
     if (stores >= 80) { storeScore = 15; storeLabel = '80점포 이상 (광역 상권)'; }
     else if (stores >= 40) { storeScore = hasAnchor ? 12 : 10; storeLabel = `40점포 이상 (대형 상권${hasAnchor ? ' + 앵커테넌트' : ''})`; }
     else if (stores >= 15) { storeScore = hasAnchor ? 8 : 6; storeLabel = `15점포 이상 (근린 상권${hasAnchor ? ' + 앵커테넌트' : ''})`; }
@@ -143,8 +153,9 @@ function calculateUtilityScoreV2(report: FieldReportData) {
     else { storeScore = 0; storeLabel = '상권/학원가 정보 없음'; }
     
     // 자연 (공원/호수) (Max 10점)
-    if (m.distanceToPark && m.distanceToPark <= 300) { parkDistScore = 10; parkDistLabel = '300m 이내 공세권/호품아'; }
-    else if (m.distanceToPark && m.distanceToPark <= 600) { parkDistScore = 6; parkDistLabel = '600m 이내 쾌적한 도보 접근'; }
+    const distPark = (m as Record<string, number>).distanceToPark;
+    if (distPark && distPark <= 300) { parkDistScore = 10; parkDistLabel = '300m 이내 공세권/호품아'; }
+    else if (distPark && distPark <= 600) { parkDistScore = 6; parkDistLabel = '600m 이내 쾌적한 도보 접근'; }
     else { parkDistScore = 3; parkDistLabel = '600m 초과 제한적 뷰'; }
   } else {
     subScore = 10; schScore = 15; storeScore = 5; parkDistScore = 5;
@@ -169,7 +180,7 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
   const now = new Date();
   const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
 
-  const isRecent = (t: any) => {
+  const isRecent = (t: TxRecord) => {
     if (!t.contractYm || t.contractYm.length < 6) return false;
     const y = parseInt(t.contractYm.slice(0, 4));
     const m = parseInt(t.contractYm.slice(4, 6));
@@ -179,8 +190,8 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
   };
 
   // 1. Transaction 분리
-  const sales = transactions.filter(t => t.dealType !== '전세' && t.dealType !== '월세').sort((a,b) => b.contractDate.localeCompare(a.contractDate));
-  const rents = transactions.filter(t => t.dealType === '전세' || t.dealType === '월세').sort((a,b) => b.contractDate.localeCompare(a.contractDate));
+  const sales = transactions.filter(t => t.dealType !== '전세' && t.dealType !== '월세').sort((a,b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
+  const rents = transactions.filter(t => t.dealType === '전세' || t.dealType === '월세').sort((a,b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
   
   const recentSales = sales.filter(isRecent);
   const recentRents = rents.filter(isRecent);
@@ -190,7 +201,7 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
     ? Math.round(recentSales.reduce((sum, t) => sum + t.price, 0) / recentSales.length)
     : (sales.length > 0 ? sales[0].price : 0);
   
-  const getJeonseEq = (t: any) => t.dealType === '월세' 
+  const getJeonseEq = (t: TxRecord) => t.dealType === '월세' 
     ? (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055) 
     : (t.deposit || t.price || 0);
 

@@ -57,10 +57,10 @@ export default function ValuationWaterfall({ scores, price84Man }: Props) {
                 <Tooltip
                   contentStyle={{ borderRadius: 10, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontSize: 13, fontWeight: 700 }}
                   // @ts-expect-error recharts type match
-              formatter={(value: number | string | undefined, name: string | undefined, entry: any) => {
-                    const d = entry.payload;
+                  formatter={(value: number | string | undefined, name: string | undefined, entry: Record<string, unknown>) => {
+                    const d = entry.payload as Record<string, unknown>;
                     if (d.isTotal) return [`${value}점 (종합)`, ''];
-                    return [`${value}점 (가중치 ${Math.round((d.rawWeight || 0) * 100)}%)`, ''];
+                    return [`${value}점 (가중치 ${Math.round(((d.rawWeight as number) || 0) * 100)}%)`, ''];
                   }}
                 />
                 <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={36} isAnimationActive={false}>

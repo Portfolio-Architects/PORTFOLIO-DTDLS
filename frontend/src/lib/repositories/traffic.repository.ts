@@ -16,37 +16,25 @@ function getTodayStr(): string {
   return d.toISOString().split('T')[0];
 }
 
-/**
- * Increments global website visits for today.
- */
 export async function incrementWebsiteVisit(): Promise<void> {
-  const today = getTodayStr();
-  const ref = doc(db, 'daily_stats', today);
   try {
-    const snap = await getDoc(ref);
-    if (!snap.exists()) {
-      await setDoc(ref, { websiteVisits: 1, date: today }, { merge: true });
-    } else {
-      await updateDoc(ref, { websiteVisits: increment(1) });
-    }
+    await fetch('/api/traffic', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'websiteVisit' })
+    });
   } catch (e) {
-    logger.error('TrafficRepository.incrementWebsiteVisit', 'Update failed', { today }, e);
+    logger.error('TrafficRepository.incrementWebsiteVisit', 'Update failed', undefined, e);
   }
 }
 
-/**
- * Increments views for a specific piece of content for today.
- */
 export async function incrementContentView(contentId: string, title: string, type: 'lounge' | 'report'): Promise<void> {
-  const today = getTodayStr();
-  const contentRef = doc(db, `daily_stats/${today}/content_views`, contentId);
   try {
-    // We use setDoc with merge to safely increment without checking if existence
-    await setDoc(contentRef, {
-      title,
-      type,
-      views: increment(1)
-    }, { merge: true });
+    await fetch('/api/traffic', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'contentView', contentId, title, type })
+    });
   } catch (e) {
     logger.error('TrafficRepository.incrementContentView', 'Update failed', { contentId, type }, e);
   }

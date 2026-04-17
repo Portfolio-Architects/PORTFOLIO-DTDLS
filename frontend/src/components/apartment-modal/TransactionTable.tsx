@@ -23,7 +23,7 @@ export interface TransactionRecord {
 
 interface TransactionTableProps {
   transactions: TransactionRecord[];
-  typeMap: Record<string, Record<string, any>>;
+  typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   areaUnit: 'm2' | 'pyeong';
   chartType: 'sale' | 'jeonse';
   normalizeAptName: (name: string) => string;
@@ -181,7 +181,7 @@ export function TransactionTable({
                   { label: '낮은가격순', value: 'price_asc' },
                 ].map(opt => (
                   <button key={opt.value} className={`w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-[#f9fafb] transition-colors ${txSort === opt.value ? 'text-[#3182f6] bg-[#f2f4f6]/50' : 'text-[#4e5968]'}`}
-                    onClick={(e) => { e.stopPropagation(); setTxSort(opt.value as any); setActiveDropdown(null); }}>
+                    onClick={(e) => { e.stopPropagation(); setTxSort(opt.value as 'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'); setActiveDropdown(null); }}>
                     {opt.label}
                   </button>
                 ))}
@@ -263,11 +263,20 @@ export function TransactionTable({
                     </div>
                   )}
                   
-                  {/* 가격 위계 분리 (억 단위 강조, 만 단위 80% 축소) */}
-                  <div className={`flex items-baseline shrink-0 whitespace-nowrap tracking-tight ${tx.isOutlier || isCancelled ? 'text-[#8b95a1] line-through decoration-[#c8ced4] decoration-2' : ''}`}>
-                    {eok > 0 && <span className={`text-[15px] font-black mr-0.5 ${!(tx.isOutlier || isCancelled) ? 'text-[#191f28]' : ''}`}>{eok}억</span>}
-                    {rem > 0 && <span className={`text-[14px] ${eok > 0 ? 'font-bold' : 'font-black'} ${!(tx.isOutlier || isCancelled) ? (eok > 0 ? 'text-[#4e5968]' : 'text-[#191f28]') : ''}`}>{rem.toLocaleString()}{eok === 0 ? '만' : ''}</span>}
-                    {eok === 0 && rem === 0 && <span className={`text-[15px] font-black ${!(tx.isOutlier || isCancelled) ? 'text-[#191f28]' : ''}`}>0</span>}
+                  {/* 가격 위계 분리 (억 단위 강조, 만 단위 고정폭 정렬) */}
+                  <div className={`flex items-baseline justify-end shrink-0 whitespace-nowrap tracking-tight ${tx.isOutlier || isCancelled ? 'text-[#8b95a1] line-through decoration-[#c8ced4] decoration-2' : ''}`}>
+                    {eok > 0 && <span className={`text-[15px] font-black mr-[2px] ${!(tx.isOutlier || isCancelled) ? 'text-[#191f28]' : ''}`}>{eok}억</span>}
+                    
+                    {eok > 0 ? (
+                      <span className={`inline-block text-left tabular-nums w-[38px] text-[14px] font-bold ${!(tx.isOutlier || isCancelled) ? 'text-[#4e5968]' : ''}`}>
+                        {rem > 0 ? rem.toLocaleString() : ''}
+                      </span>
+                    ) : (
+                      <span className={`text-[14px] font-black tabular-nums ${!(tx.isOutlier || isCancelled) ? 'text-[#191f28]' : ''}`}>
+                        {rem > 0 ? `${rem.toLocaleString()}만` : '0'}
+                      </span>
+                    )}
+
                     {displayMonthly > 0 && <span className="text-[#8b95a1] ml-1 text-[13px] font-bold">/ {displayMonthly.toLocaleString()}만</span>}
                   </div>
                 </div>

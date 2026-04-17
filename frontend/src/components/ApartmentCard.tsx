@@ -110,21 +110,50 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
       <div className="flex items-center shrink-0">
         {txSummary ? (
           <div className="text-right min-w-[80px]">
-            <div className="text-base font-extrabold text-[#191f28] tabular-nums leading-none mb-1">
+            <div className="flex justify-end items-baseline text-base leading-none mb-1">
               {(() => {
+                let eok = 0;
+                let rem = 0;
+                let hasValue = false;
+                
                 if (txSummary.avg1MPrice > 0) {
                   const rounded = Math.round(txSummary.avg1MPrice / 100) * 100;
-                  const eok = Math.floor(rounded / 10000);
-                  const rem = rounded % 10000;
-                  return `${eok >= 1 ? `${eok}억` : ''}${rem > 0 ? rem.toLocaleString() : (eok > 0 ? '' : '0')}`;
+                  eok = Math.floor(rounded / 10000);
+                  rem = rounded % 10000;
+                  hasValue = true;
+                } else if (txSummary.recent && txSummary.recent.length > 0) {
+                  const r = txSummary.recent[0].priceEok;
+                  const match = r.match(/(\d+)억\s*([\d,]*)/);
+                  if (match) {
+                    eok = parseInt(match[1]);
+                    rem = parseInt((match[2] || '0').replace(/,/g, ''));
+                    hasValue = true;
+                  } else if (r.includes('만')) {
+                    eok = 0;
+                    rem = parseInt(r.replace(/[^\d]/g, ''));
+                    hasValue = true;
+                  } else if (!isNaN(parseInt(r))) {
+                    eok = 0;
+                    rem = parseInt(r);
+                    hasValue = true;
+                  }
                 }
-                if (txSummary.recent && txSummary.recent.length > 0) {
-                  return txSummary.recent[0].priceEok;
+                
+                if (hasValue) {
+                   return (
+                     <>
+                       <span className="font-extrabold text-[#191f28] tabular-nums">{eok >= 1 ? `${eok}억` : ''}</span>
+                       <span className={`inline-block text-left font-bold tabular-nums ml-[2px] ${eok > 0 ? 'w-[38px] text-[14.5px] text-[#4e5968]' : 'text-base text-[#191f28]'}`}>
+                         {rem > 0 ? (eok === 0 ? `${rem.toLocaleString()}만` : rem.toLocaleString()) : (eok === 0 ? '0' : '')}
+                       </span>
+                     </>
+                   );
                 }
-                if ((txSummary.latestRentDeposit || 0) > 0) {
-                  return `전/월세 ${txSummary.latestRentDepositEok}`;
+
+                if (txSummary && (txSummary.latestRentDeposit || 0) > 0) {
+                  return <span className="font-extrabold text-[#191f28] text-[14.5px] tracking-tight">{`전/월세 ${txSummary.latestRentDepositEok}`}</span>;
                 }
-                return '-';
+                return <span className="font-extrabold text-[#191f28]">-</span>;
               })()}
             </div>
             <div className="flex items-center justify-end gap-1.5">

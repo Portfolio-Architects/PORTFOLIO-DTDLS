@@ -139,16 +139,17 @@ export default function AdminDashboard() {
             const data = metaDoc.data() as Record<string, unknown>;
             const fbMap: MetaMap = {};
             for (const [name, m] of Object.entries(data)) {
-              if (m && typeof m === 'object' && (m as any).dong) {
+              if (m && typeof m === 'object' && 'dong' in m) {
+                const mapObj = m as Record<string, unknown>;
                 fbMap[name] = {
-                  dong: (m as any).dong,
-                  txKey: (m as any).txKey || autoSuggest(name) || undefined,
-                  maxFloor: (m as any).maxFloor || 0,
-                  isPublicRental: (m as any).isPublicRental || false,
-                  householdCount: (m as any).householdCount,
-                  yearBuilt: (m as any).yearBuilt,
-                  brand: (m as any).brand,
-                  ticker: (m as any).ticker,
+                  dong: mapObj.dong as string,
+                  txKey: (mapObj.txKey as string) || autoSuggest(name) || undefined,
+                  maxFloor: (mapObj.maxFloor as number) || 0,
+                  isPublicRental: (mapObj.isPublicRental as boolean) || false,
+                  householdCount: mapObj.householdCount as number | undefined,
+                  yearBuilt: mapObj.yearBuilt as string | undefined,
+                  brand: mapObj.brand as string | undefined,
+                  ticker: mapObj.ticker as string | undefined,
                 };
               }
             }

@@ -26,13 +26,15 @@ export default function EditReportPage() {
           const report = docSnap.data() as ScoutingReport;
           
           // Map Firebase data back exactly to React Hook Form's FormValues structure
-          const formValues: any = {
+          const formValues: FormValues = {
             dong: report.dong,
             apartmentName: report.apartmentName,
-            metrics: report.metrics,
+            metrics: report.metrics as unknown as FormValues['metrics'],
             premiumContent: report.premiumContent || '',
-            images: report.images || [],
-            isPremium: report.isPremium ?? true
+            images: (report.images || []).map(img => ({ ...img, locationTag: img.locationTag || '', isPremium: img.isPremium ?? false })),
+            isPremium: report.isPremium ?? true,
+            thumbnailUrl: report.thumbnailUrl || '',
+            scoutingDate: '',
           };
           
           setInitialData(formValues);

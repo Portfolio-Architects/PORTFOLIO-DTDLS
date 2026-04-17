@@ -69,17 +69,17 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
   useEffect(() => {
     if (initialData) {
       reset(initialData);
-      const m = initialData.metrics as any;
+      const m = initialData.metrics as Record<string, unknown>;
       if (m) {
         setApiCategories(prev => ({
           ...prev,
-          ...(m.academyCategories ? { academyCategories: m.academyCategories } : {}),
-          ...(m.restaurantCategories ? { restaurantCategories: m.restaurantCategories } : {}),
-          ...(m.restaurantDensity ? { restaurantDensity: m.restaurantDensity } : {}),
-          ...(m.nearestSchoolNames ? { nearestSchoolNames: m.nearestSchoolNames } : {}),
-          ...(m.nearestStationName ? { nearestStationName: m.nearestStationName } : {}),
-          ...(m.nearestIndeokwonStationName ? { nearestIndeokwonStationName: m.nearestIndeokwonStationName } : {}),
-          ...(m.nearestTramStationName ? { nearestTramStationName: m.nearestTramStationName } : {}),
+          ...(m.academyCategories ? { academyCategories: m.academyCategories as Record<string, number> } : {}),
+          ...(m.restaurantCategories ? { restaurantCategories: m.restaurantCategories as Record<string, number> } : {}),
+          ...(m.restaurantDensity ? { restaurantDensity: m.restaurantDensity as number } : {}),
+          ...(m.nearestSchoolNames ? { nearestSchoolNames: m.nearestSchoolNames as Record<string, string> } : {}),
+          ...(m.nearestStationName ? { nearestStationName: m.nearestStationName as string } : {}),
+          ...(m.nearestIndeokwonStationName ? { nearestIndeokwonStationName: m.nearestIndeokwonStationName as string } : {}),
+          ...(m.nearestTramStationName ? { nearestTramStationName: m.nearestTramStationName as string } : {}),
         }));
       }
 
@@ -131,8 +131,8 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
     try {
       if (!auth.currentUser) throw new Error("로그인이 필요합니다.");
 
-      const uploadedImages: any[] = [];
-      const imagesToProcess = data.images.filter((img: any) => img.file || img.url);
+      const uploadedImages: { url: string; caption: string; locationTag: string; isPremium: boolean; capturedAt?: string }[] = [];
+      const imagesToProcess = data.images.filter((img) => img.file || img.url);
       const totalImages = imagesToProcess.length;
       let uploadedCount = 0;
       setUploadProgress({ done: 0, total: totalImages });
@@ -141,7 +141,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
       for (let i = 0; i < imagesToProcess.length; i += BATCH_SIZE) {
         const batch = imagesToProcess.slice(i, i + BATCH_SIZE);
         const results = await Promise.all(
-          batch.map(async (img: any) => {
+          batch.map(async (img) => {
             let finalUrl = img.url;
             if (img.file) finalUrl = await uploadImage(img.file, 'report_images');
             return finalUrl ? { url: finalUrl, caption: img.caption || '', locationTag: img.locationTag || '', isPremium: img.isPremium, capturedAt: img.capturedAt } : null;
@@ -247,7 +247,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
           isCalculating={isCalculating} 
           setIsCalculating={setIsCalculating} 
           apiCategories={apiCategories} 
-          setApiCategories={setApiCategories as any} 
+          setApiCategories={setApiCategories} 
         />
 
         <ImageUploadSection />
@@ -266,7 +266,7 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                 const data = getValues();
                 const safeData = {
                   ...data,
-                  images: (data.images || []).map((img: any) => ({
+                  images: (data.images || []).map((img) => ({
                     url: img.url || '',
                     previewUrl: img.previewUrl || '',
                     caption: img.caption || '',

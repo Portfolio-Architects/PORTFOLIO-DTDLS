@@ -57,7 +57,7 @@ export function ImageUploadSection() {
       uploadedFileKeys.current.add(file.name);
       const previewUrl = URL.createObjectURL(file);
       const capturedAt = await extractCapturedDate(file) || undefined;
-      const currentVal = imageFields[index] as any; // Need to ensure it's not undefined
+      const currentVal = imageFields[index];
       updateImage(index, { ...currentVal, file, previewUrl, capturedAt });
     }
     e.target.value = '';
@@ -154,7 +154,7 @@ export function ImageUploadSection() {
       )}
 
       <div className="space-y-4 mb-6">
-        {imageFields.map((field: any, index) => (
+        {imageFields.map((field, index) => (
           <div key={field.id} className="flex flex-col md:flex-row gap-4 p-4 border border-[#e5e8eb] rounded-2xl bg-white shadow-sm hover:border-[#3182f6] transition-colors group relative">
 
             <input 
@@ -257,7 +257,7 @@ export function ImageUploadSection() {
                                 key={item}
                                 type="button"
                                 onClick={() => {
-                                  const currentVal = imageFields[index] as any;
+                                  const currentVal = imageFields[index];
                                   updateImage(index, { ...currentVal, locationTag: item });
                                   document.getElementById(`cat-popover-${index}`)?.classList.add('hidden');
                                 }}
@@ -277,7 +277,7 @@ export function ImageUploadSection() {
                   );
                 })()}
                 <input
-                  {...register(`images.${index}.caption` as any)}
+                  {...register(`images.${index}.caption` as const)}
                   className="flex-1 px-3 py-2 bg-[#f9fafb] border border-[#e5e8eb] rounded-lg text-[13px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none placeholder-[#b0b8c1]"
                   placeholder={CAPTION_TEMPLATES[field.locationTag]?.[0] || '사진 설명 캡션을 입력하세요'}
                 />
@@ -290,7 +290,7 @@ export function ImageUploadSection() {
                       key={tIdx}
                       type="button"
                       onClick={() => {
-                        const currentVal = imageFields[index] as any;
+                        const currentVal = imageFields[index];
                         updateImage(index, { ...currentVal, caption: tmpl });
                       }}
                       className="px-2.5 py-1 bg-[#f2f4f6] hover:bg-[#e8f3ff] hover:text-[#3182f6] border border-[#e5e8eb] hover:border-[#3182f6] rounded-lg text-[11px] text-[#4e5968] font-medium transition-all truncate max-w-[240px]"
@@ -303,7 +303,7 @@ export function ImageUploadSection() {
               )}
               <div className="flex items-center gap-3 w-full">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" {...register(`images.${index}.isPremium` as any)} className="w-4 h-4 rounded text-[#3182f6] focus:ring-[#3182f6] border-[#d1d6db]" />
+                  <input type="checkbox" {...register(`images.${index}.isPremium` as const)} className="w-4 h-4 rounded text-[#3182f6] focus:ring-[#3182f6] border-[#d1d6db]" />
                   <span className="text-[13px] font-semibold text-[#4e5968]">유료(프리미엄) 멤버 전용 숨김 처리</span>
                 </label>
                 
@@ -322,7 +322,7 @@ export function ImageUploadSection() {
 
       <button 
         type="button" 
-        onClick={() => appendImage({ url: '', caption: '', locationTag: '', isPremium: false } as any)}
+        onClick={() => appendImage({ url: '', caption: '', locationTag: '', isPremium: false })}
         className="w-full py-4 border-2 border-dashed border-[#d1d6db] rounded-2xl text-[#4e5968] font-bold text-[14px] hover:bg-[#f9fafb] hover:text-[#3182f6] hover:border-[#3182f6] transition-all flex items-center justify-center gap-2"
       >
         <ImagePlus size={18} /> 사진 블록(Block) 추가

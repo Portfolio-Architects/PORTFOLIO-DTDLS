@@ -21,9 +21,9 @@ export default function EduBubbleChart() {
     return '';
   };
 
-  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: any[] }) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Record<string, unknown>[] }) => {
     if (active && payload && payload.length) {
-      const data = payload[0].payload;
+      const data = payload[0].payload as { area: string; name: string; x: number; y: number; z: number };
       return (
         <div className="bg-[#191f28]/90 p-3 rounded-lg text-white border-none shadow-lg text-sm">
           <p className="font-bold mb-1">{data.area} ({data.name})</p>

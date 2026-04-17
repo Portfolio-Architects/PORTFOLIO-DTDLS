@@ -19,7 +19,7 @@ interface TransactionChartSectionProps {
   setChartType: (type: 'sale' | 'jeonse') => void;
   displayAptName: string;
   dong: string;
-  typeMap: Record<string, Record<string, any>>;
+  typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   areaUnit: 'm2' | 'pyeong';
   normalizeAptName: (name: string) => string;
 }
@@ -34,8 +34,13 @@ export function TransactionChartSection({
   areaUnit,
   normalizeAptName
 }: TransactionChartSectionProps) {
+  type ScatterData = {
+    ts: number; yearMonth: number; contractDay: number; price: number; area: number;
+    rawArea: number; floor: number; priceEok: string; dealType: string; fullDate: string; isOutlier: boolean;
+  };
+
   const [chartTimeframe, setChartTimeframe] = useState<'6M' | '1Y' | '3Y' | 'ALL'>('ALL');
-  const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: any } | null>(null);
+  const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: ScatterData } | null>(null);
 
   const relevantTxs = transactions.filter(tx => 
     chartType === 'sale' 
@@ -245,17 +250,17 @@ export function TransactionChartSection({
               <Bar dataKey="volume" yAxisId="volume" fill="#e5e8eb" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.6} isAnimationActive={false} />
               <Line type="monotone" dataKey="monthAvg" yAxisId="price" stroke="#3182f6" strokeWidth={2} dot={false} activeDot={false} connectNulls isAnimationActive={false} />
               <Customized
-                component={(rechartProps: any) => {
-                  const { xAxisMap, yAxisMap } = rechartProps;
+                component={(rechartProps: Record<string, unknown>) => {
+                  const { xAxisMap, yAxisMap } = rechartProps as { xAxisMap?: Record<string, { scale?: (val: number) => number }>; yAxisMap?: Record<string, { scale?: (val: number) => number }> };
                   if (!xAxisMap || !yAxisMap) return null;
-                  const xAx = Object.values((rechartProps as any).xAxisMap || {})[0] as any;
-                  const yAx = Object.values((rechartProps as any).yAxisMap || {})[0] as any;
+                  const xAx = Object.values(xAxisMap)[0];
+                  const yAx = Object.values(yAxisMap)[0];
                   if (!xAx?.scale || !yAx?.scale) return null;
                   return (
                     <g>
                       {scatterData.map((d, i) => {
-                        const cx = xAx.scale(d.ts);
-                        const cy = yAx.scale(d.price);
+                        const cx = xAx.scale ? xAx.scale(d.ts) : 0;
+                        const cy = yAx.scale ? yAx.scale(d.price) : 0;
                         if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
                         const isHov = hoveredDot?.data === d;
                         const floorColor = getFloorColor(d.floor);
@@ -266,7 +271,7 @@ export function TransactionChartSection({
                             stroke={isHov ? '#fbbf24' : 'none'}
                             strokeWidth={isHov ? 2 : 0}
                             style={{ cursor: 'pointer', transition: 'r 0.15s, opacity 0.15s' }}
-                            onMouseEnter={() => setHoveredDot({ x: cx, y: cy, data: d })}
+                            onMouseEnter={() => setHoveredDot({ x: cx, y: cy, data: { ...d, dealType: d.dealType || '' } })}
                             onMouseLeave={() => setHoveredDot(null)}
                           />
                         );

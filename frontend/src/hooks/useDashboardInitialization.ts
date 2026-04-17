@@ -38,7 +38,28 @@ export interface TransactionRecord {
   rnuYn: string;
 }
 
-export function useDashboardInitialization(initialDashboardData?: any) {
+interface RawTransactionRecord {
+  dealType?: string;
+  deposit?: number;
+  monthlyRent?: number;
+  price: number;
+  area: number;
+  areaPyeong: number;
+  contractYm: string;
+  contractDay: string | number;
+  floor: number;
+  cancelDate?: string;
+  reqGb?: string;
+  rnuYn?: string;
+}
+
+export interface DashboardInitialData {
+  typeMap?: { aptName: string; area: number | string; typeM2: string; typePyeong: string }[];
+  apartmentMeta?: Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
+  favoriteCounts?: Record<string, number>;
+}
+
+export function useDashboardInitialization(initialDashboardData?: DashboardInitialData) {
   // === 1. Auth & Profiles ===
   const [user, setUser] = useState<User | null>(null);
   const [anonProfile, setAnonProfile] = useState<{nickname: string; frontName?: string; photoURL?: string} | null>(null);
@@ -244,14 +265,14 @@ export function useDashboardInitialization(initialDashboardData?: any) {
     let unmounted = false;
     setIsTxLoading(true);
     const rawApt = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping));
-    const txKey = (rawApt as any)?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
+    const txKey = (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
     const fileKey = txKey || normalizeAptName(selectedReport.apartmentName);
 
     fetch(`/tx-data/${encodeURIComponent(fileKey)}.json?v=${Date.now()}`)
       .then(res => res.ok ? res.json() : [])
       .then(records => {
         if (unmounted) return;
-        const mapped: TransactionRecord[] = records.map((r: any, i: number) => {
+        const mapped: TransactionRecord[] = records.map((r: RawTransactionRecord, i: number) => {
           let eokStr = '';
           if (r.dealType === '전세' || r.dealType === '월세') {
              eokStr = formatPriceEok(r.deposit || 0);
@@ -335,7 +356,7 @@ export function useDashboardInitialization(initialDashboardData?: any) {
     const raw = fullReportData || selectedReport;
     if (raw.metrics) return raw;
     const fallback = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, raw.apartmentName, nameMapping));
-    return { ...raw, metrics: fallback as any };
+    return { ...raw, metrics: fallback as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics };
   }, [selectedReport, fullReportData, sheetApartments, nameMapping]);
 
   return {
