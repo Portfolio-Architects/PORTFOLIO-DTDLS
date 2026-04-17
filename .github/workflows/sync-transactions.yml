@@ -57,6 +57,8 @@ jobs:
       - name: Generate static transaction files
         if: github.event_name != 'push'
         run: node scripts/sync-transactions.js
+        env:
+          FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
 
       # Step 3: Commit & Push if changes exist
       - name: Commit and push changes
