@@ -8,7 +8,7 @@ import type { UserProfile } from '@/lib/types/user.types';
 import { logger } from '@/lib/services/logger';
 import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartments';
 import { TX_SUMMARY, type AptTxSummary } from '@/lib/transaction-summary';
-import { normalizeAptName, findTxKey, isSameApartment, getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import { normalizeAptName, findTxKey, isSameApartment, getDisplayAptName, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
 
 export interface TransactionRecord {
   no: number;
@@ -265,7 +265,8 @@ export function useDashboardInitialization(initialDashboardData?: DashboardIniti
     let unmounted = false;
     setIsTxLoading(true);
     const rawApt = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping));
-    const txKey = (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
+    const overrideKey = HARDCODED_MAPPING[normalizeAptName(selectedReport.apartmentName)];
+    const txKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
     const fileKey = txKey || normalizeAptName(selectedReport.apartmentName);
 
     fetch(`/tx-data/${encodeURIComponent(fileKey)}.json?v=${Date.now()}`)

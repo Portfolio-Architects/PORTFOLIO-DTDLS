@@ -23,12 +23,14 @@ export function normalizeAptName(name: string): string {
     .trim();
 }
 
-const HARDCODED_MAPPING: Record<string, string> = {
+export const HARDCODED_MAPPING: Record<string, string> = {
   '그린힐반도유보라아이비파크10.0': '그린힐반도유보라아이비파크101단지',
   '레이크힐반도유보라아이비파크10.0': '레이크힐반도유보라아이비파크10.2',
   '동탄풍성신미주': '동탄역신미주',
   '금호어울림레이크1차': '금호어울림레이크',
   '동탄호수공원금호어울림레이크1차': '금호어울림레이크',
+  '능동역센트럴경남아너스빌': '동탄숲속마을자연앤경남아너스빌1115-0',
+  '능동역경남아너스빌': '동탄숲속마을자연앤경남아너스빌1124-0',
 };
 
 const DISPLAY_NAME_MAPPING: Record<string, string> = {

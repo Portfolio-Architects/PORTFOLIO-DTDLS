@@ -25,7 +25,7 @@ import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartment
 
 interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }
 import { TX_SUMMARY, type AptTxSummary } from '@/lib/transaction-summary';
-import { isSameApartment, normalizeAptName, findTxKey, getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import { isSameApartment, normalizeAptName, findTxKey, getDisplayAptName, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
 import * as PurchaseRepo from '@/lib/repositories/purchase.repository';
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -376,7 +376,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   >
                     {({ index, style }: { index: number; style: React.CSSProperties }) => {
                       const apt = sorted[index];
-                      const txKey = apt.txKey || findTxKey(apt.name, txSummaryData, nameMapping);
+                      const overrideKey = HARDCODED_MAPPING[normalizeAptName(apt.name)];
+                      const txKey = overrideKey || apt.txKey || findTxKey(apt.name, txSummaryData, nameMapping);
                       const txSummary = txKey ? txSummaryData[txKey] : undefined;
                       const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name, nameMapping));
                       return (
