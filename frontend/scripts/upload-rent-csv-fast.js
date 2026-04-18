@@ -125,18 +125,20 @@ async function main() {
 
   console.log(`\n✅ CSV 파싱 완료: ${records.length}건`);
 
-  console.log('\n🔥 Firestore에서 기존 데이터를 모두 불러와 중복 필터링을 준비합니다...');
+  const minContractDate = records.reduce((min, r) => r.contractDate < min ? r.contractDate : min, '99999999');
+  console.log(`🔥 Firestore에서 기준일(${minContractDate}) 이후의 데이터만 불러와 중복 필터링을 준비합니다...`);
   const db = admin.firestore();
   
-  // Note: Only fetching Jeonse/Wolse if possible, or all.
-  // We can just fetch all records to build the cache.
+  // Note: Only fetching recent records based on the CSV content to avoid Full Collection Scan.
+  // We use only contractDate for the query to avoid missing composite index errors, and filter by source locally.
   const snapshot = await db.collection('transactions')
-    .where('source', '==', 'csv_rent_import')
+    .where('contractDate', '>=', minContractDate)
     .get();
 
   const existingDocs = new Map();
   snapshot.docs.forEach(doc => {
       const data = doc.data();
+      if (data.source !== 'csv_rent_import') return; // 로컬에서 source 필터링
       const key = `${data.aptName}_${data.contractDate}_${data.deposit}_${data.floor}_${data.monthlyRent || 0}`;
       existingDocs.set(key, { id: doc.id, data: data, ref: doc.ref });
   });

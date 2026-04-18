@@ -107,17 +107,49 @@ function normalizeAptName(name) {
 }
 
 async function main() {
-  console.log('📡 Firestore에서 실거래가 데이터 읽는 중...');
+  const isFullSync = process.argv.includes('--full');
+  const now = new Date();
+  const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+  const cutoffYm = `${threeMonthsAgo.getFullYear()}${String(threeMonthsAgo.getMonth() + 1).padStart(2, '0')}`;
+  const cutoffDate = `${cutoffYm}${String(threeMonthsAgo.getDate()).padStart(2, '0')}`;
+
+  const TX_DATA_DIR = path.resolve(__dirname, '../public/tx-data');
+  const byApt = {};
+
+  if (!isFullSync && fs.existsSync(path.join(TX_DATA_DIR, '_index.json'))) {
+    console.log('📥 [Incremental] 로컬 JSON 캐시(기존 실거래가)를 로드합니다...');
+    try {
+      const index = JSON.parse(fs.readFileSync(path.join(TX_DATA_DIR, '_index.json'), 'utf8'));
+      for (const aptName of index) {
+        const filepath = path.join(TX_DATA_DIR, `${aptName}.json`);
+        if (fs.existsSync(filepath)) {
+          const records = JSON.parse(fs.readFileSync(filepath, 'utf8'));
+          byApt[aptName] = records.map(d => ({
+            ...d,
+            contractDate: d.contractDate || `${d.contractYm}${String(d.contractDay).padStart(2, '0')}`,
+            dong: d.dong || ''
+          }));
+        }
+      }
+      console.log(`✅ ${Object.keys(byApt).length}개 아파트의 기존 데이터 로드 완료`);
+    } catch (e) {
+      console.warn('⚠️ 로컬 캐시 로드 중 오류 발생, Full Sync로 전환합니다.', e);
+    }
+  } else {
+    console.log('🚀 [Full Sync] 로컬 캐시를 무시하고 전체 데이터를 처음부터 다시 동기화합니다...');
+  }
+
+  console.log(`📡 Firestore에서 실거래가 데이터 읽는 중... (Incremental: ${!isFullSync ? cutoffDate + ' 이후' : '전체'})`);
   
   const db = admin.firestore();
   
-  const collRef = db.collection('transactions');
+  let collRef = db.collection('transactions');
+  if (!isFullSync) {
+    collRef = collRef.where('contractDate', '>=', cutoffDate);
+  }
   const snapshot = await collRef.orderBy('contractDate', 'desc').get();
 
-  console.log(`📋 총 ${snapshot.size}건 로드 완료`);
-
-  // 아파트별 그룹핑 (정규화된 키 사용)
-  const byApt = {};
+  console.log(`📋 transactions 컬렉션에서 ${snapshot.size}건 로드 완료`);
 
   snapshot.forEach((docSnap) => {
     const d = docSnap.data();
@@ -159,8 +191,12 @@ async function main() {
     }
   });
 
-  console.log('📡 Firestore transactionSync (임대차 등) 로딩 중...');
-  const syncSnap = await db.collection('transactionSync').orderBy('contractYm', 'desc').get();
+  console.log(`📡 Firestore transactionSync (임대차 등) 로딩 중... (Incremental: ${!isFullSync ? cutoffYm + ' 이후' : '전체'})`);
+  let syncRef = db.collection('transactionSync');
+  if (!isFullSync) {
+    syncRef = syncRef.where('contractYm', '>=', cutoffYm);
+  }
+  const syncSnap = await syncRef.orderBy('contractYm', 'desc').get();
   console.log(`📋 transactionSync 컬렉션에서 ${syncSnap.size}건 로드 완료`);
 
   syncSnap.forEach((docSnap) => {
@@ -207,7 +243,6 @@ async function main() {
   const summaries = {};
   let aptCount = 0;
 
-  const now = new Date();
   const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
 
   console.log('🔗 타입 맵 다운로드 중 (공급면적 기준 평당가 계산)...');
@@ -387,13 +422,14 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = `;
   // ── 아파트별 JSON 청크 생성 (public/tx-data/*.json) ──
   // 기존 16MB 단일 .ts 파일 대신 아파트별 개별 JSON 파일로 분할
   // → 모달에서 해당 아파트만 fetch('/tx-data/{aptKey}.json')로 로딩 (~100KB)
-  const TX_DATA_DIR = path.resolve(__dirname, '../public/tx-data');
   
-  // 디렉토리 초기화
-  if (fs.existsSync(TX_DATA_DIR)) {
+  // 디렉토리 초기화 (Full Sync 시에만)
+  if (isFullSync && fs.existsSync(TX_DATA_DIR)) {
     fs.rmSync(TX_DATA_DIR, { recursive: true });
   }
-  fs.mkdirSync(TX_DATA_DIR, { recursive: true });
+  if (!fs.existsSync(TX_DATA_DIR)) {
+    fs.mkdirSync(TX_DATA_DIR, { recursive: true });
+  }
 
   let totalRecords = 0;
   let totalSizeKB = 0;
