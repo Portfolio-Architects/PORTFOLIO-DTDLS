@@ -18,6 +18,7 @@ import CommentSection from '@/components/CommentSection';
 import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
 import { TransactionTable } from './apartment-modal/TransactionTable';
 import { TransactionChartSection } from './apartment-modal/TransactionChartSection';
+import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 
 const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics'), { ssr: false });
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard'), { ssr: false });
@@ -76,6 +77,7 @@ export function FieldReportModal({
   inline?: boolean;
   areaUnit?: 'm2' | 'pyeong';
 }) {
+  useSwipeNavigation({ onBack: onClose });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const displayAptName = getDisplayAptName(report.apartmentName);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);

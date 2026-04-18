@@ -3,6 +3,8 @@ import { PieChart, LayoutDashboard, Building2, Newspaper, MessageSquare, Search,
 import './globals.css';
 import OfflineBanner from '@/components/OfflineBanner';
 import SiteTracker from '@/components/SiteTracker';
+import { PWAProvider } from '@/components/pwa/PWAProvider';
+import CustomA2HSModal from '@/components/pwa/CustomA2HSModal';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://dongtanview.com'),
@@ -34,22 +36,22 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className="antialiased">
-        {/* 🔧 SW/Cache Auto-Cleanup — zombie service worker 제거 */}
+        {/* 🔧 Register PWA Service Worker */}
         <script dangerouslySetInnerHTML={{ __html: `
-          if('serviceWorker' in navigator){
-            navigator.serviceWorker.getRegistrations().then(function(regs){
-              regs.forEach(function(r){r.unregister()});
-            });
-          }
-          if('caches' in window){
-            caches.keys().then(function(keys){
-              keys.forEach(function(k){caches.delete(k)});
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+              navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                console.log('ServiceWorker registration failed: ', err);
+              });
             });
           }
         `}} />
-        <OfflineBanner />
-        <SiteTracker />
-        {children}
+        <PWAProvider>
+          <OfflineBanner />
+          <SiteTracker />
+          {children}
+          <CustomA2HSModal />
+        </PWAProvider>
       </body>
     </html>
   );

@@ -132,6 +132,21 @@ src/
 | DevOps / CI | **B+** | GitHub Actions CI (Lint→TypeCheck→Jest→Build), Vercel 자동 배포 |
 | 컴포넌트 크기 | **A** | page.tsx 970줄, ApartmentModal 1,336줄 (consumer 서브 컴포넌트 7개 분리 완료), ReportEditorForm 1,179→230줄 (FormProvider + 4 Sub-module 분리 완료) |
 
+### 📈 PWA S+ 등급 달성을 위한 기술적 로드맵 (B+ → S+)
+현재 B+ 등급에 머물러 있는 PWA(Progressive Web App) 항목을 네이티브 앱 수준의 최고 등급(S+)으로 끌어올리기 위한 중장기 엔지니어링 마일스톤입니다.
+
+1. **Background Sync (오프라인 동기화 큐 설계)**
+   - **한계:** 현재 단순 오프라인 Fallback UI만 제공됨.
+   - **목표:** 서비스 워커 내부에 `SyncManager` API를 도입하여, 네트워크 단절 시 사용자가 작성한 코멘트/관심 단지 등록 데이터를 IndexedDB 큐에 임시 적재. 네트워크가 복구되는 즉시 메인 스레드 개입 없이 백그라운드에서 서버로 동기화(업로드) 처리.
+2. **Advanced Caching (Stale-While-Revalidate 전략 고도화)**
+   - **한계:** 정적 리소스 위주의 기본 캐싱으로 동적 API 데이터에 대한 오프라인 대응력 부족.
+   - **목표:** 국토부 실거래가 JSON 및 자체 API 응답 결과를 서비스 워커 캐시에 저장하고, `Stale-While-Revalidate` 패턴을 적용. 앱 구동 시 즉시 캐시된 데이터를 화면에 렌더링하고 조용히 최신 데이터를 페치하도록 체감 로딩 속도 극대화.
+3. **Web Push Notifications (실시간 양방향 푸시 알림)**
+   - **한계:** 사용자 참여 유도를 위한 시스템 수준 알림 부재.
+   - **목표:** Firebase Cloud Messaging(FCM)과 Web Push API를 연동하여, 사용자의 관심 아파트 실거래가 갱신 및 신규 브리핑 리포트 등록 시 브라우저가 꺼져 있어도 네이티브 OS 레벨의 푸시 알림 전송.
+4. **App-like UX (제스처 네비게이션 및 A2HS 넛지 최적화)**
+   - **목표:** 모바일 브라우저의 이질감을 없애기 위해 Pull-to-refresh(당겨서 새로고침), Swipe 제스처를 구현. 또한 무분별한 브라우저 기본 설치 팝업 대신, 사용자가 유의미한 인터랙션(예: 관심 단지 등록 완료)을 달성한 순간 `beforeinstallprompt` 이벤트를 가로채어 세련된 커스텀 Add to Home Screen(A2HS) 모달 제공.
+
 ---
 
 ## 7. Testing & CI/CD

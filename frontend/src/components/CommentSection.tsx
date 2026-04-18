@@ -3,6 +3,7 @@
 import { MessageSquare, UserCircle } from 'lucide-react';
 import type { CommentData } from '@/lib/types/report.types';
 import type { User } from 'firebase/auth';
+import { usePWA } from '@/components/pwa/PWAProvider';
 
 interface CommentSectionProps {
   comments: CommentData[];
@@ -21,6 +22,14 @@ export default function CommentSection({
   user,
   isUnlocked,
 }: CommentSectionProps) {
+  const { triggerCustomA2HSModal } = usePWA();
+
+  const handleAction = () => {
+    onSubmitComment();
+    // 댓글 달면 A2HS 모달 트리거 (조건은 Provider 내부에서 알아서 필터링됨)
+    triggerCustomA2HSModal();
+  };
+
   return (
     <div id="sec-comments" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
       <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3">
@@ -39,11 +48,11 @@ export default function CommentSection({
             value={commentInput}
             onChange={(e) => onCommentChange(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') onSubmitComment();
+              if (e.key === 'Enter') handleAction();
             }}
           />
           <button 
-            onClick={onSubmitComment}
+            onClick={handleAction}
             disabled={!user || !commentInput.trim()}
             className="bg-[#3182f6] text-white px-5 rounded-xl font-bold text-[14px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >

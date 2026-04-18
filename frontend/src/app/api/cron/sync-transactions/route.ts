@@ -6,8 +6,7 @@
  * 수동 호출도 가능: fetch('/api/cron/sync-transactions')
  */
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/firebaseConfig';
-import { collection, doc, writeBatch, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { adminDb as db } from '@/lib/firebaseAdmin';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,9 +49,8 @@ export async function GET(request: Request) {
     }
 
     // 1. Find the latest contractDate in Firestore to determine sync range
-    const collRef = collection(db, 'transactions');
-    const latestQ = query(collRef, orderBy('contractDate', 'desc'), limit(1));
-    const latestSnap = await getDocs(latestQ);
+    const collRef = db.collection('transactions');
+    const latestSnap = await collRef.orderBy('contractDate', 'desc').limit(1).get();
     
     let latestYm = '';
     if (!latestSnap.empty) {
@@ -104,7 +102,7 @@ export async function GET(request: Request) {
           // Single-pass: extract ALL tags into a Map (O(1) lookups)
           // Previously: 12x new RegExp() per item -> now 1x regex scan
           const tagMap = new Map<string, string>();
-          const tagRegex = /<(\w+)>([\s\S]*?)<\/\1>/g;
+          const tagRegex = /<([^>]+)>([^<]*)<\/\1>/g;
           let tagMatch;
           while ((tagMatch = tagRegex.exec(itemXml)) !== null) {
             tagMap.set(tagMatch[1], tagMatch[2].trim());
@@ -154,10 +152,10 @@ export async function GET(request: Request) {
         const BATCH_SIZE = 500;
         let written = 0;
         for (let i = 0; i < monthRecords.length; i += BATCH_SIZE) {
-          const batch = writeBatch(db);
+          const batch = db.batch();
           const slice = monthRecords.slice(i, i + BATCH_SIZE);
           for (const r of (slice as Record<string, unknown>[])) {
-            batch.set(doc(collRef, r._key as string), r, { merge: true });
+            batch.set(collRef.doc(r._key as string), r, { merge: true });
           }
           await batch.commit();
           written += slice.length;
@@ -166,6 +164,20 @@ export async function GET(request: Request) {
         syncLog.push(`${ym}: ${written}건 동기화`);
       } else {
         syncLog.push(`${ym}: 0건`);
+      }
+    }
+
+    // 5. Trigger Vercel Deploy Hook if there are new transactions
+    if (totalNew > 0 && process.env.VERCEL_DEPLOY_HOOK_URL) {
+      try {
+        const deployRes = await fetch(process.env.VERCEL_DEPLOY_HOOK_URL, { method: 'POST' });
+        if (deployRes.ok) {
+          syncLog.push('Vercel Deploy Hook Triggered Successfully');
+        } else {
+          syncLog.push(`Vercel Deploy Hook Failed: HTTP ${deployRes.status}`);
+        }
+      } catch (err) {
+        syncLog.push(`Vercel Deploy Hook Error: ${(err as Error).message}`);
       }
     }
 

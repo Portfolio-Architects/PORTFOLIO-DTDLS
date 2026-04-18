@@ -15,6 +15,8 @@ import { getDisplayName } from '@/lib/types/user.types';
 import { isAdmin as checkAdmin } from '@/lib/config/admin.config';
 import { compressImage } from '@/lib/utils/imageCompression';
 import { dashboardFacade } from '@/lib/DashboardFacade';
+import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
+import { usePWA } from '@/components/pwa/PWAProvider';
 
 interface PostComment {
   id: string;
@@ -25,6 +27,8 @@ interface PostComment {
 
 export default function LoungeDetailClient({ postId, initialPost, isModal = false }: { postId: string, initialPost?: Record<string, unknown>, isModal?: boolean }) {
   const router = useRouter();
+  const { triggerCustomA2HSModal } = usePWA();
+  useSwipeNavigation({ onBack: () => isModal ? router.back() : router.back() });
 
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -136,6 +140,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       localStorage.setItem(`post_liked_${postId}`, 'true');
       await updateDoc(doc(db, 'posts', postId), { likes: increment(1) });
       setPost((prev) => prev ? { ...prev, likes: (Number(prev.likes) || 0) + 1 } : prev);
+      triggerCustomA2HSModal();
     } catch(e) {
       setIsLiked(false);
       localStorage.removeItem(`post_liked_${postId}`);
@@ -155,6 +160,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
       });
       await updateDoc(doc(db, 'posts', postId), { commentCount: increment(1) });
       setCommentText('');
+      triggerCustomA2HSModal();
     } catch {
       alert('댓글 작성에 실패했습니다.');
     } finally {

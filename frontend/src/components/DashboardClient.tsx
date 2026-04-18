@@ -13,6 +13,7 @@ import DongFilterBar from '@/components/DongFilterBar';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import Footer from '@/components/Footer';
 import dynamic from 'next/dynamic';
+import PullToRefresh from '@/components/pwa/PullToRefresh';
 
 // Heavy components — loaded on demand (saves ~200KB initial JS)
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').then(m => ({ default: m.FieldReportModal })), { ssr: false });
@@ -30,6 +31,7 @@ import { useRouter } from 'next/navigation';
 import { getDisplayName } from '@/lib/types/user.types';
 import { FixedSizeList } from 'react-window';
 import { useDashboardInitialization, DashboardInitialData } from '@/hooks/useDashboardInitialization';
+import { usePWA } from '@/components/pwa/PWAProvider';
 
 export default function DashboardClient({ initialDashboardData, preselectedAptName }: { initialDashboardData?: DashboardInitialData, preselectedAptName?: string }) {
   const router = useRouter();
@@ -43,6 +45,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     tx: { modalTransactions, isTxLoading },
     comments: { commentsData, commentInput, setCommentInput, handleSubmitComment }
   } = useDashboardInitialization(initialDashboardData);
+
+  const { triggerCustomA2HSModal } = usePWA();
 
   const [activeTab, setActiveTab] = useState<'imjang' | 'lounge' | 'recommend'>('imjang');
   const [mounted, setMounted] = useState(false);
@@ -206,10 +210,11 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   const [areaUnit, setAreaUnit] = useState<'m2' | 'pyeong'>('m2');
 
   return (
-    <div className="min-h-screen bg-[#f2f4f6] font-sans selection:bg-[#3182f6]/20">
-      
-      {/* a11y: Skip to Content */}
-      <a href="#main-content" className="skip-to-content">내용으로 건너뛰기</a>
+    <PullToRefresh>
+      <div className="min-h-screen bg-[#f2f4f6] font-sans selection:bg-[#3182f6]/20">
+        
+        {/* a11y: Skip to Content */}
+        <a href="#main-content" className="skip-to-content">내용으로 건너뛰기</a>
 
       {/* Dynamic Minimal Sticky Header */}
       <div 
@@ -385,7 +390,12 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                             isSelected={!!(selectedReport && isSameApartment(selectedReport.apartmentName, apt.name, nameMapping))}
                             isFavorited={userFavorites.has(apt.name)}
                             favoriteCount={Math.max(userFavorites.has(apt.name) ? 1 : 0, favoriteCounts[apt.name] || 0)}
-                            onToggleFavorite={() => handleToggleFavorite(apt.name)}
+                            onToggleFavorite={() => {
+                              handleToggleFavorite(apt.name);
+                              if (!userFavorites.has(apt.name)) {
+                                triggerCustomA2HSModal();
+                              }
+                            }}
                             onClick={() => {
                               userHasSelected.current = true;
                               if (report) {
@@ -630,6 +640,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         </div>
       </nav>
 
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }

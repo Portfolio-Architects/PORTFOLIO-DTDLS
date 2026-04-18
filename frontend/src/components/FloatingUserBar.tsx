@@ -64,14 +64,18 @@ export default function FloatingUserBar() {
               setProfilePhotoFile(null);
               setShowProfileModal(true);
             }} className="flex items-center gap-1 hover:opacity-70 transition-opacity">
-              <div className="w-5 h-5 rounded-full bg-[#e8f3ff] flex items-center justify-center text-[#3182f6] overflow-hidden">
-                {anonProfile?.photoURL ? (
-                  <img src={anonProfile.photoURL} alt="" className="w-full h-full object-cover" />
+              <div className="w-7 h-7 sm:w-6 sm:h-6 rounded-full bg-[#e8f3ff] flex items-center justify-center text-[#3182f6] overflow-hidden border border-[#3182f6]/20">
+                {(anonProfile?.photoURL || user.photoURL) ? (
+                  <img src={anonProfile?.photoURL || user.photoURL || ''} alt="프로필" className="w-full h-full object-cover" />
                 ) : (
-                  <UserCircle size={14} />
+                  <span className="text-[12px] font-extrabold">
+                    {(anonProfile?.nickname || user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                  </span>
                 )}
               </div>
-              <span className="text-[11px] sm:text-[12px] font-bold text-[#191f28] hidden sm:inline">{anonProfile?.nickname || user.displayName || user.email?.split('@')[0] || '사용자'}</span>
+              <span className="text-[12px] font-bold text-[#191f28] hidden sm:inline tracking-tight">
+                {anonProfile?.nickname || user.displayName || user.email?.split('@')[0] || '사용자'}
+              </span>
             </button>
                       </div>
         ) : (
