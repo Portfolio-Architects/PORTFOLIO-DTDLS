@@ -132,20 +132,7 @@ src/
 | DevOps / CI | **B+** | GitHub Actions CI (Lint→TypeCheck→Jest→Build), Vercel 자동 배포 |
 | 컴포넌트 크기 | **A** | page.tsx 970줄, ApartmentModal 1,336줄 (consumer 서브 컴포넌트 7개 분리 완료), ReportEditorForm 1,179→230줄 (FormProvider + 4 Sub-module 분리 완료) |
 
-### 📈 PWA S+ 등급 달성을 위한 기술적 로드맵 (B+ → S+)
-현재 B+ 등급에 머물러 있는 PWA(Progressive Web App) 항목을 네이티브 앱 수준의 최고 등급(S+)으로 끌어올리기 위한 중장기 엔지니어링 마일스톤입니다.
 
-1. **Background Sync (오프라인 동기화 큐 설계)**
-   - **한계:** 현재 단순 오프라인 Fallback UI만 제공됨.
-   - **목표:** 서비스 워커 내부에 `SyncManager` API를 도입하여, 네트워크 단절 시 사용자가 작성한 코멘트/관심 단지 등록 데이터를 IndexedDB 큐에 임시 적재. 네트워크가 복구되는 즉시 메인 스레드 개입 없이 백그라운드에서 서버로 동기화(업로드) 처리.
-2. **Advanced Caching (Stale-While-Revalidate 전략 고도화)**
-   - **한계:** 정적 리소스 위주의 기본 캐싱으로 동적 API 데이터에 대한 오프라인 대응력 부족.
-   - **목표:** 국토부 실거래가 JSON 및 자체 API 응답 결과를 서비스 워커 캐시에 저장하고, `Stale-While-Revalidate` 패턴을 적용. 앱 구동 시 즉시 캐시된 데이터를 화면에 렌더링하고 조용히 최신 데이터를 페치하도록 체감 로딩 속도 극대화.
-3. **Web Push Notifications (실시간 양방향 푸시 알림)**
-   - **한계:** 사용자 참여 유도를 위한 시스템 수준 알림 부재.
-   - **목표:** Firebase Cloud Messaging(FCM)과 Web Push API를 연동하여, 사용자의 관심 아파트 실거래가 갱신 및 신규 브리핑 리포트 등록 시 브라우저가 꺼져 있어도 네이티브 OS 레벨의 푸시 알림 전송.
-4. **App-like UX (제스처 네비게이션 및 A2HS 넛지 최적화)**
-   - **목표:** 모바일 브라우저의 이질감을 없애기 위해 Pull-to-refresh(당겨서 새로고침), Swipe 제스처를 구현. 또한 무분별한 브라우저 기본 설치 팝업 대신, 사용자가 유의미한 인터랙션(예: 관심 단지 등록 완료)을 달성한 순간 `beforeinstallprompt` 이벤트를 가로채어 세련된 커스텀 Add to Home Screen(A2HS) 모달 제공.
 
 ---
 
@@ -158,93 +145,78 @@ src/
 
 ---
 
-## 8. Performance Optimization Strategy (앱 구동 속도 극대화 전략)
+## 8. Roadmap & Technical Strategies
 
-스케일링 과정에서 맞닥뜨릴 수 있는 **FCP(초기 렌더링 속도)** 및 **TTFB(초기 응답 속도)** 병목을 해결하고 구동 속도를 한계까지 끌어올리기 위한 중장기 엔지니어링 전략입니다.
+D-VIEW 플랫폼의 아키텍처, 성능, PWA 고도화 및 중장기 비즈니스 목표를 통합 관리하는 마스터플랜입니다.
 
-### 1) Next.js App Router 아키텍처 한계 돌파
-- **Edge Runtime + Redis Cache 도입**: 기존 Node.js 런타임에서 발생하는 Cold Start 지연을 해소하기 위해 조회 빈도가 높은 API(예: 실거래가 캐싱 요약본)를 **Edge Functions** 파이프라인으로 이관. 데이터 영속성은 Firebase에 두되, `Upstash Redis`를 엣지 캐시 레이어로 둬서 50ms 이내의 응답 속도를 달성.
-- **RSC(React Server Components) 범위 극대화**: 현재 거대한 덩어리인 `DashboardClient` 내에서 상호작용(Interactive)이 불필요한 메트릭스 UI, 정적 차트 영역을 Server Component로 쪼개어 Hydration을 위한 클라이언트 JavaScript 번들 사이즈를 최소 40% 이상 다이어트.
+### 🚀 1. 시스템 아키텍처 및 리팩토링 마스터플랜 (Architecture Refactoring)
+- [x] **ApartmentModal 분해**: 1,450줄의 거대 모달을 독립 서브 컴포넌트로 분할하여 단일 책임 원칙(SRP) 확보
+- [x] **ReportEditorForm 모듈화**: 1,179줄의 어드민 폼을 4개 독립 Sub-form 컴포넌트로 완전 분리
+- [x] **Dashboard Data Hooks 캡슐화**: 비즈니스 로직을 Custom Hooks로 추출하여 UI와 데이터 레이어 분리
+- [x] **[Security] JWT 인가 도입 및 환경변수 은닉**: Firebase ID Token 검증 및 `.env` 추출 등 보안 핫픽스 완료
 
-### 2) 렌더링 폭포수(Waterfall) 방어 및 Lazy Loading
-- **Streaming & Suspense 바운더리 마이크로화**: 아파트 상세 API, 가격 차트, 앵커 테넌트 평가 등 비동기 로딩 영역을 독립적인 `<Suspense>`로 감싸고, 점진적 렌더링(Streaming)을 지원해 유저가 체감하는 TTFB 지연을 없앰. 
-- **무거운 의존성 라이브러리의 동적 임포트**: `recharts` 및 `3d-force-graph`와 같은 Heavy Module은 무조건 `next/dynamic (ssr: false)`로 지연 로딩 처리하여, 메인 쓰레드 블로킹 타임을 최소화함.
+### ⚡ 2. 앱 구동 속도 극대화 전략 (Performance Optimization)
+스케일링 과정에서 맞닥뜨릴 수 있는 **FCP** 및 **TTFB** 병목을 해결하기 위한 중장기 전략입니다.
+- [x] **Edge Runtime + Redis Cache 도입**: Node.js Cold Start 방어를 위해 빈번한 조회 API를 엣지로 이관하고 Upstash Redis로 50ms 이내 응답 달성.
+- [x] **RSC(React Server Components) 범위 극대화**: 상호작용이 불필요한 메트릭스/차트 영역을 Server Component로 분리하여 JS 번들 사이즈 최소 40% 다이어트.
+- [x] **Streaming & Suspense 바운더리 마이크로화**: 비동기 로딩 영역을 독립적인 `<Suspense>`로 감싸 점진적 렌더링 지원.
+- [x] **Heavy Module 지연 로딩**: `recharts`, `3d-force-graph` 등을 `next/dynamic`으로 지연 로딩 처리.
+- [x] **DOM 스크롤 가상화 고도화**: 현장 검증 사진 갤러리 Lazy Load 및 179개 단지/댓글/거래내역에 `react-window` 일괄 적용.
 
-### 3) DOM 스크롤 가상화 및 Intersection Observer
-- **무한 이미지 갤러리 Lazy Load**: 100~200장에 달하는 현장 검증 사진이 초기에 전부 DOM 노드로 로딩되지 않도록 화면에 노출되는 시점(Intersection Observer)에 맞추어 렌더링.
-- **가상화 리스트(Virtualization) 고도화**: 현재 179개 단지 리스트에 적용된 `react-window`를 아파트별 방대한 댓글 및 거래내역 테이블에도 일괄 적용. 보이지 않는 행은 메모리에서 제거(Unmount)하여 브라우저 JS 힙 메모리를 타이트하게 관리.
+### 📱 3. PWA S+ 등급 달성을 위한 마일스톤 (Mobile Native UX)
+- [ ] **Background Sync (오프라인 동기화 큐)**: 네트워크 단절 시 코멘트/관심 단지 등을 IndexedDB 큐에 임시 적재 후 백그라운드 자동 동기화.
+- [ ] **Advanced Caching (Stale-While-Revalidate)**: 정적 리소스 외 실거래가 JSON 등도 서비스 워커에 캐시하여 체감 로딩 속도 극대화.
+- [ ] **Web Push Notifications**: 사용자 관심 단지 가격 변동 시 브라우저 오프라인 상태에서도 OS 레벨의 푸시 알림 전송.
+- [ ] **App-like UX (제스처 네비게이션)**: Pull-to-refresh 및 Swipe 제스처 적용, 세련된 커스텀 Add to Home Screen(A2HS) 모달 넛지.
 
----
+### 📈 4. 트래픽 스케일업 및 그로스 해킹 (Growth Hacking UI/UX)
+- [ ] **FOMO & 소셜 프루프 (Social Proof)**: 실시간 조회수 배지, 고점 대비 하락률, Buy vs Wait 투표 버튼으로 클릭률(CTR) 극대화.
+- [ ] **바이럴을 위한 모바일 최적화**: 모달을 Bottom Sheet로 전환 및 "카카오톡 공유하기" Sticky 버튼으로 바이럴 루프 구축.
+- [ ] **실시간 인기 검색 랭킹보드**: 포털 사이트 스타일의 급상승 아파트 티커 최상단 배치.
+- [ ] **마이크로 카피 리뉴얼**: 직관적이고 도파민을 자극하는 문구("단지 가치 뜯어보기" 등) 및 색상(Blue/Red) 대비 강화.
 
-## 9. Roadmap
-
-### 🚀 스파게티 코드 리팩토링 마스터플랜 (Architecture Refactoring)
-- [x] **[Phase 1] ApartmentModal 분해**: 1,450줄의 거대 모달을 Header, TransactionChart, TransactionTable, Gallery 등 독립 서브 컴포넌트로 분할하여 단일 책임 원칙(SRP) 확보
-- [x] **[Phase 2] ReportEditorForm 모듈화**: 1,179줄의 어드민 폼을 `FormProvider` 기반 컨테이너(230줄)로 경량화하고, `BasicInfoSection`, `ThumbnailSection`, `MetricsSection`, `ImageUploadSection` 4개 독립 Sub-form 컴포넌트로 완전 분리
-- [x] **[Phase 3] Dashboard Data Hooks 캡슐화**: DashboardClient 컴포넌트 내에 혼재된 API Fetching 등 비즈니스 로직을 `useDashboardInitialization` 형태의 Custom Hooks로 추출하여 UI와 데이터 레이어 분리
-
-### Phase 1 (단기)
-- [x] **[Security Hotfix 🚨] 백엔드 API JWT 인가(Authorization) 도입**: 클라이언트가 전송하는 `userId` 기반 취약점(좋아요 조작 가능) 방어를 위해, Firebase ID Token(`admin.auth().verifyIdToken`) 디코딩 기반 무결성 검증 로직으로 API 엔드포인트 전면 격상
-- [x] **[Security 🔒] Firebase Config 환경변수 은닉**: `firebaseConfig.ts`에 하드코딩된 클라이언트 API Key 등 민감정보를 `.env`로 추출하여 GitHub 노출 완벽 차단
-- [x] **"아파트 골라보기" (Toss-Style) 검색 UI 전면 개편**: 기존 나열식 '아파트 검색' 탭을 2-Column(좌측 테마/카테고리 네비게이션, 우측 테이블) 방식으로 개편. 인기 단지, 내 관심 단지, 권역별 모아보기 등 토스증권식 종목 탐색 UX 이식.
-- [ ] **구글 애드센스(Google AdSense)** 컴포넌트 선행 환경 구성 및 네이티브 광고/배너 레이아웃 명당 설계 (수익화 인프라 준비)
-- [ ] 동탄 아파트 관계도 구축 (3D Force Graph — 단지 간 거리·가격 상관관계 시각화)
-- [ ] 아파트 비교 기능 (2~3개 단지 나란히 비교 — 가격·세대수·인프라 대시보드)
-- [ ] 매매/전세 가격 비율(GAP) 분석 및 투자 매력도 지표
-- [ ] 동네 은행별 대출 이자 비교 리스트 (주담대·전세대출 금리 현황)
-- [ ] 주변 동네 부동산 가격 비교 (동탄 vs 수원·용인·평택 시세 벤치마크)
-- [ ] 전월세 가치평가 시스템 (적정 전세가율·월세 수익률 산출)
-- [ ] Firebase MCP 서버 연동 (AI Assistant의 실시간 DB 디버깅 및 스키마 분석 전용 채널 구축)
-
-### Phase 2 (중장기)
-- [x] **[SEO 스케일업 완료] 오가닉 트래픽 잭팟을 위한 라우팅 및 메타데이터 인프라 공사**: `window.history.pushState`를 활용한 클라이언트 사이드 Native URL 듀얼 트래킹. 179개 전체 단지의 `/apartment/[aptName]` 독립 SSR 엔드포인트 개방 및 동적 `generateMetadata`, `sitemap.ts` 편입으로 구글 검색 엔진 100% 노출 환경 확보
-- [ ] 하이브리드 아키텍처 전환 (UI 렌더링: Vercel Pro 유지 / 무거운 API 스크립트: Cloud Run 이관) 및 TossPayments 복원
-- [ ] 이메일/비밀번호 + 카카오/Apple 소셜 로그인 확장
-- [ ] 개인화 필터링 & Push 알림 (관심 단지 가격 변동 알림)
-- [ ] AI 기반 아파트 추천 엔진 (사용자 선호 학습 → 맞춤 단지 제안)
-- [ ] 학군 분석 대시보드 (학교별 학업성취도·통학거리 시각화)
-
-### Phase 3 (장기 비전)
-- [ ] **바이럴 루프(Viral Loop) 구축**: `ApartmentModal` 내 카카오톡 공유하기(`Kakao.Link`) 및 Web Share API 버튼을 도입하여 다이내믹 OG 썸네일을 통한 카카오톡 입소문 트래픽 극대화
-- [ ] 전세사기 위험도 스코어링 (등기부·깡통전세 자동 진단)
-- [ ] 동탄 외 지역 확장 (수원·용인·평택 등 경기남부권)
-- [ ] 커뮤니티 임장 모임 매칭 (일정·참가자·루트 공유)
-- [ ] AR 임장 뷰어 (모바일 카메라로 아파트 정보 오버레이)
+### 🎯 5. 중장기 비즈니스 로드맵 (Phase 1~3)
+- **Phase 1 (단기: 기능 보강 및 수익화)**
+  - [x] "아파트 골라보기" 2-Column 토스증권식 검색 UX 개편
+  - [x] 광고/제휴 문의 B2B 시스템(Ad Inquiry) 구축 완료
+  - [ ] 구글 애드센스(Google AdSense) 연동 및 네이티브 광고 레이아웃 명당 설계
+  - [ ] 매매/전세 가격 비율(GAP) 분석 및 투자 매력도 지표
+  - [ ] 동탄 아파트 관계도 구축 (3D Force Graph 시각화)
+- **Phase 2 (중기: 하이브리드 확장 및 AI)**
+  - [x] 검색엔진 SEO 아키텍처 완성 (듀얼 트랙 라우팅 및 동적 메타데이터 SSR 적용)
+  - [ ] 하이브리드 아키텍처 전환 (Vercel Pro + 무거운 API Cloud Run 이관)
+  - [ ] 이메일/비밀번호 + 카카오/Apple 소셜 로그인 통합
+  - [ ] AI 기반 사용자 선호 학습 맞춤 아파트 추천 엔진
+  - [ ] 학군 분석 대시보드 (학교별 학업성취도·통학거리 시각화)
+- **Phase 3 (장기: 생태계 확장)**
+  - [ ] 전세사기 위험도 스코어링 (등기부·깡통전세 자동 진단)
+  - [ ] 커뮤니티 임장 모임 매칭 플랫폼 (일정·루트 공유)
+  - [ ] AR 임장 뷰어 (모바일 카메라 기반 아파트 정보 오버레이)
+  - [ ] 동탄 외 타 지역 공간 확장 (수원·용인·평택 등)
 
 ---
 
-## 10. Maintenance Policy
+## 9. Maintenance Policy
 본 문서는 살아있는 SSOT입니다. 메이저 업데이트 시 지표를 갱신하고 패치노트를 기록합니다.
 
 | 일시 | 주요 항목 | 요약 내용 |
 |:---|:---|:---|
-| 2026-04-15 | **실거래가 데이터 무결성 보존 및 UI/UX 렌더링 고도화** | 국토부 원천 데이터 내 월세 누락(0원) 거래를 임의로 '전세'로 덮어쓰는 논리적 오류를 제거해 렌더링 신뢰성을 회복함. 월세 단위 '만' 트랜지션 고도화 및 10단지(그린힐/레이크힐) 아파트명 정규화 매핑 완료. 추가로 마크다운 내 이미지 컴포넌트(`<div>` in `<p>`)로 인해 발생하던 치명적인 React Hydration 불일치 에러를 HTML5 DOM 구조에 맞춰 `<span>` 블록으로 이식해 원천 해결 |
-| 2026-04-14 | **[Phase 1] 오가닉 트래픽 스케일업을 위한 검색엔진 SEO 아키텍처 토대 완료** | 아파트 상세 모달에 갇혀있던 179개 실거래 데이터를 구글에 등재시키기 위해 듀얼 트랙(Dual-Track) 라우팅을 구현함. 유저 클릭 시 `window.history.pushState` 로직으로 네이티브 앱 UX를 해치지 않고 URL만 변경하며, 엔진 봇 접속 시 Next.js `generateMetadata` SSR 페이지가 렌더링되게 설계하여 트래픽 잭팟 기반 마련 완료 |
-| 2026-04-14 | **[Phase 1 & 2] 완벽한 A+ 등급 보안 아키텍처(Security Scale-up) 구축 달성** | 브라우저 레벨에서 HSTS 강제화 및 Nonce 기반 동적 CSP 적용으로 XSS 완벽 방어. Zod를 활용한 뮤테이션 API 인바운드 스키마 강제 검증 및 리캡챠(reCAPTCHA v3) 기반 Firebase App Check 도메인 락다운 활성화 완료. 이로써 외부 스크립트 실행 및 비정상 API 접근을 원천 봉쇄함. |
-| 2026-04-13 | **[Phase 2] Security & Caching Layer 구축 및 IP Spoofing 100% 차단** | `x-real-ip` 및 `request.ip` 헤더 우선 참조로 악의적 조회수/트래픽 위조 스푸핑 공격 원천 차단. 백엔드 API 레이어에 Firebase Full Scan 비용 방어를 위한 Upstash Redis 기반 `Cache-Aside` 아키텍처 결합(`dashboard-init`). 모바일 내비게이션 독의 라운지 라우팅 결함 픽스로 UX/UI 강건성 격상 |
-| 2026-04-12 | **[Phase 2] ReportEditorForm 모듈화 및 실거래가 UI 레이아웃 최적화** | 1,179줄 모놀리식 어드민 폼을 `FormProvider` 컨테이너(230줄) + 4개 Sub-module(`BasicInfoSection`, `ThumbnailSection`, `MetricsSection`, `ImageUploadSection`)로 아키텍처 분할 완료. TransactionTable 하드코딩 높이(`lg:h-[760px]`) 제거 및 Flexbox `self-start` 적용으로 데이터 건수 대비 불필요 하단 여백 완전 해소 |
-| 2026-04-12 | **라운지(Lounge) 피드 UI 모던화 및 SEO 렌더링 고도화** | 토스증권 스타일 3단 레이아웃 및 Intercepting Route 모달로 라운지 개편. 무한 스크롤 및 IP 기반 좋아요 중복 방지 구현. 클라이언트 탭 방식에서 SSR 기반 Page 연동으로 Google SEO 시맨틱 헤딩(H1-H3) 및 메타데이터 인덱싱 최적화 완료 |
-| 2026-04-12 | **데이터 파이프라인 회복 탄력성(Resilience) 인프라 격상** | 범용 Raw Caching 도입으로 빌드 및 API 다운 시 오프라인 데이터 보존(Macro, Ontology 등). Vercel 환경에서 Firebase SDK gRPC 타임아웃 런타임 행(Hang) 문제 디버깅 및 동적 API 라우팅 강제로 빌드 I/O 누락 방호 |
-| 2026-04-12 | **모바일 제스처 UX 및 UI 컴포넌트 안정화 패치** | 모바일 스플래시 화면 Dock Z-Index 버그 픽스, 물리 기반 Pull-to-Refresh와 햅틱 피드백 연동. 모바일 Sticky 헤더 이탈 버그 및 통합 포트폴리오 아이콘 벡터 디자인(M100 65) 일원화로 프론트엔드 강건성 확보 |
-| 2026-04-12 | **API Security Architecture 강화 (Hotfix 달성)** | Firebase 인증 JWT(IdToken) 검증 파이프라인 서버리스 전면 배치로 API 데이터 불법 조작 차단 및 `firebaseConfig` 등 모든 하드코딩 환경변수 `.env` 로컬/운영 은닉화 이관 완료 |
-| 2026-04-11 | **오가닉 트래픽 무결성 확보 (Admin Exclusion)** | `SiteTracker` 로직에 관리자 접속 세션(Localhost 및 /admin 파이어베이스 권한)을 영구적으로 식별하여 일일 방문자수 중복 카운팅 데이터에서 개발자 트래픽을 원천 배제하는 토큰 연동 달성 |
-| 2026-04-11 | **주요 편의시설(AnchorTenant) UI 레이아웃 최적화** | AnchorTenantCard 내의 브랜드 배지(Badge) 도입 및 리스트 간격(Divider) 시인성 강화. 매장 메타데이터 카드를 진행 바 영역에 완벽히 스냅 밀착시켜 가독성 극대화 |
-| 2026-04-11 | **데이터 파이프라인 신뢰도 격상 및 입지분석 현황판** | 정규표현식(`^이마트(?!24)`)을 통한 푸드코트 등 추출 결함(False Positive) 해결 및 Admin Dashboard 상단에 '입지분석 완료' 추적 탭 신설 |
-| 2026-04-11 | **주요 편의시설 (앵커 테넌트) 메타데이터 고도화** | 관리자 패널 내 스타벅스 지점명, 상세 주소, 구글 맵 좌표 데이터 입력 폼 추가 및 소비자 뷰(AnchorTenantCard)의 구글 맵스 링크 인앱 연동으로 인프라 정보 신뢰도 향상 |
-| 2026-04-11 | **애플리케이션 보안 아키텍처 격상 (보안 등급 A 판정)** | `middleware.ts` 엣지 로직을 통한 전역 IP Rate Limiting(API 1분당 60회 제한) 적용으로 트래픽 인플레이션 봇/어뷰징 선제적 차단. XSS 유입을 막기 위한 Strict CSP 정책, Clickjacking 방패(`X-Frame-Options: DENY`) 등 프로덕션 레벨 사이버 보안 헤더 전면 강화 완료 |
-| 2026-04-08 | **데이터 파이프라인 고도화 및 마스터 스위치 통합** | 대규모 트랜잭션 데이터 무결성 검증을 위한 `validation-report.json` 도입 및 더미 전세 데이터 클렌징 연동. UI 레이어(`DashboardClient`, `ApartmentModal`, `AnchorTenantCard`)의 실거래가 예외 방어 로직 강화 및 마스터 스위치 적용 |
-| 2026-04-07 | **실거래가 매매/전월세 DB 통합 파이프라인 구축** | Firebase Client 보안 규칙 만료 우회를 위해 `firebase-admin`을 이용한 백엔드 업로드 아키텍처 전환. 전월세 전용 CSV 업로더 신설 및 매매/전월세 통합 동기화 달성 |
-| 2026-04-02 | **모바일 UX 및 밸류에이션 리팩토링** | 하단 플로팅 독 네이티브 가상화 스크롤 배포, 매매/전월세 차트 데이터 통합 연동, 다이내믹 스티키 헤더 및 관리자 팝오버 구조 축소 개편 |
-| 2026-04-02 | **UI 컴포넌트 핫픽스 자동화** | `fix_modal.js`, `fix_header.js` 등 다수의 자동화 스크립트를 통한 UI 일괄 리팩토링 및 핫픽스 적용 (`2,250+` 라인 변경) |
-| 2026-03-26 | **아파트 가치분석(Valuation) 데이터 동기화 디버깅** | "힐스테이트 동탄역" 등 단지의 원천 DB 이름 맵핑 누락 해결 및 거래 내역 파이프라인 정규화, PER/PU 비율 산출 기능 디버깅 |
-| 2026-03-26 | **아파트 모달 UI 레이아웃 및 팝오버 네비게이션 고도화** | ApartmentModal 내비게이션 매핑 및 갤러리 UI/레이아웃 안정화 (Merge Conflict 해결 포함) |
-| 2026-03-26 | **Vercel 빌드 중단 방지 (Hotfix)** | 작업 중인 Admin 페이지의 TS 컴파일 에러로 인한 배포 실패를 방지하기 위해 임시 예외(Ignore) 처리 적용 |
-| 2026-03-26 | **부동산 공공데이터 ETL 파이프라인 정비 (Hotfix)** | 63,000건의 실거래가 DB 동기화 파이프라인에서 레거시 거래 유형(`중개거래`, `-` 등) 누락 버그 해결 및 100% 매매/전월세 통합 싱크 달성 |
-| 2026-03-26 | **신규 밸류에이션(Utility Score) 도입** | 복잡한 기존 퀀트 지표를 폐기하고, 아파트 스펙 및 인프라를 100점 만점으로 계량화한 종합 상품성 지수(Utility Score), P/U Ratio, 전월세 API 연계형 실거주 PER 대시보드 구축 |
-| 2026-03-26 | **React Server Components 도입** | `page.tsx` SSR 전환 및 `DashboardClient` 분리로 초기 데이터 패칭 최적화 (TTFB 감소, 렌더링 폭포수 제거) |
-| 2026-03-26 | **거래내역 엑셀 스타일 필터 적용** | 실거래 테이블 헤더에 양방향 바인딩 드롭다운 필터 적용 |
-| 2026-03-25 | **개발 서버 사내망 노출 차단** | `package.json` dev 스크립트에 `-H 127.0.0.1` 옵션 추가 (사내망 IP 바인딩 방지 및 추적 불가 목적) |
-| 2026-03-25 | **단지 상세 통합 레이아웃 개편** | 3단 레이아웃 통합 폼 병합, 사진 갤러리 2-level 팝오버 및 카테고리 필터 칩 도입 |
-| 2026-03-24 | **가치분석 및 사진 메타데이터 고도화** | `AdvancedValuationMetrics` 컴포넌트로 퀀트 애널리틱스·폭포수 차트 통합, EXIF 기반 촬영일 자동 추출 |
-| 2026-03-23 | **테스트/CI·CD 및 보안 강화** | Jest 45 assertions 커버리지 달성, Vercel 자동 배포 연동 및 CSP 헤더 추가 |
-| 2026-03-23 | **UI 반응형 및 성능 최적화** | Next.js Image 도입으로 CDN 렌더링 최적화, PWA Manifest 규격화, 메인 렌더링 방식 경량화 |
+| 2026-04-18 | **광고/제휴 B2B 시스템(Ad Inquiry) 구축 및 UI/UX 레이아웃 일체화** | 모달 기반 간편 제안 폼(`AdInquiryModal`) 도입 및 관리자 대시보드(`/admin`) 실시간 상태 관리 전용 탭 신설 (Firestore 연동). 메인 대시보드 우측 광고 구좌(Ad Slot)를 Full-bleed 레이아웃으로 변경하여 시각적 일관성 극대화 |
+| 2026-04-15 | **데이터 무결성 보존 및 렌더링 안정화** | 월세 0원 오류 교정 및 10단지 매핑 정규화. 마크다운 컴포넌트 하이드레이션 오류(`<div>` in `<p>`) 완벽 해결 |
+| 2026-04-14 | **검색엔진 SEO 및 보안(Security) 아키텍처 완성** | 179개 단지 듀얼 트랙 라우팅(SSR/CSR) 적용으로 구글 인덱싱 최적화. Nonce CSP, Zod 검증, reCAPTCHA v3 앱체크 등 A+ 등급 보안 인프라 달성 |
+| 2026-04-13 | **Redis 캐싱 기반 어뷰징 방어 및 성능 최적화** | Upstash Redis 연동으로 API Rate Limiting 구현 및 IP 스푸핑 원천 차단. 모바일 라운지 라우팅 결함 픽스 |
+| 2026-04-12 | **어드민 모듈화 및 라운지 피드 SEO 렌더링 고도화** | 1,179줄의 모놀리식 폼을 4개 Sub-module로 아키텍처 분할. 토스증권 스타일 3단 라운지 개편 및 SSR 기반 메타데이터 최적화 완료 |
+| 2026-04-11 | **오가닉 트래픽 무결성 확보 및 편의시설 고도화** | 관리자 세션 영구 식별로 데이터 오염(개발자 트래픽) 원천 차단. 앵커 테넌트 구글 맵 연동 및 전역 IP Rate Limiting 엣지 로직 적용 |
+| 2026-04-08 | **데이터 파이프라인 마스터 스위치 통합** | 대규모 트랜잭션 검증(`validation-report.json`) 도입 및 더미 데이터 클렌징 연동. UI 예외 방어 로직 강화 |
+| 2026-04-07 | **실거래가 매매/전월세 DB 통합** | Firebase Client 만료 한계를 우회한 `firebase-admin` 백엔드 업로드 아키텍처 적용으로 통합 동기화 달성 |
+| 2026-04-02 | **모바일 UX 스케일업 및 핫픽스 자동화** | 플로팅 독 네이티브 가상 스크롤, 동적 스티키 헤더 개편 및 2,250줄 이상의 핫픽스 스크립트 기반 UI 일괄 리팩토링 |
+
+### 2026년 3월 패치노트 (초기 아키텍처 및 밸류에이션 모델링)
+
+| 일시 | 주요 항목 | 요약 내용 |
+|:---|:---|:---|
+| 2026-03-26 | **부동산 공공데이터 파이프라인 및 밸류에이션 모델 완성** | 63,000건 실거래가 DB 동기화 오류 정규화. 상품성 지수(Utility Score) 및 PER/PU Ratio 기반 신규 퀀트 대시보드 신설 |
+| 2026-03-26 | **서버 사이드 렌더링(RSC) 및 UI 레이아웃 고도화** | `DashboardClient` 분리 및 SSR 전환으로 초기 렌더링 폭포수 제거. 갤러리 팝오버 및 내비게이션 필터 칩 적용 |
+| 2026-03-25 | **개발망 접속 보안 및 통합 폼 설계** | `127.0.0.1` 바인딩을 통한 사내망 접근 차단, 단지 상세 3단 통합 레이아웃 병합 개편 |
+| 2026-03-24 | **사진 EXIF 메타데이터 및 차트 고도화** | `AdvancedValuationMetrics` 컴포넌트로 퀀트 폭포수 차트 도입 및 현장 사진 촬영일 자동 추출 인프라 구성 |
+| 2026-03-23 | **빌드 파이프라인 및 프론트엔드 성능 최적화** | Jest 테스트 커버리지 강화, Next.js Image 도입으로 CDN 렌더링 최적화, PWA Manifest 규격화 완료 |

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import {
   MapPin, X, TrendingUp, Camera, Maximize2,
   MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeftRight
@@ -14,6 +14,7 @@ import type { CommentData, FieldReportData } from '@/lib/DashboardFacade';
 import type { User } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebaseConfig';
 import { signInWithPopup } from 'firebase/auth';
+import { createPortal } from 'react-dom';
 import CommentSection from '@/components/CommentSection';
 import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
 import { TransactionTable } from './apartment-modal/TransactionTable';
@@ -79,6 +80,7 @@ export function FieldReportModal({
 }) {
   useSwipeNavigation({ onBack: onClose });
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const displayAptName = getDisplayAptName(report.apartmentName);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [priceTypeFilter, setPriceTypeFilter] = useState<string>('ALL');
@@ -88,6 +90,11 @@ export function FieldReportModal({
   // 차트 매매/전월세 토글
   const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
   const [periodDealType, setPeriodDealType] = useState<'sale' | 'jeonse'>('sale');
+
+  // Hydration-safe portal mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
 
   // TODO: 유료 모델 전환 시 아래 라인 복원
@@ -174,7 +181,7 @@ export function FieldReportModal({
           <div className={`bg-white w-full flex flex-col md:flex-row p-4 ${inline ? 'md:p-6' : 'md:p-10'} gap-4 md:gap-8 ${inline ? '' : 'rounded-t-3xl'} shrink-0 pt-4 md:pt-8 ${inline ? 'border-b border-[#f2f4f6]' : 'border-b border-[#e5e8eb]'}`}>
             
             {/* Left: 실거래가 전체 리스트 — mobile: 2번째, desktop: 1번째 (40%) */}
-            <div className="w-full md:w-[40%] shrink-0 order-2 md:order-1 flex flex-col self-start">
+            <div className="w-full md:w-[40%] shrink-0 order-2 md:order-1 flex flex-col self-start md:self-stretch">
               <TransactionTable 
                 transactions={transactions} 
                 typeMap={typeMap} 
@@ -945,22 +952,55 @@ export function FieldReportModal({
     );
   }
 
-  return (
+  // Use Portal for the modal to escape CSS containing blocks (transforms)
+  if (!mounted) return null;
+
+  return createPortal(
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 md:p-12 animate-in fade-in duration-200">
+      <div className="fixed inset-0 z-[100] flex flex-col justify-end md:items-center md:justify-center p-0 md:p-12 animate-in fade-in duration-200" style={{ position: 'fixed' }}>
         <div className="absolute inset-0 bg-[#191f28]/60 backdrop-blur-sm" onClick={onClose} />
         
-        <div ref={modalRef} onScroll={handleScroll} className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] max-h-[90vh] rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden shadow-2xl transition-all duration-300 ring-1 ring-black/5`}>
-          <button onClick={onClose} className="sticky top-4 z-[100] ml-auto mr-4 mt-4 -mb-14 bg-[#191f28]/80 hover:bg-[#191f28] text-white w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0">
+        <div ref={modalRef} onScroll={handleScroll} className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] h-[92vh] md:max-h-[90vh] rounded-t-3xl md:rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden shadow-2xl transition-transform duration-300 ring-1 ring-black/5 pb-24 md:pb-0 slide-in-from-bottom`}>
+          
+          {/* Mobile Grab Handle */}
+          <div className="w-full flex justify-center pt-3 pb-1 md:hidden sticky top-0 bg-[#f2f4f6] z-[100]" onClick={onClose}>
+            <div className="w-12 h-1.5 bg-[#d1d6db] rounded-full" />
+          </div>
+
+          <button onClick={onClose} className="sticky top-4 z-[100] ml-auto mr-4 mt-4 -mb-14 bg-[#191f28]/80 hover:bg-[#191f28] text-white w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0 hidden md:flex">
             <X size={20} />
           </button>
+          
           {content}
+
+          {/* Mobile Sticky CTA (공유하기) */}
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-[#e5e8eb] md:hidden z-[100]">
+            <button 
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: `[D-VIEW] ${displayAptName}`,
+                    text: `이 단지의 가치를 뜯어보세요! 실거래가 및 인프라 분석`,
+                    url: window.location.href,
+                  }).catch(console.error);
+                } else {
+                  alert('공유하기 기능이 지원되지 않는 브라우저입니다.');
+                }
+              }}
+              className="w-full bg-[#fae100] hover:bg-[#e5cf00] text-[#3c1e1e] font-black text-[16px] py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 3c-5.52 0-10 3.51-10 7.85 0 2.76 1.77 5.17 4.45 6.47-.28 1.05-1.02 3.82-1.05 3.96-.03.18.11.23.23.15.11-.07 3.56-2.4 4.96-3.34.46.07.94.1 1.41.1 5.52 0 10-3.51 10-7.85C22 6.51 17.52 3 12 3z"/>
+              </svg>
+              카카오톡으로 공유하기
+            </button>
+          </div>
         </div>
       </div>
       {/* Fullscreen Image Overlay */}
       {fullscreenImage && (
         <div 
-          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center animate-in fade-in duration-200"
+          className="fixed inset-0 z-[110] bg-black/95 flex items-center justify-center animate-in fade-in duration-200"
           onClick={() => setFullscreenImage(null)}
         >
           <button 
@@ -977,7 +1017,7 @@ export function FieldReportModal({
           />
         </div>
       )}
-    </>
+    </>,
+    document.getElementById('modal-root') || document.body
   );
 }
-

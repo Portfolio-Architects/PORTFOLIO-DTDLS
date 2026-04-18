@@ -52,6 +52,7 @@ export default function RootLayout({
           {children}
           <CustomA2HSModal />
         </PWAProvider>
+        <div id="modal-root" />
       </body>
     </html>
   );

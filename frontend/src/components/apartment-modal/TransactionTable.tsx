@@ -126,7 +126,7 @@ export function TransactionTable({
   };
 
   return (
-    <div className="flex flex-col bg-white rounded-2xl ring-1 ring-[#e5e8eb] overflow-hidden">
+    <div className="flex flex-col bg-white rounded-2xl ring-1 ring-[#e5e8eb] overflow-hidden md:h-full">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 p-4 bg-white border-b border-[#e5e8eb] w-full">
         <h4 className="text-[14px] font-bold text-[#4e5968] shrink-0">
           실거래가 <span className="text-[#3182f6] ml-1">{filteredTransactions.length}</span>건
@@ -292,24 +292,18 @@ export function TransactionTable({
             <span className="text-[13px] font-bold">조건에 맞는 거래 내역이 없습니다.</span>
           </div>
         )}
-
-        {/* Gradient Fade for unexpanded state */}
-        {displayedCount < filteredTransactions.length && (
-          <div className="md:hidden absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent pointer-events-none flex items-end justify-center pb-2 z-10" />
-        )}
       </div>
 
       {/* Expand/Collapse Button */}
       {displayedCount < filteredTransactions.length && (
-        <>
+        <div className="md:hidden flex justify-center py-4 bg-white border-t border-[#f2f4f6]">
           <button
             onClick={() => setDisplayedCount(prev => prev + 10)}
-            className="md:hidden relative -mt-4 w-[160px] mx-auto z-20 flex items-center justify-center gap-1.5 bg-[#191f28] text-white py-2.5 px-4 rounded-full text-[13px] font-extrabold shadow-lg hover:bg-[#191f28]/90 transition-colors mb-4"
+            className="flex items-center justify-center gap-1.5 bg-[#191f28] text-white py-2.5 px-6 rounded-full text-[13px] font-extrabold shadow-[0_4px_12px_rgba(0,0,0,0.15)] hover:bg-[#191f28]/90 transition-colors"
           >
             더보기 <ChevronDown size={14} />
           </button>
-          <div className="md:hidden border-t border-[#f2f4f6]" />
-        </>
+        </div>
       )}
     </div>
   );

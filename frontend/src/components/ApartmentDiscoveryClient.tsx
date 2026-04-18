@@ -7,7 +7,7 @@ import { ZONES, getDongsForZone } from '@/lib/zones';
 import { FieldReportData } from '@/lib/DashboardFacade';
 import type { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/lib/transaction-summary';
-import { isSameApartment } from '@/lib/utils/apartmentMapping';
+import { isSameApartment, findTxKey } from '@/lib/utils/apartmentMapping';
 
 interface DiscoveryProps {
   sheetApartments: Record<string, DongApartment[]>;
@@ -229,7 +229,9 @@ export default function ApartmentDiscoveryClient({
             </div>
           ) : (
             displayList.map((apt, index) => {
-              const matchedSummary = txSummaryData[apt.name as keyof typeof txSummaryData];
+              const rawTxKey = (apt as any).txKey || apt.name;
+              const txKey = findTxKey(rawTxKey, txSummaryData, nameMapping) || rawTxKey;
+              const matchedSummary = txKey ? txSummaryData[txKey] : undefined;
               const matchedReport = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name, nameMapping));
 
               return (

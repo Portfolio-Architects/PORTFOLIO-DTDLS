@@ -11,6 +11,7 @@ import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserRe
 import ApartmentCard from '@/components/ApartmentCard';
 import ApartmentDiscoveryClient from '@/components/ApartmentDiscoveryClient';
 import DongFilterBar from '@/components/DongFilterBar';
+import { TrendingTicker } from '@/components/ui/TrendingTicker';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import Footer from '@/components/Footer';
 import dynamic from 'next/dynamic';
@@ -19,6 +20,7 @@ import PullToRefresh from '@/components/pwa/PullToRefresh';
 // Heavy components — loaded on demand (saves ~200KB initial JS)
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').then(m => ({ default: m.FieldReportModal })), { ssr: false });
 const WriteReviewModal = dynamic(() => import('@/components/WriteReviewModal'), { ssr: false });
+const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal'), { ssr: false });
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
 import { ZONES } from '@/lib/zones';
 import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartments';
@@ -51,6 +53,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
   const [activeTab, setActiveTab] = useState<'imjang' | 'lounge' | 'recommend'>('imjang');
   const [mounted, setMounted] = useState(false);
+  const [isAdModalOpen, setIsAdModalOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -141,32 +144,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       return; 
     }
 
-    const hasViewData = fieldReports.some(r => (r.viewCount || 0) > 0);
-    if (!hasViewData) return;
-    
-    const sorted = [...allApts].sort((a, b) => {
-      const aReport = fieldReports.find(r => isSameApartment(r.apartmentName, a.name, nameMapping));
-      const bReport = fieldReports.find(r => isSameApartment(r.apartmentName, b.name, nameMapping));
-      const diff = (bReport?.viewCount || 0) - (aReport?.viewCount || 0);
-      return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
-    });
-    
-    const first = sorted[0];
-    const report = fieldReports.find(r => isSameApartment(r.apartmentName, first.name, nameMapping));
-    if (report) {
-      setSelectedReport(report);
-    } else {
-      setSelectedReport({
-        id: `stub-${normalizeAptName(first.name)}`,
-        apartmentName: first.name,
-        dong: first.dong,
-        author: '',
-        likes: 0,
-        commentCount: 0,
-        createdAt: null,
-        metrics: first as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
-      });
-    }
+    // Auto-select is disabled so that the Ad slot placeholder remains visible on desktop until a user actively clicks an apartment.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fieldReports, preselectedAptName]);
 
@@ -239,7 +217,13 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16">
           {/* Top row: Brand + UserBar */}
           <div className="flex items-center justify-between pt-5 pb-3 sm:pt-6 sm:pb-4">
-            <div className="flex items-center gap-3">
+            <div 
+              className="flex items-center gap-3 cursor-pointer group"
+              onClick={() => {
+                setSelectedReport(null);
+                window.history.pushState(null, '', '/');
+              }}
+            >
               <img src="/d-view-icon.png" alt="D-VIEW" className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg shadow-sm ring-1 ring-black/5" />
               <div className="flex flex-col mt-0.5">
                 <h1 className="text-[18px] sm:text-[21px] font-extrabold text-[#191f28] tracking-tight leading-tight">
@@ -353,6 +337,20 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
             return (
               <>
+                {/* 실시간 인기 검색 (Trending Ticker) */}
+                {(() => {
+                  const allApts = Object.values(sheetApartments).flat();
+                  const trending = [...allApts]
+                    .map(a => {
+                      const r = fieldReports.find(rpt => isSameApartment(rpt.apartmentName, a.name, nameMapping));
+                      return { name: a.name, views: r?.viewCount || 0 };
+                    })
+                    .sort((a, b) => b.views - a.views)
+                    .slice(0, 10)
+                    .map((a, idx) => ({ name: a.name, rank: idx + 1 }));
+                  return <TrendingTicker topApts={trending} />;
+                })()}
+
                 {/* 아파트 리스트 */}
                 <div className="bg-white md:rounded-none md:border-0 border border-[#e5e8eb] overflow-hidden flex-1 flex flex-col">
                   {/* 통합 필터 바 — 리스트 상단에 고정 */}
@@ -462,8 +460,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   inline
                 />
               ) : (
-                <div className="h-full flex items-center justify-center bg-[#f9fafb] p-6 lg:p-10">
-                  <div className="w-full h-full max-h-[500px] bg-gradient-to-br from-[#191f28] via-[#222a35] to-[#3182f6] rounded-[24px] p-8 text-center shadow-xl relative overflow-hidden group flex flex-col items-center justify-center">
+                <div className="h-full w-full bg-gradient-to-br from-[#191f28] via-[#222a35] to-[#3182f6] rounded-tr-2xl rounded-br-2xl relative overflow-hidden group flex flex-col items-center justify-center p-8 text-center">
                     {/* Background noise/pattern */}
                     <div className="absolute inset-0 bg-black/10 mix-blend-overlay pointer-events-none"></div>
                     <div className="absolute top-0 right-0 w-64 h-64 bg-[#3182f6] rounded-full mix-blend-screen filter blur-[80px] opacity-30 transform translate-x-1/2 -translate-y-1/2"></div>
@@ -479,21 +476,21 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                       </div>
                       
                       <h3 className="text-[22px] font-extrabold text-white tracking-tight mb-3 leading-snug">
-                        동탄 하이엔드 타겟<br/>가장 확실한 광고 구좌
+                        동탄 부동산 핵심 타겟<br/>프리미엄 광고 파트너 모집
                       </h3>
                       
                       <p className="text-[14.5px] text-blue-100/90 font-medium leading-[1.6] mb-8">
-                        동탄 실거주민과 투자자들이<br/>
-                        매일 접속하는 D-VIEW에서<br/>
-                        귀사의 브랜드를 돋보이게 하세요.
+                        실거주와 투자를 준비하는 진성 유저들에게<br/>
+                        귀사의 브랜드를 가장 효과적으로 각인시키세요.
                       </p>
                       
-                      <button className="w-full bg-white text-[#191f28] text-[15px] font-extrabold py-3.5 rounded-xl shadow-[0_4px_14px_0_rgba(255,255,255,0.39)] hover:bg-[#f2f4f6] hover:shadow-[0_6px_20px_rgba(255,255,255,0.23)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 duration-200">
+                      <button 
+                        onClick={() => setIsAdModalOpen(true)}
+                        className="w-full bg-white text-[#191f28] text-[15px] font-extrabold py-3.5 rounded-xl shadow-[0_4px_14px_0_rgba(255,255,255,0.39)] hover:bg-[#f2f4f6] hover:shadow-[0_6px_20px_rgba(255,255,255,0.23)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 duration-200">
                         광고/제휴 문의하기
                       </button>
                     </div>
                   </div>
-                </div>
               )}
             </div>
           </div>
@@ -504,7 +501,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
         {/* 모바일 풀스크린 모달 (md 미만에서만 표시, 사용자 클릭 시에만) */}
         {resolvedReport && mobileModalOpen && (
-          <div className="fixed inset-0 z-50 bg-white overflow-y-auto md:hidden animate-in slide-in-from-bottom duration-300">
+          <div className="md:hidden">
             <FieldReportModal
               report={resolvedReport}
               onClose={() => {
@@ -651,6 +648,9 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       </nav>
 
       </div>
+      {isAdModalOpen && (
+        <AdInquiryModal onClose={() => setIsAdModalOpen(false)} />
+      )}
     </PullToRefresh>
   );
 }

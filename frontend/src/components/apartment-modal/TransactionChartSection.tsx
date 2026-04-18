@@ -63,8 +63,10 @@ export function TransactionChartSection({
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-[#191f28] flex items-center gap-2">
           {displayAptName}
         </h1>
-        <div className="bg-[#f9fafb] rounded-2xl p-8 flex items-center justify-center ring-1 ring-black/5 mt-4 min-h-[300px]">
-          <span className="text-[#8b95a1] text-sm font-bold">해당 유형의 거래 기록이 없습니다</span>
+        <div className="bg-[#f9fafb] rounded-2xl p-8 flex flex-col items-center justify-center ring-1 ring-black/5 mt-4 min-h-[300px]">
+          <span className="text-[40px] mb-2">🤫</span>
+          <span className="text-[#8b95a1] text-[15px] font-extrabold tracking-tight">현재 숨고르기 중인 단지입니다</span>
+          <span className="text-[#b0b8c1] text-[12px] font-medium mt-1">해당 기간 내 실거래 기록이 없습니다</span>
         </div>
       </div>
     );
@@ -188,11 +190,41 @@ export function TransactionChartSection({
       </h1>
 
       <div className="mt-4 bg-white rounded-2xl p-5 ring-1 ring-black/5 flex-1">
-        <div className="flex items-center justify-between mb-3 w-full">
-          <h4 className="text-[14px] font-extrabold text-[#191f28] flex items-center gap-1.5 shrink-0">
-            <TrendingUp size={15} className="text-[#3182f6]" /> {chartType === 'sale' ? '매매가 추이' : '전월세 추이'}
-          </h4>
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-3 w-full gap-3">
+          <div className="flex flex-col gap-2 w-full md:w-1/2">
+            <h4 className="text-[14px] font-extrabold text-[#191f28] flex items-center gap-1.5 shrink-0">
+              <TrendingUp size={15} className="text-[#3182f6]" /> {chartType === 'sale' ? '매매가 추이' : '전월세 추이'}
+            </h4>
+            
+            {/* 최고가 대비 현재가 게이지 바 */}
+            {(() => {
+              if (prices.length > 0) {
+                const maxPrice = Math.max(...prices);
+                const currentPrice = momentum.m1 || prices[prices.length - 1];
+                if (maxPrice > 0 && currentPrice > 0) {
+                  const dropRatio = ((maxPrice - currentPrice) / maxPrice) * 100;
+                  const ratio = Math.max(0, Math.min(100, (currentPrice / maxPrice) * 100));
+                  return (
+                    <div className="flex flex-col gap-1 mt-1">
+                      <div className="flex justify-between text-[11px] font-bold">
+                        <span className="text-[#8b95a1]">최고가 {formatAvgPriceEok(maxPrice)}</span>
+                        <span className="text-[#3182f6]">현재 {formatAvgPriceEok(currentPrice)} ({dropRatio > 0 ? `-${dropRatio.toFixed(1)}%` : `+${Math.abs(dropRatio).toFixed(1)}%`})</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-[#f2f4f6] rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-[#3182f6] to-[#1b64da] rounded-full transition-all duration-1000" 
+                          style={{ width: `${ratio}%` }} 
+                        />
+                      </div>
+                    </div>
+                  );
+                }
+              }
+              return null;
+            })()}
+          </div>
+          
+          <div className="flex items-center gap-3 md:ml-auto">
             <div className="flex items-center gap-0.5 bg-[#f2f4f6] p-0.5 rounded-lg shadow-inner">
               {(['6M','1Y','3Y','ALL'] as const).map(tf => (
                 <button key={tf} onClick={() => setChartTimeframe(tf)}

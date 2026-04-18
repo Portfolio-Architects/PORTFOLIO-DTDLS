@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { doc, getDoc, setDoc, query, collection, onSnapshot, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebaseConfig';
-import { TX_SUMMARY } from '@/lib/transaction-summary';
+import { TX_SUMMARY, AptTxSummary } from '@/lib/transaction-summary';
+import { findTxKey } from '@/lib/utils/apartmentMapping';
 import { DONGS } from '@/lib/dongs';
 import {
   Building, Save, Home, Link2, ChevronLeft, MapPin,
@@ -67,6 +68,9 @@ function editDistance(a: string, b: string): number {
   return dp[m][n];
 }
 function autoSuggest(aptName: string): string | null {
+  const exactOrHardcoded = findTxKey(aptName, TX_SUMMARY);
+  if (exactOrHardcoded) return exactOrHardcoded;
+
   const norm = normalizeAptName(aptName);
   const keys = Object.keys(TX_SUMMARY);
   if (!norm || norm.length < 2) return null;

@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText } from 'lucide-react';
+import { FileText, Heart } from 'lucide-react';
 import { normalize84Price } from '@/lib/utils/valuation';
 import type { AptTxSummary } from '@/lib/transaction-summary';
 import type { FieldReportData } from '@/lib/DashboardFacade';
@@ -85,18 +85,20 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
       )}
 
       {/* 아파트 정보 */}
-      <div className="flex-1 min-w-0 pr-2">
-        <h4 className="text-[14.5px] font-bold text-[#191f28] truncate group-hover:text-[#3182f6] transition-colors leading-tight">
+      <div className="flex-1 min-w-0 pr-2 flex flex-col justify-center">
+        <h4 className="text-[15px] font-extrabold text-[#191f28] truncate group-hover:text-[#3182f6] transition-colors leading-tight">
           {apt.name}
         </h4>
-        <div className="flex items-center gap-1.5 mt-1">
-          <span className="text-xs text-[#8b95a1]">{apt.dong}</span>
+        
+        <div className="flex items-center gap-1.5 mt-1.5 overflow-hidden">
+          <span className="text-[11px] font-medium text-[#8b95a1] shrink-0">{apt.dong}</span>
+          
           {hasPhotos ? (
-            <span className="inline-flex items-center gap-0.5 bg-[#fff4e6] text-[#ff8a3d] text-[10px] font-bold px-1.5 py-[1px] rounded shrink-0 leading-tight" title="현장 검증 완료">
+            <span className="inline-flex items-center gap-0.5 bg-[#fff4e6] text-[#ff8a3d] text-[10px] font-bold px-1.5 py-[1px] rounded shrink-0 leading-tight" title="현장검증">
               현장검증
             </span>
           ) : hasAnalysis ? (
-            <span className="inline-flex items-center gap-0.5 bg-[#e8f3ff] text-[#1b64da] text-[10px] font-bold px-1.5 py-[1px] rounded shrink-0 leading-tight" title="입지 분석 완료">
+            <span className="inline-flex items-center gap-0.5 bg-[#e8f3ff] text-[#1b64da] text-[10px] font-bold px-1.5 py-[1px] rounded shrink-0 leading-tight" title="입지분석">
               입지분석
             </span>
           ) : null}
@@ -188,26 +190,28 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
         )}
       </div>
 
-      {/* ♡ 관심 등록 버튼 */}
+      {/* ♡ 가격 투표 / 관심 등록 버튼 (Gamification) */}
       {onToggleFavorite && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-          className={`shrink-0 h-8 flex items-center justify-center gap-1 rounded-full transition-all px-2 -mr-2 ${
-            isFavorited 
-              ? 'text-[#ff3b30] hover:bg-red-50' 
-              : 'text-[#d1d6db] hover:text-[#ff3b30] hover:bg-[#f9fafb]'
-          }`}
-          title={isFavorited ? '관심 해제' : '관심 등록'}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill={isFavorited ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-          </svg>
-          {favoriteCount != null && (
-            <span className={`text-[12px] font-bold ${isFavorited ? 'text-[#ff3b30]' : 'text-[#8b95a1] group-hover:text-[#ff3b30]'}`}>
-              {favoriteCount}
-            </span>
-          )}
-        </button>
+        <div className="flex flex-col items-center justify-center shrink-0 ml-1">
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+            className={`w-12 h-12 flex flex-col items-center justify-center gap-0.5 rounded-xl transition-all ${
+              isFavorited 
+                ? 'bg-[#fff0f0] text-[#ff3b30]' 
+                : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e8f3ff] hover:text-[#3182f6]'
+            }`}
+            title={isFavorited ? '관심 해제' : '관심 등록'}
+          >
+            <span className="flex items-center justify-center leading-none h-[16px]"><Heart size={16} fill={isFavorited ? 'currentColor' : 'none'} strokeWidth={2.5} /></span>
+            {favoriteCount != null ? (
+              <span className="text-[10px] font-extrabold tabular-nums leading-none">
+                {favoriteCount}
+              </span>
+            ) : (
+              <span className="text-[9px] font-bold leading-none">투표</span>
+            )}
+          </button>
+        </div>
       )}
     </div>
   );
