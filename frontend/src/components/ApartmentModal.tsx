@@ -287,8 +287,12 @@ export function FieldReportModal({
 
             const overallAvgPrice = baseTx.length > 0 ? baseTx.reduce((s, t) => s + t.price, 0) / baseTx.length : 0;
 
+            // Find the latest transaction date to act as the base date for period calculation
+            const sortedBaseTx = [...baseTx].sort((a, b) => getTxDate(b).getTime() - getTxDate(a).getTime());
+            const latestTxDate = sortedBaseTx.length > 0 ? getTxDate(sortedBaseTx[0]) : now;
+
             const periodData = periods.map(p => {
-              const cutoffDate = new Date(now.getFullYear(), now.getMonth() - p.months, now.getDate());
+              const cutoffDate = new Date(latestTxDate.getFullYear(), latestTxDate.getMonth() - p.months, latestTxDate.getDate());
               const filtered = baseTx.filter(tx => p.months >= 9999 || getTxDate(tx) >= cutoffDate);
               const rawAvgPrice = filtered.length > 0 ? filtered.reduce((s, t) => s + t.price, 0) / filtered.length : 0;
               const avgPrice = Math.round(rawAvgPrice / 100) * 100;
