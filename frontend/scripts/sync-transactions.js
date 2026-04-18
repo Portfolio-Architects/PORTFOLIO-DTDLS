@@ -20,11 +20,13 @@ const OUTPUT_PATH = path.resolve(__dirname, '../src/lib/transaction-summary.ts')
 const serviceAccountPath = path.resolve(__dirname, '../serviceAccountKey.json');
 let serviceAccount;
 
-if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+const envKey = process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+
+if (envKey) {
   try {
-    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+    serviceAccount = JSON.parse(envKey);
   } catch (e) {
-    console.error('❌ FIREBASE_SERVICE_ACCOUNT_KEY 환경 변수 파싱 실패', e);
+    console.error('❌ FIREBASE_SERVICE_ACCOUNT 환경 변수 파싱 실패', e);
   }
 } else if (fs.existsSync(serviceAccountPath)) {
   serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
