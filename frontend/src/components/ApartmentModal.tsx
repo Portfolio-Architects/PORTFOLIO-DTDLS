@@ -287,33 +287,42 @@ export function FieldReportModal({
 
             const overallAvgPrice = baseTx.length > 0 ? baseTx.reduce((s, t) => s + t.price, 0) / baseTx.length : 0;
 
-            // Find the latest transaction date to act as the base date for period calculation
             const sortedBaseTx = [...baseTx].sort((a, b) => getTxDate(b).getTime() - getTxDate(a).getTime());
-            const latestTxDate = sortedBaseTx.length > 0 ? getTxDate(sortedBaseTx[0]) : now;
+            const fallbackTx = sortedBaseTx.length > 0 ? sortedBaseTx[0] : null;
 
             const periodData = periods.map(p => {
-              const cutoffDate = new Date(latestTxDate.getFullYear(), latestTxDate.getMonth() - p.months, latestTxDate.getDate());
+              const cutoffDate = new Date(now.getFullYear(), now.getMonth() - p.months, now.getDate());
               const filtered = baseTx.filter(tx => p.months >= 9999 || getTxDate(tx) >= cutoffDate);
-              const rawAvgPrice = filtered.length > 0 ? filtered.reduce((s, t) => s + t.price, 0) / filtered.length : 0;
+              
+              let rawAvgPrice = 0;
+              let perPyeong = 0;
+              let count = filtered.length;
+
+              if (filtered.length > 0) {
+                rawAvgPrice = filtered.reduce((s, t) => s + t.price, 0) / filtered.length;
+                perPyeong = Math.round(filtered.reduce((s, tx) => s + (tx.price / getTxSupplyPyeong(tx)), 0) / filtered.length);
+              } else if (fallbackTx) {
+                rawAvgPrice = fallbackTx.price;
+                perPyeong = Math.round(fallbackTx.price / getTxSupplyPyeong(fallbackTx));
+                count = 0;
+              }
+
               const avgPrice = Math.round(rawAvgPrice / 100) * 100;
               
               // 변동률 전체기간(overallAvgPrice) 기준
               const trendPct = overallAvgPrice > 0 && p.months < 9999 
                 ? ((avgPrice - overallAvgPrice) / overallAvgPrice * 100) 
                 : null;
-              const perPyeong = filtered.length > 0
-                ? Math.round(filtered.reduce((s, tx) => s + (tx.price / getTxSupplyPyeong(tx)), 0) / filtered.length)
-                : 0;
               return {
                 ...p,
-                count: filtered.length,
+                count,
                 avgPrice,
                 avgPriceEok: formatEok(avgPrice),
                 perPyeong,
                 perPyeongEok: formatEok(perPyeong),
                 trendPct,
               };
-            }).filter(p => p.count > 0);
+            }).filter(p => p.count > 0 || p.avgPrice > 0);
 
             const activeFilterLabel = typeFilters.find(f => f.key === priceTypeFilter)?.label || '단지 전체';
 

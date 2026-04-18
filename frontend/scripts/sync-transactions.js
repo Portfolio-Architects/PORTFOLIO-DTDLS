@@ -241,14 +241,7 @@ async function main() {
     saleTxs.sort((a, b) => b.contractDate.localeCompare(a.contractDate));
     const latestTx = saleTxs.length > 0 ? saleTxs[0] : null;
 
-    let baseDateSale = now;
-    if (latestTx && latestTx.contractYm) {
-      const y = parseInt(latestTx.contractYm.slice(0, 4));
-      const m = parseInt(latestTx.contractYm.slice(4, 6));
-      const d = parseInt(latestTx.contractDay) || 1;
-      baseDateSale = new Date(y, m - 1, d);
-    }
-    const oneMonthAgoSale = new Date(baseDateSale.getFullYear(), baseDateSale.getMonth() - 1, baseDateSale.getDate());
+    const oneMonthAgoSale = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
 
     const recentMonthSale = saleTxs.filter(t => {
       if (!t.contractYm || t.contractYm.length < 6) return false;
@@ -259,26 +252,27 @@ async function main() {
       return txDate >= oneMonthAgoSale && t.price > 0 && t.areaPyeong > 0;
     });
 
-    const avg1MPrice = recentMonthSale.length > 0
-      ? Math.round(recentMonthSale.reduce((s, t) => s + t.price, 0) / recentMonthSale.length)
-      : (latestTx ? latestTx.price : 0);
+    let avg1MPriceRaw = 0;
+    if (recentMonthSale.length > 0) {
+      avg1MPriceRaw = recentMonthSale.reduce((s, t) => s + t.price, 0) / recentMonthSale.length;
+    } else if (latestTx && latestTx.price > 0) {
+      avg1MPriceRaw = latestTx.price;
+    }
+    const avg1MPrice = Math.round(avg1MPriceRaw / 100) * 100;
     
-    const avg1MPerPyeong = recentMonthSale.length > 0
-      ? Math.round(recentMonthSale.reduce((s, t) => s + t.price / t.areaPyeong, 0) / recentMonthSale.length)
-      : (latestTx && latestTx.areaPyeong > 0 ? Math.round(latestTx.price / latestTx.areaPyeong) : 0);
+    let avg1MPerPyeongRaw = 0;
+    if (recentMonthSale.length > 0) {
+      avg1MPerPyeongRaw = recentMonthSale.reduce((s, t) => s + t.price / t.areaPyeong, 0) / recentMonthSale.length;
+    } else if (latestTx && latestTx.areaPyeong > 0) {
+      avg1MPerPyeongRaw = latestTx.price / latestTx.areaPyeong;
+    }
+    const avg1MPerPyeong = Math.round(avg1MPerPyeongRaw);
 
     // --- 전월세 요약 ---
     rentTxs.sort((a, b) => b.contractDate.localeCompare(a.contractDate));
     const latestRentTx = rentTxs.filter(t => t.deposit > 0)[0];
     
-    let baseDateRent = now;
-    if (latestRentTx && latestRentTx.contractYm) {
-      const y = parseInt(latestRentTx.contractYm.slice(0, 4));
-      const m = parseInt(latestRentTx.contractYm.slice(4, 6));
-      const d = parseInt(latestRentTx.contractDay) || 1;
-      baseDateRent = new Date(y, m - 1, d);
-    }
-    const oneMonthAgoRent = new Date(baseDateRent.getFullYear(), baseDateRent.getMonth() - 1, baseDateRent.getDate());
+    const oneMonthAgoRent = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
 
     const recentMonthRent = rentTxs.filter(t => {
       if (!t.contractYm || t.contractYm.length < 6) return false;
@@ -289,9 +283,13 @@ async function main() {
       return txDate >= oneMonthAgoRent && t.deposit > 0; // 전세 위주
     });
 
-    const avg1MDeposit = recentMonthRent.length > 0
-      ? Math.round(recentMonthRent.reduce((s, t) => s + t.deposit, 0) / recentMonthRent.length)
-      : (latestRentTx ? latestRentTx.deposit : 0);
+    let avg1MDepositRaw = 0;
+    if (recentMonthRent.length > 0) {
+      avg1MDepositRaw = recentMonthRent.reduce((s, t) => s + t.deposit, 0) / recentMonthRent.length;
+    } else if (latestRentTx && latestRentTx.deposit > 0) {
+      avg1MDepositRaw = latestRentTx.deposit;
+    }
+    const avg1MDeposit = Math.round(avg1MDepositRaw / 100) * 100;
 
     summaries[aptName] = {
       // 매매 데이터
