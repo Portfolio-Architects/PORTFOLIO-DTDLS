@@ -5,6 +5,7 @@ import { ArrowUp, Building, MapPin, Map as MapIcon, Compass, MessageSquare, Hear
   Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil, ChevronDown, Eye } from 'lucide-react';
 import { logger } from '@/lib/services/logger';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
 import ApartmentCard from '@/components/ApartmentCard';
@@ -292,13 +293,13 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               <Compass size={14} strokeWidth={activeTab === 'imjang' ? 2.5 : 1.5} />
               <span>단지 분석</span>
             </button>
-            <button
-              onClick={() => { router.push('/lounge'); }}
+            <Link
+              href="/lounge"
               className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-bold transition-all duration-200 border-b-2 border-transparent text-[#8b95a1] hover:text-[#4e5968] hover:border-[#d1d5db]`}
             >
               <MessageSquare size={14} strokeWidth={1.5} />
               <span>커뮤니티</span>
-            </button>
+            </Link>
             <button
               onClick={() => setActiveTab('recommend')}
               className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-bold transition-all duration-200 border-b-2 ${
@@ -611,20 +612,28 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         <div className="flex items-center justify-between flex-1 gap-1">
           {[
             { id: 'imjang' as const, label: '단지 분석', icon: Compass },
-            { id: 'lounge' as const, label: '커뮤니티', icon: MessageSquare },
+            { id: 'lounge' as const, label: '커뮤니티', icon: MessageSquare, isLink: true, href: '/lounge' },
             { id: 'recommend' as const, label: '아파트 탐색', icon: Home },
           ].map(tab => {
             const isActive = activeTab === tab.id;
+            
+            if (tab.isLink && tab.href) {
+              return (
+                <Link
+                  key={tab.id}
+                  href={tab.href}
+                  className={`flex flex-col items-center justify-center w-full min-h-[50px] rounded-[22px] transition-all duration-300 relative text-[#8b95a1] hover:text-[#4e5968]`}
+                >
+                  <tab.icon size={22} strokeWidth={2} className="mb-1 relative z-10" />
+                  <span className="text-[10px] font-bold tracking-wide relative z-10">{tab.label}</span>
+                </Link>
+              );
+            }
+
             return (
               <button
                 key={tab.id}
-                onClick={() => {
-                  if (tab.id === 'lounge') {
-                    router.push('/lounge');
-                  } else {
-                    setActiveTab(tab.id);
-                  }
-                }}
+                onClick={() => setActiveTab(tab.id as 'imjang' | 'recommend')}
                 className={`flex flex-col items-center justify-center w-full min-h-[50px] rounded-[22px] transition-all duration-300 relative ${
                   isActive ? 'text-[#3182f6]' : 'text-[#8b95a1] hover:text-[#4e5968]'
                 }`}
