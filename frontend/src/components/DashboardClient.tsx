@@ -29,7 +29,7 @@ interface StaticApartment { name: string; dong: string; householdCount?: number;
 import { TX_SUMMARY, type AptTxSummary } from '@/lib/transaction-summary';
 import { isSameApartment, normalizeAptName, findTxKey, getDisplayAptName, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
 import * as PurchaseRepo from '@/lib/repositories/purchase.repository';
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { getDisplayName } from '@/lib/types/user.types';
 import { FixedSizeList } from 'react-window';
@@ -52,6 +52,18 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   const { triggerCustomA2HSModal } = usePWA();
 
   const [activeTab, setActiveTab] = useState<'imjang' | 'lounge' | 'recommend'>('imjang');
+  const [isPending, startTransition] = useTransition();
+
+  const fieldReportsMap = useMemo(() => {
+    const map = new Map<string, any>();
+    if (!fieldReports || !sheetApartments) return map;
+    const allApts = Object.values(sheetApartments).flat();
+    allApts.forEach(apt => {
+      const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name, nameMapping));
+      if (report) map.set(apt.name, report);
+    });
+    return map;
+  }, [fieldReports, sheetApartments, nameMapping]);
   const [mounted, setMounted] = useState(false);
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
 
@@ -65,8 +77,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       }
 
       const handleHashChange = () => {
-        if (window.location.hash === '#recommend') setActiveTab('recommend');
-        else if (window.location.hash === '#imjang' || window.location.hash === '') setActiveTab('imjang');
+        startTransition(() => {
+          if (window.location.hash === '#recommend') setActiveTab('recommend');
+          else if (window.location.hash === '#imjang' || window.location.hash === '') setActiveTab('imjang');
+        });
       };
       window.addEventListener('hashchange', handleHashChange);
       return () => window.removeEventListener('hashchange', handleHashChange);
@@ -125,7 +139,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       userHasSelected.current = true;
       const targetApt = allApts.find(a => isSameApartment(a.name, preselectedAptName, nameMapping));
       if (targetApt) {
-        const report = fieldReports.find(r => isSameApartment(r.apartmentName, targetApt.name, nameMapping));
+        const report = fieldReportsMap.get(targetApt.name);
         if (report) {
           setSelectedReport(report);
         } else {
@@ -267,7 +281,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
           {/* Bottom row: Tab navigation */}
           <nav aria-label="메인 네비게이션" className="flex items-center gap-1 -mb-px">
             <button
-              onClick={() => setActiveTab('imjang')}
+              onClick={() => startTransition(() => setActiveTab('imjang'))}
               className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-bold transition-all duration-200 border-b-2 ${
                 activeTab === 'imjang'
                   ? 'border-[#3182f6] text-[#3182f6]'
@@ -285,7 +299,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               <span>커뮤니티</span>
             </Link>
             <button
-              onClick={() => setActiveTab('recommend')}
+              onClick={() => startTransition(() => setActiveTab('recommend'))}
               className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-bold transition-all duration-200 border-b-2 ${
                 activeTab === 'recommend'
                   ? 'border-[#3182f6] text-[#3182f6]'
@@ -322,8 +336,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             // 정렬 로직
             const sorted = [...allApts].sort((a, b) => {
               if (listSort === 'views') {
-                const aReport = fieldReports.find(r => isSameApartment(r.apartmentName, a.name, nameMapping));
-                const bReport = fieldReports.find(r => isSameApartment(r.apartmentName, b.name, nameMapping));
+                const aReport = fieldReportsMap.get(a.name);
+                const bReport = fieldReportsMap.get(b.name);
                 const diff = (bReport?.viewCount || 0) - (aReport?.viewCount || 0);
                 return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
               }
@@ -342,7 +356,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   const allApts = Object.values(sheetApartments).flat();
                   const trending = [...allApts]
                     .map(a => {
-                      const r = fieldReports.find(rpt => isSameApartment(rpt.apartmentName, a.name, nameMapping));
+                      const r = fieldReportsMap.get(a.name);
                       return { name: a.name, views: r?.viewCount || 0 };
                     })
                     .sort((a, b) => b.views - a.views)
@@ -377,7 +391,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                       const overrideKey = HARDCODED_MAPPING[normalizeAptName(apt.name)];
                       const txKey = overrideKey || apt.txKey || findTxKey(apt.name, txSummaryData, nameMapping);
                       const txSummary = txKey ? txSummaryData[txKey] : undefined;
-                      const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name, nameMapping));
+                      const report = fieldReportsMap.get(apt.name);
                       return (
                         <div style={style}>
                           <ApartmentCard
@@ -532,7 +546,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
         {/* ═══ TAB 3: 아파트 추천 (Toss-Style Discovery) ═══ */}
         {activeTab === 'recommend' && (
-          <section className="h-full">
+          <section className={`h-full transition-opacity duration-300 ${isPending ? 'opacity-50' : 'opacity-100'}`}>
             <ApartmentDiscoveryClient
               sheetApartments={sheetApartments}
               fieldReports={fieldReports || []}
@@ -631,7 +645,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as 'imjang' | 'recommend')}
+                onClick={() => startTransition(() => setActiveTab(tab.id as 'imjang' | 'recommend'))}
                 className={`flex flex-col items-center justify-center w-full min-h-[50px] rounded-[22px] transition-all duration-300 relative ${
                   isActive ? 'text-[#3182f6]' : 'text-[#8b95a1] hover:text-[#4e5968]'
                 }`}

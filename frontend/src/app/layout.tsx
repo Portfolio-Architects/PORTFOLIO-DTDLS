@@ -5,6 +5,7 @@ import OfflineBanner from '@/components/OfflineBanner';
 import SiteTracker from '@/components/SiteTracker';
 import { PWAProvider } from '@/components/pwa/PWAProvider';
 import CustomA2HSModal from '@/components/pwa/CustomA2HSModal';
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://dongtanview.com'),
@@ -53,6 +54,11 @@ export default function RootLayout({
           <CustomA2HSModal />
         </PWAProvider>
         <div id="modal-root" />
+        
+        {/* Google Analytics 4 (Only renders if NEXT_PUBLIC_GA_ID exists) */}
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
       </body>
     </html>
   );

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Eye, Heart, BarChart2, ExternalLink, CreditCard, Activity, CalendarDays } from 'lucide-react';
 import { collection, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, AreaChart } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { getDailyVisitStats, getDailyContentViews, DailyStat, ContentView } from '@/lib/repositories/traffic.repository';
 
 interface TrafficRow {
@@ -14,11 +14,10 @@ interface TrafficRow {
   likes: number;
 }
 
-export default function TrafficPage() {
   const [activeTab, setActiveTab] = useState<'daily' | 'cumulative'>('daily');
   
-  // Daily Stats Data
-  const [dailyStats, setDailyStats] = useState<DailyStat[]>([]);
+  // GA4 Daily Stats Data
+  const [gaData, setGaData] = useState<{date: string, activeUsers: number, pageViews: number}[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [contentViews, setContentViews] = useState<ContentView[]>([]);
   
@@ -33,16 +32,15 @@ export default function TrafficPage() {
     (async () => {
       setLoading(true);
       try {
-        // Fetch Daily Stats
-        const dStats = await getDailyVisitStats();
-        // Sort by date ascending to show timeline correctly
-        const sortedDStats = dStats.sort((a, b) => a.date.localeCompare(b.date));
-        setDailyStats(sortedDStats);
-
-        // Auto-select latest date if available
-        if (sortedDStats.length > 0) {
-          const latest = sortedDStats[sortedDStats.length - 1].date;
-          setSelectedDate(latest);
+        // Fetch GA4 Stats
+        const gaRes = await fetch('/api/admin/analytics');
+        const gaJson = await gaRes.json();
+        
+        if (gaJson.data) {
+          setGaData(gaJson.data);
+          if (gaJson.data.length > 0) {
+            setSelectedDate(gaJson.data[gaJson.data.length - 1].date);
+          }
         }
 
         // Fetch meta for apartment list
@@ -152,7 +150,7 @@ export default function TrafficPage() {
           onClick={() => setActiveTab('daily')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[14px] font-bold transition-all ${activeTab === 'daily' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}
         >
-          <Activity size={16} /> 일자별 트래픽
+          <Activity size={16} /> 구글 애널리틱스 (GA4)
         </button>
         <button 
           onClick={() => setActiveTab('cumulative')}
@@ -169,21 +167,20 @@ export default function TrafficPage() {
         <div className="space-y-6">
           {/* Chart Section */}
           <div className="bg-white rounded-2xl border border-[#e5e8eb] shadow-sm p-6">
-            <h2 className="text-[16px] font-bold text-[#191f28] mb-6 flex items-center gap-2">
-              <Activity size={18} className="text-[#3182f6]" /> 총 방문자 추이 (최근 일자)
+            <h2 className="text-[16px] font-bold text-[#191f28] mb-1 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Activity size={18} className="text-[#3182f6]" /> 구글 애널리틱스 트래픽 (순수 방문자)
+              </div>
+              <span className="text-[12px] font-medium text-[#8b95a1] bg-[#f2f4f6] px-2 py-1 rounded-md">
+                과도한 봇(Bot) 및 내부 개발자 트래픽이 자동 필터링됩니다.
+              </span>
             </h2>
-            <div className="h-[280px] w-full">
-              {dailyStats.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-[#8b95a1]">오늘부터 기록이 시작됩니다.</div>
+            <div className="h-[280px] w-full mt-6">
+              {gaData.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-[#8b95a1]">구글 애널리틱스 데이터를 불러오는 중이거나 아직 기록이 없습니다.</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                  <AreaChart data={dailyStats} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorVisits" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3182f6" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#3182f6" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
+                  <BarChart data={gaData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e8eb" />
                     <XAxis 
                       dataKey="date" 
@@ -194,16 +191,19 @@ export default function TrafficPage() {
                       dy={10}
                     />
                     <YAxis 
+                      allowDecimals={false}
                       axisLine={false} 
                       tickLine={false} 
                       tick={{ fill: '#8b95a1', fontSize: 12 }} 
                     />
                     <Tooltip 
+                      cursor={{ fill: '#f2f4f6' }}
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
                       labelStyle={{ color: '#8b95a1', fontWeight: 'bold', marginBottom: '4px' }}
                     />
-                    <Area type="monotone" dataKey="websiteVisits" name="방문자 수" stroke="#3182f6" strokeWidth={3} fillOpacity={1} fill="url(#colorVisits)" />
-                  </AreaChart>
+                    <Bar dataKey="activeUsers" name="순수 방문자 수" fill="#3182f6" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    <Bar dataKey="pageViews" name="페이지 뷰" fill="#ff8a3d" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                  </BarChart>
                 </ResponsiveContainer>
               )}
             </div>
@@ -221,7 +221,7 @@ export default function TrafficPage() {
                 onChange={e => setSelectedDate(e.target.value)}
                 className="bg-[#f2f4f6] text-[#4e5968] font-bold text-[14px] px-4 py-2 rounded-xl outline-none"
               >
-                {[...dailyStats].reverse().map(s => (
+                {[...gaData].reverse().map(s => (
                   <option key={s.date} value={s.date}>{s.date}</option>
                 ))}
               </select>

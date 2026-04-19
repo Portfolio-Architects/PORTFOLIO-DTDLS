@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Flame, Heart, Clock, MapPin, Building2 } from 'lucide-react';
 import ApartmentCard from './ApartmentCard';
 import { ZONES, getDongsForZone } from '@/lib/zones';
@@ -8,6 +8,7 @@ import { FieldReportData } from '@/lib/DashboardFacade';
 import type { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/lib/transaction-summary';
 import { isSameApartment, findTxKey } from '@/lib/utils/apartmentMapping';
+import { FixedSizeList } from 'react-window';
 
 interface DiscoveryProps {
   sheetApartments: Record<string, DongApartment[]>;
@@ -56,12 +57,23 @@ export default function ApartmentDiscoveryClient({
   // Flatten apartments
   const allApts = useMemo(() => Object.values(sheetApartments).flat(), [sheetApartments]);
 
+  // Pre-compute O(1) Hash Map for fieldReports to avoid O(N^2) blocking
+  const fieldReportsMap = useMemo(() => {
+    const map = new Map<string, FieldReportData>();
+    if (!fieldReports || !allApts) return map;
+    allApts.forEach(apt => {
+      const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name, nameMapping));
+      if (report) map.set(apt.name, report);
+    });
+    return map;
+  }, [fieldReports, allApts, nameMapping]);
+
   // Derived filtered & sorted list
   const displayList = useMemo(() => {
     if (activeCategory === 'popular') {
       return [...allApts].sort((a, b) => {
-        const rA = fieldReports.find(r => isSameApartment(r.apartmentName, a.name, nameMapping));
-        const rB = fieldReports.find(r => isSameApartment(r.apartmentName, b.name, nameMapping));
+        const rA = fieldReportsMap.get(a.name);
+        const rB = fieldReportsMap.get(b.name);
         const diff = (rB?.viewCount || 0) - (rA?.viewCount || 0);
         return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
       }).slice(0, 50); // Top 50 limits
@@ -72,10 +84,10 @@ export default function ApartmentDiscoveryClient({
     }
 
     if (activeCategory === 'recent') {
-      const reportedApts = allApts.filter(a => fieldReports.some(r => isSameApartment(r.apartmentName, a.name, nameMapping)));
+      const reportedApts = allApts.filter(a => fieldReportsMap.has(a.name));
       return reportedApts.sort((a, b) => {
-        const rA = fieldReports.find(r => isSameApartment(r.apartmentName, a.name, nameMapping));
-        const rB = fieldReports.find(r => isSameApartment(r.apartmentName, b.name, nameMapping));
+        const rA = fieldReportsMap.get(a.name);
+        const rB = fieldReportsMap.get(b.name);
         const tA = rA?.createdAt ? new Date(rA.createdAt as string | number).getTime() : 0;
         const tB = rB?.createdAt ? new Date(rB.createdAt as string | number).getTime() : 0;
         return tB - tA;
@@ -86,20 +98,20 @@ export default function ApartmentDiscoveryClient({
       const zoneId = activeCategory.replace('zone-', '');
       const dongs = getDongsForZone(zoneId);
       return allApts.filter(a => dongs.includes(a.dong)).sort((a, b) => {
-        const rA = fieldReports.find(r => isSameApartment(r.apartmentName, a.name, nameMapping));
-        const rB = fieldReports.find(r => isSameApartment(r.apartmentName, b.name, nameMapping));
+        const rA = fieldReportsMap.get(a.name);
+        const rB = fieldReportsMap.get(b.name);
         const diff = (rB?.viewCount || 0) - (rA?.viewCount || 0);
         return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
       });
     }
 
     return allApts;
-  }, [activeCategory, allApts, fieldReports, nameMapping, userFavorites]);
+  }, [activeCategory, allApts, fieldReportsMap, userFavorites]);
 
   const activeCatObj = CATEGORIES.find(c => c.id === activeCategory);
 
   const handleSelectApt = (apt: DongApartment) => {
-    const report = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name, nameMapping));
+    const report = fieldReportsMap.get(apt.name);
     if (report) {
       onSelectReport(report);
     } else {
@@ -115,6 +127,24 @@ export default function ApartmentDiscoveryClient({
       });
     }
   };
+
+  const [listHeight, setListHeight] = useState(600);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const updateHeight = () => {
+        if (window.innerWidth >= 768) {
+          setListHeight(Math.max(400, window.innerHeight - 250));
+        } else {
+          // On mobile, just give it a fixed large height so users can scroll the page
+          setListHeight(window.innerHeight - 300 > 400 ? window.innerHeight - 300 : 600);
+        }
+      };
+      updateHeight();
+      window.addEventListener('resize', updateHeight);
+      return () => window.removeEventListener('resize', updateHeight);
+    }
+  }, []);
 
   return (
     <div className="w-full flex flex-col md:flex-row gap-6 lg:gap-8 h-full">
@@ -214,7 +244,7 @@ export default function ApartmentDiscoveryClient({
         </div>
 
         {/* 아파트 리스트 렌더링 */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 overflow-y-auto custom-scrollbar bg-white">
           {displayList.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-center px-4">
               <Heart className="w-12 h-12 text-[#d1d6db] mb-4" strokeWidth={1.5} />
@@ -228,29 +258,40 @@ export default function ApartmentDiscoveryClient({
               </p>
             </div>
           ) : (
-            displayList.map((apt, index) => {
-              const rawTxKey = (apt as any).txKey || apt.name;
-              const txKey = findTxKey(rawTxKey, txSummaryData, nameMapping) || rawTxKey;
-              const matchedSummary = txKey ? txSummaryData[txKey] : undefined;
-              const matchedReport = fieldReports.find(r => isSameApartment(r.apartmentName, apt.name, nameMapping));
+            <FixedSizeList
+              height={typeof window !== 'undefined' && window.innerWidth >= 768 ? listHeight : displayList.length * 82}
+              itemCount={displayList.length}
+              itemSize={82}
+              width="100%"
+              overscanCount={5}
+            >
+              {({ index, style }) => {
+                const apt = displayList[index];
+                const rawTxKey = (apt as any).txKey || apt.name;
+                const txKey = findTxKey(rawTxKey, txSummaryData, nameMapping) || rawTxKey;
+                const matchedSummary = txKey ? txSummaryData[txKey] : undefined;
+                const matchedReport = fieldReportsMap.get(apt.name);
 
-              return (
-                <ApartmentCard
-                  key={apt.name}
-                  apt={apt as unknown as { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; txKey?: string; }} // StaticApartment compatible
-                  txSummary={matchedSummary}
-                  report={matchedReport}
-                  isPublicRental={publicRentalSet.has(apt.name)}
-                  onClick={() => handleSelectApt(apt)}
-                  rank={activeCategory === 'popular' ? index + 1 : undefined}
-                  isFavorited={userFavorites.has(apt.name)}
-                  favoriteCount={favoriteCounts[apt.name] || 0}
-                  onToggleFavorite={() => onToggleFavorite(apt.name)}
-                  typeMap={typeMap}
-                  areaUnit={areaUnit}
-                />
-              );
-            })
+                return (
+                  <div style={style}>
+                    <ApartmentCard
+                      key={apt.name}
+                      apt={apt as unknown as { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; txKey?: string; }}
+                      txSummary={matchedSummary}
+                      report={matchedReport}
+                      isPublicRental={publicRentalSet.has(apt.name)}
+                      onClick={() => handleSelectApt(apt as DongApartment)}
+                      rank={activeCategory === 'popular' ? index + 1 : undefined}
+                      isFavorited={userFavorites.has(apt.name)}
+                      favoriteCount={favoriteCounts[apt.name] || 0}
+                      onToggleFavorite={() => onToggleFavorite(apt.name)}
+                      typeMap={typeMap}
+                      areaUnit={areaUnit}
+                    />
+                  </div>
+                );
+              }}
+            </FixedSizeList>
           )}
         </div>
       </div>
