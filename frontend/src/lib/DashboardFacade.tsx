@@ -45,6 +45,7 @@ export interface DashboardDataStrategy {
   getNewsFeed(): NewsItemData[];
   getFieldReports?(): FieldReportData[];
   getFullReport?(reportId: string): Promise<FieldReportData | null>;
+  getFullReportByApartmentName?(apartmentName: string): Promise<FieldReportData | null>;
   getAdBanner(): AdBannerData;
   subscribe?(callback: () => void): () => void;
   addPost?(title: string, content: string, category: string, authorUid: string, imageFile?: File, authorEmail?: string | null): Promise<void>;
@@ -147,6 +148,10 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
 
   async getFullReport(reportId: string): Promise<FieldReportData | null> {
     return ReportRepo.getFullReport(reportId);
+  }
+
+  async getFullReportByApartmentName(apartmentName: string): Promise<FieldReportData | null> {
+    return ReportRepo.getFullReportByApartmentName(apartmentName);
   }
 
   getDongtanApartments(): string[] { return this.dongtanApartments; }
@@ -337,6 +342,7 @@ export class DashboardFacade {
   public getNewsFeed(): NewsItemData[] { return this.strategy.getNewsFeed(); }
   public getFieldReports(): FieldReportData[] { return this.strategy.getFieldReports ? this.strategy.getFieldReports() : []; }
   public async getFullReport(reportId: string): Promise<FieldReportData | null> { return this.strategy.getFullReport ? await this.strategy.getFullReport(reportId) : null; }
+  public async getFullReportByApartmentName(apartmentName: string): Promise<FieldReportData | null> { return this.strategy.getFullReportByApartmentName ? await this.strategy.getFullReportByApartmentName(apartmentName) : null; }
   public getUserReviews(): UserReview[] { return this.strategy.getUserReviews ? this.strategy.getUserReviews() : []; }
   public getAdBanner(): AdBannerData { return this.strategy.getAdBanner(); }
   public async addPost(title: string, content: string, category: string, authorUid: string, imageFile?: File, authorEmail?: string | null) { if (this.strategy.addPost) await this.strategy.addPost(title, content, category, authorUid, imageFile, authorEmail); }

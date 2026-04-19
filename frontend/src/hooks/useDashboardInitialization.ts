@@ -262,6 +262,9 @@ export function useDashboardInitialization(initialDashboardData?: DashboardIniti
   useEffect(() => {
     if (!selectedReport) { setModalTransactions([]); return; }
     
+    // 💡 BUGFIX: When switching reports, immediately clear stale fullReportData from previous selection
+    setFullReportData(null);
+
     let unmounted = false;
     setIsTxLoading(true);
     const rawApt = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping));
@@ -322,7 +325,19 @@ export function useDashboardInitialization(initialDashboardData?: DashboardIniti
         trackView();
       }
     } else {
-      setFullReportData(null);
+      // It is a stub report! The user clicked an apartment that isn't in the recent 30 top list.
+      // But we should still try to fetch the actual Firebase report by its name!
+      if (dashboardFacade.getFullReportByApartmentName) {
+        setIsLoadingDetail(true);
+        dashboardFacade.getFullReportByApartmentName(selectedReport.apartmentName).then((data) => {
+          if (!unmounted) {
+            setFullReportData(data); // Will be null if it truly doesn't exist
+            setIsLoadingDetail(false);
+          }
+        }).catch(() => { if (!unmounted) setIsLoadingDetail(false); });
+      } else {
+        setFullReportData(null);
+      }
     }
     
     return () => { unmounted = true; };
@@ -334,13 +349,17 @@ export function useDashboardInitialization(initialDashboardData?: DashboardIniti
   const [commentInput, setCommentInput] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (selectedReport && !selectedReport.id.startsWith('stub-') && !commentsData[selectedReport.id]) {
-      const unsubscribe = dashboardFacade.listenToComments(selectedReport.id, (comments) => {
-        setCommentsData(prev => ({ ...prev, [selectedReport.id]: comments }));
+    // Determine the actual ID to use for fetching comments.
+    // If we fetched the full report (even for a stub), use its real ID.
+    const actualReportId = fullReportData ? fullReportData.id : selectedReport?.id;
+    
+    if (actualReportId && !actualReportId.startsWith('stub-') && !commentsData[actualReportId]) {
+      const unsubscribe = dashboardFacade.listenToComments(actualReportId, (comments) => {
+        setCommentsData(prev => ({ ...prev, [actualReportId]: comments }));
       });
       return () => unsubscribe();
     }
-  }, [selectedReport]);
+  }, [selectedReport, fullReportData]);
 
   const handleSubmitComment = async (reportId: string) => {
     if (!user) { alert("로그인 후 댓글을 남길 수 있습니다."); handleLogin(); return; }

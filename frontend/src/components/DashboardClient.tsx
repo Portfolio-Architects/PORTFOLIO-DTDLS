@@ -455,16 +455,16 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                     setSelectedReport(null);
                     window.history.pushState(null, '', '/');
                   }} 
-                  comments={commentsData[selectedReport!.id] || []}
-                  commentInput={commentInput[selectedReport!.id] || ''}
-                  onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport!.id]: text }))}
-                  onSubmitComment={() => handleSubmitComment(selectedReport!.id)}
+                  comments={commentsData[resolvedReport.id] || []}
+                  commentInput={commentInput[resolvedReport.id] || ''}
+                  onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [resolvedReport.id]: text }))}
+                  onSubmitComment={() => handleSubmitComment(resolvedReport.id)}
                   user={user}
                   transactions={modalTransactions}
                   typeMap={typeMap}
                   areaUnit={areaUnit}
                   isLoadingDetail={isLoadingDetail}
-                  isPurchased={purchasedReportIds.includes(selectedReport!.id)}
+                  isPurchased={purchasedReportIds.includes(resolvedReport.id)}
                   isAdmin={dashboardFacade.isAdmin(user?.email)}
                   onPurchaseComplete={() => {
                     if (user) {
@@ -523,15 +523,15 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 setMobileModalOpen(false);
                 window.history.pushState(null, '', '/');
               }}
-              comments={commentsData[selectedReport!.id] || []}
-              commentInput={commentInput[selectedReport!.id] || ''}
-              onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport!.id]: text }))}
-              onSubmitComment={() => handleSubmitComment(selectedReport!.id)}
+              comments={commentsData[resolvedReport.id] || []}
+              commentInput={commentInput[resolvedReport.id] || ''}
+              onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [resolvedReport.id]: text }))}
+              onSubmitComment={() => handleSubmitComment(resolvedReport.id)}
               user={user}
               transactions={modalTransactions}
               typeMap={typeMap}
               isLoadingDetail={isLoadingDetail}
-              isPurchased={purchasedReportIds.includes(selectedReport!.id)}
+              isPurchased={purchasedReportIds.includes(resolvedReport.id)}
               isAdmin={dashboardFacade.isAdmin(user?.email)}
               onPurchaseComplete={() => {
                 if (user) {

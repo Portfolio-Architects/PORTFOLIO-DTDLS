@@ -99,6 +99,39 @@ export async function getFullReport(reportId: string): Promise<FieldReportData |
   };
 }
 
+/**
+ * Fetches a single report's full data by apartment name.
+ * Used to resolve stub reports when the user clicks an apartment that isn't in the top 30 recent reports.
+ */
+export async function getFullReportByApartmentName(apartmentName: string): Promise<FieldReportData | null> {
+  const q = query(collection(db, 'scoutingReports'), where('apartmentName', '==', apartmentName), limit(1));
+  const querySnapshot = await getDocs(q);
+  if (querySnapshot.empty) return null;
+  
+  const docSnap = querySnapshot.docs[0];
+  const data = docSnap.data();
+  return {
+    id: docSnap.id,
+    dong: data.dong || '오산동 (동탄역)',
+    apartmentName: data.apartmentName,
+    sections: data.sections || undefined,
+    premiumScores: data.premiumScores,
+    premiumContent: data.premiumContent,
+    pros: data.premiumContent || '포장 싹 뺀 진짜 동네 아파트 리뷰',
+    cons: '',
+    rating: 5,
+    author: '데이터 랩스',
+    likes: data.likes || 0,
+    viewCount: data.viewCount || 0,
+    commentCount: data.commentCount || 0,
+    imageUrl: data.thumbnailUrl || data.imageUrl,
+    images: data.images || [],
+    metrics: data.metrics,
+    scoutingDate: data.scoutingDate || '',
+    createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',
+  };
+}
+
 import * as TrafficRepo from '@/lib/repositories/traffic.repository';
 
 /**
