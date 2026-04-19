@@ -6,6 +6,7 @@ import SiteTracker from '@/components/SiteTracker';
 import { PWAProvider } from '@/components/pwa/PWAProvider';
 import CustomA2HSModal from '@/components/pwa/CustomA2HSModal';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import NextTopLoader from 'nextjs-toploader';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://dongtanview.com'),
@@ -47,6 +48,7 @@ export default function RootLayout({
             });
           }
         `}} />
+        <NextTopLoader color="#3182f6" showSpinner={false} />
         <PWAProvider>
           <OfflineBanner />
           <SiteTracker />

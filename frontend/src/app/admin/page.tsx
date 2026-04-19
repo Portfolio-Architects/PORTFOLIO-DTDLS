@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useTransition } from 'react';
+import useSWR from 'swr';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -8,7 +9,7 @@ import {
   Home, Link2, FileText, Plus, Trash2, MapPin, PlusCircle, Edit
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, onSnapshot, where, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebaseConfig';
+import { db, auth } from '@/lib/firebaseConfig';
 import { TX_SUMMARY } from '@/lib/transaction-summary';
 import { DONGS } from '@/lib/dongs';
 import { FULL_DONG_DATA } from '@/lib/dong-apartments';
@@ -105,83 +106,82 @@ export default function AdminDashboard() {
     return () => unsub();
   }, []);
 
-  // ── Load from Google Sheets (Single Source of Truth) ──
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch('/api/apartments-by-dong');
-        if (!res.ok) throw new Error('Failed to fetch from sheets');
-        const data = await res.json();
-        const sheetMap: MetaMap = {};
-        
-        // Parse the grouped byDong data
-        if (data.byDong) {
-          for (const [dong, apts] of Object.entries(data.byDong)) {
-            (apts as Record<string, unknown>[]).forEach(apt => {
-              sheetMap[apt.name as string] = {
-                dong: (apt as Record<string, string>)?.dong,
-                txKey: (apt as Record<string, string>)?.txKey || autoSuggest(apt.name as string) || undefined,
-                maxFloor: (apt as Record<string, number>)?.maxFloor || 0,
-                isPublicRental: (apt as Record<string, boolean>)?.isPublicRental || false,
-                householdCount: (apt as Record<string, number>)?.householdCount,
-                yearBuilt: (apt as Record<string, string>)?.yearBuilt,
-                brand: (apt as Record<string, string>)?.brand,
-                ticker: (apt as Record<string, string>)?.ticker, // Crucial for Write API
-              };
-            });
-          }
+  const [isPending, startTransition] = useTransition();
+
+  // ── SWR Fetcher for Google Sheets (Single Source of Truth) ──
+  const fetcher = async (url: string) => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed to fetch from sheets');
+      const data = await res.json();
+      const sheetMap: MetaMap = {};
+      
+      if (data.byDong) {
+        for (const [dong, apts] of Object.entries(data.byDong)) {
+          (apts as Record<string, unknown>[]).forEach(apt => {
+            sheetMap[apt.name as string] = {
+              dong: (apt as Record<string, string>)?.dong,
+              txKey: (apt as Record<string, string>)?.txKey || autoSuggest(apt.name as string) || undefined,
+              maxFloor: (apt as Record<string, number>)?.maxFloor || 0,
+              isPublicRental: (apt as Record<string, boolean>)?.isPublicRental || false,
+              householdCount: (apt as Record<string, number>)?.householdCount,
+              yearBuilt: (apt as Record<string, string>)?.yearBuilt,
+              brand: (apt as Record<string, string>)?.brand,
+              ticker: (apt as Record<string, string>)?.ticker,
+            };
+          });
         }
-        setMeta(sheetMap);
-        setInitialMeta(JSON.parse(JSON.stringify(sheetMap))); // Deep copy for diffing
-        setLoaded(true);
-      } catch (e) {
-        console.error('Failed to load sheets, trying Firestore fallback:', e);
-        // Fallback: load from Firestore settings/apartmentMeta
-        try {
-          const metaDoc = await getDoc(doc(db, 'settings/apartmentMeta'));
-          if (metaDoc.exists()) {
-            const data = metaDoc.data() as Record<string, unknown>;
-            const fbMap: MetaMap = {};
-            for (const [name, m] of Object.entries(data)) {
-              if (m && typeof m === 'object' && 'dong' in m) {
-                const mapObj = m as Record<string, unknown>;
-                fbMap[name] = {
-                  dong: mapObj.dong as string,
-                  txKey: (mapObj.txKey as string) || autoSuggest(name) || undefined,
-                  maxFloor: (mapObj.maxFloor as number) || 0,
-                  isPublicRental: (mapObj.isPublicRental as boolean) || false,
-                  householdCount: mapObj.householdCount as number | undefined,
-                  yearBuilt: mapObj.yearBuilt as string | undefined,
-                  brand: mapObj.brand as string | undefined,
-                  ticker: mapObj.ticker as string | undefined,
-                };
-              }
-            }
-            if (Object.keys(fbMap).length > 0) {
-              setMeta(fbMap);
-              setInitialMeta(JSON.parse(JSON.stringify(fbMap)));
-            }
-          }
-        } catch (fbErr) {
-          console.error('Firestore fallback also failed:', fbErr);
-          // Final fallback: use static FULL_DONG_DATA
-          const staticMap: MetaMap = {};
-          for (const [dong, apts] of Object.entries(FULL_DONG_DATA)) {
-            apts.forEach(aptName => {
-              staticMap[aptName] = {
-                dong,
-                txKey: autoSuggest(aptName) || undefined,
-                isPublicRental: false,
-              };
-            });
-          }
-          setMeta(staticMap);
-          setInitialMeta(JSON.parse(JSON.stringify(staticMap)));
-        }
-        setLoaded(true);
       }
-    })();
-  }, []);
+      return sheetMap;
+    } catch (e) {
+      console.error('Failed to load sheets, trying Firestore fallback:', e);
+      try {
+        const metaDoc = await getDoc(doc(db, 'settings/apartmentMeta'));
+        if (metaDoc.exists()) {
+          const data = metaDoc.data() as Record<string, unknown>;
+          const fbMap: MetaMap = {};
+          for (const [name, m] of Object.entries(data)) {
+            if (m && typeof m === 'object' && 'dong' in m) {
+              const mapObj = m as Record<string, unknown>;
+              fbMap[name] = {
+                dong: mapObj.dong as string,
+                txKey: (mapObj.txKey as string) || autoSuggest(name) || undefined,
+                maxFloor: (mapObj.maxFloor as number) || 0,
+                isPublicRental: (mapObj.isPublicRental as boolean) || false,
+                householdCount: mapObj.householdCount as number | undefined,
+                yearBuilt: mapObj.yearBuilt as string | undefined,
+                brand: mapObj.brand as string | undefined,
+                ticker: mapObj.ticker as string | undefined,
+              };
+            }
+          }
+          if (Object.keys(fbMap).length > 0) return fbMap;
+        }
+      } catch (fbErr) {
+        console.error('Firestore fallback also failed:', fbErr);
+      }
+      const staticMap: MetaMap = {};
+      for (const [dong, apts] of Object.entries(FULL_DONG_DATA)) {
+        apts.forEach(aptName => {
+          staticMap[aptName] = { dong, txKey: autoSuggest(aptName) || undefined, isPublicRental: false };
+        });
+      }
+      return staticMap;
+    }
+  };
+
+  const { data: swrMeta } = useSWR('/api/apartments-by-dong', fetcher, { 
+    revalidateOnFocus: false,
+    dedupingInterval: 60000 
+  });
+
+  useEffect(() => {
+    if (swrMeta && !loaded) {
+      setMeta(swrMeta);
+      setInitialMeta(JSON.parse(JSON.stringify(swrMeta)));
+      setLoaded(true);
+    }
+  }, [swrMeta, loaded]);
 
   // ── Actions ──
   const toggleInquiryStatus = async (id: string, currentStatus: string) => {
@@ -293,9 +293,13 @@ export default function AdminDashboard() {
 
       // 2. Send to Google Sheets API
       if (syncPayload.updates.length > 0 || syncPayload.adds.length > 0 || syncPayload.deletes.length > 0) {
+        const idToken = await auth.currentUser?.getIdToken();
         const syncRes = await fetch('/api/apartments-sync', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(idToken ? { 'Authorization': `Bearer ${idToken}` } : {})
+          },
           body: JSON.stringify(syncPayload)
         });
         if (!syncRes.ok) {
@@ -456,13 +460,13 @@ export default function AdminDashboard() {
 
       <div className="flex gap-4 border-b border-[#e5e8eb] mb-8 overflow-x-auto">
         <button 
-          onClick={() => setActiveAdminTab('apartments')}
+          onClick={() => startTransition(() => setActiveAdminTab('apartments'))}
           className={`pb-3 text-[15px] font-bold transition-colors whitespace-nowrap ${activeAdminTab === 'apartments' ? 'text-[#3182f6] border-b-2 border-[#3182f6]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}
         >
           아파트 데이터 관리
         </button>
         <button 
-          onClick={() => setActiveAdminTab('inquiries')}
+          onClick={() => startTransition(() => setActiveAdminTab('inquiries'))}
           className={`pb-3 text-[15px] font-bold transition-colors whitespace-nowrap flex items-center gap-1.5 ${activeAdminTab === 'inquiries' ? 'text-[#3182f6] border-b-2 border-[#3182f6]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}
         >
           광고/제휴 문의 관리
@@ -472,6 +476,7 @@ export default function AdminDashboard() {
         </button>
       </div>
 
+      <div className={`transition-opacity duration-300 ${isPending ? 'opacity-50' : 'opacity-100'}`}>
       {activeAdminTab === 'apartments' ? (
         <>
 
@@ -508,7 +513,7 @@ export default function AdminDashboard() {
           { label: '현장검증', value: stats.verified, color: '#ff8a3d', bg: '#fff4e6', icon: FileText, fk: 'verified' as const },
           { label: '공공임대', value: stats.publicR, color: '#8b95a1', bg: '#f2f4f6', icon: Home, fk: 'public' as const },
         ].map(s => (
-          <div key={s.label} onClick={() => setFilter(s.fk)}
+          <div key={s.label} onClick={() => startTransition(() => setFilter(s.fk))}
             className={`bg-white p-4 rounded-2xl border shadow-sm cursor-pointer hover:shadow-md transition-all ${
               filter === s.fk && s.fk !== 'all' ? 'border-[#3182f6] ring-2 ring-[#3182f6]/10' : 'border-[#e5e8eb]'
             }`}>
@@ -525,13 +530,13 @@ export default function AdminDashboard() {
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="flex-1 relative">
           <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8b95a1]" />
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+          <input type="text" value={search} onChange={e => startTransition(() => setSearch(e.target.value))}
             placeholder="아파트명 또는 동 이름으로 검색..."
             className="w-full pl-11 pr-4 py-3 bg-white border border-[#e5e8eb] rounded-xl text-[14px] outline-none focus:border-[#3182f6] focus:ring-4 focus:ring-[#3182f6]/10 transition-all" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-2">
           {([['all','전체'],['unmatched','미매핑'],['analyzed','입지분석'],['verified','현장검증'],['public','공공임대'],['private','일반분양']] as const).map(([key, label]) => (
-            <button key={key} onClick={() => setFilter(key)}
+            <button key={key} onClick={() => startTransition(() => setFilter(key))}
               className={`shrink-0 px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${
                 filter === key ? 'bg-[#191f28] text-white' : 'bg-white border border-[#e5e8eb] text-[#4e5968] hover:bg-[#f2f4f6]'
               }`}>{label}</button>
@@ -683,6 +688,7 @@ export default function AdminDashboard() {
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }

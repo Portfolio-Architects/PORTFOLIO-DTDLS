@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
+import useSWR from 'swr';
 import { useParams } from 'next/navigation';
 import ReportEditorForm from '@/components/admin/ReportEditorForm';
 import { FormValues } from '@/components/admin/report-editor/types';
@@ -12,47 +13,37 @@ import { MapPin } from 'lucide-react';
 export default function EditReportPage() {
   const params = useParams();
   const id = params.id as string;
-  const [initialData, setInitialData] = useState<FormValues | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    async function fetchReport() {
-      if (!id) return;
-      try {
-        const docRef = doc(db, 'scoutingReports', id);
-        const docSnap = await getDoc(docRef);
+  const fetchReport = async () => {
+    if (!id) throw new Error('No ID');
+    const docRef = doc(db, 'scoutingReports', id);
+    const docSnap = await getDoc(docRef);
 
-        if (docSnap.exists()) {
-          const report = docSnap.data() as ScoutingReport;
-          
-          // Map Firebase data back exactly to React Hook Form's FormValues structure
-          const formValues: FormValues = {
-            dong: report.dong,
-            apartmentName: report.apartmentName,
-            metrics: report.metrics as unknown as FormValues['metrics'],
-            premiumContent: report.premiumContent || '',
-            images: (report.images || []).map(img => ({ ...img, locationTag: img.locationTag || '', isPremium: img.isPremium ?? false })),
-            isPremium: report.isPremium ?? true,
-            thumbnailUrl: report.thumbnailUrl || '',
-            scoutingDate: '',
-          };
-          
-          setInitialData(formValues);
-        } else {
-          console.error("No such document!");
-          alert("존재하지 않는 임장기입니다.");
-        }
-      } catch (error) {
-        console.error("Error fetching report:", error);
-      } finally {
-        setLoading(false);
-      }
+    if (docSnap.exists()) {
+      const report = docSnap.data() as ScoutingReport;
+      const formValues: FormValues = {
+        dong: report.dong,
+        apartmentName: report.apartmentName,
+        metrics: report.metrics as unknown as FormValues['metrics'],
+        premiumContent: report.premiumContent || '',
+        images: (report.images || []).map(img => ({ ...img, locationTag: img.locationTag || '', isPremium: img.isPremium ?? false })),
+        isPremium: report.isPremium ?? true,
+        thumbnailUrl: report.thumbnailUrl || '',
+        scoutingDate: '',
+      };
+      return formValues;
+    } else {
+      throw new Error('No such document!');
     }
+  };
 
-    fetchReport();
-  }, [id]);
+  const { data: initialData, error, isLoading } = useSWR(id ? ['scoutingReport', id] : null, fetchReport, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000
+  });
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex h-[50vh] flex-col items-center justify-center p-16">
         <div className="w-10 h-10 border-4 border-[#3182f6] border-t-transparent rounded-full animate-spin"></div>

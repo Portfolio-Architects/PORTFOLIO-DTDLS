@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { JWT } from 'google-auth-library';
 import { SHEET_ID, SHEET_TABS } from '@/lib/constants';
+import { verifyAdmin } from '@/lib/authUtils';
 
 /**
  * POST /api/apartments-sync
@@ -13,8 +14,13 @@ import { SHEET_ID, SHEET_TABS } from '@/lib/constants';
  *   deletes: [ '아파트명1', '아파트명2' ... ]
  * }
  */
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const isAdmin = await verifyAdmin(req);
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized: Admin access required' }, { status: 403 });
+    }
+
     const { updates = [], adds = [], deletes = [] } = await req.json();
 
     const { GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY } = process.env;
@@ -120,3 +126,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }
 }
+// Force Turbopack recompile

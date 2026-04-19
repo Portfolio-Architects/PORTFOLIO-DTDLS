@@ -23,3 +23,27 @@ export async function verifyAuthHeader(request: NextRequest) {
   // Verify token
   return await adminAuth.verifyIdToken(token);
 }
+
+/**
+ * Verifies that the requester is an authenticated Admin.
+ * Bypasses checks if in Development mode.
+ * 
+ * @param request NextRequest
+ * @returns Boolean representing authorization status.
+ */
+export async function verifyAdmin(request: NextRequest): Promise<boolean> {
+  // Development mode bypass
+  if (process.env.NODE_ENV === 'development') {
+    return true;
+  }
+
+  try {
+    const decodedToken = await verifyAuthHeader(request);
+    return decodedToken.admin === true;
+  } catch (error) {
+    console.error('Admin Verification Error:', error);
+    return false;
+  }
+}
+
+// Force Turbopack recompile

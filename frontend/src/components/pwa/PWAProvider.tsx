@@ -19,6 +19,10 @@ interface PWAContextType {
   showCustomA2HSModal: boolean;
   setShowCustomA2HSModal: (show: boolean) => void;
   triggerCustomA2HSModal: () => void;
+  // Web Push Notifications
+  isPushSupported: boolean;
+  pushSubscription: PushSubscription | null;
+  subscribeToPush: () => Promise<boolean>;
 }
 
 const PWAContext = createContext<PWAContextType>({
@@ -28,32 +32,62 @@ const PWAContext = createContext<PWAContextType>({
   showCustomA2HSModal: false,
   setShowCustomA2HSModal: () => {},
   triggerCustomA2HSModal: () => {},
+  isPushSupported: false,
+  pushSubscription: null,
+  subscribeToPush: async () => false,
 });
 
 export const usePWA = () => useContext(PWAContext);
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 
 export function PWAProvider({ children }: { children: ReactNode }) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [showCustomA2HSModal, setShowCustomA2HSModal] = useState(false);
+  
+  // Push Notification state
+  const [isPushSupported, setIsPushSupported] = useState(false);
+  const [pushSubscription, setPushSubscription] = useState<PushSubscription | null>(null);
 
   useEffect(() => {
+    // 1. A2HS Logic
     const handleBeforeInstallPrompt = (e: Event) => {
-      // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
-      // Stash the event so it can be triggered later.
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // If the app is already installed, we shouldn't show the prompt
     window.addEventListener('appinstalled', () => {
       setDeferredPrompt(null);
       setIsInstallable(false);
       setShowCustomA2HSModal(false);
     });
+
+    // 2. Web Push Support Check
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
+      setIsPushSupported(true);
+      // Check existing subscription
+      navigator.serviceWorker.ready.then((reg) => {
+        reg.pushManager.getSubscription().then((sub) => {
+          if (sub) setPushSubscription(sub);
+        });
+      });
+    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -75,9 +109,44 @@ export function PWAProvider({ children }: { children: ReactNode }) {
   };
 
   const triggerCustomA2HSModal = () => {
-    // Only show if we actually caught the beforeinstallprompt
     if (isInstallable && deferredPrompt) {
       setShowCustomA2HSModal(true);
+    }
+  };
+
+  const subscribeToPush = async () => {
+    if (!isPushSupported) {
+      alert('이 브라우저는 푸시 알림을 지원하지 않습니다.');
+      return false;
+    }
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        alert('푸시 알림 권한이 거부되었습니다.');
+        return false;
+      }
+      
+      const reg = await navigator.serviceWorker.ready;
+      
+      // Replace with your VAPID public key
+      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U';
+      const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+      
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedVapidKey
+      });
+      
+      setPushSubscription(sub);
+      
+      // TODO: Here you would typically send the subscription to your backend server
+      // e.g. await fetch('/api/push/subscribe', { method: 'POST', body: JSON.stringify(sub) });
+      
+      console.log('Push Subscribed:', JSON.stringify(sub));
+      return true;
+    } catch (error) {
+      console.error('Error subscribing to push', error);
+      return false;
     }
   };
 
@@ -90,6 +159,9 @@ export function PWAProvider({ children }: { children: ReactNode }) {
         showCustomA2HSModal,
         setShowCustomA2HSModal,
         triggerCustomA2HSModal,
+        isPushSupported,
+        pushSubscription,
+        subscribeToPush,
       }}
     >
       {children}

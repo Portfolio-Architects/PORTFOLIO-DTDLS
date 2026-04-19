@@ -41,6 +41,14 @@ function extractDong(umdNm: string): string {
 
 export async function GET(request: Request) {
   try {
+    const authHeader = request.headers.get('authorization');
+    if (
+      process.env.NODE_ENV !== 'development' &&
+      authHeader !== `Bearer ${process.env.CRON_SECRET}`
+    ) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     if (!API_KEY) {
       return NextResponse.json({ error: 'BUILDING_API_KEY not set' }, { status: 500 });
     }

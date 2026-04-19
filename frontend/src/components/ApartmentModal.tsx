@@ -937,7 +937,7 @@ export function FieldReportModal({
             >
               <X size={24} />
             </button>
-            <div className="relative w-[95vw] h-[95vh]">
+            <div className="relative w-[95vw] h-[95vh] flex items-center justify-center">
               <Image 
                 src={fullscreenImage} 
                 alt="Fullscreen view"
@@ -945,6 +945,12 @@ export function FieldReportModal({
                 sizes="100vw"
                 className="object-contain select-none shadow-2xl"
               />
+              {/* D-VIEW Watermark */}
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 overflow-hidden mix-blend-overlay">
+                <span className="text-white/40 font-black text-6xl md:text-8xl rotate-[-25deg] tracking-[0.3em] select-none drop-shadow-2xl">
+                  D-VIEW
+                </span>
+              </div>
             </div>
           </div>
         )}
@@ -1009,12 +1015,19 @@ export function FieldReportModal({
           >
             <X size={24} />
           </button>
-          <img 
-            src={fullscreenImage} 
-            alt="Fullscreen view" 
-            className="max-w-[95vw] max-h-[95vh] object-contain select-none shadow-2xl"
-            onClick={(e) => e.stopPropagation()} 
-          />
+          <div className="relative flex items-center justify-center w-full h-full" onClick={(e) => e.stopPropagation()}>
+            <img 
+              src={fullscreenImage} 
+              alt="Fullscreen view" 
+              className="max-w-[95vw] max-h-[95vh] object-contain select-none shadow-2xl"
+            />
+            {/* D-VIEW Watermark */}
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 overflow-hidden mix-blend-overlay">
+              <span className="text-white/40 font-black text-6xl md:text-8xl rotate-[-25deg] tracking-[0.3em] select-none drop-shadow-2xl">
+                D-VIEW
+              </span>
+            </div>
+          </div>
         </div>
       )}
     </>,

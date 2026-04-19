@@ -48,6 +48,12 @@ export function ApartmentGallery({ images, tags, tagLabels, onImageClick }: {
                     sizes="(max-width: 768px) 240px, 280px"
                     className="object-cover bg-[#f2f4f6]"
                   />
+                  {/* D-VIEW Watermark */}
+                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 overflow-hidden">
+                    <span className="text-white/30 font-black text-3xl rotate-[-25deg] tracking-[0.3em] select-none mix-blend-overlay drop-shadow-md">
+                      D-VIEW
+                    </span>
+                  </div>
                   {(img.caption || img.isPremium || img.capturedAt) && (
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-3.5 pt-8">
                       <div className="flex flex-col gap-1.5">

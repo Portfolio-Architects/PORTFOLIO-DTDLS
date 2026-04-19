@@ -9,6 +9,7 @@
     "lint": "eslint",
     "sync-apartments": "node scripts/sync-apartments.js",
     "sync-transactions": "node scripts/sync-transactions.js",
+    "import-csv": "node scripts/import-csv.js",
     "sync-all": "node scripts/sync-apartments.js && node scripts/sync-transactions.js",
     "test": "jest",
     "test:e2e": "playwright test"
@@ -31,6 +32,7 @@
     "lucide-react": "^0.577.0",
     "mermaid": "^11.13.0",
     "next": "16.1.6",
+    "nextjs-toploader": "^3.9.17",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.71.2",
@@ -38,6 +40,7 @@
     "react-window": "^1.8.11",
     "recharts": "^3.8.0",
     "remark-gfm": "^4.0.1",
+    "swr": "^2.4.1",
     "tailwind-merge": "^3.5.0",
     "zod": "^4.3.6"
   },

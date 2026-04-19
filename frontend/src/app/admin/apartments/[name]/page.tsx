@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from 'react';
+import useSWR from 'swr';
 import { useRouter, useParams } from 'next/navigation';
 import { doc, getDoc, setDoc, query, collection, onSnapshot, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebaseConfig';
@@ -221,56 +222,40 @@ export default function ApartmentInfoPage() {
 
   const existingReport = reports.length > 0 ? reports[0] : null;
 
-  // ── Load Meta (Firestore first, Sheets fallback) ──
-  useEffect(() => {
-    let isMounted = true;
-    const load = async () => {
-      let firestoreLoaded = false;
-      try {
-        const metaDoc = await getDoc(doc(db, 'settings/apartmentMeta'));
-        if (metaDoc.exists()) {
-          const allMeta = metaDoc.data() as Record<string, unknown>;
-          const m = allMeta[originalName] as Record<string, unknown> | undefined;
-          if (m && typeof m === 'object' && m.dong) {
-            const foundMeta: AptMeta = {
-              dong: m.dong as string, txKey: (m.txKey as string) || autoSuggest(originalName) || undefined,
-              minFloor: m.minFloor as number | undefined, maxFloor: m.maxFloor as number | undefined, isPublicRental: (m.isPublicRental as boolean) || false,
-              householdCount: m.householdCount as number | undefined, yearBuilt: m.yearBuilt as string | undefined,
-              brand: m.brand as string | undefined, ticker: m.ticker as string | undefined,
-              far: m.far as number | undefined, bcr: m.bcr as number | undefined, parkingCount: m.parkingCount as number | undefined,
-              parkingPerHousehold: m.parkingPerHousehold as number | undefined, coordinates: m.coordinates as string | undefined,
-              // ★ Restore distance metrics from Firestore cache
-              distanceToElementary: m.distanceToElementary as number | undefined,
-              distanceToMiddle: m.distanceToMiddle as number | undefined,
-              distanceToHigh: m.distanceToHigh as number | undefined,
-              distanceToSubway: m.distanceToSubway as number | undefined,
-              distanceToIndeokwon: m.distanceToIndeokwon as number | undefined,
-              distanceToTram: m.distanceToTram as number | undefined,
-              distanceToStarbucks: m.distanceToStarbucks as number | undefined,
-              starbucksName: m.starbucksName as string | undefined,
-              starbucksAddress: m.starbucksAddress as string | undefined,
-              starbucksCoordinates: m.starbucksCoordinates as string | undefined,
-              distanceToMcDonalds: m.distanceToMcDonalds as number | undefined,
-              distanceToOliveYoung: m.distanceToOliveYoung as number | undefined,
-              distanceToDaiso: m.distanceToDaiso as number | undefined,
-              distanceToSupermarket: m.distanceToSupermarket as number | undefined,
-              academyDensity: m.academyDensity as number | undefined,
-              restaurantDensity: m.restaurantDensity as number | undefined,
-            };
-            if (isMounted) {
-              setMeta(foundMeta);
-              setInitialMeta(JSON.parse(JSON.stringify(foundMeta)));
-              setLoaded(true);
-              firestoreLoaded = true;
-            }
-          }
+  // ── SWR Fetcher for Meta (Firestore + Sheets Merge) ──
+  const fetchMeta = async () => {
+    let foundMeta: AptMeta | null = null;
+    try {
+      const metaDoc = await getDoc(doc(db, 'settings/apartmentMeta'));
+      if (metaDoc.exists()) {
+        const allMeta = metaDoc.data() as Record<string, unknown>;
+        const m = allMeta[originalName] as Record<string, unknown> | undefined;
+        if (m && typeof m === 'object' && m.dong) {
+          foundMeta = {
+            dong: m.dong as string, txKey: (m.txKey as string) || autoSuggest(originalName) || undefined,
+            minFloor: m.minFloor as number | undefined, maxFloor: m.maxFloor as number | undefined, isPublicRental: (m.isPublicRental as boolean) || false,
+            householdCount: m.householdCount as number | undefined, yearBuilt: m.yearBuilt as string | undefined,
+            brand: m.brand as string | undefined, ticker: m.ticker as string | undefined,
+            far: m.far as number | undefined, bcr: m.bcr as number | undefined, parkingCount: m.parkingCount as number | undefined,
+            parkingPerHousehold: m.parkingPerHousehold as number | undefined, coordinates: m.coordinates as string | undefined,
+            distanceToElementary: m.distanceToElementary as number | undefined, distanceToMiddle: m.distanceToMiddle as number | undefined,
+            distanceToHigh: m.distanceToHigh as number | undefined, distanceToSubway: m.distanceToSubway as number | undefined,
+            distanceToIndeokwon: m.distanceToIndeokwon as number | undefined, distanceToTram: m.distanceToTram as number | undefined,
+            distanceToStarbucks: m.distanceToStarbucks as number | undefined, starbucksName: m.starbucksName as string | undefined,
+            starbucksAddress: m.starbucksAddress as string | undefined, starbucksCoordinates: m.starbucksCoordinates as string | undefined,
+            distanceToMcDonalds: m.distanceToMcDonalds as number | undefined, distanceToOliveYoung: m.distanceToOliveYoung as number | undefined,
+            distanceToDaiso: m.distanceToDaiso as number | undefined, distanceToSupermarket: m.distanceToSupermarket as number | undefined,
+            academyDensity: m.academyDensity as number | undefined, restaurantDensity: m.restaurantDensity as number | undefined,
+          };
         }
-      } catch (e) {
-        console.warn('Firestore load failed, trying Sheets:', e);
       }
-      try {
-        const res = await fetch(`/api/apartments-by-dong?t=${Date.now()}`, { cache: 'no-store' });
-        if (!res.ok) throw new Error('Sheets fail');
+    } catch (e) {
+      console.warn('Firestore load failed, trying Sheets:', e);
+    }
+
+    try {
+      const res = await fetch(`/api/apartments-by-dong`);
+      if (res.ok) {
         const data = await res.json();
         let sheetsMeta: AptMeta | null = null;
         if (data.byDong) {
@@ -282,85 +267,70 @@ export default function ApartmentInfoPage() {
                 yearBuilt: (apt as Record<string, unknown>)?.yearBuilt as string | undefined, brand: (apt as Record<string, unknown>)?.brand as string | undefined, ticker: (apt as Record<string, unknown>)?.ticker as string | undefined,
                 far: (apt as Record<string, unknown>)?.far as number | undefined, bcr: (apt as Record<string, unknown>)?.bcr as number | undefined, parkingCount: (apt as Record<string, unknown>)?.parkingCount as number | undefined,
                 coordinates: (apt.lat && apt.lng) ? `${apt.lat}, ${apt.lng}` : undefined,
-                starbucksName: (apt as Record<string, unknown>)?.starbucksName as string | undefined,
-                starbucksAddress: (apt as Record<string, unknown>)?.starbucksAddress as string | undefined,
-                starbucksCoordinates: (apt as Record<string, unknown>)?.starbucksCoordinates as string | undefined,
-                oliveYoungName: (apt as Record<string, unknown>)?.oliveYoungName as string | undefined,
-                oliveYoungAddress: (apt as Record<string, unknown>)?.oliveYoungAddress as string | undefined,
-                oliveYoungCoordinates: (apt as Record<string, unknown>)?.oliveYoungCoordinates as string | undefined,
-                daisoName: (apt as Record<string, unknown>)?.daisoName as string | undefined,
-                daisoAddress: (apt as Record<string, unknown>)?.daisoAddress as string | undefined,
-                daisoCoordinates: (apt as Record<string, unknown>)?.daisoCoordinates as string | undefined,
-                mcdonaldsName: (apt as Record<string, unknown>)?.mcdonaldsName as string | undefined,
-                mcdonaldsAddress: (apt as Record<string, unknown>)?.mcdonaldsAddress as string | undefined,
-                mcdonaldsCoordinates: (apt as Record<string, unknown>)?.mcdonaldsCoordinates as string | undefined,
-                supermarketName: (apt as Record<string, unknown>)?.supermarketName as string | undefined,
-                supermarketAddress: (apt as Record<string, unknown>)?.supermarketAddress as string | undefined,
-                supermarketCoordinates: (apt as Record<string, unknown>)?.supermarketCoordinates as string | undefined,
-                distanceToStarbucks: (apt as Record<string, unknown>)?.distanceToStarbucks as number | undefined,
-                distanceToOliveYoung: (apt as Record<string, unknown>)?.distanceToOliveYoung as number | undefined,
-                distanceToDaiso: (apt as Record<string, unknown>)?.distanceToDaiso as number | undefined,
-                distanceToMcDonalds: (apt as Record<string, unknown>)?.distanceToMcDonalds as number | undefined,
-                distanceToSupermarket: (apt as Record<string, unknown>)?.distanceToSupermarket as number | undefined,
+                starbucksName: (apt as Record<string, unknown>)?.starbucksName as string | undefined, starbucksAddress: (apt as Record<string, unknown>)?.starbucksAddress as string | undefined, starbucksCoordinates: (apt as Record<string, unknown>)?.starbucksCoordinates as string | undefined,
+                oliveYoungName: (apt as Record<string, unknown>)?.oliveYoungName as string | undefined, oliveYoungAddress: (apt as Record<string, unknown>)?.oliveYoungAddress as string | undefined, oliveYoungCoordinates: (apt as Record<string, unknown>)?.oliveYoungCoordinates as string | undefined,
+                daisoName: (apt as Record<string, unknown>)?.daisoName as string | undefined, daisoAddress: (apt as Record<string, unknown>)?.daisoAddress as string | undefined, daisoCoordinates: (apt as Record<string, unknown>)?.daisoCoordinates as string | undefined,
+                mcdonaldsName: (apt as Record<string, unknown>)?.mcdonaldsName as string | undefined, mcdonaldsAddress: (apt as Record<string, unknown>)?.mcdonaldsAddress as string | undefined, mcdonaldsCoordinates: (apt as Record<string, unknown>)?.mcdonaldsCoordinates as string | undefined,
+                supermarketName: (apt as Record<string, unknown>)?.supermarketName as string | undefined, supermarketAddress: (apt as Record<string, unknown>)?.supermarketAddress as string | undefined, supermarketCoordinates: (apt as Record<string, unknown>)?.supermarketCoordinates as string | undefined,
+                distanceToStarbucks: (apt as Record<string, unknown>)?.distanceToStarbucks as number | undefined, distanceToOliveYoung: (apt as Record<string, unknown>)?.distanceToOliveYoung as number | undefined, distanceToDaiso: (apt as Record<string, unknown>)?.distanceToDaiso as number | undefined,
+                distanceToMcDonalds: (apt as Record<string, unknown>)?.distanceToMcDonalds as number | undefined, distanceToSupermarket: (apt as Record<string, unknown>)?.distanceToSupermarket as number | undefined,
               };
               break;
             }
           }
         }
-        if (isMounted && sheetsMeta) {
-          // ★ Sheets only provides basic fields — MERGE into existing meta, never overwrite distance metrics
-          setMeta(prev => {
-            if (!prev) return sheetsMeta;
-            return { ...prev, ...sheetsMeta, 
-              // Preserve any already-loaded distance metrics (from Firestore or scoutingReport)
-              distanceToElementary: prev.distanceToElementary ?? sheetsMeta!.distanceToElementary,
-              distanceToMiddle: prev.distanceToMiddle ?? sheetsMeta!.distanceToMiddle,
-              distanceToHigh: prev.distanceToHigh ?? sheetsMeta!.distanceToHigh,
-              distanceToSubway: prev.distanceToSubway ?? sheetsMeta!.distanceToSubway,
-              distanceToIndeokwon: prev.distanceToIndeokwon ?? sheetsMeta!.distanceToIndeokwon,
-              distanceToTram: prev.distanceToTram ?? sheetsMeta!.distanceToTram,
-              distanceToStarbucks: sheetsMeta!.distanceToStarbucks ?? prev.distanceToStarbucks,
-              starbucksName: sheetsMeta!.starbucksName || prev.starbucksName,
-              starbucksAddress: sheetsMeta!.starbucksAddress || prev.starbucksAddress,
-              starbucksCoordinates: sheetsMeta!.starbucksCoordinates || prev.starbucksCoordinates,
-              distanceToMcDonalds: sheetsMeta!.distanceToMcDonalds ?? prev.distanceToMcDonalds,
-              mcdonaldsName: sheetsMeta!.mcdonaldsName || prev.mcdonaldsName,
-              mcdonaldsAddress: sheetsMeta!.mcdonaldsAddress || prev.mcdonaldsAddress,
-              mcdonaldsCoordinates: sheetsMeta!.mcdonaldsCoordinates || prev.mcdonaldsCoordinates,
-              distanceToOliveYoung: sheetsMeta!.distanceToOliveYoung ?? prev.distanceToOliveYoung,
-              oliveYoungName: sheetsMeta!.oliveYoungName || prev.oliveYoungName,
-              oliveYoungAddress: sheetsMeta!.oliveYoungAddress || prev.oliveYoungAddress,
-              oliveYoungCoordinates: sheetsMeta!.oliveYoungCoordinates || prev.oliveYoungCoordinates,
-              distanceToDaiso: sheetsMeta!.distanceToDaiso ?? prev.distanceToDaiso,
-              daisoName: sheetsMeta!.daisoName || prev.daisoName,
-              daisoAddress: sheetsMeta!.daisoAddress || prev.daisoAddress,
-              daisoCoordinates: sheetsMeta!.daisoCoordinates || prev.daisoCoordinates,
-              distanceToSupermarket: sheetsMeta!.distanceToSupermarket ?? prev.distanceToSupermarket,
-              supermarketName: sheetsMeta!.supermarketName || prev.supermarketName,
-              supermarketAddress: sheetsMeta!.supermarketAddress || prev.supermarketAddress,
-              supermarketCoordinates: sheetsMeta!.supermarketCoordinates || prev.supermarketCoordinates,
-              academyDensity: prev.academyDensity ?? sheetsMeta!.academyDensity,
-              restaurantDensity: prev.restaurantDensity ?? sheetsMeta!.restaurantDensity,
-            };
-          });
-          setInitialMeta(prev => prev ? { ...prev, ...sheetsMeta } : JSON.parse(JSON.stringify(sheetsMeta)));
-          setLoaded(true);
-        } else if (isMounted && !firestoreLoaded) {
-          setMeta({ dong: '기타', maxFloor: 0, isPublicRental: false });
-          setInitialMeta({ dong: '기타' });
-          setLoaded(true);
-        }
-      } catch (e) {
-        if (isMounted && !firestoreLoaded) {
-          setMeta({ dong: '기타', maxFloor: 0, isPublicRental: false });
-          setInitialMeta({ dong: '기타' });
-          setLoaded(true);
+        if (sheetsMeta) {
+          if (!foundMeta) return sheetsMeta;
+          return { ...foundMeta, ...sheetsMeta, 
+            distanceToElementary: foundMeta.distanceToElementary ?? sheetsMeta.distanceToElementary,
+            distanceToMiddle: foundMeta.distanceToMiddle ?? sheetsMeta.distanceToMiddle,
+            distanceToHigh: foundMeta.distanceToHigh ?? sheetsMeta.distanceToHigh,
+            distanceToSubway: foundMeta.distanceToSubway ?? sheetsMeta.distanceToSubway,
+            distanceToIndeokwon: foundMeta.distanceToIndeokwon ?? sheetsMeta.distanceToIndeokwon,
+            distanceToTram: foundMeta.distanceToTram ?? sheetsMeta.distanceToTram,
+            distanceToStarbucks: sheetsMeta.distanceToStarbucks ?? foundMeta.distanceToStarbucks,
+            starbucksName: sheetsMeta.starbucksName || foundMeta.starbucksName,
+            starbucksAddress: sheetsMeta.starbucksAddress || foundMeta.starbucksAddress,
+            starbucksCoordinates: sheetsMeta.starbucksCoordinates || foundMeta.starbucksCoordinates,
+            distanceToMcDonalds: sheetsMeta.distanceToMcDonalds ?? foundMeta.distanceToMcDonalds,
+            mcdonaldsName: sheetsMeta.mcdonaldsName || foundMeta.mcdonaldsName,
+            mcdonaldsAddress: sheetsMeta.mcdonaldsAddress || foundMeta.mcdonaldsAddress,
+            mcdonaldsCoordinates: sheetsMeta.mcdonaldsCoordinates || foundMeta.mcdonaldsCoordinates,
+            distanceToOliveYoung: sheetsMeta.distanceToOliveYoung ?? foundMeta.distanceToOliveYoung,
+            oliveYoungName: sheetsMeta.oliveYoungName || foundMeta.oliveYoungName,
+            oliveYoungAddress: sheetsMeta.oliveYoungAddress || foundMeta.oliveYoungAddress,
+            oliveYoungCoordinates: sheetsMeta.oliveYoungCoordinates || foundMeta.oliveYoungCoordinates,
+            distanceToDaiso: sheetsMeta.distanceToDaiso ?? foundMeta.distanceToDaiso,
+            daisoName: sheetsMeta.daisoName || foundMeta.daisoName,
+            daisoAddress: sheetsMeta.daisoAddress || foundMeta.daisoAddress,
+            daisoCoordinates: sheetsMeta.daisoCoordinates || foundMeta.daisoCoordinates,
+            distanceToSupermarket: sheetsMeta.distanceToSupermarket ?? foundMeta.distanceToSupermarket,
+            supermarketName: sheetsMeta.supermarketName || foundMeta.supermarketName,
+            supermarketAddress: sheetsMeta.supermarketAddress || foundMeta.supermarketAddress,
+            supermarketCoordinates: sheetsMeta.supermarketCoordinates || foundMeta.supermarketCoordinates,
+            academyDensity: foundMeta.academyDensity ?? sheetsMeta.academyDensity,
+            restaurantDensity: foundMeta.restaurantDensity ?? sheetsMeta.restaurantDensity,
+          };
         }
       }
-    };
-    load();
-    return () => { isMounted = false; };
-  }, [originalName]);
+    } catch (e) {
+      // Ignore
+    }
+    return foundMeta || { dong: '기타', maxFloor: 0, isPublicRental: false };
+  };
+
+  const { data: swrMeta } = useSWR(['apartmentMeta', originalName], fetchMeta, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000
+  });
+
+  useEffect(() => {
+    if (swrMeta && !loaded) {
+      setMeta(swrMeta);
+      setInitialMeta(JSON.parse(JSON.stringify(swrMeta)));
+      setLoaded(true);
+    }
+  }, [swrMeta, loaded]);
 
   // ── Load Scouting Reports + populate metrics/photos from existing report ──
   useEffect(() => {
@@ -598,8 +568,13 @@ export default function ApartmentInfoPage() {
         }
       }
       if (syncPayload.updates.length > 0 || syncPayload.adds.length > 0) {
+        const idToken = await auth.currentUser?.getIdToken();
         const syncRes = await fetch('/api/apartments-sync', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          method: 'POST', 
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(idToken ? { 'Authorization': `Bearer ${idToken}` } : {})
+          },
           body: JSON.stringify(syncPayload),
         });
         if (!syncRes.ok) {

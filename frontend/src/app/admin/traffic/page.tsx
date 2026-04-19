@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo, useTransition } from 'react';
+import useSWR, { useSWRConfig } from 'swr';
 import { Eye, Heart, BarChart2, ExternalLink, CreditCard, Activity, CalendarDays } from 'lucide-react';
 import { collection, getDocs, writeBatch } from 'firebase/firestore';
-import { db } from '@/lib/firebaseConfig';
+import { db, auth } from '@/lib/firebaseConfig';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { getDailyVisitStats, getDailyContentViews, DailyStat, ContentView } from '@/lib/repositories/traffic.repository';
+import { getDailyContentViews, ContentView } from '@/lib/repositories/traffic.repository';
 
 interface TrafficRow {
   name: string;
@@ -14,87 +15,87 @@ interface TrafficRow {
   likes: number;
 }
 
+const fetchAnalyticsData = async () => {
+  const idToken = await auth.currentUser?.getIdToken();
+  const gaRes = await fetch('/api/admin/analytics', {
+    headers: idToken ? { 'Authorization': `Bearer ${idToken}` } : {}
+  });
+  const gaJson = await gaRes.json();
+  
+  const metaRes = await fetch('/api/dashboard-init');
+  const metaData = await metaRes.json();
+  const aptMeta = metaData.apartmentMeta || {};
+
+  const snap = await getDocs(collection(db, 'scoutingReports'));
+  const viewMap: Record<string, number> = {};
+  const likeMap: Record<string, number> = {};
+  snap.docs.forEach(d => {
+    const data = d.data();
+    const apt = data.apartmentName as string;
+    if (!apt) return;
+    viewMap[apt] = (viewMap[apt] || 0) + (data.viewCount || 0);
+    likeMap[apt] = (likeMap[apt] || 0) + (data.likes || 0);
+  });
+
+  const aptViewSnap = await getDocs(collection(db, 'apartmentViews')).catch(() => null);
+  if (aptViewSnap) {
+    aptViewSnap.docs.forEach(d => {
+      viewMap[d.id] = (viewMap[d.id] || 0) + (d.data().count || 0);
+    });
+  }
+
+  const rows = Object.keys(aptMeta).map(name => ({
+    name,
+    dong: (aptMeta[name] as Record<string, unknown>)?.dong || '',
+    viewCount: viewMap[name] || 0,
+    likes: likeMap[name] || 0,
+  }));
+
+  return {
+    gaData: gaJson.data || [],
+    trafficData: rows as TrafficRow[]
+  };
+};
+
 export default function TrafficPage() {
+  const { mutate } = useSWRConfig();
+  const [isPending, startTransition] = useTransition();
+
   const [activeTab, setActiveTab] = useState<'daily' | 'cumulative'>('daily');
+  const [selectedDate, setSelectedDate] = useState<string>('');
   
-  // GA4 Daily Stats Data
-  const [gaData, setGaData] = useState<{date: string, activeUsers: number, pageViews: number}[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [contentViews, setContentViews] = useState<ContentView[]>([]);
+  const { data: analyticsData, isLoading: isAnalyticsLoading } = useSWR('analytics-data', fetchAnalyticsData, {
+    revalidateOnFocus: false,
+    onSuccess: (data) => {
+      if (data.gaData && data.gaData.length > 0 && !selectedDate) {
+        setSelectedDate(data.gaData[data.gaData.length - 1].date);
+      }
+    }
+  });
+
+  const gaData = analyticsData?.gaData || [];
+  const trafficData = analyticsData?.trafficData || [];
+
+  const { data: contentViews = [] } = useSWR(
+    selectedDate ? ['content-views', selectedDate] : null, 
+    ([_, date]) => getDailyContentViews(date as string),
+    { revalidateOnFocus: false }
+  );
   
-  // Cumulative Data
-  const [trafficData, setTrafficData] = useState<TrafficRow[]>([]);
   const [trafficSort, setTrafficSort] = useState<'viewCount' | 'likes'>('viewCount');
   const [selectedDong, setSelectedDong] = useState<string>('전체');
   
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        // Fetch GA4 Stats
-        const gaRes = await fetch('/api/admin/analytics');
-        const gaJson = await gaRes.json();
-        
-        if (gaJson.data) {
-          setGaData(gaJson.data);
-          if (gaJson.data.length > 0) {
-            setSelectedDate(gaJson.data[gaJson.data.length - 1].date);
-          }
-        }
-
-        // Fetch meta for apartment list
-        const metaRes = await fetch('/api/dashboard-init');
-        const metaData = await metaRes.json();
-        const aptMeta = metaData.apartmentMeta || {};
-
-        // Gather viewCount from scoutingReports
-        const snap = await getDocs(collection(db, 'scoutingReports'));
-        const viewMap: Record<string, number> = {};
-        const likeMap: Record<string, number> = {};
-        snap.docs.forEach(d => {
-          const data = d.data();
-          const apt = data.apartmentName as string;
-          if (!apt) return;
-          viewMap[apt] = (viewMap[apt] || 0) + (data.viewCount || 0);
-          likeMap[apt] = (likeMap[apt] || 0) + (data.likes || 0);
-        });
-
-        // Also check apartmentViews collection (Legacy)
-        const aptViewSnap = await getDocs(collection(db, 'apartmentViews')).catch(() => null);
-        if (aptViewSnap) {
-          aptViewSnap.docs.forEach(d => {
-            viewMap[d.id] = (viewMap[d.id] || 0) + (d.data().count || 0);
-          });
-        }
-
-        // Merge with apartment list
-        const rows = Object.keys(aptMeta).map(name => ({
-          name,
-          dong: (aptMeta[name] as Record<string, unknown>)?.dong || '',
-          viewCount: viewMap[name] || 0,
-          likes: likeMap[name] || 0,
-        }));
-        setTrafficData(rows as TrafficRow[]);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
-  // Fetch daily content views whenever selectedDate changes
-  useEffect(() => {
-    if (!selectedDate) return;
-    (async () => {
-      const views = await getDailyContentViews(selectedDate);
-      setContentViews(views);
-    })();
-  }, [selectedDate]);
+  const loading = isAnalyticsLoading && (!analyticsData); // Show loading only on initial fetch
 
   const handleReset = async () => {
     if (!confirm('경고: 정말 모든 단지의 누적 조회수와 관심 기록을 0으로 초기화하시겠습니까?\n(일자별 로그는 삭제되지 않습니다)')) return;
-    setLoading(true);
+    
+    const previousData = analyticsData;
+    mutate('analytics-data', {
+      ...analyticsData,
+      trafficData: trafficData.map(r => ({ ...r, viewCount: 0, likes: 0 }))
+    }, false);
+
     try {
       const batch = writeBatch(db);
       
@@ -109,16 +110,18 @@ export default function TrafficPage() {
       }
 
       await batch.commit();
-
-      setTrafficData(prev => prev.map(r => ({ ...r, viewCount: 0, likes: 0 })));
       alert('누적 트래픽 데이터가 초기화되었습니다.');
     } catch (e: unknown) {
       console.error(e);
+      mutate('analytics-data', previousData, false);
       alert('초기화 중 오류 발생: ' + (e as Error).message);
-    } finally {
-      setLoading(false);
     }
   };
+
+  const handleTabChange = (tab: 'daily' | 'cumulative') => startTransition(() => setActiveTab(tab));
+  const handleDateChange = (date: string) => startTransition(() => setSelectedDate(date));
+  const handleDongChange = (dong: string) => startTransition(() => setSelectedDong(dong));
+  const handleSortChange = (sort: 'viewCount' | 'likes') => startTransition(() => setTrafficSort(sort));
 
   const dongs = useMemo(() => Array.from(new Set(trafficData.map(r => r.dong))).filter(Boolean).sort(), [trafficData]);
 
@@ -136,7 +139,7 @@ export default function TrafficPage() {
   const totalLikes = sortedData.reduce((s, r) => s + r.likes, 0);
 
   return (
-    <div className="animate-in fade-in duration-300 pb-20">
+    <div className={`animate-in fade-in duration-300 pb-20 transition-opacity ${isPending ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
         <div>
@@ -148,13 +151,13 @@ export default function TrafficPage() {
       {/* Tabs */}
       <div className="flex bg-[#f2f4f6] p-1 rounded-xl mb-8 w-fit">
         <button 
-          onClick={() => setActiveTab('daily')}
+          onClick={() => handleTabChange('daily')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[14px] font-bold transition-all ${activeTab === 'daily' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}
         >
           <Activity size={16} /> 구글 애널리틱스 (GA4)
         </button>
         <button 
-          onClick={() => setActiveTab('cumulative')}
+          onClick={() => handleTabChange('cumulative')}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[14px] font-bold transition-all ${activeTab === 'cumulative' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}
         >
           <BarChart2 size={16} /> 누적 아파트 지표
@@ -219,7 +222,7 @@ export default function TrafficPage() {
               </h2>
               <select 
                 value={selectedDate}
-                onChange={e => setSelectedDate(e.target.value)}
+                onChange={e => handleDateChange(e.target.value)}
                 className="bg-[#f2f4f6] text-[#4e5968] font-bold text-[14px] px-4 py-2 rounded-xl outline-none"
               >
                 {[...gaData].reverse().map(s => (
@@ -268,12 +271,12 @@ export default function TrafficPage() {
           <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
             {/* Dong Tabs */}
             <div className="flex flex-wrap gap-2">
-              <button onClick={() => setSelectedDong('전체')} 
+              <button onClick={() => handleDongChange('전체')} 
                 className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${selectedDong === '전체' ? 'bg-[#3182f6] text-white shadow-sm' : 'bg-white border border-[#e5e8eb] text-[#4e5968] hover:bg-[#f2f4f6]'}`}>
                 전체
               </button>
               {dongs.map(dong => (
-                <button key={dong} onClick={() => setSelectedDong(dong)} 
+                <button key={dong} onClick={() => handleDongChange(dong)} 
                   className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${selectedDong === dong ? 'bg-[#3182f6] text-white shadow-sm' : 'bg-white border border-[#e5e8eb] text-[#4e5968] hover:bg-[#f2f4f6]'}`}>
                   {dong}
                 </button>
@@ -286,7 +289,7 @@ export default function TrafficPage() {
               </button>
               <div className="flex gap-1.5 border-l border-[#e5e8eb] pl-4">
                 {(['viewCount', 'likes'] as const).map(k => (
-                  <button key={k} onClick={() => setTrafficSort(k)}
+                  <button key={k} onClick={() => handleSortChange(k)}
                     className={`flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2.5 rounded-xl text-[12px] sm:text-[13px] font-bold transition-all ${
                       trafficSort === k ? 'bg-[#191f28] text-white shadow-sm' : 'bg-white border border-[#e5e8eb] text-[#4e5968] hover:bg-[#f2f4f6]'
                     }`}>
