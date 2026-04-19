@@ -355,9 +355,19 @@ export function useDashboardInitialization(initialDashboardData?: DashboardIniti
   const resolvedReport = useMemo(() => {
     if (!selectedReport) return null;
     const raw = fullReportData || selectedReport;
-    if (raw.metrics) return raw;
-    const fallback = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, raw.apartmentName, nameMapping));
-    return { ...raw, metrics: fallback as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics };
+    const fallback = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, raw.apartmentName, nameMapping)) as any;
+    
+    // 안전한 병합: DB에 저장된 metrics에 누락된 값이 있다면 최신 구글 시트 데이터(fallback)로 채움
+    let mergedMetrics = { ...fallback };
+    if (raw.metrics) {
+      for (const [k, v] of Object.entries(raw.metrics)) {
+        if (v !== undefined && v !== null && v !== '') {
+          mergedMetrics[k] = v;
+        }
+      }
+    }
+    
+    return { ...raw, metrics: mergedMetrics as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics };
   }, [selectedReport, fullReportData, sheetApartments, nameMapping]);
 
   return {

@@ -19,7 +19,7 @@ const SHEET_TAB = 'apartments';
 const OUTPUT_PATH = path.resolve(__dirname, '../src/lib/apartment-data.ts');
 
 function fetchCSV(sheetId, tab) {
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`;
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}&headers=1`;
   return new Promise((resolve, reject) => {
     https.get(url, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
@@ -64,13 +64,29 @@ async function main() {
   const lines = csvText.split('\n').filter(l => l.trim());
   const rows = lines.map(l => parseCsvLine(l));
 
-  // 헤더에서 dong 컬럼 찾기
-  const header = rows[0].map(h => h.toLowerCase().trim());
-  let dongIdx = header.findIndex(h => h === 'dong' || h === '동');
-  if (dongIdx === -1) dongIdx = 8;
+  // 헤더에서 각 컬럼 인덱스 찾기
+  const header = rows[0].map(h => h.toLowerCase().replace(/\s+/g, '').trim());
+  
+  const findIdx = (keys) => {
+    for (const k of keys) {
+      const idx = header.findIndex(h => h === k.toLowerCase().replace(/\s+/g, ''));
+      if (idx !== -1) return idx;
+    }
+    return -1;
+  };
+
+  const nameIdx = findIdx(['아파트명', 'name', '이름']);
+  const dongIdx = findIdx(['dong', '동']);
+  const hhIdx = findIdx(['세대수', 'householdcount', 'households']);
+  const yearIdx = findIdx(['시공&준공인', '사용승인', '준공연도', 'yearbuilt', '준공']);
+  const brandIdx = findIdx(['시공사', 'brand', '브랜드']);
 
   console.log(`📋 헤더: ${rows[0].join(' | ')}`);
-  console.log(`📍 Dong 컬럼 인덱스: ${dongIdx}`);
+  console.log(`📍 Dong 컬럼 인덱스: ${dongIdx}, Name: ${nameIdx}, Households: ${hhIdx}, Year: ${yearIdx}, Brand: ${brandIdx}`);
+
+  if (nameIdx === -1 || dongIdx === -1) {
+    throw new Error('필수 컬럼(아파트명 또는 Dong)을 찾을 수 없습니다.');
+  }
 
   // 파싱
   const byDong = {};
@@ -78,7 +94,7 @@ async function main() {
 
   for (let i = 1; i < rows.length; i++) {
     const cols = rows[i];
-    const name = cols[0]?.trim();
+    const name = cols[nameIdx]?.trim();
     const dong = cols[dongIdx]?.trim();
     if (!name || !dong) continue;
 
@@ -87,20 +103,27 @@ async function main() {
     const apt = { name, dong };
     
     // 선택적 필드 (있으면 추가)
-    const households = cols[2] ? parseInt(cols[2]) : NaN;
-    if (!isNaN(households) && households > 0) apt.householdCount = households;
-    
-    const yearRaw = cols[3]?.trim();
-    if (yearRaw) {
-      // "200810" → "2008" 또는 "2020" → "2020"
-      const year = yearRaw.length >= 4 ? yearRaw.slice(0, 4) : yearRaw;
-      apt.yearBuilt = year;
+    if (hhIdx !== -1) {
+      const householdsStr = cols[hhIdx]?.replace(/,/g, '');
+      const households = householdsStr ? parseInt(householdsStr) : NaN;
+      if (!isNaN(households) && households > 0) apt.householdCount = households;
     }
     
-    const brand = cols[7]?.trim();
-    if (brand) {
-      // 시공사 이름 간소화: "(주)" 등 제거
-      apt.brand = brand.replace(/\(주\)/g, '').replace(/주식회사/g, '').trim();
+    if (yearIdx !== -1) {
+      const yearRaw = cols[yearIdx]?.trim();
+      if (yearRaw) {
+        // "200810" → "2008" 또는 "2020" → "2020"
+        const year = yearRaw.length >= 4 ? yearRaw.slice(0, 4) : yearRaw;
+        apt.yearBuilt = year;
+      }
+    }
+    
+    if (brandIdx !== -1) {
+      const brand = cols[brandIdx]?.trim();
+      if (brand) {
+        // 시공사 이름 간소화: "(주)" 등 제거
+        apt.brand = brand.replace(/\(주\)/g, '').replace(/주식회사/g, '').trim();
+      }
     }
 
     byDong[dong].push(apt);
