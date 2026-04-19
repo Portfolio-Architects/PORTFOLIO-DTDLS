@@ -14,6 +14,7 @@ interface TrafficRow {
   likes: number;
 }
 
+export default function TrafficPage() {
   const [activeTab, setActiveTab] = useState<'daily' | 'cumulative'>('daily');
   
   // GA4 Daily Stats Data
