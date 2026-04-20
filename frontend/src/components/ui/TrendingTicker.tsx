@@ -24,10 +24,10 @@ export function TrendingTicker({ topApts }: TrendingTickerProps) {
   // if (topApts.length === 0) return null; // 빈 데이터라도 틀은 보여주기 위해 주석 처리
 
   return (
-    <div className="bg-gradient-to-r from-[#fff0f0] to-white border-y border-[#ffe5e5] px-4 py-2 flex items-center justify-between w-full overflow-hidden shadow-sm">
+    <div className="bg-gradient-to-r from-[#fff0f0] to-white border-y border-[#ffe5e5] px-5 py-4 min-h-[54px] flex items-center justify-between w-full overflow-hidden shadow-sm">
       <div className="flex items-center gap-2">
-        <Flame size={16} className="text-[#ff3b30] animate-pulse" />
-        <span className="text-[12px] font-black text-[#ff3b30] shrink-0 tracking-tight">실시간 인기 검색</span>
+        <Flame size={20} className="text-[#ff3b30] animate-pulse" />
+        <span className="text-[14px] font-black text-[#ff3b30] shrink-0 tracking-tight">실시간 인기 검색</span>
       </div>
       
       <div className="flex-1 relative h-5 ml-4 overflow-hidden flex items-center">

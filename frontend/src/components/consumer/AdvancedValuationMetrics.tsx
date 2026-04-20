@@ -333,12 +333,7 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
             </div>
           </div>
 
-          <div className="bg-[#f2f4f6]/50 rounded-2xl p-4 flex gap-3 text-[12px] text-[#4e5968] leading-relaxed">
-            <Info size={16} className="text-[#8b95a1] shrink-0 mt-0.5" />
-            <p>
-              <strong>실사용 PER(Price to Jeonse)</strong>은 기관투자자 및 프랍트레이더가 채택하는 <strong>자본환원율(Cap Rate)</strong> 평가 방식의 한국형 대체 지표입니다. 배수가 낮을수록 100% 거주 가치 대비 거품이 적어 하락장에서도 뛰어난 가격 방어력을 보입니다.
-            </p>
-          </div>
+
         </div>
       </div>
     </div>

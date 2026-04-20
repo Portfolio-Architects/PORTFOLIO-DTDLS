@@ -38,14 +38,22 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className="antialiased">
-        {/* 🔧 Register PWA Service Worker */}
+        {/* 🔧 Register PWA Service Worker (Dev 모드에서는 기존 캐시 충돌 방지를 위해 해제) */}
         <script dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/sw.js').catch(function(err) {
-                console.log('ServiceWorker registration failed: ', err);
+            if ('${process.env.NODE_ENV}' === 'development') {
+              navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                  registration.unregister();
+                }
               });
-            });
+            } else {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                  console.log('ServiceWorker registration failed: ', err);
+                });
+              });
+            }
           }
         `}} />
         <NextTopLoader color="#3182f6" showSpinner={false} />

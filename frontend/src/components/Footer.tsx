@@ -3,8 +3,8 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-[#f8f9fa] border-t border-[#e5e8eb] py-8 sm:py-10 mt-12 sm:mt-16 pb-32 sm:pb-12">
-      <div className="max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 flex flex-col lg:flex-row lg:justify-between lg:items-center items-start gap-8 lg:gap-12">
+    <footer className="w-full bg-transparent py-8 sm:py-10 mt-2 sm:mt-6 pb-32 sm:pb-12 border-t border-[#f2f4f6] md:border-0">
+      <div className="max-w-[2000px] mx-auto px-5 sm:px-8 flex flex-col lg:flex-row lg:justify-between lg:items-center items-start gap-8 lg:gap-12">
         
         {/* 좌측: 로고 및 링크 */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-8 lg:gap-10 shrink-0">

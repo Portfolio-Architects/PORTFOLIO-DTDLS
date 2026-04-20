@@ -191,7 +191,7 @@ export function TransactionTable({
         </div>
       </div>
 
-      <div className="overflow-y-auto custom-scrollbar flex-1 relative max-h-[360px] md:max-h-[500px] xl:max-h-[560px]">
+      <div className="md:overflow-y-auto custom-scrollbar flex-1 relative md:max-h-[500px] xl:max-h-[560px]">
         {sortedFilteredTransactions.map((tx, i) => {
           const m = tx.contractYm.substring(4, 6);
           const d = tx.contractDay;
@@ -220,8 +220,8 @@ export function TransactionTable({
               {/* 좌측: 날짜 + 스펙 결합으로 시선 흐름 최적화 */}
               <div className="flex items-center gap-3 md:gap-5 flex-1 min-w-0">
                 {/* 1. 날짜 */}
-                <div className="flex flex-col w-[60px] md:w-[70px] shrink-0 text-left">
-                  <div className={`text-[13px] font-bold tracking-tight ${isCancelled ? 'text-[#8b95a1] line-through decoration-[#ef4444]' : 'text-[#6b7684]'}`}>
+                <div className="flex flex-col w-[72px] md:w-[80px] shrink-0 text-left">
+                  <div className={`text-[13px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-[#8b95a1] line-through decoration-[#ef4444]' : 'text-[#6b7684]'}`}>
                     {tx.contractYm.substring(2, 4)}. {m}. {d}.
                   </div>
                   {isCancelled && (

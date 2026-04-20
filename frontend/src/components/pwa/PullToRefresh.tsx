@@ -8,12 +8,14 @@ interface PullToRefreshProps {
   children: React.ReactNode;
   onRefresh?: () => Promise<void>;
   pullThreshold?: number;
+  scrollContainerId?: string;
 }
 
 export default function PullToRefresh({ 
   children, 
   onRefresh,
-  pullThreshold = 80 
+  pullThreshold = 80,
+  scrollContainerId
 }: PullToRefreshProps) {
   const router = useRouter();
   const [isPulling, setIsPulling] = useState(false);
@@ -24,9 +26,17 @@ export default function PullToRefresh({
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const getScrollTop = () => {
+      if (scrollContainerId) {
+        const el = document.getElementById(scrollContainerId);
+        return el ? el.scrollTop : 0;
+      }
+      return window.scrollY;
+    };
+
     const handleTouchStart = (e: TouchEvent) => {
-      // Only allow pull-to-refresh if we are at the very top of the page
-      if (window.scrollY > 0) return;
+      // Only allow pull-to-refresh if we are at the very top of the scroll container
+      if (getScrollTop() > 0) return;
       startY.current = e.touches[0].clientY;
     };
 
@@ -36,7 +46,7 @@ export default function PullToRefresh({
       const y = e.touches[0].clientY;
       const deltaY = y - startY.current;
 
-      if (deltaY > 0 && window.scrollY === 0) {
+      if (deltaY > 0 && getScrollTop() === 0) {
         // We are pulling down
         setIsPulling(true);
         // Add some resistance
@@ -113,7 +123,7 @@ export default function PullToRefresh({
       <div 
         className="transition-transform duration-200 ease-out"
         style={{
-          transform: isPulling || isRefreshing ? `translateY(${Math.min(pullProgress * 0.4, 40)}px)` : 'translateY(0)',
+          transform: isPulling || isRefreshing ? `translateY(${Math.min(pullProgress * 0.4, 40)}px)` : 'none',
         }}
       >
         {children}

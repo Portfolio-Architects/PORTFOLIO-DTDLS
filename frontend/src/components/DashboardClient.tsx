@@ -1,7 +1,7 @@
 'use client';
 
 import { ArrowUp, Building, MapPin, Map as MapIcon, Compass, MessageSquare, Heart, X, FileText,
-  LayoutDashboard, UserCircle, Star, Link2, Trash2, LogOut,
+  LayoutDashboard, UserCircle, Star, Link2, Trash2, LogOut, TrendingUp, ShieldAlert,
   Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil, ChevronDown, Eye } from 'lucide-react';
 import { logger } from '@/lib/services/logger';
 import Image from 'next/image';
@@ -91,38 +91,43 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
+  // We are using full-bleed layout, so window scroll won't happen. 
+  // We can track internal scrolling if needed, but for now we keep the static header.
   useEffect(() => {
     let ticking = false;
-    const handleScroll = () => {
+    const scrollContainer = document.getElementById('left-panel-scroll');
+    const handleScroll = (e: Event) => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          setIsScrolled(window.scrollY > 80);
+          setIsScrolled((e.target as HTMLElement).scrollTop > 80);
           ticking = false;
         });
         ticking = true;
       }
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+      return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, [mounted, activeTab]);
 
   const [listSort, setListSort] = useState<'views' | 'likes' | 'name'>('views');
   const [listHeight, setListHeight] = useState(600);
+  const leftPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const updateHeight = () => {
-        if (window.innerWidth >= 768) {
-          setListHeight(Math.max(400, window.innerHeight - 128 - 65));
-        } else {
-          setListHeight(600);
+    if (typeof window !== 'undefined' && leftPanelRef.current) {
+      const resizeObserver = new ResizeObserver(entries => {
+        for (let entry of entries) {
+          // Adjust for header elements inside the left panel (Trending + FilterBar = ~110px)
+          const availableHeight = entry.contentRect.height;
+          setListHeight(Math.max(400, availableHeight - 110));
         }
-      };
-      updateHeight();
-      window.addEventListener('resize', updateHeight);
-      return () => window.removeEventListener('resize', updateHeight);
+      });
+      resizeObserver.observe(leftPanelRef.current);
+      return () => resizeObserver.disconnect();
     }
-  }, []);
+  }, [mounted, activeTab]);
 
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
   const userHasSelected = useRef(false);
@@ -203,8 +208,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   const [areaUnit, setAreaUnit] = useState<'m2' | 'pyeong'>('m2');
 
   return (
-    <PullToRefresh>
-      <div className="min-h-screen bg-[#f2f4f6] font-sans selection:bg-[#3182f6]/20">
+    <PullToRefresh scrollContainerId="left-panel-scroll">
+      <div className="flex flex-col h-[100dvh] overflow-hidden bg-white font-sans selection:bg-[#3182f6]/20">
         
         {/* a11y: Skip to Content */}
         <a href="#main-content" className="skip-to-content">내용으로 건너뛰기</a>
@@ -227,104 +232,95 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       </div>
       
       {/* Main Header — Logo + Nav integrated */}
-      <header className="bg-white border-b border-[#e5e8eb] relative z-40" role="banner">
+      <header className="shrink-0 bg-white/95 backdrop-blur-xl border-b border-[#e5e8eb] relative z-40" role="banner">
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16">
-          {/* Top row: Brand + UserBar */}
-          <div className="flex items-center justify-between pt-5 pb-3 sm:pt-6 sm:pb-4">
-            <div 
-              className="flex items-center gap-3 cursor-pointer group"
-              onClick={() => {
-                setSelectedReport(null);
-                window.history.pushState(null, '', '/');
-              }}
-            >
-              <img src="/d-view-icon.png" alt="D-VIEW" className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg shadow-sm ring-1 ring-black/5" />
-              <div className="flex flex-col mt-0.5">
-                <h1 className="text-[18px] sm:text-[21px] font-extrabold text-[#191f28] tracking-tight leading-tight">
-                  동탄 아파트 가치 분석
-                </h1>
-                <div className="hidden sm:flex items-center gap-1.5 mt-1">
-                  <span className="px-1.5 py-[2px] bg-[#e8f3ff] text-[#3182f6] rounded-[5px] text-[10px] sm:text-[11px] font-bold tracking-tight">
-                    DATA LAB
-                  </span>
-                  <span className="text-[12px] sm:text-[13px] font-semibold text-[#505967] tracking-tight">
-                    실시간 실거래·임장 리포트
-                  </span>
+          <div className="flex flex-col md:flex-row md:items-center justify-between pt-4 pb-3 md:py-4 gap-4 md:gap-0">
+            
+            {/* Left: Brand */}
+            <div className="flex-1 flex items-center justify-between md:justify-start">
+              <div 
+                className="flex items-center gap-3.5 cursor-pointer group"
+                onClick={() => {
+                  setSelectedReport(null);
+                  window.history.pushState(null, '', '/');
+                }}
+              >
+                <img src="/d-view-icon.png" alt="D-VIEW" className="w-9 h-9 sm:w-10 sm:h-10 rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)] ring-1 ring-black/5 group-hover:scale-105 transition-transform duration-300" />
+                <div className="flex flex-col mt-0.5">
+                  <h1 className="text-[19px] sm:text-[22px] font-black text-[#191f28] tracking-tighter leading-none">
+                    동탄 아파트 가치 분석
+                  </h1>
+                  <div className="hidden sm:flex items-center gap-1.5 mt-1.5">
+                    <span className="px-1.5 py-[3px] bg-gradient-to-r from-[#3182f6] to-[#2b71d8] text-white rounded-[5px] text-[10px] font-extrabold tracking-widest shadow-sm leading-none">
+                      DATA LAB
+                    </span>
+                    <span className="text-[12px] font-bold text-[#8b95a1] tracking-tight">
+                      Powered by D-VIEW
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="flex items-center gap-3">
-              {/* 평/면적 토글 */}
-              <div className="hidden sm:inline-flex bg-[#f2f4f6] rounded-full p-0.5 gap-0.5">
-                <button
-                  onClick={() => setAreaUnit('m2')}
-                  className={`px-2.5 py-1 rounded-full text-[12px] font-bold transition-all duration-200 ${
-                    areaUnit === 'm2' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'
-                  }`}
-                >
-                  m²
-                </button>
-                <button
-                  onClick={() => setAreaUnit('pyeong')}
-                  className={`px-2.5 py-1 rounded-full text-[12px] font-bold transition-all duration-200 ${
-                    areaUnit === 'pyeong' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'
-                  }`}
-                >
-                  평
-                </button>
-              </div>
-              <div className="block">
+              
+              {/* Mobile User Bar */}
+              <div className="md:hidden flex items-center -mr-1">
                 <FloatingUserBar />
               </div>
             </div>
+
+            {/* Center: Nav Tabs (Segmented Control Style) */}
+            <nav className="shrink-0 flex items-center gap-1 sm:gap-1.5 bg-[#f2f4f6]/80 p-1.5 rounded-[16px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
+              <button
+                onClick={() => startTransition(() => setActiveTab('imjang'))}
+                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                  activeTab === 'imjang'
+                    ? 'bg-white text-[#191f28] shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
+                    : 'text-[#8b95a1] hover:text-[#4e5968] hover:bg-black/5'
+                }`}
+              >
+                <TrendingUp size={16} className={activeTab === 'imjang' ? 'text-[#3182f6]' : 'text-[#8b95a1] group-hover:scale-110 transition-transform duration-200'} />
+                <span>단지 분석</span>
+              </button>
+              
+              <Link
+                href="/lounge"
+                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-[#8b95a1] hover:text-[#4e5968] hover:bg-black/5`}
+              >
+                <MessageSquare size={16} className="text-[#8b95a1] group-hover:scale-110 transition-transform duration-200" />
+                <span>커뮤니티</span>
+              </Link>
+              
+              <button
+                onClick={() => startTransition(() => setActiveTab('recommend'))}
+                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                  activeTab === 'recommend'
+                    ? 'bg-white text-[#3182f6] shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
+                    : 'text-[#8b95a1] hover:text-[#4e5968] hover:bg-black/5'
+                }`}
+              >
+                <Home size={16} className={activeTab === 'recommend' ? 'text-[#3182f6]' : 'text-[#8b95a1] group-hover:scale-110 transition-transform duration-200'} />
+                <span>아파트 탐색</span>
+              </button>
+            </nav>
+
+            {/* Right: Desktop User Bar */}
+            <div className="hidden md:flex flex-1 items-center justify-end">
+              <FloatingUserBar />
+            </div>
+            
           </div>
-          {/* Bottom row: Tab navigation */}
-          <nav aria-label="메인 네비게이션" className="flex items-center gap-1 -mb-px">
-            <button
-              onClick={() => startTransition(() => setActiveTab('imjang'))}
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-bold transition-all duration-200 border-b-2 ${
-                activeTab === 'imjang'
-                  ? 'border-[#3182f6] text-[#3182f6]'
-                  : 'border-transparent text-[#8b95a1] hover:text-[#4e5968] hover:border-[#d1d5db]'
-              }`}
-            >
-              <Compass size={14} strokeWidth={activeTab === 'imjang' ? 2.5 : 1.5} />
-              <span>단지 분석</span>
-            </button>
-            <Link
-              href="/lounge"
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-bold transition-all duration-200 border-b-2 border-transparent text-[#8b95a1] hover:text-[#4e5968] hover:border-[#d1d5db]`}
-            >
-              <MessageSquare size={14} strokeWidth={1.5} />
-              <span>커뮤니티</span>
-            </Link>
-            <button
-              onClick={() => startTransition(() => setActiveTab('recommend'))}
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-bold transition-all duration-200 border-b-2 ${
-                activeTab === 'recommend'
-                  ? 'border-[#3182f6] text-[#3182f6]'
-                  : 'border-transparent text-[#8b95a1] hover:text-[#4e5968] hover:border-[#d1d5db]'
-              }`}
-            >
-              <Home size={16} className={`transition-transform duration-200 ${activeTab === 'recommend' ? 'text-[#3182f6]' : 'text-[#8b95a1] group-hover:-translate-y-0.5'}`} />
-              <span>아파트 탐색</span>
-            </button>
-          </nav>
         </div>
       </header>
 
       {/* Main Container */}
-      <main id="main-content" className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 pt-3 sm:pt-4 md:pt-5 pb-[100px] sm:pb-8 animate-in fade-in duration-500">
+      <main id="main-content" className="flex-1 overflow-hidden w-full max-w-[2000px] mx-auto animate-in fade-in duration-500">
 
         {/* ═══ TAB 1: 단지 분석 ═══ */}
         {mounted && activeTab === 'imjang' && (
-        <section>
-          {/* 1. Section Header — removed, now in main header */}
-
+        <section className="h-full">
           {/* ── 마스터-디테일 레이아웃 ── */}
-          <div className="flex flex-col md:flex-row md:bg-white md:rounded-2xl md:border md:border-[#e5e8eb] md:shadow-sm">
+          <div className="flex flex-col md:flex-row h-full">
             {/* LEFT: 아파트 리스트 (1/3) */}
-            <div className="w-full md:w-[380px] md:shrink-0 md:sticky md:top-16 md:self-start md:h-[calc(100vh-8rem)] md:border-r md:border-[#e5e8eb] flex flex-col overflow-hidden bg-white rounded-2xl md:rounded-l-2xl md:rounded-r-none">
+            <div id="left-panel-scroll" ref={leftPanelRef} className="w-full md:w-[380px] md:shrink-0 h-full overflow-y-auto md:border-r md:border-[#e5e8eb] flex flex-col bg-white pb-[100px] md:pb-0 custom-scrollbar relative">
           {(() => {
             // 전체: 모든 아파트 플랫 리스트 / 특정 동: 해당 동만
             const rawApts = selectedDong 
@@ -366,9 +362,9 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 })()}
 
                 {/* 아파트 리스트 */}
-                <div className="bg-white md:rounded-none md:border-0 border border-[#e5e8eb] overflow-hidden flex-1 flex flex-col">
+                <div className="bg-white flex-1 flex flex-col">
                   {/* 통합 필터 바 — 리스트 상단에 고정 */}
-                  <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-[#f2f4f6] px-3 py-2.5">
+                  <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-[#f2f4f6] px-3 py-2.5">
                     <DongFilterBar
                       selectedDong={selectedDong}
                       onSelectDong={setSelectedDong}
@@ -380,13 +376,26 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                     />
                   </div>
                   <FixedSizeList
-                    height={typeof window !== 'undefined' && window.innerWidth >= 768 ? listHeight : sorted.length * 82}
-                    itemCount={sorted.length}
+                    height={listHeight}
+                    itemCount={sorted.length + 4} // Reserve 4 items (328px) for the Footer
                     itemSize={82}
                     width="100%"
                     overscanCount={5}
                   >
                     {({ index, style }: { index: number; style: React.CSSProperties }) => {
+                      if (index === sorted.length) {
+                        return (
+                          <div style={style} className="relative z-0">
+                            <div className="absolute top-0 w-full">
+                              <Footer />
+                            </div>
+                          </div>
+                        );
+                      }
+                      if (index > sorted.length) {
+                        return <div style={style} />;
+                      }
+
                       const apt = sorted[index];
                       const overrideKey = HARDCODED_MAPPING[normalizeAptName(apt.name)];
                       const txKey = overrideKey || apt.txKey || findTxKey(apt.name, txSummaryData, nameMapping);
@@ -423,6 +432,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                                   likes: 0,
                                   commentCount: 0,
                                   createdAt: null,
+                                  metrics: apt as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
                                 });
                               }
                               // Soft URL update for SEO capturing
@@ -447,68 +457,79 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             </div>
 
             {/* RIGHT: 인라인 디테일 패널 (2/3, 데스크톱 전용) */}
-            <div className="hidden md:block flex-1 md:sticky md:top-16 md:self-start md:h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden rounded-tr-2xl rounded-br-2xl custom-scrollbar">
+            <div className="hidden md:flex flex-col flex-1 h-full overflow-y-auto overflow-x-hidden bg-[#f9fafb] custom-scrollbar relative">
               {resolvedReport ? (
-                <FieldReportModal 
-                  report={resolvedReport} 
-                  onClose={() => {
-                    setSelectedReport(null);
-                    window.history.pushState(null, '', '/');
-                  }} 
-                  comments={commentsData[resolvedReport.id] || []}
-                  commentInput={commentInput[resolvedReport.id] || ''}
-                  onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [resolvedReport.id]: text }))}
-                  onSubmitComment={() => handleSubmitComment(resolvedReport.id)}
-                  user={user}
-                  transactions={modalTransactions}
-                  typeMap={typeMap}
-                  areaUnit={areaUnit}
-                  isLoadingDetail={isLoadingDetail}
-                  isPurchased={purchasedReportIds.includes(resolvedReport.id)}
-                  isAdmin={dashboardFacade.isAdmin(user?.email)}
-                  onPurchaseComplete={() => {
-                    if (user) {
-                      refreshPurchasedReports();
-                    }
-                  }}
-                  inline
-                />
+                <>
+                  <div className="flex-1 flex flex-col bg-white">
+                    <FieldReportModal 
+                      report={resolvedReport} 
+                      onClose={() => {
+                        setSelectedReport(null);
+                        window.history.pushState(null, '', '/');
+                      }} 
+                      comments={commentsData[resolvedReport.id] || []}
+                      commentInput={commentInput[resolvedReport.id] || ''}
+                      onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [resolvedReport.id]: text }))}
+                      onSubmitComment={() => handleSubmitComment(resolvedReport.id)}
+                      user={user}
+                      transactions={modalTransactions}
+                      typeMap={typeMap}
+                      areaUnit={areaUnit}
+                      isLoadingDetail={isLoadingDetail}
+                      isPurchased={purchasedReportIds.includes(resolvedReport.id)}
+                      isAdmin={dashboardFacade.isAdmin(user?.email)}
+                      onPurchaseComplete={() => {
+                        if (user) {
+                          refreshPurchasedReports();
+                        }
+                      }}
+                      inline
+                    />
+                  </div>
+                  <div className="mt-auto bg-white w-full">
+                    <Footer />
+                  </div>
+                </>
               ) : (
-                <div className="h-full w-full bg-gradient-to-br from-[#191f28] via-[#222a35] to-[#3182f6] rounded-tr-2xl rounded-br-2xl relative overflow-hidden group flex flex-col items-center justify-center p-8 text-center">
-                    {/* Background noise/pattern */}
-                    <div className="absolute inset-0 bg-black/10 mix-blend-overlay pointer-events-none"></div>
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#3182f6] rounded-full mix-blend-screen filter blur-[80px] opacity-30 transform translate-x-1/2 -translate-y-1/2"></div>
-                    
-                    {/* AD Badge */}
-                    <div className="absolute top-5 right-5 bg-white/10 backdrop-blur-md px-2.5 py-1 rounded text-[11px] text-white/90 font-extrabold uppercase tracking-widest border border-white/20">
-                      AD
-                    </div>
-                    
-                    <div className="relative z-10 w-full max-w-[280px]">
-                      <div className="w-16 h-16 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-                        <Building2 className="text-white drop-shadow-sm" size={32} strokeWidth={1.5} />
+                <div className="flex flex-col h-full bg-[#f9fafb]">
+                  <div className="flex-1 w-full bg-gradient-to-br from-[#191f28] via-[#222a35] to-[#3182f6] relative overflow-hidden group flex flex-col items-center justify-center p-8 text-center min-h-[500px]">
+                      {/* Background noise/pattern */}
+                      <div className="absolute inset-0 bg-black/10 mix-blend-overlay pointer-events-none"></div>
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-[#3182f6] rounded-full mix-blend-screen filter blur-[80px] opacity-30 transform translate-x-1/2 -translate-y-1/2"></div>
+                      
+                      {/* AD Badge */}
+                      <div className="absolute top-5 right-5 bg-white/10 backdrop-blur-md px-2.5 py-1 rounded text-[11px] text-white/90 font-extrabold uppercase tracking-widest border border-white/20">
+                        AD
                       </div>
                       
-                      <h3 className="text-[22px] font-extrabold text-white tracking-tight mb-3 leading-snug">
-                        동탄 부동산 핵심 타겟<br/>프리미엄 광고 파트너 모집
-                      </h3>
-                      
-                      <p className="text-[14.5px] text-blue-100/90 font-medium leading-[1.6] mb-8">
-                        실거주와 투자를 준비하는 진성 유저들에게<br/>
-                        귀사의 브랜드를 가장 효과적으로 각인시키세요.
-                      </p>
-                      
-                      <button 
-                        onClick={() => setIsAdModalOpen(true)}
-                        className="w-full bg-white text-[#191f28] text-[15px] font-extrabold py-3.5 rounded-xl shadow-[0_4px_14px_0_rgba(255,255,255,0.39)] hover:bg-[#f2f4f6] hover:shadow-[0_6px_20px_rgba(255,255,255,0.23)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 duration-200">
-                        광고/제휴 문의하기
-                      </button>
-                    </div>
+                      <div className="relative z-10 w-full max-w-[280px]">
+                        <div className="w-16 h-16 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                          <Building2 className="text-white drop-shadow-sm" size={32} strokeWidth={1.5} />
+                        </div>
+                        
+                        <h3 className="text-[22px] font-extrabold text-white tracking-tight mb-3 leading-snug">
+                          동탄 부동산 핵심 타겟<br/>프리미엄 광고 파트너 모집
+                        </h3>
+                        
+                        <p className="text-[14.5px] text-blue-100/90 font-medium leading-[1.6] mb-8">
+                          실거주와 투자를 준비하는 진성 유저들에게<br/>
+                          귀사의 브랜드를 가장 효과적으로 각인시키세요.
+                        </p>
+                        
+                        <button 
+                          onClick={() => setIsAdModalOpen(true)}
+                          className="w-full bg-white text-[#191f28] text-[15px] font-extrabold py-3.5 rounded-xl shadow-[0_4px_14px_0_rgba(255,255,255,0.39)] hover:bg-[#f2f4f6] hover:shadow-[0_6px_20px_rgba(255,255,255,0.23)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 duration-200">
+                          광고/제휴 문의하기
+                        </button>
+                      </div>
                   </div>
+                  <div className="mt-auto">
+                    <Footer />
+                  </div>
+                </div>
               )}
             </div>
           </div>
-
 
         </section>
         )}

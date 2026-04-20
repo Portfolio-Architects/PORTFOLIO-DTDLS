@@ -177,7 +177,7 @@ export function TransactionChartSection({
           <button onClick={() => setChartType('jeonse')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>전월세</button>
         </div>
       </div>
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-[#191f28] flex items-center gap-2">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-[#191f28] flex items-center gap-2 break-keep">
         {displayAptName}
         <a 
           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayAptName + (displayAptName.includes('아파트') ? '' : ' 아파트'))}`}
@@ -236,7 +236,7 @@ export function TransactionChartSection({
           </div>
         </div>
         
-        <div className="flex w-full divide-x divide-[#e5e8eb] mb-5 bg-[#f9fafb] py-3 rounded-xl border border-[#e5e8eb] overflow-x-auto custom-scrollbar [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
+        <div className="flex w-full divide-x divide-[#e5e8eb] mb-5 bg-[#f9fafb] py-3 rounded-xl border border-[#e5e8eb] overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
           {[{label: '1개월 평균', val: momentum.m1}, {label: '3개월 평균', val: momentum.m3}, {label: '6개월 평균', val: momentum.m6}, {label: '1년 평균', val: momentum.y1}, {label: '3년 평균', val: momentum.y3}].map((item, idx) => (
             <div key={item.label} className={`flex flex-col items-center px-3 sm:px-5 shrink-0 min-w-[76px] sm:min-w-[85px] flex-1 snap-center ${idx === 4 ? 'border-r-0' : ''}`}>
               <span className="text-[10px] sm:text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">{item.label}</span>

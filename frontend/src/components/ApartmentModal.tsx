@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import {
   MapPin, X, TrendingUp, Camera, Maximize2,
-  MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeftRight
+  MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeftRight, ArrowLeft, Download
 } from 'lucide-react';
 import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Bar, Customized, Line, Legend } from 'recharts';
 import dynamic from 'next/dynamic';
@@ -113,6 +113,69 @@ export function FieldReportModal({
     if (el && modalRef.current) {
       const topPos = el.getBoundingClientRect().top + modalRef.current.scrollTop - modalRef.current.getBoundingClientRect().top - 60;
       modalRef.current.scrollTo({ top: topPos, behavior: 'smooth' });
+    }
+  };
+
+  const handleDownloadWatermarkedImage = async (imageUrl: string) => {
+    try {
+      const img = new window.Image();
+      
+      // Use custom API route to fetch the image with CORS headers
+      img.crossOrigin = 'anonymous';
+      img.src = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+      
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+          
+          ctx.drawImage(img, 0, 0);
+          
+          ctx.save();
+          ctx.translate(canvas.width / 2, canvas.height / 2);
+          ctx.rotate(-25 * Math.PI / 180);
+          
+          // Match CSS mix-blend-overlay roughly with slightly stronger opacity
+          ctx.font = `900 ${canvas.width * 0.15}px sans-serif`;
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+          ctx.shadowBlur = 20;
+          ctx.shadowOffsetX = 10;
+          ctx.shadowOffsetY = 10;
+          
+          if ('letterSpacing' in ctx) {
+            (ctx as any).letterSpacing = '0.3em';
+          }
+          
+          ctx.fillText('D-VIEW', 0, 0);
+          ctx.restore();
+          
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+          const a = document.createElement('a');
+          a.href = dataUrl;
+          a.download = `D-VIEW_${displayAptName}.jpg`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } catch (e) {
+          console.error('Canvas tainting or drawing error:', e);
+          window.open(imageUrl, '_blank');
+        }
+      };
+      
+      img.onerror = () => {
+        console.warn('Canvas download failed due to load error, falling back to original image.');
+        window.open(imageUrl, '_blank');
+      };
+    } catch (error) {
+      console.error('Failed to download watermarked image', error);
+      window.open(imageUrl, '_blank');
     }
   };
 
@@ -937,13 +1000,20 @@ export function FieldReportModal({
             >
               <X size={24} />
             </button>
-            <div className="relative w-[95vw] h-[95vh] flex items-center justify-center">
+            <button 
+              className="absolute top-6 right-20 z-50 text-white/50 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+              onClick={(e) => { e.stopPropagation(); handleDownloadWatermarkedImage(fullscreenImage); }}
+              title="이미지 저장 (워터마크 포함)"
+            >
+              <Download size={24} />
+            </button>
+            <div className="relative w-[95vw] h-[95vh] flex items-center justify-center" onContextMenu={(e) => e.preventDefault()}>
               <Image 
                 src={fullscreenImage} 
                 alt="Fullscreen view"
                 fill
                 sizes="100vw"
-                className="object-contain select-none shadow-2xl"
+                className="object-contain select-none shadow-2xl pointer-events-none"
               />
               {/* D-VIEW Watermark */}
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 overflow-hidden mix-blend-overlay">
@@ -978,28 +1048,39 @@ export function FieldReportModal({
           </button>
           
           {content}
+          {/* 하단 고정 버튼 영역 침범 방지용 여백 (모바일 전용) */}
+          <div className="h-28 md:hidden shrink-0" />
 
           {/* Mobile Sticky CTA (공유하기) */}
           <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-[#e5e8eb] md:hidden z-[100]">
-            <button 
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({
-                    title: `[D-VIEW] ${displayAptName}`,
-                    text: `이 단지의 가치를 뜯어보세요! 실거래가 및 인프라 분석`,
-                    url: window.location.href,
-                  }).catch(console.error);
-                } else {
-                  alert('공유하기 기능이 지원되지 않는 브라우저입니다.');
-                }
-              }}
-              className="w-full bg-[#fae100] hover:bg-[#e5cf00] text-[#3c1e1e] font-black text-[16px] py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg transition-colors"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 3c-5.52 0-10 3.51-10 7.85 0 2.76 1.77 5.17 4.45 6.47-.28 1.05-1.02 3.82-1.05 3.96-.03.18.11.23.23.15.11-.07 3.56-2.4 4.96-3.34.46.07.94.1 1.41.1 5.52 0 10-3.51 10-7.85C22 6.51 17.52 3 12 3z"/>
-              </svg>
-              카카오톡으로 공유하기
-            </button>
+            <div className="flex items-center gap-3 w-full">
+              <button
+                onClick={onClose}
+                className="w-[56px] h-[56px] bg-[#f2f4f6] hover:bg-[#e5e8eb] text-[#4e5968] rounded-2xl flex items-center justify-center transition-colors shrink-0"
+                title="뒤로가기"
+              >
+                <ArrowLeft size={24} strokeWidth={2.5} />
+              </button>
+              <button 
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: `[D-VIEW] ${displayAptName}`,
+                      text: `이 단지의 가치를 뜯어보세요! 실거래가 및 인프라 분석`,
+                      url: window.location.href,
+                    }).catch(console.error);
+                  } else {
+                    alert('공유하기 기능이 지원되지 않는 브라우저입니다.');
+                  }
+                }}
+                className="flex-1 h-[56px] bg-[#fae100] hover:bg-[#e5cf00] text-[#3c1e1e] font-black text-[16px] rounded-2xl flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(250,225,0,0.2)] transition-colors"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 3c-5.52 0-10 3.51-10 7.85 0 2.76 1.77 5.17 4.45 6.47-.28 1.05-1.02 3.82-1.05 3.96-.03.18.11.23.23.15.11-.07 3.56-2.4 4.96-3.34.46.07.94.1 1.41.1 5.52 0 10-3.51 10-7.85C22 6.51 17.52 3 12 3z"/>
+                </svg>
+                카카오톡으로 공유하기
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1015,11 +1096,18 @@ export function FieldReportModal({
           >
             <X size={24} />
           </button>
-          <div className="relative flex items-center justify-center w-full h-full" onClick={(e) => e.stopPropagation()}>
+          <button 
+            className="absolute top-6 right-20 text-white/50 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+            onClick={(e) => { e.stopPropagation(); handleDownloadWatermarkedImage(fullscreenImage); }}
+            title="이미지 저장 (워터마크 포함)"
+          >
+            <Download size={24} />
+          </button>
+          <div className="relative flex items-center justify-center w-full h-full" onClick={(e) => e.stopPropagation()} onContextMenu={(e) => e.preventDefault()}>
             <img 
               src={fullscreenImage} 
               alt="Fullscreen view" 
-              className="max-w-[95vw] max-h-[95vh] object-contain select-none shadow-2xl"
+              className="max-w-[95vw] max-h-[95vh] object-contain select-none shadow-2xl pointer-events-none"
             />
             {/* D-VIEW Watermark */}
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 overflow-hidden mix-blend-overlay">
