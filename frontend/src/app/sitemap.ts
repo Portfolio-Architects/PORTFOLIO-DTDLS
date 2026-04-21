@@ -64,13 +64,38 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const apts = buildInitialApartments();
     const allApts = Object.values(apts).flat();
     
+    // Fetch all scouting reports to get image URLs for SEO
+    const reportsMap = new Map<string, string[]>();
+    if (adminDb) {
+      try {
+        const reportsSnap = await adminDb.collection('scoutingReports').get();
+        reportsSnap.forEach(doc => {
+          const data = doc.data();
+          if (data.apartmentName && data.images && Array.isArray(data.images) && data.images.length > 0) {
+            reportsMap.set(data.apartmentName, data.images.map((img: any) => img.url).filter(Boolean));
+          }
+        });
+      } catch (err) {
+        console.error('Failed to fetch scoutingReports for sitemap', err);
+      }
+    }
+    
     allApts.forEach((apt) => {
-      routes.push({
+      const images = reportsMap.get(apt.name);
+      
+      const routeData: any = {
         url: `${baseUrl}/apartment/${encodeURIComponent(apt.name)}`,
         lastModified: new Date(),
         changeFrequency: 'weekly',
         priority: 0.95,
-      });
+      };
+      
+      // If Next.js sitemap supports images, attach them
+      if (images && images.length > 0) {
+        routeData.images = images;
+      }
+      
+      routes.push(routeData);
     });
   } catch (error) {
     console.error('Failed to generate apartment sitemap', error);

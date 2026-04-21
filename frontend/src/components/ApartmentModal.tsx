@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import {
   MapPin, X, TrendingUp, Camera, Maximize2,
   MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeftRight, ArrowLeft, Download
@@ -844,7 +844,7 @@ export function FieldReportModal({
                     </summary>
 
                     {/* Category Filter Chips */}
-                    <ApartmentGallery images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
+                    <ApartmentGallery aptName={report.apartmentName} images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
                   </details>
                 </div>
               );
@@ -983,47 +983,135 @@ export function FieldReportModal({
     </>
   );
 
+  // --- Image Navigation Logic ---
+  const currentImageIndex = report?.images?.findIndex(img => img.url === fullscreenImage) ?? -1;
+  const hasImages = report?.images && report.images.length > 0;
+  
+  const handleNextImage = React.useCallback((e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (hasImages && currentImageIndex !== -1 && currentImageIndex < report.images!.length - 1) {
+      setFullscreenImage(report.images![currentImageIndex + 1].url);
+    }
+  }, [hasImages, currentImageIndex, report?.images]);
+
+  const handlePrevImage = React.useCallback((e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (hasImages && currentImageIndex > 0) {
+      setFullscreenImage(report.images![currentImageIndex - 1].url);
+    }
+  }, [hasImages, currentImageIndex, report?.images]);
+
+  // Keyboard navigation & preloading
+  React.useEffect(() => {
+    if (!fullscreenImage || !hasImages) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') handleNextImage();
+      if (e.key === 'ArrowLeft') handlePrevImage();
+      if (e.key === 'Escape') setFullscreenImage(null);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Preload next and previous images
+    if (currentImageIndex !== -1) {
+      if (currentImageIndex > 0) {
+        const prevImg = new window.Image();
+        prevImg.src = report.images![currentImageIndex - 1].url;
+      }
+      if (currentImageIndex < report.images!.length - 1) {
+        const nextImg = new window.Image();
+        nextImg.src = report.images![currentImageIndex + 1].url;
+      }
+    }
+
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [fullscreenImage, hasImages, currentImageIndex, handleNextImage, handlePrevImage, report?.images]);
+
+  const FullscreenOverlay = () => {
+    if (!fullscreenImage) return null;
+    const currentImgData = report?.images?.[currentImageIndex];
+    return (
+      <div 
+        className="fixed inset-0 z-[110] bg-black/95 flex items-center justify-center animate-in fade-in duration-200"
+        onClick={() => setFullscreenImage(null)}
+      >
+        <button 
+          className="absolute top-6 right-6 z-50 text-white/50 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+          onClick={(e) => { e.stopPropagation(); setFullscreenImage(null); }}
+        >
+          <X size={24} />
+        </button>
+        <button 
+          className="absolute top-6 right-20 z-50 text-white/50 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+          onClick={(e) => { e.stopPropagation(); handleDownloadWatermarkedImage(fullscreenImage); }}
+          title="이미지 저장 (워터마크 포함)"
+        >
+          <Download size={24} />
+        </button>
+
+        {/* Left Arrow */}
+        {currentImageIndex > 0 && (
+          <button
+            className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-50 text-white/50 hover:text-white p-3 rounded-full bg-black/20 hover:bg-white/20 transition-colors"
+            onClick={handlePrevImage}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+        )}
+
+        {/* Right Arrow */}
+        {hasImages && currentImageIndex < report!.images!.length - 1 && (
+          <button
+            className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-50 text-white/50 hover:text-white p-3 rounded-full bg-black/20 hover:bg-white/20 transition-colors"
+            onClick={handleNextImage}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        )}
+
+        <div className="relative flex flex-col items-center justify-center w-full h-full" onClick={(e) => e.stopPropagation()} onContextMenu={(e) => e.preventDefault()}>
+          <div className="relative flex items-center justify-center">
+            {/* Use standard img with fetchPriority for faster loading than Next/Image in this specific raw URL context */}
+            <img 
+              src={fullscreenImage} 
+              alt="Fullscreen view"
+              fetchPriority="high"
+              className="max-w-[95vw] max-h-[85vh] object-contain select-none shadow-2xl pointer-events-none transition-opacity duration-300"
+            />
+            {/* D-VIEW Watermark */}
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 overflow-hidden mix-blend-overlay">
+              <span className="text-white/40 font-black text-6xl md:text-8xl rotate-[-25deg] tracking-[0.3em] select-none drop-shadow-2xl">
+                D-VIEW
+              </span>
+            </div>
+          </div>
+          
+          {/* Metadata Footer */}
+          <div className="absolute bottom-8 left-0 right-0 flex justify-center pointer-events-none">
+            <div className="bg-black/60 backdrop-blur-md px-6 py-2.5 rounded-full flex items-center gap-3 border border-white/10 shadow-lg">
+              <span className="text-white/90 text-[13px] font-bold">
+                {currentImageIndex + 1} <span className="text-white/40 font-normal">/ {report!.images!.length}</span>
+              </span>
+              {currentImgData?.locationTag && (
+                <>
+                  <span className="w-1 h-1 rounded-full bg-white/30" />
+                  <span className="text-white/80 text-[13px] font-medium">{currentImgData.locationTag}</span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // ── Return: inline panel vs modal overlay ──
   if (inline) {
     return (
       <div ref={modalRef} onScroll={handleScroll} className="bg-white h-full flex flex-col overflow-y-auto overflow-x-hidden">
         {content}
-        {/* Fullscreen Image Overlay */}
-        {fullscreenImage && (
-          <div 
-            className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center animate-in fade-in duration-200"
-            onClick={() => setFullscreenImage(null)}
-          >
-            <button 
-              className="absolute top-6 right-6 z-50 text-white/50 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-              onClick={(e) => { e.stopPropagation(); setFullscreenImage(null); }}
-            >
-              <X size={24} />
-            </button>
-            <button 
-              className="absolute top-6 right-20 z-50 text-white/50 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-              onClick={(e) => { e.stopPropagation(); handleDownloadWatermarkedImage(fullscreenImage); }}
-              title="이미지 저장 (워터마크 포함)"
-            >
-              <Download size={24} />
-            </button>
-            <div className="relative w-[95vw] h-[95vh] flex items-center justify-center" onContextMenu={(e) => e.preventDefault()}>
-              <Image 
-                src={fullscreenImage} 
-                alt="Fullscreen view"
-                fill
-                sizes="100vw"
-                className="object-contain select-none shadow-2xl pointer-events-none"
-              />
-              {/* D-VIEW Watermark */}
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 overflow-hidden mix-blend-overlay">
-                <span className="text-white/40 font-black text-6xl md:text-8xl rotate-[-25deg] tracking-[0.3em] select-none drop-shadow-2xl">
-                  D-VIEW
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
+        <FullscreenOverlay />
       </div>
     );
   }
@@ -1084,40 +1172,7 @@ export function FieldReportModal({
           </div>
         </div>
       </div>
-      {/* Fullscreen Image Overlay */}
-      {fullscreenImage && (
-        <div 
-          className="fixed inset-0 z-[110] bg-black/95 flex items-center justify-center animate-in fade-in duration-200"
-          onClick={() => setFullscreenImage(null)}
-        >
-          <button 
-            className="absolute top-6 right-6 text-white/50 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-            onClick={() => setFullscreenImage(null)}
-          >
-            <X size={24} />
-          </button>
-          <button 
-            className="absolute top-6 right-20 text-white/50 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-            onClick={(e) => { e.stopPropagation(); handleDownloadWatermarkedImage(fullscreenImage); }}
-            title="이미지 저장 (워터마크 포함)"
-          >
-            <Download size={24} />
-          </button>
-          <div className="relative flex items-center justify-center w-full h-full" onClick={(e) => e.stopPropagation()} onContextMenu={(e) => e.preventDefault()}>
-            <img 
-              src={fullscreenImage} 
-              alt="Fullscreen view" 
-              className="max-w-[95vw] max-h-[95vh] object-contain select-none shadow-2xl pointer-events-none"
-            />
-            {/* D-VIEW Watermark */}
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 overflow-hidden mix-blend-overlay">
-              <span className="text-white/40 font-black text-6xl md:text-8xl rotate-[-25deg] tracking-[0.3em] select-none drop-shadow-2xl">
-                D-VIEW
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
+      <FullscreenOverlay />
     </>,
     document.getElementById('modal-root') || document.body
   );

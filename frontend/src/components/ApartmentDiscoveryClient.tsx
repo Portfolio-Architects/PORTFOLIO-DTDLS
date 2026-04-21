@@ -147,12 +147,12 @@ export default function ApartmentDiscoveryClient({
   }, []);
 
   return (
-    <div className="w-full flex flex-col md:flex-row gap-6 lg:gap-8 h-full">
+    <div className="flex flex-col md:flex-row h-full rounded-none md:rounded-[20px] md:border md:border-[#e5e8eb] md:shadow-[0_2px_20px_rgba(0,0,0,0.04)] overflow-hidden bg-white">
       {/* ── LEFT 네비게이션: 데스크톱용 (Mobile은 가로 스크롤로 상단 배치) ── */}
-      <div className="md:w-[220px] lg:w-[240px] shrink-0">
+      <div className="w-full md:w-[220px] lg:w-[250px] shrink-0 md:border-r md:border-[#e5e8eb] bg-white pt-4 md:pt-6 px-2 md:px-4">
         
         {/* 모바일 렌더링: 가로 스크롤 탭 */}
-        <div className="md:hidden flex overflow-x-auto gap-2 pb-2 mb-4 custom-scrollbar snap-x">
+        <div className="md:hidden flex overflow-x-auto gap-2 pb-2 mb-2 custom-scrollbar snap-x px-2">
           {CATEGORIES.map(cat => {
             const isActive = activeCategory === cat.id;
             return (
@@ -173,8 +173,8 @@ export default function ApartmentDiscoveryClient({
         </div>
 
         {/* 데스크톱 렌더링: 버티컬 메뉴 */}
-        <div className="hidden md:flex flex-col gap-1 sticky top-20">
-          <h2 className="text-[20px] font-extrabold tracking-tight text-[#191f28] mb-4 pl-2">
+        <div className="hidden md:flex flex-col gap-1 sticky top-0 h-full overflow-y-auto custom-scrollbar pb-6">
+          <h2 className="text-[20px] font-extrabold tracking-tight text-[#191f28] mb-4 pl-2 pt-2">
             아파트 탐색
           </h2>
           {CATEGORIES.map(cat => {
@@ -183,17 +183,17 @@ export default function ApartmentDiscoveryClient({
             const isFirstZone = cat.id.startsWith('zone-') && CATEGORIES[CATEGORIES.indexOf(cat) - 1]?.id === 'recent';
             return (
               <React.Fragment key={cat.id}>
-                {isFirstZone && <div className="h-[1px] bg-[#e5e8eb] my-3 mx-2" />}
+                {isFirstZone && <div className="h-[1px] bg-[#f2f4f6] my-3 mx-2" />}
                 <button
                   onClick={() => setActiveCategory(cat.id)}
                   className={`w-full text-left px-4 py-3.5 rounded-2xl flex items-center justify-between transition-all group ${
                     isActive 
-                      ? 'bg-white shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#e5e8eb]' 
-                      : 'bg-transparent border border-transparent hover:bg-white/60'
+                      ? 'bg-[#f2f4f6] text-[#191f28]' 
+                      : 'bg-transparent text-[#4e5968] hover:bg-[#f9fafb]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`p-1.5 rounded-lg flex items-center justify-center ${isActive ? 'bg-[#f2f4f6]' : 'bg-transparent group-hover:bg-[#f2f4f6]'}`}>
+                    <div className={`p-1.5 rounded-lg flex items-center justify-center ${isActive ? 'bg-white shadow-sm' : 'bg-transparent group-hover:bg-white group-hover:shadow-sm'}`}>
                       <cat.icon size={18} color={cat.color} />
                     </div>
                     <span className={`text-[15px] font-bold ${isActive ? 'text-[#191f28]' : 'text-[#4e5968] group-hover:text-[#191f28]'}`}>
@@ -211,7 +211,7 @@ export default function ApartmentDiscoveryClient({
       </div>
 
       {/* ── RIGHT 콘텐츠 리스트 ── */}
-      <div className="flex-1 bg-white rounded-3xl border border-[#e5e8eb] shadow-sm overflow-hidden flex flex-col min-h-[500px]">
+      <div className="flex-1 bg-white flex flex-col min-w-0 min-h-[500px]">
         
         {/* 헤더 부분 & 배너 어울림 */}
         <div className="p-6 md:p-8 border-b border-[#f2f4f6] relative overflow-hidden bg-gradient-to-r from-white to-[#f8faff]">

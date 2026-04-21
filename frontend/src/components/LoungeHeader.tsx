@@ -1,13 +1,12 @@
 'use client';
 
-import { Compass, MessageSquare, Home } from 'lucide-react';
+import { TrendingUp, MessageSquare, Home } from 'lucide-react';
 import Link from 'next/link';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import { useState, useEffect } from 'react';
 
 export default function LoungeHeader({ activeTab = 'lounge' }: { activeTab?: string }) {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [areaUnit, setAreaUnit] = useState<'m2' | 'pyeong'>('m2');
 
   useEffect(() => {
     let ticking = false;
@@ -44,88 +43,86 @@ export default function LoungeHeader({ activeTab = 'lounge' }: { activeTab?: str
       </div>
       
       {/* Main Header — Logo + Nav integrated */}
-      <header className="bg-white border-b border-[#e5e8eb] relative z-40" role="banner">
+      <header className="shrink-0 bg-white/95 backdrop-blur-xl border-b border-[#e5e8eb] relative z-40" role="banner">
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16">
-          {/* Top row: Brand + UserBar */}
-          <div className="flex items-center justify-between pt-5 pb-3 sm:pt-6 sm:pb-4">
-            <div className="flex items-center gap-3">
-              <img src="/d-view-icon.png" alt="D-VIEW" className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg shadow-sm ring-1 ring-black/5" />
-              <div className="flex flex-col mt-0.5">
-                <Link href="/">
-                  <h1 className="text-[18px] sm:text-[21px] font-extrabold text-[#191f28] tracking-tight leading-tight cursor-pointer">
+          <div className="flex flex-col md:flex-row md:items-center justify-between pt-4 pb-3 md:py-4 gap-4 md:gap-0">
+            
+            {/* Left: Brand */}
+            <div className="flex-1 flex items-center justify-between md:justify-start">
+              <Link 
+                href="/"
+                className="flex items-center gap-3.5 cursor-pointer group"
+              >
+                <div className="relative">
+                  <img src="/d-view-icon.png" alt="D-VIEW" className="w-10 h-10 sm:w-11 sm:h-11 rounded-[12px] shadow-[0_4px_12px_rgba(49,130,246,0.12)] ring-1 ring-black/5 group-hover:scale-105 transition-transform duration-300" />
+                  <div className="absolute inset-0 rounded-[12px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] pointer-events-none" />
+                </div>
+                <div className="flex flex-col justify-center mt-0.5">
+                  <h1 className="text-[20px] sm:text-[23px] font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#191f28] to-[#4e5968] leading-none mb-1.5">
                     동탄 아파트 가치 분석
                   </h1>
-                </Link>
-                <div className="hidden sm:flex items-center gap-1.5 mt-1">
-                  <span className="px-1.5 py-[2px] bg-[#e8f3ff] text-[#3182f6] rounded-[5px] text-[10px] sm:text-[11px] font-bold tracking-tight">
-                    DATA LAB
-                  </span>
-                  <span className="text-[12px] sm:text-[13px] font-semibold text-[#505967] tracking-tight">
-                    실시간 실거래·임장 리포트
-                  </span>
+                  <div className="hidden sm:flex items-center gap-2">
+                    <span className="px-1.5 py-[3px] bg-[#3182f6]/10 text-[#3182f6] border border-[#3182f6]/20 rounded-[5px] text-[10px] font-black tracking-widest leading-none shadow-sm">
+                      DATA LAB
+                    </span>
+                    <span className="text-[11px] font-bold text-[#8b95a1] tracking-wide uppercase">
+                      Powered by D-VIEW
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:inline-flex bg-[#f2f4f6] rounded-full p-0.5 gap-0.5">
-                <button
-                  onClick={() => setAreaUnit('m2')}
-                  className={`px-2.5 py-1 rounded-full text-[12px] font-bold transition-all duration-200 ${
-                    areaUnit === 'm2' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'
-                  }`}
-                >
-                  m²
-                </button>
-                <button
-                  onClick={() => setAreaUnit('pyeong')}
-                  className={`px-2.5 py-1 rounded-full text-[12px] font-bold transition-all duration-200 ${
-                    areaUnit === 'pyeong' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'
-                  }`}
-                >
-                  평
-                </button>
-              </div>
-              <div className="block">
+              </Link>
+              
+              {/* Mobile User Bar */}
+              <div className="md:hidden flex items-center -mr-1">
                 <FloatingUserBar />
               </div>
             </div>
+
+            {/* Center: Nav Tabs (Segmented Control Style) */}
+            <nav className="shrink-0 flex items-center gap-1 sm:gap-1.5 bg-[#f2f4f6]/80 p-1.5 rounded-[16px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
+              <Link
+                href="/"
+                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                  activeTab === 'imjang'
+                    ? 'bg-white text-[#191f28] shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
+                    : 'text-[#8b95a1] hover:text-[#4e5968] hover:bg-black/5'
+                }`}
+              >
+                <TrendingUp size={16} className={activeTab === 'imjang' ? 'text-[#3182f6]' : 'text-[#8b95a1] group-hover:scale-110 transition-transform duration-200'} />
+                <span>단지 분석</span>
+              </Link>
+              
+              <Link
+                href="/lounge"
+                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                  activeTab === 'lounge'
+                    ? 'bg-white text-[#191f28] shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
+                    : 'text-[#8b95a1] hover:text-[#4e5968] hover:bg-black/5'
+                }`}
+              >
+                <MessageSquare size={16} className={activeTab === 'lounge' ? 'text-[#3182f6]' : 'text-[#8b95a1] group-hover:scale-110 transition-transform duration-200'} />
+                <span>커뮤니티</span>
+              </Link>
+              
+              <Link
+                href="/#recommend"
+                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                  activeTab === 'recommend'
+                    ? 'bg-white text-[#3182f6] shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
+                    : 'text-[#8b95a1] hover:text-[#4e5968] hover:bg-black/5'
+                }`}
+              >
+                <Home size={16} className={activeTab === 'recommend' ? 'text-[#3182f6]' : 'text-[#8b95a1] group-hover:scale-110 transition-transform duration-200'} />
+                <span>아파트 탐색</span>
+              </Link>
+            </nav>
+
+            {/* Right: Desktop User Bar */}
+            <div className="hidden md:flex flex-1 items-center justify-end">
+              <FloatingUserBar />
+            </div>
+            
           </div>
-          {/* Bottom row: Tab navigation */}
-          <nav aria-label="메인 네비게이션" className="flex items-center gap-1 -mb-px">
-            <Link
-              href="/"
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-bold transition-all duration-200 border-b-2 ${
-                activeTab === 'imjang'
-                  ? 'border-[#3182f6] text-[#3182f6]'
-                  : 'border-transparent text-[#8b95a1] hover:text-[#4e5968] hover:border-[#d1d5db]'
-              }`}
-            >
-              <Compass size={14} strokeWidth={activeTab === 'imjang' ? 2.5 : 1.5} />
-              <span>단지 분석</span>
-            </Link>
-            <Link
-              href="/lounge"
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-bold transition-all duration-200 border-b-2 ${
-                activeTab === 'lounge'
-                  ? 'border-[#3182f6] text-[#3182f6]'
-                  : 'border-transparent text-[#8b95a1] hover:text-[#4e5968] hover:border-[#d1d5db]'
-              }`}
-            >
-              <MessageSquare size={14} strokeWidth={activeTab === 'lounge' ? 2.5 : 1.5} />
-              <span>커뮤니티</span>
-            </Link>
-            <Link
-              href="/#recommend"
-              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-[13px] font-bold transition-all duration-200 border-b-2 ${
-                activeTab === 'recommend'
-                  ? 'border-[#3182f6] text-[#3182f6]'
-                  : 'border-transparent text-[#8b95a1] hover:text-[#4e5968] hover:border-[#d1d5db]'
-              }`}
-            >
-              <Home size={14} strokeWidth={activeTab === 'recommend' ? 2.5 : 1.5} />
-              <span>아파트 탐색</span>
-            </Link>
-          </nav>
         </div>
       </header>
     </>

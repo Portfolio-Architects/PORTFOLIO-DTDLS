@@ -1,11 +1,12 @@
 import React from 'react';
 import Image from 'next/image';
 
-export function ApartmentGallery({ images, tags, tagLabels, onImageClick }: {
+export function ApartmentGallery({ images, tags, tagLabels, onImageClick, aptName }: {
   images: {url: string; caption?: string; locationTag?: string; isPremium?: boolean; capturedAt?: string}[];
   tags: string[];
   tagLabels: Record<string, string>;
   onImageClick: (url: string) => void;
+  aptName?: string;
 }) {
   const categories = tags.filter(t => t !== '전체');
   
@@ -35,19 +36,24 @@ export function ApartmentGallery({ images, tags, tagLabels, onImageClick }: {
             </div>
             
             <div className="flex gap-3 overflow-x-auto pb-4 custom-scrollbar snap-x shrink-0 w-full [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {categoryImages.map((img, i) => (
-                <div
-                  key={i}
-                  className="relative shrink-0 w-[240px] md:w-[280px] aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer group border border-[#e5e8eb] shadow-sm snap-start"
-                  onClick={() => onImageClick(img.url)}
-                >
-                  <Image
-                    src={img.url}
-                    alt={img.caption || img.locationTag || `Photo ${i + 1}`}
-                    fill
-                    sizes="(max-width: 768px) 240px, 280px"
-                    className="object-cover bg-[#f2f4f6]"
-                  />
+              {categoryImages.map((img, i) => {
+                const altText = aptName 
+                  ? `동탄 ${aptName} ${img.caption ? img.caption : `${label} 전경 및 임장 사진`} - D-VIEW`
+                  : (img.caption || img.locationTag || `Photo ${i + 1}`);
+                  
+                return (
+                  <div
+                    key={i}
+                    className="relative shrink-0 w-[240px] md:w-[280px] aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer group border border-[#e5e8eb] shadow-sm snap-start"
+                    onClick={() => onImageClick(img.url)}
+                  >
+                    <Image
+                      src={img.url}
+                      alt={altText}
+                      fill
+                      sizes="(max-width: 768px) 240px, 280px"
+                      className="object-cover bg-[#f2f4f6]"
+                    />
                   {/* D-VIEW Watermark */}
                   <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 overflow-hidden">
                     <span className="text-white/30 font-black text-3xl rotate-[-25deg] tracking-[0.3em] select-none mix-blend-overlay drop-shadow-md">
@@ -72,7 +78,8 @@ export function ApartmentGallery({ images, tags, tagLabels, onImageClick }: {
                     </span>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         );

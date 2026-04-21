@@ -245,16 +245,19 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   window.history.pushState(null, '', '/');
                 }}
               >
-                <img src="/d-view-icon.png" alt="D-VIEW" className="w-9 h-9 sm:w-10 sm:h-10 rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)] ring-1 ring-black/5 group-hover:scale-105 transition-transform duration-300" />
-                <div className="flex flex-col mt-0.5">
-                  <h1 className="text-[19px] sm:text-[22px] font-black text-[#191f28] tracking-tighter leading-none">
+                <div className="relative">
+                  <img src="/d-view-icon.png" alt="D-VIEW" className="w-10 h-10 sm:w-11 sm:h-11 rounded-[12px] shadow-[0_4px_12px_rgba(49,130,246,0.12)] ring-1 ring-black/5 group-hover:scale-105 transition-transform duration-300" />
+                  <div className="absolute inset-0 rounded-[12px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] pointer-events-none" />
+                </div>
+                <div className="flex flex-col justify-center mt-0.5">
+                  <h1 className="text-[20px] sm:text-[23px] font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#191f28] to-[#4e5968] leading-none mb-1.5">
                     동탄 아파트 가치 분석
                   </h1>
-                  <div className="hidden sm:flex items-center gap-1.5 mt-1.5">
-                    <span className="px-1.5 py-[3px] bg-gradient-to-r from-[#3182f6] to-[#2b71d8] text-white rounded-[5px] text-[10px] font-extrabold tracking-widest shadow-sm leading-none">
+                  <div className="hidden sm:flex items-center gap-2">
+                    <span className="px-1.5 py-[3px] bg-[#3182f6]/10 text-[#3182f6] border border-[#3182f6]/20 rounded-[5px] text-[10px] font-black tracking-widest leading-none shadow-sm">
                       DATA LAB
                     </span>
-                    <span className="text-[12px] font-bold text-[#8b95a1] tracking-tight">
+                    <span className="text-[11px] font-bold text-[#8b95a1] tracking-wide uppercase">
                       Powered by D-VIEW
                     </span>
                   </div>
@@ -312,13 +315,13 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       </header>
 
       {/* Main Container */}
-      <main id="main-content" className="flex-1 overflow-hidden w-full max-w-[2000px] mx-auto animate-in fade-in duration-500">
+      <main id="main-content" className="flex-1 overflow-hidden w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 animate-in fade-in duration-500">
 
         {/* ═══ TAB 1: 단지 분석 ═══ */}
         {mounted && activeTab === 'imjang' && (
         <section className="h-full">
           {/* ── 마스터-디테일 레이아웃 ── */}
-          <div className="flex flex-col md:flex-row h-full">
+          <div className="flex flex-col md:flex-row h-full rounded-none md:rounded-[20px] md:border md:border-[#e5e8eb] md:shadow-[0_2px_20px_rgba(0,0,0,0.04)] overflow-hidden">
             {/* LEFT: 아파트 리스트 (1/3) */}
             <div id="left-panel-scroll" ref={leftPanelRef} className="w-full md:w-[380px] md:shrink-0 h-full overflow-y-auto md:border-r md:border-[#e5e8eb] flex flex-col bg-white pb-[100px] md:pb-0 custom-scrollbar relative">
           {(() => {
@@ -457,7 +460,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             </div>
 
             {/* RIGHT: 인라인 디테일 패널 (2/3, 데스크톱 전용) */}
-            <div className="hidden md:flex flex-col flex-1 h-full overflow-y-auto overflow-x-hidden bg-[#f9fafb] custom-scrollbar relative">
+            <div className={`hidden md:flex flex-col flex-1 h-full ${resolvedReport ? 'overflow-y-auto' : 'overflow-hidden'} overflow-x-hidden bg-[#f9fafb] custom-scrollbar relative`}>
               {resolvedReport ? (
                 <>
                   <div className="flex-1 flex flex-col bg-white">

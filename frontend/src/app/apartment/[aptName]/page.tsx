@@ -10,6 +10,23 @@ export async function generateMetadata(props: { params: Promise<{ aptName: strin
   const decodedName = decodeURIComponent(params.aptName);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
   
+  let imageUrl = '';
+  if (adminDb) {
+    try {
+      const snap = await adminDb.collection('scoutingReports').where('apartmentName', '==', decodedName).limit(1).get();
+      if (!snap.empty) {
+        const data = snap.docs[0].data();
+        if (data.images && data.images.length > 0) {
+          imageUrl = data.images[0].url;
+        } else if (data.thumbnailUrl) {
+          imageUrl = data.thumbnailUrl;
+        }
+      }
+    } catch (e) {
+      console.warn('[SEO] Failed to fetch report image for metadata:', e);
+    }
+  }
+  
   return {
     title: `${decodedName} 실거래가/가치분석 - D-VIEW`,
     description: `동탄 ${decodedName} 아파트의 실거래가 추이, 주변 인프라, 전문가 임장 리포트를 확인하세요.`,
@@ -20,11 +37,13 @@ export async function generateMetadata(props: { params: Promise<{ aptName: strin
       siteName: 'D-VIEW',
       locale: 'ko_KR',
       type: 'website',
+      ...(imageUrl ? { images: [{ url: imageUrl, width: 1200, height: 630, alt: `${decodedName} 전경` }] } : {})
     },
     twitter: {
       card: 'summary_large_image',
       title: `${decodedName} 실거래가 분석 - D-VIEW`,
       description: `동탄 ${decodedName} 지역의 객관적 가치 지표 확인하기.`,
+      ...(imageUrl ? { images: [imageUrl] } : {})
     }
   };
 }
@@ -89,7 +108,38 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   const params = await props.params;
   const decodedName = decodeURIComponent(params.aptName);
   const initialData = await getInitialData();
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
-  // Render the dashboard with the specific apartment pre-opened
-  return <DashboardClient initialDashboardData={initialData} preselectedAptName={decodedName} />;
+  // Fetch report for structured data (JSON-LD)
+  let structuredImages: string[] = [];
+  if (adminDb) {
+    try {
+      const snap = await adminDb.collection('scoutingReports').where('apartmentName', '==', decodedName).limit(1).get();
+      if (!snap.empty) {
+        const data = snap.docs[0].data();
+        if (data.images && Array.isArray(data.images)) {
+          structuredImages = data.images.map((img: any) => img.url).filter(Boolean);
+        }
+      }
+    } catch (e) {}
+  }
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ApartmentComplex",
+    "name": `${decodedName}`,
+    "description": `동탄 ${decodedName} 아파트 실거래가 및 임장 리포트`,
+    "url": `${baseUrl}/apartment/${encodeURIComponent(decodedName)}`,
+    ...(structuredImages.length > 0 ? { "image": structuredImages } : {})
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <DashboardClient initialDashboardData={initialData} preselectedAptName={decodedName} />
+    </>
+  );
 }
