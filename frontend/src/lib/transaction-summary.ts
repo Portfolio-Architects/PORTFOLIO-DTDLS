@@ -5316,7 +5316,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = {
         "area": 96.9237
       }
     ],
-    "rentTxCount": 259,
+    "rentTxCount": 260,
     "latestRentDeposit": 33000,
     "latestRentDepositEok": "3억3,000",
     "latestRentMonthly": 0,
