@@ -63,7 +63,7 @@ export async function middleware(request: NextRequest) {
   // 대신 엄격한 Host 기반 Allowlist 유지.
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://apis.google.com https://www.recaptcha.net;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://apis.google.com https://www.recaptcha.net https://cdn.jsdelivr.net;
     worker-src 'self' blob:;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
     img-src 'self' blob: data: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://maps.gstatic.com https://maps.googleapis.com https://www.googletagmanager.com https://www.google-analytics.com;
