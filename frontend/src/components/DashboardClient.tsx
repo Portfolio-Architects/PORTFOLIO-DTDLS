@@ -271,7 +271,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             </div>
 
             {/* Center: Nav Tabs (Segmented Control Style) */}
-            <nav className="shrink-0 flex items-center gap-1 sm:gap-1.5 bg-[#f2f4f6]/80 p-1.5 rounded-[16px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
+            <nav className="hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-[#f2f4f6]/80 p-1.5 rounded-[16px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
               <button
                 onClick={() => startTransition(() => setActiveTab('imjang'))}
                 className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
