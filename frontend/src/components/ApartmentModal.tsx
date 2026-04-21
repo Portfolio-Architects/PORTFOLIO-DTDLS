@@ -1124,12 +1124,7 @@ export function FieldReportModal({
       <div className="fixed inset-0 z-[100] flex flex-col justify-end md:items-center md:justify-center p-0 md:p-12 animate-in fade-in duration-200" style={{ position: 'fixed' }}>
         <div className="absolute inset-0 bg-[#191f28]/60 backdrop-blur-sm" onClick={onClose} />
         
-        <div ref={modalRef} onScroll={handleScroll} className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] h-[92vh] md:max-h-[90vh] rounded-t-3xl md:rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden shadow-2xl transition-transform duration-300 ring-1 ring-black/5 pb-24 md:pb-0 slide-in-from-bottom`}>
-          
-          {/* Mobile Grab Handle */}
-          <div className="w-full flex justify-center pt-3 pb-1 md:hidden sticky top-0 bg-[#f2f4f6] z-[100]" onClick={onClose}>
-            <div className="w-12 h-1.5 bg-[#d1d6db] rounded-full" />
-          </div>
+        <div ref={modalRef} onScroll={handleScroll} className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] h-[100dvh] md:h-auto md:max-h-[90vh] rounded-none md:rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden shadow-2xl transition-transform duration-300 ring-1 ring-black/5 pb-24 md:pb-0 slide-in-from-bottom`}>
 
           <button onClick={onClose} className="sticky top-4 z-[100] ml-auto mr-4 mt-4 -mb-14 bg-[#191f28]/80 hover:bg-[#191f28] text-white w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0 hidden md:flex">
             <X size={20} />
