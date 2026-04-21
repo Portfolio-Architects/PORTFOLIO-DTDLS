@@ -3,7 +3,7 @@
 import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import {
   MapPin, X, TrendingUp, Camera, Maximize2,
-  MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeftRight, ArrowLeft, Download
+  MessageSquare, UserCircle, CheckCircle2, Building, Info, ShieldAlert, Radar, ChevronDown, ArrowLeftRight, ArrowLeft, Download, Share
 } from 'lucide-react';
 import { ComposedChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip, Bar, Customized, Line, Legend } from 'recharts';
 import dynamic from 'next/dynamic';
@@ -1156,12 +1156,10 @@ export function FieldReportModal({
                     alert('공유하기 기능이 지원되지 않는 브라우저입니다.');
                   }
                 }}
-                className="flex-1 h-[56px] bg-[#fae100] hover:bg-[#e5cf00] text-[#3c1e1e] font-black text-[16px] rounded-2xl flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(250,225,0,0.2)] transition-colors"
+                className="flex-1 h-[56px] bg-[#3182f6] hover:bg-[#1b64da] text-white font-extrabold text-[16px] rounded-2xl flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(49,130,246,0.2)] transition-colors"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 3c-5.52 0-10 3.51-10 7.85 0 2.76 1.77 5.17 4.45 6.47-.28 1.05-1.02 3.82-1.05 3.96-.03.18.11.23.23.15.11-.07 3.56-2.4 4.96-3.34.46.07.94.1 1.41.1 5.52 0 10-3.51 10-7.85C22 6.51 17.52 3 12 3z"/>
-                </svg>
-                카카오톡으로 공유하기
+                <Share size={20} strokeWidth={2.5} />
+                공유하기
               </button>
             </div>
           </div>
