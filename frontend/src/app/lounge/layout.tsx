@@ -1,5 +1,6 @@
 import React from 'react';
 import LoungeHeader from '@/components/LoungeHeader';
+import MobileDock from '@/components/pwa/MobileDock';
 
 export default function LoungeLayout({
   children,
@@ -14,6 +15,7 @@ export default function LoungeLayout({
       <LoungeHeader activeTab="lounge" />
       {children}
       {modal}
+      <MobileDock activeTab="lounge" />
     </div>
   );
 }

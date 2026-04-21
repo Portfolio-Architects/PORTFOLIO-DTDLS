@@ -19,6 +19,7 @@ import CommentSection from '@/components/CommentSection';
 import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
 import { TransactionTable } from './apartment-modal/TransactionTable';
 import { TransactionChartSection } from './apartment-modal/TransactionChartSection';
+import { TransactionSummaryMetrics } from './apartment-modal/TransactionSummaryMetrics';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 
 const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics'), { ssr: false });
@@ -83,13 +84,10 @@ export function FieldReportModal({
   const [mounted, setMounted] = useState(false);
   const displayAptName = getDisplayAptName(report.apartmentName);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
-  const [priceTypeFilter, setPriceTypeFilter] = useState<string>('ALL');
-  const [showPriceHelp, setShowPriceHelp] = useState(false);
   const [activeTab, setActiveTab] = useState('sec-summary');
 
   // 차트 매매/전월세 토글
   const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
-  const [periodDealType, setPeriodDealType] = useState<'sale' | 'jeonse'>('sale');
 
   // Hydration-safe portal mount
   useEffect(() => {
@@ -269,241 +267,12 @@ export function FieldReportModal({
           </div>
 
           {/* ── 평형별 최근 거래가 + 기간별 평균 ── */}
-          {transactions.length > 0 && (() => {
-            const now = new Date();
-            const aptNorm = normalizeAptName(report.apartmentName);
-
-            // 1) 타입 필터 칩 목록 구성 (단지 내 존재하는 전 평형 추출)
-            const byArea = new Map<string, { label: string; area: number }>();
-            transactions.forEach(tx => {
-              const key = String(tx.area);
-              if (!byArea.has(key)) {
-                const txAptNorm = normalizeAptName(tx.aptName);
-                const typeData = typeMap[txAptNorm]?.[key];
-                const typeName = typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
-                const label = typeName || (areaUnit === 'm2' ? `${tx.area}m²` : `${tx.areaPyeong}평`);
-                byArea.set(key, { label, area: tx.area });
-              }
-            });
-
-            const typeFilters: { key: string; label: string; area: number }[] = [
-              { key: 'ALL', label: '단지 전체', area: 0 },
-              ...Array.from(byArea.values())
-                .sort((a, b) => {
-                  const numA = parseInt(a.label.match(/\d+/)?.[0] || '0');
-                  const numB = parseInt(b.label.match(/\d+/)?.[0] || '0');
-                  if (numA !== numB) return numA - numB;
-                  return a.label.localeCompare(b.label);
-                })
-                .map(c => ({ key: String(c.area), label: c.label, area: c.area }))
-            ];
-
-            // 3) 기간별 평균 산출 (1M, 3M, 6M, 1Y, 3Y, 5Y, 10Y, ALL)
-            const periods = [
-              { key: '1M', label: '1개월', months: 1 },
-              { key: '3M', label: '3개월', months: 3 },
-              { key: '6M', label: '6개월', months: 6 },
-              { key: '1Y', label: '1년', months: 12 },
-              { key: '3Y', label: '3년', months: 36 },
-              { key: '5Y', label: '5년', months: 60 },
-              { key: '10Y', label: '10년', months: 120 },
-              { key: 'ALL', label: '전체', months: 9999 },
-            ];
-
-            const getTxDate = (tx: TransactionRecord) => {
-              const y = parseInt(tx.contractYm.slice(0, 4));
-              const m = parseInt(tx.contractYm.slice(4, 6));
-              const d = parseInt(tx.contractDay) || 1;
-              return new Date(y, m - 1, d);
-            };
-
-            const periodTransactions = transactions.filter(tx => {
-              if (periodDealType === 'sale' && (tx.dealType === '전세' || tx.dealType === '월세')) return false;
-              if (periodDealType === 'jeonse' && tx.dealType !== '전세' && tx.dealType !== '월세') return false;
-              return true;
-            });
-
-            // Filter transactions by type if selected
-            const baseTx = priceTypeFilter === 'ALL'
-              ? periodTransactions
-              : periodTransactions.filter(tx => String(tx.area) === priceTypeFilter);
-
-            // Calculate supply pyeong for a transaction
-            const getTxSupplyPyeong = (tx: TransactionRecord) => {
-              const key = String(tx.area);
-              const txAptNorm = normalizeAptName(tx.aptName);
-              const typeData = typeMap[txAptNorm]?.[key];
-              if (typeData?.typeM2) {
-                const supplyM2Match = typeData.typeM2.match(/\d+(\.\d+)?/);
-                if (supplyM2Match) return parseFloat(supplyM2Match[0]) * 0.3025;
-              }
-              // fallback to roughly estimating supply area if not in typeMap
-              return tx.area * 0.3025 * 1.33; 
-            };
-
-            // Area pyeong for per-pyeong calc (type-specific or average)
-            const avgAreaPyeong = baseTx.length > 0
-              ? baseTx.reduce((s, tx) => s + getTxSupplyPyeong(tx), 0) / baseTx.length
-              : 30;
-
-            const formatEok = (priceMan: number) => {
-              if (priceMan >= 10000) {
-                const eok = Math.floor(priceMan / 10000);
-                const rem = Math.round(priceMan % 10000);
-                return `${eok}억${rem > 0 ? rem.toLocaleString() : ''}`;
-              }
-              return `${Math.round(priceMan).toLocaleString()}만`;
-            };
-
-            const overallAvgPrice = baseTx.length > 0 ? baseTx.reduce((s, t) => s + t.price, 0) / baseTx.length : 0;
-
-            const sortedBaseTx = [...baseTx].sort((a, b) => getTxDate(b).getTime() - getTxDate(a).getTime());
-            const fallbackTx = sortedBaseTx.length > 0 ? sortedBaseTx[0] : null;
-
-            const periodData = periods.map(p => {
-              const cutoffDate = new Date(now.getFullYear(), now.getMonth() - p.months, now.getDate());
-              const filtered = baseTx.filter(tx => p.months >= 9999 || getTxDate(tx) >= cutoffDate);
-              
-              let rawAvgPrice = 0;
-              let perPyeong = 0;
-              let count = filtered.length;
-
-              if (filtered.length > 0) {
-                rawAvgPrice = filtered.reduce((s, t) => s + t.price, 0) / filtered.length;
-                perPyeong = Math.round(filtered.reduce((s, tx) => s + (tx.price / getTxSupplyPyeong(tx)), 0) / filtered.length);
-              } else if (fallbackTx) {
-                rawAvgPrice = fallbackTx.price;
-                perPyeong = Math.round(fallbackTx.price / getTxSupplyPyeong(fallbackTx));
-                count = 0;
-              }
-
-              const avgPrice = Math.round(rawAvgPrice / 100) * 100;
-              
-              // 변동률 전체기간(overallAvgPrice) 기준
-              const trendPct = overallAvgPrice > 0 && p.months < 9999 
-                ? ((avgPrice - overallAvgPrice) / overallAvgPrice * 100) 
-                : null;
-              return {
-                ...p,
-                count,
-                avgPrice,
-                avgPriceEok: formatEok(avgPrice),
-                perPyeong,
-                perPyeongEok: formatEok(perPyeong),
-                trendPct,
-              };
-            }).filter(p => p.count > 0 || p.avgPrice > 0);
-
-            const activeFilterLabel = typeFilters.find(f => f.key === priceTypeFilter)?.label || '단지 전체';
-
-            return (
-              <div className="bg-white w-full px-4 md:px-10 pb-6 border-b border-[#e5e8eb]">
-                {/* --- 기간별 단지 평균 테이블 --- */}
-                {periodData.length > 0 && (
-                  <div className="pt-4">
-                    <div className="flex items-center justify-between gap-2 mb-3 flex-wrap w-full">
-                      <div className="flex items-center gap-2 justify-between w-full sm:w-auto sm:justify-start">
-                        <h5 className="text-[15px] font-bold text-[#4e5968] flex items-center gap-1.5">기간별 평균가격
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setShowPriceHelp((prev: boolean) => !prev); }}
-                            className="w-4 h-4 rounded-full bg-[#d1d6db] hover:bg-[#8b95a1] text-[10px] font-extrabold text-white inline-flex items-center justify-center transition-colors leading-none flex-shrink-0"
-                            aria-label="기준 설명"
-                          >?</button>
-                        </h5>
-                        <div className="bg-[#f2f4f6] p-1 rounded-lg flex items-center shadow-inner ml-2">
-                          <button onClick={() => setPeriodDealType('sale')} className={`px-3 py-1 rounded-md text-[13px] font-bold transition-all ${periodDealType === 'sale' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>매매</button>
-                          <button onClick={() => setPeriodDealType('jeonse')} className={`px-3 py-1 rounded-md text-[13px] font-bold transition-all ${periodDealType === 'jeonse' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>전월세</button>
-                        </div>
-                      </div>
-                      {showPriceHelp && (
-                        <>
-                          <div className="fixed inset-0 z-[9998]" onClick={() => setShowPriceHelp(false)} />
-                          <div className="absolute left-4 top-12 z-[9999] w-[260px] bg-[#1e293b] text-white text-[11px] leading-relaxed rounded-xl px-4 py-3 shadow-2xl">
-                            <div className="font-bold mb-1.5">📊 기간별 평균가격이란?</div>
-                            <p className="text-white/80">각 기간 내 실거래된 모든 자료의 <span className="text-white font-bold">산술 평균</span>입니다.</p>
-                            <p className="text-white/80 mt-1">100만 원 단위로 반올림하여 표시합니다.</p>
-                            <p className="text-white/50 mt-1.5 text-[10px]">예: "1개월" = 최근 1개월간 거래된 가격의 평균</p>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    {/* Type filter chips */}
-                    <div className="flex flex-nowrap gap-1.5 overflow-x-auto custom-scrollbar pb-3 -mx-1 px-1">
-                      {typeFilters.map(f => {
-                        const isActive = priceTypeFilter === f.key;
-                        return (
-                          <button key={f.key} onClick={() => setPriceTypeFilter(f.key)}
-                            className={`shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
-                              isActive
-                                ? 'bg-[#191f28] text-white shadow-sm'
-                                : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb]'
-                            }`}
-                          >{f.label}</button>
-                        );
-                      })}
-                    </div>
-                      <div className="overflow-x-auto custom-scrollbar -mx-4 md:-mx-10 px-4 md:px-10 mt-1">
-                      <table className="w-full text-sm min-w-[600px] border-t border-[#f2f4f6]">
-                        <thead>
-                          <tr className="border-b border-[#e5e8eb] text-[#8b95a1] text-[12px] font-bold bg-[#f9fafb]">
-                            <th className="py-2.5 px-2 text-center w-[52px] min-w-[52px] shrink-0">구분</th>
-                            {periodData.map(p => (
-                              <th key={`th-${p.key}`} className="py-2.5 px-3 text-center whitespace-nowrap">{p.label}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
-                            <td className="py-3 px-2 text-[12px] md:text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50 align-middle">
-                              <div className="flex flex-col items-center justify-center leading-tight">
-                                <span>평균</span>
-                                <span>가격</span>
-                              </div>
-                            </td>
-                            {periodData.map(p => (
-                              <td key={`price-${p.key}`} className="py-3 px-3 text-center whitespace-nowrap">
-                                <span className="text-[13px] md:text-[14px] font-bold md:font-extrabold text-[#191f28]">{p.avgPriceEok}</span>
-                              </td>
-                            ))}
-                          </tr>
-                          <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
-                            <td className="py-3 px-2 text-[12px] md:text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50 align-middle">
-                              <div className="flex flex-col items-center justify-center leading-tight">
-                                <span>평당</span>
-                                <span>가격</span>
-                              </div>
-                            </td>
-                            {periodData.map(p => (
-                              <td key={`perpyeong-${p.key}`} className="py-3 px-3 text-center">
-                                <div className="flex items-center justify-center gap-0.5 whitespace-nowrap">
-                                  <span className="text-[12px] md:text-[13px] font-bold text-[#4e5968]">{p.perPyeongEok}</span>
-                                  <span className="text-[10px] md:text-[11px] text-[#8b95a1] font-medium tracking-tight">/평</span>
-                                </div>
-                              </td>
-                            ))}
-                          </tr>
-                          <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
-                            <td className="py-3 px-2 text-[12px] md:text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50 align-middle">
-                              <div className="flex flex-col items-center justify-center leading-tight">
-                                <span>거래</span>
-                                <span>건수</span>
-                              </div>
-                            </td>
-                            {periodData.map(p => (
-                              <td key={`count-${p.key}`} className="py-3 px-3 text-center whitespace-nowrap">
-                                <span className="text-[12px] md:text-[13px] font-medium text-[#8b95a1]">{p.count}건</span>
-                              </td>
-                            ))}
-                          </tr>
-
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })()}
+          <TransactionSummaryMetrics 
+            transactions={transactions} 
+            apartmentName={report.apartmentName}
+            typeMap={typeMap}
+            areaUnit={areaUnit || 'm2'}
+          />
 
           {/* Sticky Section Nav */}
           <nav className="sticky top-0 z-[60] bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] px-4 md:px-8 pt-3 pb-0 shadow-sm shadow-[#191f28]/5">

@@ -6,6 +6,7 @@ import { Camera, ChevronLeft, MapPin, X, Building, Info, Map as MapIcon, ShieldA
 import { useDashboardData, dashboardFacade, ReportSections } from '@/lib/DashboardFacade';
 import { auth } from '@/lib/firebaseConfig';
 import { onAuthStateChanged, User } from 'firebase/auth';
+import { EmojiRating as BaseEmojiRating, MultiPhotoDropzone as BaseMultiPhotoDropzone, TextInput as BaseTextInput, SelectInput as BaseSelectInput } from '@/components/write-report/ReportUI';
 
 const DRAFT_KEY = 'dtdls_report_draft';
 const AUTO_SAVE_INTERVAL = 30_000; // 30s
@@ -239,181 +240,53 @@ export default function WriteFieldReport() {
 
   // ── Reusable Components ────────────────────────────
 
-  // Emoji Rating Component
-  const EmojiRating = ({ section, field, label }: { section: keyof ReportSections, field: string, label: string }) => {
-    const value = Number((sections[section] as Record<string, string | number>)[field]) || 0;
-    return (
-      <div className="mb-4">
-        <label className="block text-[13px] font-bold text-[#4e5968] mb-2">{label}</label>
-        <div className="flex items-center gap-1.5">
-          {RATING_EMOJIS.map((emoji, idx) => {
-            const rating = idx + 1;
-            const isSelected = value === rating;
-            return (
-              <button
-                key={rating}
-                type="button"
-                onClick={() => updateSectionState(section, field, isSelected ? 0 : rating)}
-                className="relative group flex flex-col items-center"
-              >
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-[22px] transition-all duration-200 ${
-                  isSelected 
-                    ? 'scale-125 shadow-lg ring-2' 
-                    : value > 0 && value !== rating 
-                      ? 'opacity-30 hover:opacity-60 hover:scale-105' 
-                      : 'opacity-50 hover:opacity-80 hover:scale-110'
-                }`}
-                  style={{
-                    backgroundColor: isSelected ? `${RATING_COLORS[idx]}15` : 'transparent',
-                    boxShadow: isSelected ? `0 0 0 2px ${RATING_COLORS[idx]}` : 'none',
-                  }}
-                >
-                  {emoji}
-                </div>
-                <span className={`text-[10px] font-bold mt-0.5 transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-60'}`}
-                  style={{ color: RATING_COLORS[idx] }}
-                >
-                  {RATING_LABELS[idx]}
-                </span>
-              </button>
-            );
-          })}
-          {value > 0 && (
-            <div className="ml-2 px-2.5 py-1 rounded-full text-[12px] font-extrabold text-white"
-              style={{ backgroundColor: RATING_COLORS[value - 1] }}
-            >
-              {value}/5
-            </div>
-          )}
-        </div>
-      </div>
-    );
+  // ── Multi Photo Drag & Drop ──
+  const handleDropFiles = (key: string) => (e: React.DragEvent) => {
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const allNew = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+      if (allNew.length === 0) return;
+      setImageFiles(prev => {
+        const existing = prev[key] || [];
+        const existingSet = new Set(existing.map(f => `${f.name}__${f.size}`));
+        const unique = allNew.filter(f => !existingSet.has(`${f.name}__${f.size}`));
+        const dupCount = allNew.length - unique.length;
+        if (dupCount > 0) setTimeout(() => alert(`중복 사진 ${dupCount}장이 제외되었습니다.`), 0);
+        if (unique.length === 0) return prev;
+        const newPreviews = unique.map(file => URL.createObjectURL(file));
+        setImagePreviews(p => ({ ...p, [key]: [...(p[key] || []), ...newPreviews] }));
+        return { ...prev, [key]: [...existing, ...unique] };
+      });
+    }
   };
 
-  // Multi Photo Dropzone Component
-  const MultiPhotoDropzone = ({ label, apiKey, placeholder }: { label: string, apiKey: string, placeholder: string }) => {
-    const previews = imagePreviews[apiKey] || [];
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [isDragging, setIsDragging] = useState(false);
+  // ── Reusable Component Wrappers ────────────────────────────
 
-    const handleDragOver = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); };
-    const handleDragLeave = () => setIsDragging(false);
-    const handleDrop = (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragging(false);
-      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        const allNew = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-        if (allNew.length === 0) return;
-        setImageFiles(prev => {
-          const existing = prev[apiKey] || [];
-          const existingSet = new Set(existing.map(f => `${f.name}__${f.size}`));
-          const unique = allNew.filter(f => !existingSet.has(`${f.name}__${f.size}`));
-          const dupCount = allNew.length - unique.length;
-          if (dupCount > 0) setTimeout(() => alert(`중복 사진 ${dupCount}장이 제외되었습니다.`), 0);
-          if (unique.length === 0) return prev;
-          const newPreviews = unique.map(file => URL.createObjectURL(file));
-          setImagePreviews(p => ({ ...p, [apiKey]: [...(p[apiKey] || []), ...newPreviews] }));
-          return { ...prev, [apiKey]: [...existing, ...unique] };
-        });
-      }
-    };
-
-    return (
-      <div className="mt-3">
-        <label className="block text-[13px] font-bold text-[#4e5968] mb-2">{label}</label>
-
-        {/* Grid of existing previews */}
-        {previews.length > 0 && (
-          <div className="grid grid-cols-3 gap-2 mb-2">
-            {previews.map((preview, idx) => (
-              <div key={idx} className="relative rounded-xl overflow-hidden border border-[#e5e8eb] shadow-sm aspect-square group">
-                <img src={preview} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
-                <button 
-                  onClick={() => handleRemoveImage(apiKey, idx)}
-                  className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/50 hover:bg-[#f04452] backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all opacity-0 group-hover:opacity-100"
-                  title="사진 삭제"
-                >
-                  <X size={12} />
-                </button>
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1.5">
-                  <span className="text-[10px] text-white font-bold">{idx + 1}/{previews.length}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Add more photos zone */}
-        <div 
-          className={`relative border-2 border-dashed rounded-xl transition-all cursor-pointer group flex flex-col items-center justify-center py-5 px-4 text-center ${
-            isDragging 
-              ? 'border-[#3182f6] bg-[#e8f3ff] scale-[1.02]' 
-              : 'border-[#d1d6db] bg-[#f9fafb] hover:bg-[#f2f4f6] hover:border-[#3182f6]'
-          }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <input 
-            ref={fileInputRef}
-            type="file" 
-            accept="image/*" 
-            multiple 
-            capture="environment"
-            onChange={handleMultiImageChange(apiKey)} 
-            className="hidden" 
-          />
-          <div className="w-9 h-9 bg-white rounded-full shadow-sm flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
-            {isDragging ? <ImagePlus size={18} className="text-[#3182f6]" /> : <Camera size={18} className="text-[#3182f6]" />}
-          </div>
-          <p className="text-[13px] font-bold text-[#191f28]">
-            {previews.length > 0 ? '사진 더 추가하기' : placeholder}
-          </p>
-          <p className="text-[11px] text-[#8b95a1] mt-0.5">터치하여 촬영 / 여러 장 선택 가능</p>
-        </div>
-      </div>
-    );
+  const EmojiRating = ({ section, field, label }: { section: keyof ReportSections, field: string, label: string }) => {
+    const value = Number((sections[section] as Record<string, string | number>)[field]) || 0;
+    return <BaseEmojiRating label={label} value={value} onChange={(v) => updateSectionState(section, field, v)} />;
   };
 
   const TextInput = ({ section, field, label, placeholder, isTextarea = false }: { section: keyof ReportSections, field: string, label: string, placeholder: string, isTextarea?: boolean }) => {
     const value = String((sections[section] as Record<string, string | number>)[field] || "");
-    return (
-      <div className="mb-4">
-        <label className="block text-[13px] font-bold text-[#191f28] mb-1.5">{label}</label>
-        {isTextarea ? (
-          <textarea 
-            placeholder={placeholder} value={value} onChange={(e) => updateSectionState(section, field, e.target.value)} rows={2}
-            className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors resize-none focus:ring-4 focus:ring-[#3182f6]/10" 
-          />
-        ) : (
-          <input 
-            type="text" placeholder={placeholder} value={value} onChange={(e) => updateSectionState(section, field, e.target.value)}
-            className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors focus:ring-4 focus:ring-[#3182f6]/10" 
-          />
-        )}
-      </div>
-    );
-  }
+    return <BaseTextInput label={label} placeholder={placeholder} value={value} onChange={(v) => updateSectionState(section, field, v)} isTextarea={isTextarea} />;
+  };
 
   const SelectInput = ({ section, field, label, options }: { section: keyof ReportSections, field: string, label: string, options: {value: string, label: string}[] }) => {
     const value = String((sections[section] as Record<string, string | number>)[field] || "");
-    return (
-      <div className="mb-4">
-        <label className="block text-[13px] font-bold text-[#191f28] mb-1.5">{label}</label>
-        <select 
-          value={value} 
-          onChange={(e) => updateSectionState(section, field, e.target.value)}
-          className={`w-full bg-[#f9fafb] border border-[#d1d6db] rounded-xl px-4 py-2.5 text-[13px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors cursor-pointer appearance-none ${value ? 'text-[#191f28] font-medium' : 'text-[#8b95a1]'}`}
-        >
-          <option value="" disabled>선택해주세요</option>
-          {options.map(opt => (
-            <option key={opt.value} value={opt.value} className="text-[#191f28]">{opt.label}</option>
-          ))}
-        </select>
-      </div>
-    );
-  }
+    return <BaseSelectInput label={label} options={options} value={value} onChange={(v) => updateSectionState(section, field, v)} />;
+  };
+
+  const MultiPhotoDropzone = ({ label, apiKey, placeholder }: { label: string, apiKey: string, placeholder: string }) => {
+    const previews = imagePreviews[apiKey] || [];
+    return <BaseMultiPhotoDropzone 
+      label={label} 
+      placeholder={placeholder} 
+      previews={previews} 
+      onFilesAdded={handleMultiImageChange(apiKey)}
+      onRemove={(idx) => handleRemoveImage(apiKey, idx)}
+      onDrop={handleDropFiles(apiKey)}
+    />;
+  };
 
   if (!user) return null;
 

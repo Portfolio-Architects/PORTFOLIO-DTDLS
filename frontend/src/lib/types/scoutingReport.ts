@@ -6,6 +6,16 @@ export interface ImageMeta {
   capturedAt?: string; // EXIF DateTimeOriginal (YYYY-MM-DD)
 }
 
+export interface PhotoItem {
+  file?: File;
+  previewUrl?: string;
+  url: string;
+  caption: string;
+  locationTag: string;
+  isPremium: boolean;
+  capturedAt?: string;
+}
+
 export interface ObjectiveMetrics {
   brand: string; // 아파트 브랜드 (e.g., "래미안", "자이", "롯데캐슬")
   householdCount: number; // 세대수 - e.g., 1200

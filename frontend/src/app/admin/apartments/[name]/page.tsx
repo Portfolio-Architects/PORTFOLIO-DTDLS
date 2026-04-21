@@ -8,14 +8,12 @@ import { db, auth } from '@/lib/firebaseConfig';
 import { TX_SUMMARY, AptTxSummary } from '@/lib/transaction-summary';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
 import { DONGS } from '@/lib/dongs';
-import {
-  Building, Save, Home, Link2, ChevronLeft, MapPin,
-  ImagePlus, Trash2, ArrowUpDown
-} from 'lucide-react';
-import { ScoutingReport, ImageMeta } from '@/lib/types/scoutingReport';
+import { Building, Save, Home, Link2, ChevronLeft, MapPin } from 'lucide-react';
+import { ScoutingReport, ImageMeta, PhotoItem } from '@/lib/types/scoutingReport';
 import { uploadImage, createScoutingReport, updateScoutingReport } from '@/lib/services/reportService';
 import { extractCapturedDate } from '@/lib/utils/exif';
 import { getPremiumScoresAction } from '@/app/actions/scoring';
+import { ImageUploader } from '@/components/admin/apartment-editor/ImageUploader';
 
 const FIRESTORE_DOC = 'settings/apartmentMeta';
 const dongNames = DONGS.map(d => d.name).sort((a, b) => a.localeCompare(b, 'ko'));
@@ -33,74 +31,9 @@ const IMAGE_CATEGORY_GROUPS: { group: string; items: string[] }[] = [
   { group: '🏙️ 주변 환경', items: ['역세권/교통 접근성', '통학로/학교', '주변 상권', '공원', '소음 환경 (도로)', '어린이집', '유치원', '기타'] },
 ];
 
-// ── Auto-suggest TX key matching ──
-const LOCATION_PREFIXES = [
-  '숲속마을동탄','푸른마을동탄','나루마을동탄',
-  '동탄역시범','동탄시범다은마을','동탄시범한빛마을','동탄시범나루마을',
-  '시범다은마을','시범한빛마을','시범나루마을','시범',
-  '반탄솔빛마을','솔빛마을','예당마을','새강마을',
-  '동탄2신도시','동탄신도시','동탄숲속마을','동탄푸른마을','동탄나루마을',
-  '동탄호수공원역','동탄호수공원','동탄호수','동탄역',
-  '화성동탄2','능동역','호수공원역','동탄2','동탄',
-];
-const NAME_SUFFIXES = ['역', '2단지', '1단지', '3단지', '4단지', '5단지', '단지'];
+import { autoSuggest } from '@/lib/utils/autoSuggest';
+import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 
-function normalizeAptName(name: string): string {
-  return name.replace(/\[.*?\]\s*/g, '').replace(/\s+/g, '').replace(/[()（）]/g, '').trim();
-}
-function stripPrefix(n: string) {
-  for (const p of LOCATION_PREFIXES) if (n.startsWith(p) && n.length > p.length) return n.slice(p.length);
-  return n;
-}
-function stripSuffix(n: string) {
-  for (const s of NAME_SUFFIXES) if (n.endsWith(s) && n.length > s.length) return n.slice(0, -s.length);
-  return n;
-}
-function editDistance(a: string, b: string): number {
-  const m = a.length, n = b.length;
-  if (m === 0) return n;
-  if (n === 0) return m;
-  const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
-  for (let i = 0; i <= m; i++) dp[i][0] = i;
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-  for (let i = 1; i <= m; i++)
-    for (let j = 1; j <= n; j++)
-      dp[i][j] = Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
-  return dp[m][n];
-}
-function autoSuggest(aptName: string): string | null {
-  const exactOrHardcoded = findTxKey(aptName, TX_SUMMARY);
-  if (exactOrHardcoded) return exactOrHardcoded;
-
-  const norm = normalizeAptName(aptName);
-  const keys = Object.keys(TX_SUMMARY);
-  if (!norm || norm.length < 2) return null;
-  if (keys.includes(norm)) return norm;
-  const stripped = stripPrefix(norm);
-  if (stripped !== norm && keys.includes(stripped)) return stripped;
-  for (const k of keys) if (stripPrefix(k) === stripped) return k;
-  const suffixStripped = stripSuffix(norm);
-  if (suffixStripped !== norm && keys.includes(suffixStripped)) return suffixStripped;
-  for (const k of keys) if (stripSuffix(k) === suffixStripped) return k;
-  const bothStripped = stripSuffix(stripped);
-  if (bothStripped !== stripped) {
-    for (const k of keys) if (stripSuffix(stripPrefix(k)) === bothStripped) return k;
-  }
-  const containMatches = keys.filter(k => norm.includes(k) || k.includes(norm));
-  if (containMatches.length === 1) return containMatches[0];
-  if (containMatches.length > 1) {
-    containMatches.sort((a, b) => Math.abs(a.length - norm.length) - Math.abs(b.length - norm.length));
-    return containMatches[0];
-  }
-  const threshold = Math.max(2, Math.floor(norm.length * 0.25));
-  let bestKey: string | null = null;
-  let bestDist = Infinity;
-  for (const k of keys) {
-    const dist = editDistance(norm, k);
-    if (dist < bestDist && dist <= threshold) { bestDist = dist; bestKey = k; }
-  }
-  return bestKey;
-}
 
 // ── Types ──
 interface AptMeta {
@@ -147,16 +80,6 @@ interface AptMeta {
   supermarketCoordinates?: string;
   academyDensity?: number;
   restaurantDensity?: number;
-}
-
-interface PhotoItem {
-  file?: File;
-  previewUrl?: string;
-  url: string;
-  caption: string;
-  locationTag: string;
-  isPremium: boolean;
-  capturedAt?: string;
 }
 
 // ── Helper: Number input with unit ──
@@ -1025,180 +948,19 @@ export default function ApartmentInfoPage() {
           </div>
 
           {/* ─── Section 3: 현장 사진 ─── */}
-          <div className="bg-white rounded-2xl border border-[#e5e8eb] shadow-sm p-5 md:p-8">
-            <h2 className="text-[16px] font-bold text-[#191f28] mb-5 border-b border-[#f2f4f6] pb-3 flex items-center gap-2">
-              ③ 현장 사진
-              <span className="text-[12px] font-medium text-[#8b95a1] ml-auto">{photos.length}장</span>
-              {photos.length > 0 && (
-                <button type="button" onClick={() => {
-                  if (confirm(`사진 ${photos.length}장을 전부 삭제합니다. 계속할까요?`)) {
-                    setPhotos([]);
-                    uploadedFileKeys.current.clear();
-                  }
-                }} className="px-3 py-1.5 bg-[#ffebec] text-[#f04452] rounded-lg text-[11px] font-bold hover:bg-[#f04452] hover:text-white transition-colors">
-                  전체 삭제
-                </button>
-              )}
-            </h2>
-
-            {/* Drop Zone */}
-            <div
-              className={`mb-6 border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer ${
-                isDragging ? 'border-[#3182f6] bg-[#e8f3ff] scale-[1.01]' : 'border-[#d1d6db] bg-[#f9fafb] hover:bg-[#f2f4f6] hover:border-[#3182f6]'
-              }`}
-              onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={e => { e.preventDefault(); setIsDragging(false); if (e.dataTransfer.files) handleBatchFiles(e.dataTransfer.files); }}
-              onClick={() => batchInputRef.current?.click()}
-            >
-              <input ref={batchInputRef} type="file" accept="image/*" multiple className="hidden"
-                onChange={e => { if (e.target.files) handleBatchFiles(e.target.files); e.target.value = ''; }} />
-              <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-3">
-                <ImagePlus size={22} className="text-[#3182f6]" />
-              </div>
-              <p className="text-[15px] font-bold text-[#191f28] mb-1">
-                {isDragging ? '여기에 놓으세요!' : '사진을 한번에 여러 장 추가'}
-              </p>
-              <p className="text-[12px] text-[#8b95a1]">드래그하거나 클릭하여 사진 선택 · EXIF 촬영일 자동 감지</p>
-            </div>
-
-            {/* Sort Button */}
-            {photos.length >= 2 && (
-              <button type="button" onClick={sortByCategory}
-                className="mb-4 flex items-center gap-2 px-4 py-2.5 bg-white border border-[#e5e8eb] rounded-xl text-[13px] font-bold text-[#4e5968] hover:bg-[#f9fafb] hover:border-[#3182f6] hover:text-[#3182f6] transition-all shadow-sm">
-                <ArrowUpDown size={14} /> 카테고리별 자동 정렬 <span className="text-[11px] text-[#8b95a1] font-medium">({photos.length}장)</span>
-              </button>
-            )}
-
-            {/* Photo Cards */}
-            <div className="space-y-4">
-              {photos.map((photo, index) => (
-                <div key={index} className="flex flex-col md:flex-row gap-4 p-4 border border-[#e5e8eb] rounded-2xl bg-white shadow-sm hover:border-[#3182f6] transition-colors group relative">
-                  {/* Preview */}
-                  <div className="w-full md:w-[150px] h-[100px] bg-[#f9fafb] border-2 border-dashed border-[#d1d6db] rounded-xl overflow-hidden relative shrink-0">
-                    {(photo.previewUrl || photo.url) ? (
-                      <>
-                        <img src={photo.previewUrl || photo.url} alt="Preview" className="w-full h-full object-cover" />
-                        {photo.capturedAt && (
-                          <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md backdrop-blur-sm">
-                            {photo.capturedAt}
-                          </span>
-                        )}
-                      </>
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[#8b95a1]">
-                        <ImagePlus size={24} />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Fields */}
-                  <div className="flex-1 space-y-3">
-                    <div className="flex gap-3">
-                      {/* Category Picker — 2-level popover */}
-                      {(() => {
-                        const currentTag = photo.locationTag;
-                        const currentGroup = IMAGE_CATEGORY_GROUPS.find(g => g.items.includes(currentTag));
-                        return (
-                          <div className="relative w-[220px]">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const el = document.getElementById(`cat-popover-${index}`);
-                                if (el) el.classList.toggle('hidden');
-                              }}
-                              className="w-full px-3 py-2 bg-[#f9fafb] border border-[#e5e8eb] rounded-lg text-[13px] font-bold text-left cursor-pointer hover:border-[#3182f6] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-colors text-[#191f28] flex items-center justify-between"
-                            >
-                              <span className="truncate">{currentTag || '카테고리 선택'}</span>
-                              <svg width="12" height="12" viewBox="0 0 12 12" className="shrink-0 ml-1 text-[#8b95a1]"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>
-                            </button>
-                            <div
-                              id={`cat-popover-${index}`}
-                              className="hidden absolute top-full left-0 mt-1 z-50 bg-white rounded-xl shadow-xl border border-[#e5e8eb] w-[380px] md:w-[560px] max-h-[280px] overflow-hidden"
-                            >
-                              {/* Group tabs */}
-                              <div className="flex gap-1 p-2 overflow-x-auto border-b border-[#f2f4f6] bg-[#fafbfc]">
-                                {IMAGE_CATEGORY_GROUPS.map((g, gIdx) => (
-                                  <button
-                                    key={g.group}
-                                    type="button"
-                                    onClick={() => {
-                                      const container = document.getElementById(`cat-popover-${index}`);
-                                      if (!container) return;
-                                      container.querySelectorAll('[data-cat-group]').forEach(el => el.classList.add('hidden'));
-                                      container.querySelector(`[data-cat-group="${gIdx}"]`)?.classList.remove('hidden');
-                                      container.querySelectorAll('[data-cat-tab]').forEach(el => {
-                                        el.classList.remove('bg-[#191f28]', 'text-white');
-                                        el.classList.add('bg-[#f2f4f6]', 'text-[#4e5968]');
-                                      });
-                                      container.querySelector(`[data-cat-tab="${gIdx}"]`)?.classList.remove('bg-[#f2f4f6]', 'text-[#4e5968]');
-                                      container.querySelector(`[data-cat-tab="${gIdx}"]`)?.classList.add('bg-[#191f28]', 'text-white');
-                                    }}
-                                    data-cat-tab={gIdx}
-                                    className={`shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                                      (currentGroup === g || (!currentGroup && gIdx === 0))
-                                        ? 'bg-[#191f28] text-white'
-                                        : 'bg-[#f2f4f6] text-[#4e5968] hover:bg-[#e5e8eb]'
-                                    }`}
-                                  >
-                                    {g.group.replace(/[^\w가-힣·\s]/g, '').trim()}
-                                  </button>
-                                ))}
-                              </div>
-                              {/* Items per group */}
-                              {IMAGE_CATEGORY_GROUPS.map((g, gIdx) => (
-                                <div
-                                  key={g.group}
-                                  data-cat-group={gIdx}
-                                  className={`p-2 flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto ${
-                                    (currentGroup === g || (!currentGroup && gIdx === 0)) ? '' : 'hidden'
-                                  }`}
-                                >
-                                  {g.items.map(item => (
-                                    <button
-                                      key={item}
-                                      type="button"
-                                      onClick={() => {
-                                        const updated = [...photos];
-                                        updated[index] = { ...updated[index], locationTag: item };
-                                        setPhotos(updated);
-                                        document.getElementById(`cat-popover-${index}`)?.classList.add('hidden');
-                                      }}
-                                      className={`px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-all ${
-                                        currentTag === item
-                                          ? 'bg-[#e8f3ff] text-[#3182f6] border-[#3182f6] font-bold'
-                                          : 'bg-white text-[#4e5968] border-[#e5e8eb] hover:bg-[#f2f4f6] hover:border-[#3182f6]'
-                                      }`}
-                                    >
-                                      {item}
-                                    </button>
-                                  ))}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })()}
-                      <input type="text" value={photo.caption}
-                        onChange={e => {
-                          const updated = [...photos];
-                          updated[index] = { ...updated[index], caption: e.target.value };
-                          setPhotos(updated);
-                        }}
-                        placeholder="캡션 입력 (선택)"
-                        className="flex-1 px-3 py-2 bg-[#f9fafb] border border-[#e5e8eb] rounded-lg text-[13px] outline-none focus:border-[#3182f6] transition-colors" />
-                    </div>
-                  </div>
-
-                  {/* Delete */}
-                  <button type="button" onClick={() => setPhotos(prev => prev.filter((_, i) => i !== index))}
-                    className="absolute top-3 right-3 w-7 h-7 rounded-lg bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#f04452] hover:text-white flex items-center justify-center transition-colors opacity-0 group-hover:opacity-100">
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ImageUploader 
+            photos={photos}
+            setPhotos={setPhotos}
+            isDragging={isDragging}
+            setIsDragging={setIsDragging}
+            batchInputRef={batchInputRef}
+            handleBatchFiles={handleBatchFiles}
+            sortByCategory={sortByCategory}
+            clearPhotos={() => {
+              setPhotos([]);
+              uploadedFileKeys.current.clear();
+            }}
+          />
 
           {/* ─── Floating Save Bar ─── */}
           <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-40 bg-white/90 backdrop-blur-lg border-t border-[#e5e8eb] px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">

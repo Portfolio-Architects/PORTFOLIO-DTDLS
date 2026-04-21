@@ -12,7 +12,6 @@
  * This facade preserves the same public API for backward compatibility
  * while delegating all operations to the appropriate layer.
  */
-import { Train, Building, BookOpen, Calendar } from 'lucide-react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebaseConfig';
 import { compressImage } from '@/lib/utils/imageCompression';

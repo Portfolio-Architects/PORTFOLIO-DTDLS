@@ -120,14 +120,14 @@ export default function LoungeComposeClient({ currentCategory = '동탄 임장/�
               setPostContent(MARKDOWN_TEMPLATE);
             }
           }}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-[#3182f6] hover:bg-[#1b6de8] text-white rounded-full shadow-lg shadow-[#3182f6]/30 flex items-center justify-center transition-all active:scale-95 z-20"
+          className="fixed bottom-[96px] sm:bottom-6 right-4 sm:right-6 w-14 h-14 bg-[#3182f6] hover:bg-[#1b6de8] text-white rounded-full shadow-lg shadow-[#3182f6]/30 flex items-center justify-center transition-all active:scale-95 z-20"
         >
           <PenLine size={22} />
         </button>
       ) : (
         <button
           onClick={handleLogin}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-[#191f28] hover:bg-[#333d4b] text-white rounded-full shadow-lg shadow-[#191f28]/30 flex items-center justify-center transition-all active:scale-95 z-20"
+          className="fixed bottom-[96px] sm:bottom-6 right-4 sm:right-6 w-14 h-14 bg-[#191f28] hover:bg-[#333d4b] text-white rounded-full shadow-lg shadow-[#191f28]/30 flex items-center justify-center transition-all active:scale-95 z-20"
         >
           <PenLine size={22} />
         </button>
