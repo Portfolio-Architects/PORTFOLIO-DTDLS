@@ -51,6 +51,8 @@ export function ApartmentGallery({ images, tags, tagLabels, onImageClick, aptNam
                       src={img.url}
                       alt={altText}
                       fill
+                      quality={60}
+                      priority={i < 2}
                       sizes="(max-width: 768px) 240px, 280px"
                       className="object-cover bg-[#f2f4f6]"
                     />
