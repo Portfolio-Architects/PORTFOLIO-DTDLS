@@ -378,38 +378,7 @@ export default function TrafficPage() {
         </div>
       )}
 
-      {/* ─── 비용 모니터링 ─── */}
-      <div className="mt-10 bg-white border border-[#e5e8eb] shadow-sm rounded-2xl p-5 md:p-8">
-        <h2 className="text-[16px] font-bold text-[#191f28] mb-2 flex items-center gap-2">
-          <CreditCard size={18} className="text-[#8b95a1]" />
-          비용 모니터링
-        </h2>
-        <p className="text-[13px] text-[#8b95a1] mb-6">과금 서비스 콘솔 바로가기</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <a href="https://console.cloud.google.com/billing" target="_blank" rel="noopener noreferrer"
-            className="block p-5 rounded-xl border border-[#e5e8eb] hover:border-[#3182f6] transition-colors group">
-            <div className="font-bold text-[#191f28] group-hover:text-[#3182f6] flex items-center gap-1 mb-1">
-              Google Maps API <ExternalLink size={12} className="opacity-0 group-hover:opacity-100" />
-            </div>
-            <div className="text-[12px] text-[#4e5968]">$200 무료/월</div>
-          </a>
-          <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer"
-            className="block p-5 rounded-xl border border-[#e5e8eb] hover:border-[#ff8a3d] transition-colors group">
-            <div className="font-bold text-[#191f28] group-hover:text-[#ff8a3d] flex items-center gap-1 mb-1">
-              Firebase <ExternalLink size={12} className="opacity-0 group-hover:opacity-100" />
-            </div>
-            <div className="text-[12px] text-[#4e5968]">50K 읽기 무료/일</div>
-          </a>
-          <a href="https://vercel.com/dashboard" target="_blank" rel="noopener noreferrer"
-            className="block p-5 rounded-xl border border-[#e5e8eb] hover:border-[#191f28] transition-colors group">
-            <div className="font-bold text-[#191f28] flex items-center gap-1 mb-1">
-              Vercel <ExternalLink size={12} className="opacity-0 group-hover:opacity-100" />
-            </div>
-            <div className="text-[12px] text-[#4e5968]">100GB 대역폭 무료/월</div>
-          </a>
-        </div>
-      </div>
     </div>
   );
 }

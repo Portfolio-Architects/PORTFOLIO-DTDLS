@@ -131,10 +131,10 @@ export function TransactionTable({
         <h4 className="text-[14px] font-bold text-[#4e5968] shrink-0">
           실거래가 <span className="text-[#3182f6] ml-1">{filteredTransactions.length}</span>건
         </h4>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar w-full md:w-auto pb-0.5">
           {/* 면적 필터 */}
           <div className="relative" onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'area' ? null : 'area'); }}>
-            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#e5e8eb] bg-white text-[12px] font-bold text-[#4e5968] hover:bg-[#f9fafb] transition-colors">
+            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#e5e8eb] bg-white text-[12px] font-bold text-[#4e5968] hover:bg-[#f9fafb] transition-colors whitespace-nowrap shrink-0">
               {txFilterArea === 'ALL' ? '전체 면적' : `${txFilterArea}m²`}
               <ChevronDown size={14} className={`text-[#8b95a1] transition-transform ${activeDropdown === 'area' ? 'rotate-180' : ''}`} />
             </button>
@@ -151,7 +151,7 @@ export function TransactionTable({
           </div>
           {/* 거래유형 필터 */}
           <div className="relative" onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'dealType' ? null : 'dealType'); }}>
-            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#e5e8eb] bg-white text-[12px] font-bold text-[#4e5968] hover:bg-[#f9fafb] transition-colors">
+            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#e5e8eb] bg-white text-[12px] font-bold text-[#4e5968] hover:bg-[#f9fafb] transition-colors whitespace-nowrap shrink-0">
               {txFilterDealType === 'ALL' ? '전체 유형' : txFilterDealType}
               <ChevronDown size={14} className={`text-[#8b95a1] transition-transform ${activeDropdown === 'dealType' ? 'rotate-180' : ''}`} />
             </button>
@@ -168,7 +168,7 @@ export function TransactionTable({
           </div>
           {/* 정렬 필터 */}
           <div className="relative" onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'sort' ? null : 'sort'); }}>
-            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#e5e8eb] bg-white text-[12px] font-bold text-[#4e5968] hover:bg-[#f9fafb] transition-colors">
+            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#e5e8eb] bg-white text-[12px] font-bold text-[#4e5968] hover:bg-[#f9fafb] transition-colors whitespace-nowrap shrink-0">
               {{ 'date_desc': '최신순', 'date_asc': '과거순', 'price_desc': '높은가격순', 'price_asc': '낮은가격순' }[txSort]}
               <ChevronDown size={14} className={`text-[#8b95a1] transition-transform ${activeDropdown === 'sort' ? 'rotate-180' : ''}`} />
             </button>

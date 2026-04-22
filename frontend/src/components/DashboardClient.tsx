@@ -314,6 +314,16 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 <Home size={16} className={activeTab === 'recommend' ? 'text-[#3182f6]' : 'text-[#8b95a1] group-hover:scale-110 transition-transform duration-200'} />
                 <span>아파트 탐색</span>
               </button>
+              
+              {dashboardFacade.isAdmin(user?.email) && (
+                <Link
+                  href="/admin"
+                  className="flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-[#ef4444] hover:bg-black/5"
+                >
+                  <ShieldCheck size={16} className="text-[#ef4444] transition-transform duration-200" />
+                  <span>관리자</span>
+                </Link>
+              )}
             </nav>
 
             {/* Right: Desktop User Bar */}
@@ -334,7 +344,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
           {/* ── 마스터-디테일 레이아웃 ── */}
           <div className="flex flex-col md:flex-row h-full rounded-none md:rounded-[20px] md:border md:border-[#e5e8eb] md:shadow-[0_2px_20px_rgba(0,0,0,0.04)] overflow-hidden">
             {/* LEFT: 아파트 리스트 (1/3) */}
-            <div id="left-panel-scroll" ref={leftPanelRef} className="w-full md:w-[380px] md:shrink-0 h-full overflow-y-auto md:border-r md:border-[#e5e8eb] flex flex-col bg-white pb-[100px] md:pb-0 custom-scrollbar relative">
+            <div id="left-panel-scroll" ref={leftPanelRef} className="w-full md:w-[420px] lg:w-[460px] md:shrink-0 h-full overflow-y-auto md:overflow-hidden md:border-r md:border-[#e5e8eb] flex flex-col bg-white pb-[100px] md:pb-0 relative">
           {(() => {
             // 전체: 모든 아파트 플랫 리스트 / 특정 동: 해당 동만
             const rawApts = selectedDong 
@@ -390,6 +400,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                     />
                   </div>
                   <FixedSizeList
+                    className="custom-scrollbar"
                     height={listHeight}
                     itemCount={sorted.length + 4} // Reserve 4 items (328px) for the Footer
                     itemSize={82}

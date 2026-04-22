@@ -14,7 +14,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin', label: '아파트 대시보드', icon: LayoutDashboard, section: 'Reports' },
     { href: '/admin/traffic', label: '트래픽', icon: BarChart2, section: 'Reports' },
     { href: '/admin/report', label: '종합 보고서', icon: FileText, section: 'Reports' },
-    { href: '/admin/settings', label: '설정 (준비중)', icon: Settings, section: 'System' },
   ];
 
   const isActive = (href: string) => pathname === href;
@@ -74,9 +73,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Mobile header */}
         <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-lg border-b border-[#e5e8eb] px-4 py-3 flex items-center justify-between">
           <h2 className="text-[16px] font-bold text-[#191f28]">Admin<span className="text-[#3182f6]"> CMS</span></h2>
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-[#4e5968]">
-            <Menu size={22} />
-          </button>
+          <div className="flex items-center gap-1">
+            <Link href="/" className="p-2 text-[#8b95a1] hover:text-[#3182f6] transition-colors" title="소비자 화면 보기">
+              <ExternalLink size={20} />
+            </Link>
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-[#4e5968]">
+              <Menu size={22} />
+            </button>
+          </div>
         </div>
 
         {/* Mobile sidebar overlay */}
@@ -95,7 +99,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         )}
 
         {/* Main Content */}
-        <main className="flex-1 p-4 pt-16 md:p-8 md:pt-8 lg:p-12 overflow-y-auto w-full max-w-7xl mx-auto">
+        <main className="flex-1 p-4 pt-16 md:p-8 md:pt-6 lg:p-12 lg:pt-8 overflow-y-auto w-full max-w-7xl mx-auto flex flex-col">
+          <div className="hidden md:flex justify-end mb-4">
+            <Link href="/" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-bold text-[#8b95a1] hover:text-[#3182f6] hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-[#e5e8eb]">
+              <ExternalLink size={15} /> 소비자 화면으로 가기
+            </Link>
+          </div>
           {children}
         </main>
       </div>

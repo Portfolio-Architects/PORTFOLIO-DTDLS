@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Flame, Heart, Clock, MapPin, Building2 } from 'lucide-react';
+import { Flame, Heart, Clock, MapPin, Building2, TrendingUp } from 'lucide-react';
 import ApartmentCard from './ApartmentCard';
 import { ZONES, getDongsForZone } from '@/lib/zones';
 import { FieldReportData } from '@/lib/DashboardFacade';
@@ -39,6 +39,7 @@ export default function ApartmentDiscoveryClient({
 }: DiscoveryProps) {
   // Discovery Categories
   const CATEGORIES = [
+    { id: 'price-rank', label: '평당가 순위', icon: TrendingUp, color: '#8b5cf6', desc: '최근 1개월 평균 평당가 기준' },
     { id: 'popular', label: '인기 단지', icon: Flame, color: '#f04452', desc: '현재 가장 많이 조회된 단지' },
     { id: 'favorites', label: '내 관심 단지', icon: Heart, color: '#ff3b30', desc: '내가 찜한 단지 모아보기' },
     { id: 'recent', label: '최신 업데이트', icon: Clock, color: '#3182f6', desc: '최근 다녀온 현장기록' },
@@ -52,7 +53,7 @@ export default function ApartmentDiscoveryClient({
     }))
   ];
 
-  const [activeCategory, setActiveCategory] = useState<string>('popular');
+  const [activeCategory, setActiveCategory] = useState<string>('price-rank');
 
   // Flatten apartments
   const allApts = useMemo(() => Object.values(sheetApartments).flat(), [sheetApartments]);
@@ -70,6 +71,21 @@ export default function ApartmentDiscoveryClient({
 
   // Derived filtered & sorted list
   const displayList = useMemo(() => {
+    if (activeCategory === 'price-rank') {
+      return [...allApts].sort((a, b) => {
+        const rawKeyA = (a as any).txKey || a.name;
+        const txKeyA = findTxKey(rawKeyA, txSummaryData, nameMapping) || rawKeyA;
+        const pyeongA = txSummaryData[txKeyA]?.avg1MPerPyeong || 0;
+
+        const rawKeyB = (b as any).txKey || b.name;
+        const txKeyB = findTxKey(rawKeyB, txSummaryData, nameMapping) || rawKeyB;
+        const pyeongB = txSummaryData[txKeyB]?.avg1MPerPyeong || 0;
+
+        const diff = pyeongB - pyeongA;
+        return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
+      }).slice(0, 100);
+    }
+
     if (activeCategory === 'popular') {
       return [...allApts].sort((a, b) => {
         const rA = fieldReportsMap.get(a.name);
@@ -281,7 +297,7 @@ export default function ApartmentDiscoveryClient({
                       report={matchedReport}
                       isPublicRental={publicRentalSet.has(apt.name)}
                       onClick={() => handleSelectApt(apt as DongApartment)}
-                      rank={activeCategory === 'popular' ? index + 1 : undefined}
+                      rank={activeCategory === 'price-rank' || activeCategory === 'popular' ? index + 1 : undefined}
                       isFavorited={userFavorites.has(apt.name)}
                       favoriteCount={favoriteCounts[apt.name] || 0}
                       onToggleFavorite={() => onToggleFavorite(apt.name)}
