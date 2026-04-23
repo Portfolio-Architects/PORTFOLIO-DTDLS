@@ -1,12 +1,15 @@
 'use client';
 
-import { TrendingUp, MessageSquare, Home } from 'lucide-react';
+import { TrendingUp, MessageSquare, Home, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { dashboardFacade } from '@/lib/DashboardFacade';
 
 export default function LoungeHeader({ activeTab = 'lounge' }: { activeTab?: string }) {
   const [isScrolled, setIsScrolled] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     let ticking = false;
@@ -115,6 +118,16 @@ export default function LoungeHeader({ activeTab = 'lounge' }: { activeTab?: str
                 <Home size={16} className={activeTab === 'recommend' ? 'text-[#3182f6]' : 'text-[#8b95a1] group-hover:scale-110 transition-transform duration-200'} />
                 <span>아파트 탐색</span>
               </Link>
+
+              {dashboardFacade.isAdmin(user?.email) && (
+                <Link
+                  href="/admin"
+                  className="flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-[#ef4444] hover:bg-black/5"
+                >
+                  <ShieldCheck size={16} className="text-[#ef4444] transition-transform duration-200" />
+                  <span>관리자</span>
+                </Link>
+              )}
             </nav>
 
             {/* Right: Desktop User Bar */}

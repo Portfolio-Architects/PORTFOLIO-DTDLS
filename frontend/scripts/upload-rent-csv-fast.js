@@ -125,72 +125,57 @@ async function main() {
 
   console.log(`\n✅ CSV 파싱 완료: ${records.length}건`);
 
-  const minContractDate = records.reduce((min, r) => r.contractDate < min ? r.contractDate : min, '99999999');
-  console.log(`🔥 Firestore에서 기준일(${minContractDate}) 이후의 데이터만 불러와 중복 필터링을 준비합니다...`);
   const db = admin.firestore();
-  
-  // Note: Only fetching recent records based on the CSV content to avoid Full Collection Scan.
-  // We use only contractDate for the query to avoid missing composite index errors, and filter by source locally.
-  const snapshot = await db.collection('transactions')
-    .where('contractDate', '>=', minContractDate)
-    .get();
 
-  const existingDocs = new Map();
-  snapshot.docs.forEach(doc => {
-      const data = doc.data();
-      if (data.source !== 'csv_rent_import') return; // 로컬에서 source 필터링
-      const key = `${data.aptName}_${data.contractDate}_${data.deposit}_${data.floor}_${data.monthlyRent || 0}`;
-      existingDocs.set(key, { id: doc.id, data: data, ref: doc.ref });
-  });
-  console.log(`📊 DB 로드 완료: 기존 전월세 데이터 ${existingDocs.size}건`);
+  // 중복 데이터 처리를 위한 고유 문서 ID(Deterministic ID)를 사용합니다.
+  // 이 방식을 사용하면 Firestore 읽기 연산(get) 없이 병합(merge: true) 쓰기만 발생합니다.
+  console.log(`🔥 결정론적 식별자(Deterministic ID)를 기반으로 Firestore Upsert를 준비합니다...`);
 
-  const newRecords = [];
-  const updateRecords = [];
-  
+  // CSV 자체의 중복을 제거하기 위한 로컬 Set
+  const processedKeys = new Set();
+  const uniqueRecords = [];
+
   for (const record of records) {
-      const key = `${record.aptName}_${record.contractDate}_${record.deposit}_${record.floor}_${record.monthlyRent}`;
-      const existing = existingDocs.get(key);
-      
-      if (!existing) {
-          newRecords.push({type: 'new', record});
-          existingDocs.set(key, { record }); // Prevent duplicates within CSV
-      } else if (existing.data && (existing.data.reqGb !== record.reqGb || existing.data.rnuYn !== record.rnuYn)) {
-          // If the DB has the record but the renewal fields are different/missing, we perform an update
-          updateRecords.push({ type: 'update', ref: existing.ref, record });
-          existingDocs.set(key, { ...existing, data: record }); // update local map
-      }
+    // 괄호, 특수문자, 공백 등 정규화 함수 (AptName 정규화)
+    const normalizeAptName = (name) => name.replace(/\[.*?\]\s*/g, '').replace(/\s+/g, '').replace(/[()（）]/g, '').trim();
+    
+    const normalizedName = normalizeAptName(record.aptName);
+    const docId = `rent_${normalizedName}_${record.contractDate}_${record.floor}_${record.deposit}_${record.monthlyRent}`;
+    
+    if (!processedKeys.has(docId)) {
+      processedKeys.add(docId);
+      uniqueRecords.push({ docId, record });
+    }
   }
 
-  console.log(`\n총 ${records.length}건 중 신규 추가 대상: ${newRecords.length}건, 업데이트 대상: ${updateRecords.length}건`);
+  console.log(`\n고유 트랜잭션 수: ${uniqueRecords.length}건 (원본 ${records.length}건)`);
 
-  if (newRecords.length === 0 && updateRecords.length === 0) {
+  if (uniqueRecords.length === 0) {
       console.log('업데이트할 내역이 없습니다.');
       process.exit(0);
   }
 
-  // Batch insert/update records (Firestore allows up to 500 per batch)
-  console.log('🔥 새 데이터 및 수정된 데이터를 Firestore에 적재합니다...');
-  const combined = [...newRecords, ...updateRecords];
+  console.log('🔥 읽기 비용 없이 Firestore 병합(Merge) 쓰기를 시작합니다...');
+  
   const chunks = [];
-  for (let i = 0; i < combined.length; i += 500) {
-      chunks.push(combined.slice(i, i + 500));
+  for (let i = 0; i < uniqueRecords.length; i += 500) {
+      chunks.push(uniqueRecords.slice(i, i + 500));
   }
 
+  let successCount = 0;
   for (let i = 0; i < chunks.length; i++) {
       const batch = db.batch();
       chunks[i].forEach(item => {
-          if (item.type === 'new') {
-            const docRef = db.collection('transactions').doc();
-            batch.set(docRef, item.record);
-          } else {
-            batch.update(item.ref, { reqGb: item.record.reqGb, rnuYn: item.record.rnuYn });
-          }
+          const docRef = db.collection('transactions').doc(item.docId);
+          // merge: true 옵션으로 Upsert 수행
+          batch.set(docRef, item.record, { merge: true });
       });
       await batch.commit();
-      console.log(` -> 진행률: 배치 ${i + 1}/${chunks.length} 완료 (${Math.min((i + 1) * 500, combined.length)}건)`);
+      successCount += chunks[i].length;
+      console.log(` -> 진행률: 배치 ${i + 1}/${chunks.length} 완료 (${successCount}건)`);
   }
 
-  console.log(`\n🎉 전월세 업로드 완료! (신규 ${newRecords.length}건, 업데이트 ${updateRecords.length}건)`);
+  console.log(`\n🎉 전월세 업로드 완료! (총 ${successCount}건 Upsert 완료, 읽기 비용 0)`);
   process.exit(0);
 }
 

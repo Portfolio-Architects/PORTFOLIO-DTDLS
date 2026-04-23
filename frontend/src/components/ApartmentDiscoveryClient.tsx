@@ -3,7 +3,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Flame, Heart, Clock, MapPin, Building2, TrendingUp } from 'lucide-react';
 import ApartmentCard from './ApartmentCard';
-import { ZONES, getDongsForZone } from '@/lib/zones';
 import { FieldReportData } from '@/lib/DashboardFacade';
 import type { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/lib/transaction-summary';
@@ -39,18 +38,10 @@ export default function ApartmentDiscoveryClient({
 }: DiscoveryProps) {
   // Discovery Categories
   const CATEGORIES = [
-    { id: 'price-rank', label: '평당가 순위', icon: TrendingUp, color: '#8b5cf6', desc: '최근 1개월 평균 평당가 기준' },
+    { id: 'price-rank', label: '평당가 기준', icon: TrendingUp, color: '#8b5cf6', desc: '최근 1개월 평균 평당가 기준' },
     { id: 'popular', label: '인기 단지', icon: Flame, color: '#f04452', desc: '현재 가장 많이 조회된 단지' },
     { id: 'favorites', label: '내 관심 단지', icon: Heart, color: '#ff3b30', desc: '내가 찜한 단지 모아보기' },
     { id: 'recent', label: '최신 업데이트', icon: Clock, color: '#3182f6', desc: '최근 다녀온 현장기록' },
-    // Zones mapped dynamically
-    ...ZONES.map(z => ({
-      id: `zone-${z.id}`,
-      label: z.name,
-      icon: MapPin,
-      color: z.color,
-      desc: z.dongLabel
-    }))
   ];
 
   const [activeCategory, setActiveCategory] = useState<string>('price-rank');
@@ -108,17 +99,6 @@ export default function ApartmentDiscoveryClient({
         const tB = rB?.createdAt ? new Date(rB.createdAt as string | number).getTime() : 0;
         return tB - tA;
       }).slice(0, 50);
-    }
-
-    if (activeCategory.startsWith('zone-')) {
-      const zoneId = activeCategory.replace('zone-', '');
-      const dongs = getDongsForZone(zoneId);
-      return allApts.filter(a => dongs.includes(a.dong)).sort((a, b) => {
-        const rA = fieldReportsMap.get(a.name);
-        const rB = fieldReportsMap.get(b.name);
-        const diff = (rB?.viewCount || 0) - (rA?.viewCount || 0);
-        return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
-      });
     }
 
     return allApts;
@@ -195,11 +175,8 @@ export default function ApartmentDiscoveryClient({
           </h2>
           {CATEGORIES.map(cat => {
             const isActive = activeCategory === cat.id;
-            // Add a subtle separator before the first zone
-            const isFirstZone = cat.id.startsWith('zone-') && CATEGORIES[CATEGORIES.indexOf(cat) - 1]?.id === 'recent';
             return (
               <React.Fragment key={cat.id}>
-                {isFirstZone && <div className="h-[1px] bg-[#f2f4f6] my-3 mx-2" />}
                 <button
                   onClick={() => setActiveCategory(cat.id)}
                   className={`w-full text-left px-4 py-3.5 rounded-2xl flex items-center justify-between transition-all group ${
