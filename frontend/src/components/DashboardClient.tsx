@@ -612,7 +612,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   if (window.innerWidth < 768) {
                     setMobileModalOpen(true);
                   } else {
-                    handleTabChange('analysis');
+                    startTransition(() => setActiveTab('imjang'));
                   }
                 }
               }}
