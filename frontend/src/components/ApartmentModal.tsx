@@ -446,6 +446,7 @@ export function FieldReportModal({
                             <div className="flex items-baseline gap-0.5 whitespace-nowrap">
                               <span className="text-[20px] md:text-[28px] font-bold text-[#191f28] tracking-tight tabular-nums leading-none">{(school.dist! / 1000).toFixed(2)}</span>
                               <span className="text-[10px] md:text-[13px] font-medium text-[#8b95a1] ml-0.5 mt-auto">km</span>
+                              <span className="text-[11px] md:text-[12px] font-medium text-[#4e5968] ml-1.5 md:ml-2 mt-auto bg-[#f2f4f6] px-1.5 py-0.5 rounded-md">도보 {Math.ceil(school.dist! / 80)}분</span>
                             </div>
                             {school.name && (
                               <a 
@@ -489,6 +490,7 @@ export function FieldReportModal({
                           <div className="flex items-baseline gap-0.5 whitespace-nowrap">
                             <span className="text-[20px] md:text-[28px] font-bold text-[#191f28] tracking-tight tabular-nums leading-none">{(station.dist! / 1000).toFixed(2)}</span>
                             <span className="text-[10px] md:text-[13px] font-medium text-[#8b95a1] ml-0.5 mt-auto">km</span>
+                            <span className="text-[11px] md:text-[12px] font-medium text-[#4e5968] ml-1.5 md:ml-2 mt-auto bg-[#f2f4f6] px-1.5 py-0.5 rounded-md">도보 {Math.ceil(station.dist! / 80)}분</span>
                           </div>
                           {station.name && (
                             <a 

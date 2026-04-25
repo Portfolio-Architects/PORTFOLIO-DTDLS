@@ -51,7 +51,10 @@ export default function RawMetricsSection({ metrics }: { metrics: RawMetrics | u
               return (
                 <div key={s.label} className="bg-[#f9fafb] border border-[#e5e8eb] rounded-xl p-3 flex flex-col justify-center">
                   <div className="text-[12px] font-bold text-[#8b95a1] mb-1">{s.label}</div>
-                  <div className="text-[16px] font-extrabold text-[#191f28]">{s.dist}<span className="text-[11px] font-normal text-[#8b95a1] ml-0.5">m</span></div>
+                  <div className="flex items-baseline gap-0.5 whitespace-nowrap">
+                    <span className="text-[16px] font-extrabold text-[#191f28]">{s.dist}<span className="text-[11px] font-normal text-[#8b95a1] ml-0.5">m</span></span>
+                    <span className="text-[10px] font-medium text-[#4e5968] ml-1 mt-auto bg-[#f2f4f6] px-1.5 py-0.5 rounded-md mb-0.5">도보 {Math.ceil(s.dist / 80)}분</span>
+                  </div>
                   {s.name && <div className="text-[11px] text-[#4e5968] mt-0.5 truncate">{s.name}</div>}
                 </div>
               )
@@ -92,7 +95,10 @@ export default function RawMetricsSection({ metrics }: { metrics: RawMetrics | u
                     <span>{t.label}</span>
                     <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-[#3182f6]" />
                   </div>
-                  <div className="text-[18px] font-extrabold text-[#191f28]">{t.dist}<span className="text-[11px] font-normal text-[#8b95a1] ml-0.5">m</span></div>
+                  <div className="flex items-baseline gap-0.5 whitespace-nowrap">
+                    <span className="text-[18px] font-extrabold text-[#191f28]">{t.dist}<span className="text-[11px] font-normal text-[#8b95a1] ml-0.5">m</span></span>
+                    <span className="text-[10px] font-medium text-[#4e5968] ml-1 mt-auto bg-[#f2f4f6] px-1.5 py-0.5 rounded-md mb-0.5">도보 {Math.ceil(t.dist / 80)}분</span>
+                  </div>
                   {t.name && <div className="text-[11px] text-[#4e5968] mt-0.5 truncate">{t.name}</div>}
                 </div>
               )
@@ -115,7 +121,10 @@ export default function RawMetricsSection({ metrics }: { metrics: RawMetrics | u
                return (
                  <div key={c.label} className="bg-[#f9fafb] border border-[#e5e8eb] rounded-xl p-2.5 flex flex-col items-center justify-center text-center">
                    <div className="text-[11px] font-bold text-[#8b95a1] mb-1">{c.label}</div>
-                   <div className="text-[14px] font-extrabold text-[#191f28]">{c.dist}<span className="text-[10px] font-normal text-[#8b95a1] ml-0.5">m</span></div>
+                   <div className="flex items-baseline gap-0.5 whitespace-nowrap mt-0.5">
+                     <span className="text-[14px] font-extrabold text-[#191f28]">{c.dist}<span className="text-[10px] font-normal text-[#8b95a1] ml-0.5">m</span></span>
+                     <span className="text-[9px] font-medium text-[#4e5968] ml-1 mt-auto bg-[#f2f4f6] px-1 py-px rounded mb-0.5">{Math.ceil(c.dist / 80)}분</span>
+                   </div>
                  </div>
                )
             })}
