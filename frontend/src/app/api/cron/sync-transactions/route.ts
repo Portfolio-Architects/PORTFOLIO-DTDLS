@@ -12,7 +12,8 @@ export const dynamic = 'force-dynamic';
 
 const API_KEY = process.env.BUILDING_API_KEY || '';
 const LAWD_CD = '41597'; // 동탄구
-const API_BASE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev';
+const API_BASE_TRADE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev';
+const API_BASE_RENT = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent';
 
 interface GovApiItem {
   aptNm: string;
@@ -92,7 +93,7 @@ export async function GET(request: Request) {
       const monthRecords: unknown[] = [];
 
       do {
-        const url = `${API_BASE}?serviceKey=${API_KEY}&LAWD_CD=${LAWD_CD}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000`;
+        const url = `${API_BASE_TRADE}?serviceKey=${API_KEY}&LAWD_CD=${LAWD_CD}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000`;
         const res = await fetch(url);
         if (!res.ok) { syncLog.push(`${ym} page ${page}: HTTP ${res.status}`); break; }
 
@@ -135,13 +136,15 @@ export async function GET(request: Request) {
             contractDay,
             contractDate: `${ym}${contractDay}`,
             price,
+            deposit: 0,
+            monthlyRent: 0,
             floor,
             buyer: get('buyerGbn'),
             seller: get('slerGbn'),
             buildYear: parseInt(get('buildYear'), 10) || 0,
             roadName: get('roadNm'),
             cancelDate: get('cdealDay') || '',
-            dealType: get('cdealType') || get('dealingGbn') || '',
+            dealType: get('cdealType') || get('dealingGbn') || '매매',
             agentLocation: get('estateAgentSggNm'),
             registrationDate: get('rgstDate'),
             housingType: '',
@@ -154,6 +157,74 @@ export async function GET(request: Request) {
 
         page++;
       } while (monthRecords.length < totalCount);
+
+      // 3.1 Fetch Rent Data (전월세)
+      let rentPage = 1;
+      let rentTotalCount = 0;
+      do {
+        const url = `${API_BASE_RENT}?serviceKey=${API_KEY}&LAWD_CD=${LAWD_CD}&DEAL_YMD=${ym}&pageNo=${rentPage}&numOfRows=1000`;
+        const res = await fetch(url);
+        if (!res.ok) { syncLog.push(`${ym} rent page ${rentPage}: HTTP ${res.status}`); break; }
+
+        const text = await res.text();
+        const totalMatch = text.match(/<totalCount>(\d+)<\/totalCount>/);
+        rentTotalCount = totalMatch ? parseInt(totalMatch[1], 10) : 0;
+        if (rentTotalCount === 0) break;
+
+        const items = text.match(/<item>([\s\S]*?)<\/item>/g) || [];
+        for (const itemXml of items) {
+          const tagMap = new Map<string, string>();
+          const tagRegex = /<([^>]+)>([^<]*)<\/\1>/g;
+          let tagMatch;
+          while ((tagMatch = tagRegex.exec(itemXml)) !== null) {
+            tagMap.set(tagMatch[1], tagMatch[2].trim());
+          }
+          const get = (tag: string) => tagMap.get(tag) || '';
+
+          const aptName = get('aptNm');
+          const depositStr = get('deposit').replace(/,/g, '').trim();
+          const monthlyRentStr = get('monthlyRent') ? get('monthlyRent').replace(/,/g, '').trim() : '0';
+          
+          const deposit = parseInt(depositStr, 10) || 0;
+          const monthlyRent = parseInt(monthlyRentStr, 10) || 0;
+          const dealType = monthlyRent > 0 ? '월세' : '전세';
+
+          const area = parseFloat(get('excluUseAr')) || 0;
+          const contractDay = get('dealDay').padStart(2, '0');
+          const floor = parseInt(get('floor'), 10) || 0;
+          const dong = get('umdNm');
+
+          const record = {
+            sigungu: `경기도 화성시 동탄구 ${dong}`,
+            dong,
+            aptName,
+            area,
+            areaPyeong: Math.round(area / 3.3058 * 10) / 10,
+            contractYm: ym,
+            contractDay,
+            contractDate: `${ym}${contractDay}`,
+            price: deposit, // For UI compatibility, use deposit as price
+            deposit,
+            monthlyRent,
+            floor,
+            buyer: '',
+            seller: '',
+            buildYear: parseInt(get('buildYear'), 10) || 0,
+            roadName: get('roadNm'),
+            cancelDate: '',
+            dealType,
+            agentLocation: '',
+            registrationDate: '',
+            housingType: '',
+            source: 'govt_api_rent',
+            reqGb: get('contractType') || '',
+            rnuYn: get('useRRRight') || '',
+            _key: `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${floor}`,
+          };
+          monthRecords.push(record);
+        }
+        rentPage++;
+      } while (rentPage * 1000 < rentTotalCount);
 
       // 4. Batch write to Firestore
       if (monthRecords.length > 0) {
@@ -169,7 +240,7 @@ export async function GET(request: Request) {
           written += slice.length;
         }
         totalNew += written;
-        syncLog.push(`${ym}: ${written}건 동기화`);
+        syncLog.push(`${ym}: ${written}건 동기화 (매매+전월세)`);
       } else {
         syncLog.push(`${ym}: 0건`);
       }
