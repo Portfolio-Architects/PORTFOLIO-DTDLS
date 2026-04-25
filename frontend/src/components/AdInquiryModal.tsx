@@ -88,7 +88,7 @@ export default function AdInquiryModal({ onClose }: AdInquiryModalProps) {
                 <input
                   type="text"
                   required
-                  placeholder="예) 토스 / 김토스"
+                  placeholder="예) 디뷰 / 김디뷰"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                   className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[14px] text-[#191f28] placeholder:text-[#b0b8c1] focus:outline-none focus:ring-2 focus:ring-[#3182f6] focus:border-transparent transition-all"

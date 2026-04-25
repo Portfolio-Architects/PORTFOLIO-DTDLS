@@ -55,7 +55,7 @@ export function TransactionChartSection({
       <div className="w-full md:w-[60%] flex flex-col order-1 md:order-2">
         <div className="flex items-center justify-between mb-3 w-full">
           <div className="flex items-center gap-2">
-            <span className="bg-[#3182f6] text-white text-sm font-bold px-3 py-1 rounded-full">{dong || '동탄'}</span>
+            <span className="bg-[#f2f4f6] text-[#4e5968] text-sm font-bold px-3 py-1 rounded-full">{dong || '동탄'}</span>
           </div>
           <div className="bg-[#f2f4f6] p-0.5 rounded-xl flex items-center shadow-inner">
             <button onClick={() => setChartType('sale')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>매매</button>
@@ -173,7 +173,7 @@ export function TransactionChartSection({
     <div className="w-full md:w-[60%] flex flex-col order-1 md:order-2">
       <div className="flex items-center justify-between mb-3 w-full">
         <div className="flex items-center gap-2">
-          <span className="bg-[#3182f6] text-white text-sm font-bold px-3 py-1 rounded-full">{dong || '동탄'}</span>
+          <span className="bg-[#f2f4f6] text-[#4e5968] text-sm font-bold px-3 py-1 rounded-full">{dong || '동탄'}</span>
         </div>
         <div className="bg-[#f2f4f6] p-0.5 rounded-xl flex items-center shadow-inner">
           <button onClick={() => setChartType('sale')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>매매</button>

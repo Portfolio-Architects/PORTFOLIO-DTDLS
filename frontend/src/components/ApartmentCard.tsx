@@ -100,7 +100,7 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
           <span className="text-[11px] font-medium text-[#8b95a1] shrink-0">{apt.dong}</span>
           
           {hasAnalysis && (
-            <span className="inline-flex items-center gap-0.5 bg-[#e8f3ff] text-[#1b64da] text-[11px] font-bold px-2 py-[2px] rounded shrink-0 leading-tight">
+            <span className="inline-flex items-center gap-0.5 bg-[#f2f4f6] text-[#4e5968] text-[11px] font-bold px-2 py-[2px] rounded shrink-0 leading-tight">
               가치평가
             </span>
           )}
@@ -169,7 +169,7 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
               {(() => {
                 // 1. If we have 1-month average, display the accurate 1-month per-pyeong calculation
                 if (txSummary.avg1MPrice > 0 && txSummary.avg1MPerPyeong > 0) {
-                  return <span className="text-xs font-bold text-[#3182f6]">{txSummary.avg1MPerPyeong.toLocaleString()}만/평</span>;
+                  return <span className="text-xs font-bold text-[#6b7684]">{txSummary.avg1MPerPyeong.toLocaleString()}만/평</span>;
                 }
 
                 // 2. Otherwise, if we have recent transaction, calculate per-pyeong of that specific transaction
@@ -184,7 +184,7 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
                   }
                   
                   if (priceMan > 0 && r.areaPyeong > 0) {
-                    return <span className="text-xs font-bold text-[#3182f6]">{Math.round(priceMan / r.areaPyeong).toLocaleString()}만/평</span>;
+                    return <span className="text-xs font-bold text-[#6b7684]">{Math.round(priceMan / r.areaPyeong).toLocaleString()}만/평</span>;
                   }
                 }
                 
@@ -205,7 +205,7 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
             className={`w-12 h-12 flex flex-col items-center justify-center gap-0.5 rounded-xl transition-all ${
               isFavorited 
                 ? 'bg-[#fff0f0] text-[#ff3b30]' 
-                : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e8f3ff] hover:text-[#3182f6]'
+                : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb] hover:text-[#4e5968]'
             }`}
             title={isFavorited ? '관심 해제' : '관심 등록'}
           >

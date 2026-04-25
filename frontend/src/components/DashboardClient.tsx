@@ -235,7 +235,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       >
         <span className="font-extrabold text-[#191f28] tracking-tight text-[15px] flex items-center gap-2">
            <img src="/d-view-icon.png" alt="D-VIEW" className="w-[22px] h-[22px] rounded-md" />
-           <span className="text-[#3182f6]">D-VIEW</span>
+           <span className="text-[#191f28]">D-VIEW</span>
            <span className="text-[#b0b8c1] font-normal text-[13px]">|</span>
            <span className="text-[#4e5968] font-semibold text-[14px]">동탄 아파트 가치 분석</span>
         </span>
@@ -293,7 +293,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                     : 'text-[#8b95a1] hover:text-[#4e5968] hover:bg-black/5'
                 }`}
               >
-                <TrendingUp size={16} className={activeTab === 'imjang' ? 'text-[#3182f6]' : 'text-[#8b95a1] group-hover:scale-110 transition-transform duration-200'} />
+                <TrendingUp size={16} className={activeTab === 'imjang' ? 'text-[#191f28]' : 'text-[#8b95a1] group-hover:scale-110 transition-transform duration-200'} />
                 <span>단지 분석</span>
               </button>
               
@@ -309,11 +309,11 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 onClick={() => startTransition(() => setActiveTab('recommend'))}
                 className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
                   activeTab === 'recommend'
-                    ? 'bg-white text-[#3182f6] shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
+                    ? 'bg-white text-[#191f28] shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
                     : 'text-[#8b95a1] hover:text-[#4e5968] hover:bg-black/5'
                 }`}
               >
-                <Home size={16} className={activeTab === 'recommend' ? 'text-[#3182f6]' : 'text-[#8b95a1] group-hover:scale-110 transition-transform duration-200'} />
+                <Home size={16} className={activeTab === 'recommend' ? 'text-[#191f28]' : 'text-[#8b95a1] group-hover:scale-110 transition-transform duration-200'} />
                 <span>아파트 탐색</span>
               </button>
               
@@ -520,10 +520,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 </>
               ) : (
                 <div className="flex flex-col h-full bg-[#f9fafb]">
-                  <div className="flex-1 w-full bg-gradient-to-br from-[#191f28] via-[#222a35] to-[#3182f6] relative overflow-hidden group flex flex-col items-center justify-center p-8 text-center min-h-[500px]">
+                  <div className="flex-1 w-full bg-gradient-to-br from-[#191f28] to-[#222a35] relative overflow-hidden group flex flex-col items-center justify-center p-8 text-center min-h-[500px]">
                       {/* Background noise/pattern */}
                       <div className="absolute inset-0 bg-black/10 mix-blend-overlay pointer-events-none"></div>
-                      <div className="absolute top-0 right-0 w-64 h-64 bg-[#3182f6] rounded-full mix-blend-screen filter blur-[80px] opacity-30 transform translate-x-1/2 -translate-y-1/2"></div>
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-[#ffffff] rounded-full mix-blend-overlay filter blur-[80px] opacity-10 transform translate-x-1/2 -translate-y-1/2"></div>
                       
                       {/* AD Badge */}
                       <div className="absolute top-5 right-5 bg-white/10 backdrop-blur-md px-2.5 py-1 rounded text-[11px] text-white/90 font-extrabold uppercase tracking-widest border border-white/20">
@@ -630,7 +630,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       {/* Scroll to Top Button */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className={`fixed z-50 bottom-24 sm:bottom-8 right-4 sm:right-8 bg-white text-[#3182f6] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-[#e5e8eb] w-[46px] h-[46px] rounded-full flex items-center justify-center transition-all duration-300 hover:bg-[#f8f9fa] hover:scale-105 active:scale-95 ${
+        className={`fixed z-50 bottom-24 sm:bottom-8 right-4 sm:right-8 bg-white text-[#191f28] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-[#e5e8eb] w-[46px] h-[46px] rounded-full flex items-center justify-center transition-all duration-300 hover:bg-[#f8f9fa] hover:scale-105 active:scale-95 ${
           isScrolled ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-10 opacity-0 pointer-events-none'
         }`}
         aria-label="맨 위로 이동"

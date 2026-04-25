@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Building, Save, Search, Check, AlertTriangle, ChevronDown, ChevronRight,
-  Home, Link2, FileText, Plus, Trash2, MapPin, PlusCircle, Edit
+  Home, Link2, FileText, Plus, Trash2, MapPin, PlusCircle, Edit, RefreshCw
 } from 'lucide-react';
 import { doc, getDoc, setDoc, collection, query, onSnapshot, where, getDocs, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebaseConfig';
@@ -58,6 +58,7 @@ export default function AdminDashboard() {
   const [initialMeta, setInitialMeta] = useState<MetaMap>({}); // To track changes for sync
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all'|'unmatched'|'public'|'private'|'analyzed'|'verified'>('all');
   const [expandedDongs, setExpandedDongs] = useState<Set<string>>(new Set());
@@ -195,6 +196,27 @@ export default function AdminDashboard() {
     try {
       await deleteDoc(doc(db, 'adInquiries', id));
     } catch (e) { console.error(e); }
+  };
+
+  const handleSync = async () => {
+    if (!confirm('국토교통부 실거래가 최신 데이터를 수동으로 가져오시겠습니까?\n이 작업은 시간이 다소 소요될 수 있습니다.')) return;
+    
+    setIsSyncing(true);
+    try {
+      const res = await fetch('/api/cron/sync-transactions');
+      const data = await res.json();
+      
+      if (res.ok) {
+        alert(`동기화 완료!\n- 추가된 데이터: ${data.synced}건`);
+      } else {
+        throw new Error(data.error || 'Unknown error');
+      }
+    } catch (e: any) {
+      console.error('Sync error:', e);
+      alert('동기화 중 오류가 발생했습니다: ' + e.message);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleSave = async () => {
@@ -450,6 +472,11 @@ export default function AdminDashboard() {
         </div>
         {activeAdminTab === 'apartments' && (
           <div className="flex gap-2">
+            <button onClick={handleSync} disabled={isSyncing}
+              className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#1b64da] bg-[#e8f3ff] hover:bg-[#3182f6] hover:text-white disabled:opacity-50 transition-all text-[13px]">
+              <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} /> 
+              {isSyncing ? '동기화 중...' : '실거래가 수동 동기화'}
+            </button>
             <button onClick={() => setShowAddForm(!showAddForm)}
               className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#3182f6] bg-[#e8f3ff] hover:bg-[#3182f6] hover:text-white transition-all text-[13px]">
               <Plus size={16}/> 아파트 추가
