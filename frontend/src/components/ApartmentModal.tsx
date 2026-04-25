@@ -429,29 +429,29 @@ export function FieldReportModal({
                       ].filter(s => s.dist && s.dist > 0).map(school => {
                         const grade = school.dist! <= 300 ? 'excellent' : school.dist! <= 700 ? 'good' : school.dist! <= 1000 ? 'average' : 'far';
                         const gradeStyles = {
-                          excellent: { bg: 'bg-[#f0fdf4]', border: 'border-[#bbf7d0]', text: 'text-[#15803d]', badge: 'bg-[#dcfce7] text-[#15803d]', dot: 'bg-[#22c55e]' },
-                          good: { bg: 'bg-[#f0f9ff]', border: 'border-[#bae6fd]', text: 'text-[#0369a1]', badge: 'bg-[#e0f2fe] text-[#0369a1]', dot: 'bg-[#0ea5e9]' },
-                          average: { bg: 'bg-[#fffbeb]', border: 'border-[#fed7aa]', text: 'text-[#c2410c]', badge: 'bg-[#ffedd5] text-[#c2410c]', dot: 'bg-[#f97316]' },
-                          far: { bg: 'bg-[#fef2f2]', border: 'border-[#fecaca]', text: 'text-[#b91c1c]', badge: 'bg-[#fee2e2] text-[#b91c1c]', dot: 'bg-[#ef4444]' },
+                          excellent: { dot: 'bg-[#3182f6]', badge: 'bg-[#f2f4f6] text-[#4e5968]' },
+                          good: { dot: 'bg-[#22c55e]', badge: 'bg-[#f2f4f6] text-[#4e5968]' },
+                          average: { dot: 'bg-[#f59e0b]', badge: 'bg-[#f2f4f6] text-[#4e5968]' },
+                          far: { dot: 'bg-[#ef4444]', badge: 'bg-[#f2f4f6] text-[#4e5968]' },
                         };
                         const s = gradeStyles[grade];
                         return (
-                          <div key={school.label} className={`${s.bg} rounded-xl md:rounded-2xl p-2.5 md:p-4 flex flex-col border ${s.border} hover:shadow-md transition-all duration-200 group`}>
+                          <div key={school.label} className="bg-white rounded-xl md:rounded-2xl p-2.5 md:p-4 flex flex-col border border-[#e5e8eb] shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all duration-200 group">
                             <div className="flex items-center justify-between mb-1.5 md:mb-2.5">
-                              <span className="text-[11px] md:text-[13px] font-bold text-[#4e5968] truncate pr-1">
+                              <span className="text-[11px] md:text-[13px] font-semibold text-[#8b95a1] truncate pr-1">
                                 {school.label}
                               </span>
-                              <span className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full shrink-0 ${s.dot} animate-pulse`} />
+                              <span className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full shrink-0 ${s.dot}`} />
                             </div>
                             <div className="flex items-baseline gap-0.5 whitespace-nowrap">
-                              <span className={`text-[20px] md:text-[28px] font-black ${s.text} tracking-tight tabular-nums leading-none`}>{(school.dist! / 1000).toFixed(2)}</span>
-                              <span className={`text-[10px] md:text-[13px] font-semibold ${s.text} opacity-60 ml-0.5 mt-auto`}>km</span>
+                              <span className="text-[20px] md:text-[28px] font-bold text-[#191f28] tracking-tight tabular-nums leading-none">{(school.dist! / 1000).toFixed(2)}</span>
+                              <span className="text-[10px] md:text-[13px] font-medium text-[#8b95a1] ml-0.5 mt-auto">km</span>
                             </div>
                             {school.name && (
                               <a 
                                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(school.name + ' 화성시')}`}
                                 target="_blank" rel="noopener noreferrer"
-                                className={`text-[10px] md:text-[12px] flex items-center justify-center gap-0.5 md:gap-1 font-semibold ${s.text} mt-2 md:mt-2.5 ${s.badge} rounded-md md:rounded-lg px-1.5 py-1 md:px-2.5 md:py-1.5 text-center hover:opacity-80 transition-opacity`}
+                                className={`text-[10px] md:text-[12px] flex items-center justify-center gap-0.5 md:gap-1 font-semibold mt-2 md:mt-2.5 ${s.badge} rounded-md md:rounded-lg px-1.5 py-1 md:px-2.5 md:py-1.5 text-center hover:opacity-80 transition-opacity`}
                                 title={`${school.name} 구글 지도에서 보기`}
                               >
                                 <MapPin size={10} className="shrink-0 md:w-3 md:h-3" />
@@ -479,29 +479,22 @@ export function FieldReportModal({
                         { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestIndeokwonCoords, color: '#7c3aed', bgFrom: '#f5f3ff', bgTo: '#ede9fe' },
                         { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#0891b2', bgFrom: '#ecfeff', bgTo: '#cffafe' },
                       ].filter(s => s.dist != null && s.dist > 0).map(station => (
-                        <div key={station.label}
-                          className="rounded-xl md:rounded-2xl p-2.5 md:p-4 flex flex-col border hover:shadow-md transition-all duration-200 group relative overflow-hidden"
-                          style={{
-                            background: `linear-gradient(135deg, ${station.bgFrom}, ${station.bgTo})`,
-                            borderColor: `${station.color}25`,
-                          }}>
-                          {/* Subtle gradient accent bar */}
-                          <div className="absolute top-0 left-0 right-0 h-[3px] opacity-80" style={{ background: `linear-gradient(90deg, ${station.color}, ${station.color}60)` }} />
+                        <div key={station.label} className="bg-white rounded-xl md:rounded-2xl p-2.5 md:p-4 flex flex-col border border-[#e5e8eb] shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all duration-200 group">
                           <div className="flex items-center justify-between mb-1.5 md:mb-2.5">
-                            <span className="text-[11px] md:text-[13px] font-bold truncate pr-1" style={{ color: station.color }}>
+                            <span className="text-[11px] md:text-[13px] font-semibold text-[#8b95a1] truncate pr-1">
                               {station.label}
                             </span>
+                            <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full shrink-0" style={{ backgroundColor: station.color }} />
                           </div>
                           <div className="flex items-baseline gap-0.5 whitespace-nowrap">
-                            <span className="text-[20px] md:text-[28px] font-black tracking-tight tabular-nums leading-none" style={{ color: station.color }}>{(station.dist! / 1000).toFixed(2)}</span>
-                            <span className="text-[10px] md:text-[13px] font-semibold opacity-60 ml-0.5 mt-auto" style={{ color: station.color }}>km</span>
+                            <span className="text-[20px] md:text-[28px] font-bold text-[#191f28] tracking-tight tabular-nums leading-none">{(station.dist! / 1000).toFixed(2)}</span>
+                            <span className="text-[10px] md:text-[13px] font-medium text-[#8b95a1] ml-0.5 mt-auto">km</span>
                           </div>
                           {station.name && (
                             <a 
                               href={station.coords ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.coords)}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.name + (station.name.includes('정거장') ? ' 동탄' : ' 역'))}`}
                               target="_blank" rel="noopener noreferrer"
-                              className="text-[10px] md:text-[12px] flex items-center justify-center gap-0.5 md:gap-1 font-semibold mt-2 md:mt-2.5 rounded-md md:rounded-lg px-1.5 py-1 md:px-2.5 md:py-1.5 text-center bg-white/80 backdrop-blur-sm hover:opacity-80 transition-opacity"
-                              style={{ color: station.color, border: `1px solid ${station.color}20` }}
+                              className="text-[10px] md:text-[12px] flex items-center justify-center gap-0.5 md:gap-1 font-semibold mt-2 md:mt-2.5 rounded-md md:rounded-lg px-1.5 py-1 md:px-2.5 md:py-1.5 text-center bg-[#f2f4f6] text-[#4e5968] hover:opacity-80 transition-opacity"
                               title={`${station.name} 구글 지도에서 보기`}
                             >
                               <MapPin size={10} className="shrink-0 md:w-3 md:h-3" />
@@ -525,14 +518,16 @@ export function FieldReportModal({
                     <div className="grid grid-cols-2 gap-1.5 md:gap-2.5">
                       {/* Academy Density */}
                       {report.metrics.academyDensity > 0 && (
-                        <div className="bg-gradient-to-br from-[#f0fdf4] to-[#dcfce7]/50 rounded-xl md:rounded-2xl p-3 md:p-5 flex flex-col border border-[#bbf7d0] hover:shadow-md transition-all duration-200 relative overflow-hidden">
-                          <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#22c55e] to-[#22c55e]/40" />
-                          <div className="text-[11px] md:text-[13px] font-bold text-[#15803d] mb-1 md:mb-2 truncate pr-1">
-                            학원 · 500m 반경
+                        <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-5 flex flex-col border border-[#e5e8eb] shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all duration-200 group">
+                          <div className="flex items-center justify-between mb-1 md:mb-2">
+                            <span className="text-[11px] md:text-[13px] font-semibold text-[#8b95a1] truncate pr-1">
+                              학원 · 500m 반경
+                            </span>
+                            <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full shrink-0 bg-[#22c55e]" />
                           </div>
                           <div className="flex items-baseline gap-0.5 mb-2.5 md:mb-3 whitespace-nowrap">
-                            <span className="text-[22px] md:text-[30px] font-black text-[#15803d] tracking-tight tabular-nums leading-none">{report.metrics.academyDensity}</span>
-                            <span className="text-[11px] md:text-[13px] font-semibold text-[#15803d]/60 ml-0.5">개</span>
+                            <span className="text-[22px] md:text-[30px] font-bold text-[#191f28] tracking-tight tabular-nums leading-none">{report.metrics.academyDensity}</span>
+                            <span className="text-[11px] md:text-[13px] font-medium text-[#8b95a1] ml-0.5">개</span>
                           </div>
                           {report.metrics.academyCategories && Object.keys(report.metrics.academyCategories).length > 0 && (
                             <div className="flex flex-col gap-1.5 mt-auto">
@@ -540,9 +535,9 @@ export function FieldReportModal({
                                 .sort(([,a], [,b]) => (b as number) - (a as number))
                                 .slice(0, 5)
                                 .map(([cat, cnt]) => (
-                                  <div key={cat} className="flex justify-between items-center bg-white/80 backdrop-blur-sm rounded-lg px-2 md:px-2.5 py-1 md:py-1.5 border border-[#bbf7d0]/60">
+                                  <div key={cat} className="flex justify-between items-center bg-[#f2f4f6] rounded-lg px-2 md:px-2.5 py-1 md:py-1.5">
                                     <span className="text-[10px] md:text-[12px] text-[#4e5968] font-medium truncate mr-1 md:mr-2">{cat}</span>
-                                    <span className="font-extrabold text-[10px] md:text-[12px] text-[#15803d] shrink-0 tabular-nums">{cnt as number}개</span>
+                                    <span className="font-semibold text-[10px] md:text-[12px] text-[#4e5968] shrink-0 tabular-nums">{cnt as number}개</span>
                                   </div>
                                 ))}
                             </div>
@@ -551,14 +546,16 @@ export function FieldReportModal({
                       )}
                       {/* Restaurant/Cafe Density */}
                       {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
-                        <div className="bg-gradient-to-br from-[#fffbeb] to-[#fef3c7]/50 rounded-xl md:rounded-2xl p-3 md:p-5 flex flex-col border border-[#fde68a] hover:shadow-md transition-all duration-200 relative overflow-hidden">
-                          <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#f59e0b] to-[#f59e0b]/40" />
-                          <div className="text-[11px] md:text-[13px] font-bold text-[#b45309] mb-1 md:mb-2 truncate pr-1">
-                            음식점·카페·500m
+                        <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-5 flex flex-col border border-[#e5e8eb] shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all duration-200 group">
+                          <div className="flex items-center justify-between mb-1 md:mb-2">
+                            <span className="text-[11px] md:text-[13px] font-semibold text-[#8b95a1] truncate pr-1">
+                              음식점·카페·500m
+                            </span>
+                            <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full shrink-0 bg-[#f59e0b]" />
                           </div>
                           <div className="flex items-baseline gap-0.5 mb-2.5 md:mb-3 whitespace-nowrap">
-                            <span className="text-[22px] md:text-[30px] font-black text-[#b45309] tracking-tight tabular-nums leading-none">{report.metrics.restaurantDensity}</span>
-                            <span className="text-[11px] md:text-[13px] font-semibold text-[#b45309]/60 ml-0.5">개</span>
+                            <span className="text-[22px] md:text-[30px] font-bold text-[#191f28] tracking-tight tabular-nums leading-none">{report.metrics.restaurantDensity}</span>
+                            <span className="text-[11px] md:text-[13px] font-medium text-[#8b95a1] ml-0.5">개</span>
                           </div>
                           {report.metrics.restaurantCategories && Object.keys(report.metrics.restaurantCategories).length > 0 && (
                             <div className="flex flex-col gap-1.5 mt-auto">
@@ -566,9 +563,9 @@ export function FieldReportModal({
                                 .sort(([,a], [,b]) => (b as number) - (a as number))
                                 .slice(0, 5)
                                 .map(([cat, cnt]) => (
-                                  <div key={cat} className="flex justify-between items-center bg-white/80 backdrop-blur-sm rounded-lg px-2 md:px-2.5 py-1 md:py-1.5 border border-[#fde68a]/60">
+                                  <div key={cat} className="flex justify-between items-center bg-[#f2f4f6] rounded-lg px-2 md:px-2.5 py-1 md:py-1.5">
                                     <span className="text-[10px] md:text-[12px] text-[#4e5968] font-medium truncate mr-1 md:mr-2">{cat}</span>
-                                    <span className="font-extrabold text-[10px] md:text-[12px] text-[#b45309] shrink-0 tabular-nums">{cnt as number}개</span>
+                                    <span className="font-semibold text-[10px] md:text-[12px] text-[#4e5968] shrink-0 tabular-nums">{cnt as number}개</span>
                                   </div>
                                 ))}
                             </div>

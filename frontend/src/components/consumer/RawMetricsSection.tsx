@@ -58,13 +58,16 @@ export default function RawMetricsSection({ metrics }: { metrics: RawMetrics | u
             })}
             
             {metrics.academyDensity != null && metrics.academyDensity > 0 && (
-              <div className="bg-[#f0fdf4] border border-[#bbf7d0] rounded-xl p-3 flex flex-col">
-                <div className="text-[12px] font-bold text-[#03c75a] mb-1">핵심 학원가 밀집도</div>
-                <div className="text-[16px] font-extrabold text-[#03c75a]">{metrics.academyDensity}<span className="text-[11px] font-normal text-[#03c75a]/70 ml-0.5">개</span></div>
+              <div className="bg-[#f9fafb] border border-[#e5e8eb] rounded-xl p-3 flex flex-col justify-center">
+                <div className="text-[12px] font-bold text-[#8b95a1] mb-1 flex items-center justify-between">
+                  <span>학원가 밀집도</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#03c75a]"></span>
+                </div>
+                <div className="text-[16px] font-extrabold text-[#191f28]">{metrics.academyDensity}<span className="text-[11px] font-normal text-[#8b95a1] ml-0.5">개</span></div>
                 {metrics.academyCategories && (
-                  <div className="mt-2 pt-2 border-t border-[#bbf7d0] flex flex-wrap gap-1">
+                  <div className="mt-2 pt-2 border-t border-[#e5e8eb] flex flex-wrap gap-1">
                     {Object.entries(metrics.academyCategories).sort(([,a], [,b]) => b - a).slice(0, 3).map(([cat, cnt]) => (
-                      <span key={cat} className="text-[10px] bg-white text-[#03c75a] px-1.5 py-0.5 border border-[#bbf7d0] rounded-md">{cat.substring(0,3)} {cnt}</span>
+                      <span key={cat} className="text-[10px] bg-white text-[#4e5968] px-1.5 py-0.5 border border-[#e5e8eb] rounded-md shadow-[0_1px_2px_rgba(0,0,0,0.02)]">{cat.substring(0,3)} {cnt}</span>
                     ))}
                   </div>
                 )}
@@ -84,10 +87,13 @@ export default function RawMetricsSection({ metrics }: { metrics: RawMetrics | u
             ].map(t => {
               if (t.dist == null || t.dist <= 0) return null;
               return (
-                <div key={t.label} className="bg-[#e8f3ff] border border-[#cce5ff] rounded-xl p-3">
-                  <div className="text-[12px] font-bold text-[#3182f6] mb-1 leading-tight">{t.label}</div>
-                  <div className="text-[18px] font-extrabold text-[#3182f6]">{t.dist}<span className="text-[11px] font-normal text-[#3182f6]/70 ml-0.5">m</span></div>
-                  {t.name && <div className="text-[11px] text-[#3182f6]/80 mt-0.5 truncate">{t.name}</div>}
+                <div key={t.label} className="bg-[#f9fafb] border border-[#e5e8eb] rounded-xl p-3 flex flex-col justify-center">
+                  <div className="text-[12px] font-bold text-[#8b95a1] mb-1 leading-tight flex items-center justify-between">
+                    <span>{t.label}</span>
+                    <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-[#3182f6]" />
+                  </div>
+                  <div className="text-[18px] font-extrabold text-[#191f28]">{t.dist}<span className="text-[11px] font-normal text-[#8b95a1] ml-0.5">m</span></div>
+                  {t.name && <div className="text-[11px] text-[#4e5968] mt-0.5 truncate">{t.name}</div>}
                 </div>
               )
             })}
@@ -107,18 +113,18 @@ export default function RawMetricsSection({ metrics }: { metrics: RawMetrics | u
             ].map(c => {
                if (c.dist == null || c.dist <= 0) return null;
                return (
-                 <div key={c.label} className="bg-[#fffbeb] border border-[#fde68a] rounded-xl p-2.5 flex flex-col items-center justify-center text-center">
-                   <div className="text-[11px] font-bold text-[#d97706] mb-1">{c.label}</div>
-                   <div className="text-[14px] font-extrabold text-[#f59e0b]">{c.dist}<span className="text-[10px] font-normal text-[#f59e0b]/70 ml-0.5">m</span></div>
+                 <div key={c.label} className="bg-[#f9fafb] border border-[#e5e8eb] rounded-xl p-2.5 flex flex-col items-center justify-center text-center">
+                   <div className="text-[11px] font-bold text-[#8b95a1] mb-1">{c.label}</div>
+                   <div className="text-[14px] font-extrabold text-[#191f28]">{c.dist}<span className="text-[10px] font-normal text-[#8b95a1] ml-0.5">m</span></div>
                  </div>
                )
             })}
             
             {/* 상권 밀집도 */}
             {metrics.restaurantDensity != null && metrics.restaurantDensity > 0 && (
-              <div className="bg-[#fffbeb] border border-[#fde68a] rounded-xl p-2.5 flex flex-col justify-center text-center">
-                <div className="text-[11px] font-bold text-[#d97706] mb-1">상가/카페 밀집도</div>
-                <div className="text-[14px] font-extrabold text-[#f59e0b]">{metrics.restaurantDensity}<span className="text-[10px] font-normal text-[#f59e0b]/70 ml-0.5">개</span></div>
+              <div className="bg-[#f9fafb] border border-[#e5e8eb] rounded-xl p-2.5 flex flex-col justify-center text-center">
+                <div className="text-[11px] font-bold text-[#8b95a1] mb-1">상가/카페 밀집도</div>
+                <div className="text-[14px] font-extrabold text-[#191f28]">{metrics.restaurantDensity}<span className="text-[10px] font-normal text-[#8b95a1] ml-0.5">개</span></div>
               </div>
             )}
             
