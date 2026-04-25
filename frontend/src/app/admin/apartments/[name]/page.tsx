@@ -8,7 +8,7 @@ import { db, auth } from '@/lib/firebaseConfig';
 import { TX_SUMMARY, AptTxSummary } from '@/lib/transaction-summary';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
 import { DONGS } from '@/lib/dongs';
-import { Building, Save, Home, Link2, ChevronLeft, MapPin } from 'lucide-react';
+import { Building, Save, Home, Link2, ChevronLeft, MapPin, Trash2 } from 'lucide-react';
 import { ScoutingReport, ImageMeta, PhotoItem } from '@/lib/types/scoutingReport';
 import { uploadImage, createScoutingReport, updateScoutingReport } from '@/lib/services/reportService';
 import { extractCapturedDate } from '@/lib/utils/exif';
@@ -695,6 +695,44 @@ export default function ApartmentInfoPage() {
     setSaving(false);
   };
 
+  const handleDelete = async () => {
+    if (!confirm(`정말 '${originalName}' 단지를 삭제하시겠습니까?\n구글 시트 및 데이터베이스에서 완전히 삭제되며 복구할 수 없습니다.`)) return;
+    
+    setSaving(true);
+    try {
+      // 1. Delete from Google Sheets
+      const syncPayload = { updates: [], adds: [], deletes: [originalName] };
+      const idToken = await auth.currentUser?.getIdToken();
+      const syncRes = await fetch('/api/apartments-sync', {
+        method: 'POST', 
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(idToken ? { 'Authorization': `Bearer ${idToken}` } : {})
+        },
+        body: JSON.stringify(syncPayload),
+      });
+      if (!syncRes.ok) {
+        const errData = await syncRes.json();
+        throw new Error('Google Sheets Delete Failed: ' + errData.error);
+      }
+
+      // 2. Delete from Firestore cache
+      const metaDoc = await getDoc(doc(db, FIRESTORE_DOC));
+      if (metaDoc.exists()) {
+        const allMeta = metaDoc.data();
+        delete allMeta[originalName];
+        await setDoc(doc(db, FIRESTORE_DOC), allMeta);
+      }
+
+      alert('성공적으로 삭제되었습니다.');
+      router.replace('/admin');
+    } catch (e: unknown) {
+      console.error('Delete failed:', e);
+      alert('삭제에 실패했습니다: ' + (e as Error).message);
+      setSaving(false);
+    }
+  };
+
   // ── Render ──
   if (!loaded) return (
     <div className="flex justify-center items-center py-32">
@@ -967,13 +1005,19 @@ export default function ApartmentInfoPage() {
             <span className="text-[13px] text-[#8b95a1] font-medium">
               {uploadProgress ? `📤 업로드 중... ${uploadProgress.done}/${uploadProgress.total}장` : `📸 ${photos.length}장 · ${meta.dong}`}
             </span>
-            <button onClick={handleSave} disabled={saving}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all text-[14px] ${
-                saved ? 'bg-[#03c75a] text-white shadow-lg shadow-[#03c75a]/20' : 'bg-[#3182f6] hover:bg-[#2b72d6] text-white shadow-lg shadow-[#3182f6]/20'
-              } disabled:opacity-60`}>
-              <Save size={16}/>
-              {saving ? '저장 중...' : saved ? '저장 완료!' : '통합 저장'}
-            </button>
+            <div className="flex items-center gap-2">
+              <button onClick={handleDelete} disabled={saving}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-[14px] bg-white border border-[#f04452] text-[#f04452] hover:bg-[#fff1f2] disabled:opacity-60">
+                <Trash2 size={16}/> 삭제
+              </button>
+              <button onClick={handleSave} disabled={saving}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all text-[14px] ${
+                  saved ? 'bg-[#03c75a] text-white shadow-lg shadow-[#03c75a]/20' : 'bg-[#3182f6] hover:bg-[#2b72d6] text-white shadow-lg shadow-[#3182f6]/20'
+                } disabled:opacity-60`}>
+                <Save size={16}/>
+                {saving ? '저장 중...' : saved ? '저장 완료!' : '통합 저장'}
+              </button>
+            </div>
           </div>
         </div>
       )}
