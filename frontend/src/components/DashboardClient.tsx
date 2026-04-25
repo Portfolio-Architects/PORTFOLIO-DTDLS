@@ -608,8 +608,12 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               onSelectReport={(report) => {
                 setSelectedReport(report as FieldReportData);
                 window.history.pushState(null, '', `/apartment/${encodeURIComponent(report.apartmentName)}`);
-                if (window.innerWidth < 768) {
-                  setMobileModalOpen(true);
+                if (typeof window !== 'undefined') {
+                  if (window.innerWidth < 768) {
+                    setMobileModalOpen(true);
+                  } else {
+                    handleTabChange('analysis');
+                  }
                 }
               }}
               typeMap={typeMap}
