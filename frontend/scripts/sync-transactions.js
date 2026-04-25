@@ -11,7 +11,7 @@
  * → Vercel CPU 사용 0, 메인 페이지 즉시 렌더링
  */
 
-require('dotenv').config({ path: '.env.local' });
+require('dotenv').config({ path: '.env.local', override: true });
 const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
