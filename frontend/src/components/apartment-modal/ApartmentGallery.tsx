@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 
 export function ApartmentGallery({ images, tags, tagLabels, onImageClick, aptName }: {
-  images: {url: string; caption?: string; locationTag?: string; isPremium?: boolean; capturedAt?: string}[];
+  images: {url: string; caption?: string; locationTag?: string; isPremium?: boolean; capturedAt?: string; uploaderName?: string}[];
   tags: string[];
   tagLabels: Record<string, string>;
   onImageClick: (url: string) => void;
@@ -56,10 +56,10 @@ export function ApartmentGallery({ images, tags, tagLabels, onImageClick, aptNam
                       sizes="(max-width: 768px) 240px, 280px"
                       className="object-cover bg-[#f2f4f6]"
                     />
-                  {/* D-VIEW Watermark */}
-                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 overflow-hidden">
-                    <span className="text-white/30 font-black text-3xl rotate-[-25deg] tracking-[0.3em] select-none mix-blend-overlay drop-shadow-md">
-                      D-VIEW
+                  {/* Subtle Corner Watermark */}
+                  <div className="absolute right-2 bottom-2 pointer-events-none z-20">
+                    <span className="text-white/60 font-bold text-[9px] tracking-wide select-none drop-shadow-md bg-black/30 px-1.5 py-0.5 rounded backdrop-blur-sm">
+                      {img.uploaderName ? `D-VIEW x ${img.uploaderName}` : 'D-VIEW'}
                     </span>
                   </div>
                   {(img.caption || img.isPremium || img.capturedAt) && (

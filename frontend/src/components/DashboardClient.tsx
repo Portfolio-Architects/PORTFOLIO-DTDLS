@@ -52,7 +52,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   
   const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
   
-  const { txSummaryData, fullReportData, modalTransactions, isLoadingDetail, isTxLoading, resolvedReport } = useApartmentDetails(
+  const { txSummaryData, fullReportData, modalTransactions, isLoadingDetail, isTxLoading, resolvedReport, aptTxSummary } = useApartmentDetails(
     selectedReport, sheetApartments, nameMapping, user
   );
   
@@ -124,6 +124,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
   const [listSort, setListSort] = useState<'views' | 'likes' | 'name'>('views');
   const [listHeight, setListHeight] = useState(600);
+  const [isDesktop, setIsDesktop] = useState(true);
   const leftPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -133,6 +134,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
           // Adjust for header elements inside the left panel (Trending + FilterBar = ~110px)
           const availableHeight = entry.contentRect.height;
           setListHeight(Math.max(400, availableHeight - 110));
+          setIsDesktop(window.innerWidth >= 768);
         }
       });
       resizeObserver.observe(leftPanelRef.current);
@@ -261,14 +263,14 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   <div className="absolute inset-0 rounded-[12px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] pointer-events-none" />
                 </div>
                 <div className="flex flex-col justify-center mt-0.5">
-                  <h1 className="text-[20px] sm:text-[23px] font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#191f28] to-[#4e5968] leading-none mb-1.5">
+                  <h1 className="text-[20px] sm:text-[24px] font-black tracking-[-0.03em] text-[#191f28] leading-none mb-1.5">
                     동탄 아파트 가치 분석
                   </h1>
                   <div className="hidden sm:flex items-center gap-2">
-                    <span className="px-1.5 py-[3px] bg-[#3182f6]/10 text-[#3182f6] border border-[#3182f6]/20 rounded-[5px] text-[10px] font-black tracking-widest leading-none shadow-sm">
+                    <span className="px-2 py-[3px] bg-[#191f28] text-white rounded-[5px] text-[10px] font-bold tracking-widest leading-none shadow-sm">
                       DATA LAB
                     </span>
-                    <span className="text-[11px] font-bold text-[#8b95a1] tracking-wide uppercase">
+                    <span className="text-[11px] font-extrabold text-[#8b95a1] tracking-[0.1em] uppercase">
                       Powered by D-VIEW
                     </span>
                   </div>
@@ -402,7 +404,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   <FixedSizeList
                     className="custom-scrollbar"
                     height={listHeight}
-                    itemCount={sorted.length + 4} // Reserve 4 items (328px) for the Footer
+                    itemCount={sorted.length + (isDesktop ? 0 : 4)} // Reserve 4 items (328px) for the Footer on mobile
                     itemSize={82}
                     width="100%"
                     overscanCount={5}
@@ -411,7 +413,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                       if (index === sorted.length) {
                         return (
                           <div style={style} className="relative z-0">
-                            <div className="absolute top-0 w-full">
+                            <div className="absolute top-0 w-full md:hidden">
                               <Footer />
                             </div>
                           </div>
@@ -503,6 +505,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                       isLoadingDetail={isLoadingDetail}
                       isPurchased={purchasedReportIds.includes(resolvedReport.id)}
                       isAdmin={dashboardFacade.isAdmin(user?.email)}
+                      txSummary={aptTxSummary}
                       onPurchaseComplete={() => {
                         if (user) {
                           refreshPurchasedReports();
@@ -579,6 +582,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               isLoadingDetail={isLoadingDetail}
               isPurchased={purchasedReportIds.includes(resolvedReport.id)}
               isAdmin={dashboardFacade.isAdmin(user?.email)}
+              txSummary={aptTxSummary}
               onPurchaseComplete={() => {
                 if (user) {
                   refreshPurchasedReports();

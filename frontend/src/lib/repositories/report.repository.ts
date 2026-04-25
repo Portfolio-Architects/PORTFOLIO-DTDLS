@@ -35,6 +35,7 @@ export function listenToReports(callback: (reports: FieldReportData[]) => void):
         viewCount: data.viewCount || 0,
         commentCount: data.commentCount || 0,
         imageUrl: data.thumbnailUrl || data.imageUrl,
+        images: data.images || [],
         metrics: data.metrics,
         scoutingDate: data.scoutingDate || '',
         createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('ko-KR') : '방금 전',

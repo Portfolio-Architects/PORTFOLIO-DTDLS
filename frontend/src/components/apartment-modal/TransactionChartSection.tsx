@@ -22,6 +22,7 @@ interface TransactionChartSectionProps {
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   areaUnit: 'm2' | 'pyeong';
   normalizeAptName: (name: string) => string;
+  txSummary?: any;
 }
 
 export function TransactionChartSection({
@@ -32,7 +33,8 @@ export function TransactionChartSection({
   dong,
   typeMap,
   areaUnit,
-  normalizeAptName
+  normalizeAptName,
+  txSummary
 }: TransactionChartSectionProps) {
   type ScatterData = {
     ts: number; yearMonth: number; contractDay: number; price: number; area: number;
@@ -151,7 +153,8 @@ export function TransactionChartSection({
   };
 
   const momentum = {
-    m1: getRecentAvgByMonths(1),
+    m1: chartType === 'sale' ? (txSummary?.avg1MPrice ? txSummary.avg1MPrice / 10000 : getRecentAvgByMonths(1)) 
+                             : (txSummary?.avg1MRentDeposit ? txSummary.avg1MRentDeposit / 10000 : getRecentAvgByMonths(1)),
     m3: getRecentAvgByMonths(3),
     m6: getRecentAvgByMonths(6),
     y1: getRecentAvgByMonths(12),
@@ -196,10 +199,10 @@ export function TransactionChartSection({
               <TrendingUp size={15} className="text-[#3182f6]" /> {chartType === 'sale' ? '매매가 추이' : '전월세 추이'}
             </h4>
             
-            {/* 최고가 대비 현재가 게이지 바 */}
+            {/* 최고 평균가 대비 현재 평균가 게이지 바 */}
             {(() => {
               if (prices.length > 0) {
-                const maxPrice = Math.max(...prices);
+                const maxPrice = monthlyData.length > 0 ? Math.max(...monthlyData.map(d => d.monthAvg).filter(Boolean)) : Math.max(...prices);
                 const currentPrice = momentum.m1 || prices[prices.length - 1];
                 if (maxPrice > 0 && currentPrice > 0) {
                   const dropRatio = ((maxPrice - currentPrice) / maxPrice) * 100;
@@ -207,7 +210,7 @@ export function TransactionChartSection({
                   return (
                     <div className="flex flex-col gap-1 mt-1">
                       <div className="flex justify-between text-[11px] font-bold">
-                        <span className="text-[#8b95a1]">최고가 {formatAvgPriceEok(maxPrice)}</span>
+                        <span className="text-[#8b95a1]">최고 평균가 {formatAvgPriceEok(maxPrice)}</span>
                         <span className="text-[#3182f6]">현재 {formatAvgPriceEok(currentPrice)} ({dropRatio > 0 ? `-${dropRatio.toFixed(1)}%` : `+${Math.abs(dropRatio).toFixed(1)}%`})</span>
                       </div>
                       <div className="w-full h-1.5 bg-[#f2f4f6] rounded-full overflow-hidden">

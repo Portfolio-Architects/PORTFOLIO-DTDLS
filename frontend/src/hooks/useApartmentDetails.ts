@@ -167,12 +167,22 @@ export function useApartmentDetails(
     return { ...raw, metrics: mergedMetrics as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics };
   }, [selectedReport, fullReportData, sheetApartments, nameMapping]);
 
+  const aptTxSummary = useMemo(() => {
+    if (!selectedReport) return undefined;
+    const rawApt = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping));
+    const overrideKey = HARDCODED_MAPPING[normalizeAptName(selectedReport.apartmentName)];
+    const txKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping);
+    const fileKey = txKey || normalizeAptName(selectedReport.apartmentName);
+    return txSummaryData[fileKey];
+  }, [selectedReport, sheetApartments, nameMapping, txSummaryData]);
+
   return {
     txSummaryData,
     fullReportData,
     modalTransactions,
     isLoadingDetail,
     isTxLoading,
-    resolvedReport
+    resolvedReport,
+    aptTxSummary
   };
 }

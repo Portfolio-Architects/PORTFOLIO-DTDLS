@@ -29,17 +29,23 @@ interface ApartmentCardProps {
 }
 
 export default function ApartmentCard({ apt, txSummary, report, isPublicRental, onClick, rank, isSelected, isFavorited, favoriteCount, onToggleFavorite, typeMap, areaUnit = 'm2' }: ApartmentCardProps) {
-  // 사진 등록 여부 확인
-  const hasPhotos = !!(
-    report?.imageUrl ||
-    (report?.images && report.images.length > 0) ||
-    report?.sections?.infra?.gateImg || report?.sections?.infra?.gateImgs?.length ||
-    report?.sections?.infra?.landscapeImg || report?.sections?.infra?.landscapeImgs?.length ||
-    report?.sections?.infra?.parkingImg ||
-    report?.sections?.ecosystem?.communityImg ||
-    report?.sections?.ecosystem?.schoolImg ||
-    report?.sections?.ecosystem?.commerceImg
-  );
+  // 사진 갯수 계산
+  let photoCount = 0;
+  if (report?.images?.length) {
+    photoCount = report.images.length;
+  } else {
+    if (report?.imageUrl) photoCount += 1;
+    if (report?.sections?.infra?.gateImg) photoCount += 1;
+    if (report?.sections?.infra?.gateImgs?.length) photoCount += report.sections.infra.gateImgs.length;
+    if (report?.sections?.infra?.landscapeImg) photoCount += 1;
+    if (report?.sections?.infra?.landscapeImgs?.length) photoCount += report.sections.infra.landscapeImgs.length;
+    if (report?.sections?.infra?.parkingImg) photoCount += 1;
+    if (report?.sections?.ecosystem?.communityImg) photoCount += 1;
+    if (report?.sections?.ecosystem?.schoolImg) photoCount += 1;
+    if (report?.sections?.ecosystem?.commerceImg) photoCount += 1;
+  }
+
+  const hasPhotos = photoCount > 0;
 
   // 입지 분석(metrics) 유무 확인 (기본 건축정보를 제외한 실제 주변 인프라 입지 데이터가 있는지)
   const m = report?.metrics;
@@ -93,15 +99,16 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
         <div className="flex items-center gap-1.5 mt-1.5 overflow-hidden">
           <span className="text-[11px] font-medium text-[#8b95a1] shrink-0">{apt.dong}</span>
           
-          {hasPhotos ? (
-            <span className="inline-flex items-center gap-0.5 bg-[#fff4e6] text-[#ff8a3d] text-[10px] font-bold px-1.5 py-[1px] rounded shrink-0 leading-tight" title="현장검증">
-              현장검증
+          {hasAnalysis && (
+            <span className="inline-flex items-center gap-0.5 bg-[#e8f3ff] text-[#1b64da] text-[11px] font-bold px-2 py-[2px] rounded shrink-0 leading-tight">
+              가치평가
             </span>
-          ) : hasAnalysis ? (
-            <span className="inline-flex items-center gap-0.5 bg-[#e8f3ff] text-[#1b64da] text-[10px] font-bold px-1.5 py-[1px] rounded shrink-0 leading-tight" title="입지분석">
-              입지분석
+          )}
+          {hasPhotos && (
+            <span className="inline-flex items-center gap-0.5 bg-[#fff4e6] text-[#ff8a3d] text-[11px] font-bold px-2 py-[2px] rounded shrink-0 leading-tight">
+              현장사진 {photoCount}장
             </span>
-          ) : null}
+          )}
           {(!hasAnalysis && !hasPhotos) && isPublicRental && (
             <span className="text-[11px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-1.5 py-[1px] rounded shrink-0 leading-tight">공공</span>
           )}

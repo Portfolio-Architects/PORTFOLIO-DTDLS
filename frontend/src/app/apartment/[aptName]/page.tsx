@@ -27,23 +27,41 @@ export async function generateMetadata(props: { params: Promise<{ aptName: strin
     }
   }
   
+  // Dynamic OG Image URL
+  const ogUrl = new URL(`${baseUrl}/api/og`);
+  ogUrl.searchParams.set('title', decodedName);
+  ogUrl.searchParams.set('subtitle', '동탄 실거래가 및 가치 분석');
+  if (imageUrl) {
+    ogUrl.searchParams.set('bgUrl', imageUrl);
+  }
+  
+  const seoDescription = `동탄 ${decodedName} 실거래가, 매매가, 전세가율, 학군, 교통 호재, 적정 가치 분석. D-VIEW에서 실제 데이터 기반의 프리미엄 분석을 확인하세요.`;
+
   return {
-    title: `${decodedName} 실거래가/가치분석 - D-VIEW`,
-    description: `동탄 ${decodedName} 아파트의 실거래가 추이, 주변 인프라, 전문가 임장 리포트를 확인하세요.`,
+    title: `${decodedName} 실거래가 및 프리미엄 분석 - D-VIEW`,
+    description: seoDescription,
+    keywords: `동탄, ${decodedName}, 실거래가, 매매가, 전세가율, 학군, 교통, 인프라, 아파트 분석, 임장, 호갱노노, 아실, 부동산`,
     openGraph: {
       title: `${decodedName} 실거래가 분석 - D-VIEW`,
-      description: `동탄 ${decodedName} 지역의 객관적 가치 지표 및 실거래가 확인하기.`,
+      description: seoDescription,
       url: `${baseUrl}/apartment/${encodeURIComponent(decodedName)}`,
       siteName: 'D-VIEW',
       locale: 'ko_KR',
       type: 'website',
-      ...(imageUrl ? { images: [{ url: imageUrl, width: 1200, height: 630, alt: `${decodedName} 전경` }] } : {})
+      images: [
+        {
+          url: ogUrl.toString(),
+          width: 1200,
+          height: 630,
+          alt: `${decodedName} 가치 분석 썸네일`,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${decodedName} 실거래가 분석 - D-VIEW`,
-      description: `동탄 ${decodedName} 지역의 객관적 가치 지표 확인하기.`,
-      ...(imageUrl ? { images: [imageUrl] } : {})
+      description: seoDescription,
+      images: [ogUrl.toString()],
     }
   };
 }

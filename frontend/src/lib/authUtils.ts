@@ -32,13 +32,16 @@ export async function verifyAuthHeader(request: NextRequest) {
  * @returns Boolean representing authorization status.
  */
 export async function verifyAdmin(request: NextRequest): Promise<boolean> {
-  // Development mode bypass
-  if (process.env.NODE_ENV === 'development') {
-    return true;
-  }
-
   try {
     const decodedToken = await verifyAuthHeader(request);
+
+    // Development mode bypass via MOCK_ADMIN_UID (Requires actual auth token to be valid)
+    if (process.env.NODE_ENV === 'development' && process.env.MOCK_ADMIN_UID) {
+      if (decodedToken.uid === process.env.MOCK_ADMIN_UID) {
+        return true;
+      }
+    }
+
     return decodedToken.admin === true;
   } catch (error) {
     console.error('Admin Verification Error:', error);

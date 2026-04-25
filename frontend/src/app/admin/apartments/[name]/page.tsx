@@ -712,7 +712,7 @@ export default function ApartmentInfoPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-extrabold text-[#191f28] tracking-tight">{originalName}</h1>
-            <p className="text-[#4e5968] text-[14px] mt-2">단지 기본정보 · 입지분석 · 현장 사진을 통합 관리합니다.</p>
+            <p className="text-[#4e5968] text-[14px] mt-2">단지 기본정보 · 가치평가 · 현장 사진을 통합 관리합니다.</p>
           </div>
           <button onClick={handleAutoFetch} disabled={isCalculating}
             className="px-5 py-2.5 bg-[#e8f3ff] hover:bg-[#d0e8ff] text-[#3182f6] font-bold text-[13px] rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 shrink-0">

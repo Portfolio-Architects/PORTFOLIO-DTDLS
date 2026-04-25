@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FileText, Settings, Menu, X, ExternalLink, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, FileText, Settings, Menu, X, ExternalLink, BarChart2, Camera } from 'lucide-react';
 import Link from 'next/link';
 import AdminGuard from '@/components/auth/AdminGuard';
 
@@ -14,6 +14,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin', label: '아파트 대시보드', icon: LayoutDashboard, section: 'Reports' },
     { href: '/admin/traffic', label: '트래픽', icon: BarChart2, section: 'Reports' },
     { href: '/admin/report', label: '종합 보고서', icon: FileText, section: 'Reports' },
+    { href: '/admin/pending-photos', label: '사진 등록 관리', icon: Camera, section: 'Photos' },
   ];
 
   const isActive = (href: string) => pathname === href;

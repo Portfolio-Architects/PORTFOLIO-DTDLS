@@ -210,7 +210,7 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
     ? Math.round(recentRents.reduce((sum, t) => sum + getJeonseEq(t), 0) / recentRents.length)
     : (rents.length > 0 ? getJeonseEq(rents[0]) : 0);
 
-  // 2. 실사용 PER 계산 (1건 대신 최근 3개월 평균치 적용)
+  // 2. 매매가/전세가 배수 계산 (1건 대신 최근 3개월 평균치 적용)
   const realEstatePER = (avg3MSale > 0 && avg3MRent > 0) ? (avg3MSale / avg3MRent) : 0;
   const jeonseRatio = (avg3MSale > 0 && avg3MRent > 0) ? (avg3MRent / avg3MSale) * 100 : 0;
 
@@ -223,23 +223,23 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
 
   if (realEstatePER > 0) {
     if (realEstatePER < 1.6) {
-      statusText = '강력한 하방 경직성 (안전마진 확보)';
+      statusText = '강력한 하방 방어력 (안전마진 구간)';
       statusColor = 'text-[#03c75a]';
       statusBg = 'bg-[#03c75a]/10 border-[#03c75a]/20';
       StatusIcon = ShieldCheck;
-      descriptionText = '사용 가치(전세금) 기반의 자본환원율이 높습니다. 하락장에서도 하방 방어력이 우수하며 투자가치가 돋보입니다.';
+      descriptionText = '사용 가치(전세금)가 든든하게 받쳐주고 있습니다. 하락장에서도 하방 방어력이 우수하며 투자가치가 돋보입니다.';
     } else if (realEstatePER <= 2.0) {
-      statusText = '적정 수준의 프리미엄 (시장 평균)';
+      statusText = '시장 평균 프리미엄 (적정 수준)';
       statusColor = 'text-[#3182f6]';
       statusBg = 'bg-[#3182f6]/10 border-[#3182f6]/20';
       StatusIcon = Target;
-      descriptionText = '실거주 가치에 적정 수준의 미래 가치 프리미엄이 반영되어 있는 현재 시장의 보편적 형태입니다.';
+      descriptionText = '실거주 가치에 일반적인 시장 평균 수준의 미래 가치 프리미엄이 반영되어 있는 보편적 형태입니다.';
     } else {
-      statusText = '고평가 / 미래 기대감 과다 반영';
+      statusText = '미래 성장성 프리미엄 구간';
       statusColor = 'text-[#f04452]';
       statusBg = 'bg-[#f04452]/10 border-[#f04452]/20';
       StatusIcon = TrendingUp; // Using TrendingUp for "Premium"
-      descriptionText = '사용 가치 대비 매매가가 매우 높게 형성되어 있습니다. 금리 인상 등 유동성 충격 시 가격 변동성이 높습니다.';
+      descriptionText = '실거주 가치 대비 자산 가치가 높게 형성되어 있으며, 핵심 인프라/교통 호재 등 미래 가치가 가격에 크게 선반영되어 있습니다.';
     }
   }
 
@@ -262,78 +262,79 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
         밸류에이션 분석
       </h2>
 
-      <div className="flex flex-col lg:flex-row gap-5">
-        {/* Left: Main PER Metric Box */}
-        <div className="flex-1 bg-white border border-[#e5e8eb] p-6 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between border-b border-[#f2f4f6] pb-4 mb-4">
-            <h3 className="text-[15px] font-extrabold text-[#4e5968] flex items-center gap-1.5">
-              실사용 PER <span className="font-medium text-[#8b95a1] text-[13px]">(Price to Jeonse)</span>
-            </h3>
-            <span className="text-[9px] font-bold text-[#3182f6] bg-[#3182f6]/10 px-2 py-0.5 rounded-sm uppercase tracking-wider">
-              Fundamental Value
-            </span>
-          </div>
-          
-          <div className="flex flex-col items-center justify-center pt-3 pb-7">
-            <div className="text-[12px] font-bold text-[#8b95a1] mb-1">매매가 ÷ 전세가 배수</div>
-            {realEstatePER > 0 ? (
-              <div className="flex items-end gap-1.5">
-                <span className="text-[56px] font-black text-[#191f28] leading-none tracking-tighter">
-                  {realEstatePER.toFixed(2)}
-                </span>
-                <span className="text-[18px] font-extrabold text-[#8b95a1] mb-2">배</span>
+      {/* Unified Valuation Card */}
+      <div className="bg-white border border-[#e5e8eb] p-6 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
+        <div className="flex items-center justify-between border-b border-[#f2f4f6] pb-4 mb-5">
+          <h3 className="text-[15px] font-extrabold text-[#4e5968] flex items-center gap-1.5">
+            매매가/전세가
+          </h3>
+          <span className="text-[9px] font-bold text-[#3182f6] bg-[#3182f6]/10 px-2 py-0.5 rounded-sm uppercase tracking-wider">
+            Fundamental Value
+          </span>
+        </div>
+        
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left: Main PER Metric Box */}
+          <div className="flex-1 flex flex-col justify-center">
+            <div className="flex flex-col items-center justify-center pb-6">
+              <div className="text-[12px] font-bold text-[#8b95a1] mb-1">매매가 ÷ 전세가 배수</div>
+              {realEstatePER > 0 ? (
+                <div className="flex items-end gap-1.5">
+                  <span className="text-[56px] font-black text-[#191f28] leading-none tracking-tighter">
+                    {realEstatePER.toFixed(2)}
+                  </span>
+                  <span className="text-[18px] font-extrabold text-[#8b95a1] mb-2">배</span>
+                </div>
+              ) : (
+                <div className="text-[24px] font-bold text-[#b0b8c1] my-4">N/A</div>
+              )}
+            </div>
+
+            {/* Status Alert */}
+            {realEstatePER > 0 && (
+              <div className={`p-3.5 rounded-xl border flex gap-3 items-start ${statusBg}`}>
+                <StatusIcon size={18} className={`${statusColor} shrink-0 mt-0.5`} />
+                <div className="flex flex-col gap-1.5">
+                  <h4 className={`text-[13px] font-extrabold ${statusColor}`}>{statusText}</h4>
+                  <p className="text-[11.5px] text-[#4e5968] leading-relaxed font-medium">
+                    {descriptionText}
+                  </p>
+                </div>
               </div>
-            ) : (
-              <div className="text-[24px] font-bold text-[#b0b8c1] my-4">N/A</div>
             )}
           </div>
 
-          {/* Status Alert inside the box */}
-          {realEstatePER > 0 && (
-            <div className={`mt-2 p-3.5 rounded-xl border flex gap-3 items-start ${statusBg}`}>
-              <StatusIcon size={18} className={`${statusColor} shrink-0 mt-0.5`} />
-              <div className="flex flex-col gap-1.5">
-                <h4 className={`text-[13px] font-extrabold ${statusColor}`}>{statusText}</h4>
-                <p className="text-[11.5px] text-[#4e5968] leading-relaxed font-medium">
-                  {descriptionText}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right: Data Components & Description */}
-        <div className="flex-1 flex flex-col gap-4">
-          <div className="bg-[#f9fafb] border border-[#e5e8eb] rounded-2xl p-5 flex flex-col justify-center gap-5 flex-1">
-            <h4 className="text-[13px] font-bold text-[#4e5968]">기준 실거래 데이터</h4>
-            
-            <div className="flex flex-col gap-3.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[13px] text-[#8b95a1] font-medium flex items-center gap-1">
-                  3개월 평균 매매가 <span className="text-[10px] bg-[#f2f4f6] px-1 rounded">(Price)</span>
-                </span>
-                <span className="text-[15px] font-extrabold text-[#191f28]">{formatPrice(avg3MSale)}</span>
-              </div>
+          {/* Right: Data Components */}
+          <div className="flex-1 flex flex-col justify-center">
+            <div className="bg-[#f9fafb] border border-[#e5e8eb] rounded-2xl p-5 flex flex-col justify-center gap-5 h-full">
+              <h4 className="text-[13px] font-bold text-[#4e5968]">기준 실거래 데이터</h4>
               
-              <div className="flex items-center justify-between">
-                <span className="text-[13px] text-[#8b95a1] font-medium flex items-center gap-1">
-                  3개월 평균 전세가 <span className="text-[10px] bg-[#f2f4f6] px-1 rounded">(Jeonse)</span>
-                </span>
-                <span className="text-[15px] font-extrabold text-[#3182f6]">{formatPrice(avg3MRent)}</span>
-              </div>
+              <div className="flex flex-col gap-3.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-[#8b95a1] font-medium flex items-center gap-1">
+                    3개월 평균 매매가
+                  </span>
+                  <span className="text-[15px] font-extrabold text-[#191f28]">{formatPrice(avg3MSale)}</span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-[#8b95a1] font-medium flex items-center gap-1">
+                    3개월 평균 전세가
+                  </span>
+                  <span className="text-[15px] font-extrabold text-[#3182f6]">{formatPrice(avg3MRent)}</span>
+                </div>
 
-              <div className="h-px w-full bg-[#e5e8eb] my-1" />
-              
-              <div className="flex items-center justify-between">
-                <span className="text-[13px] text-[#8b95a1] font-bold">도출된 전세가율</span>
-                <span className="text-[15px] font-extrabold text-[#191f28] bg-white px-2 py-0.5 rounded shadow-sm border border-[#e5e8eb]">
-                  {jeonseRatio > 0 ? `${jeonseRatio.toFixed(1)}%` : '-'}
-                </span>
+                <div className="h-px w-full bg-[#e5e8eb] my-1" />
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-[#8b95a1] font-bold">도출된 전세가율</span>
+                  <span className="text-[15px] font-extrabold text-[#191f28] bg-white px-2 py-0.5 rounded shadow-sm border border-[#e5e8eb]">
+                    {jeonseRatio > 0 ? `${jeonseRatio.toFixed(1)}%` : '-'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-
-
         </div>
       </div>
     </div>

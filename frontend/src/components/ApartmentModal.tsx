@@ -21,6 +21,7 @@ import { TransactionTable } from './apartment-modal/TransactionTable';
 import { TransactionChartSection } from './apartment-modal/TransactionChartSection';
 import { TransactionSummaryMetrics } from './apartment-modal/TransactionSummaryMetrics';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
+import { PhotoUploadModal } from './apartment-modal/PhotoUploadModal';
 
 const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/AdvancedValuationMetrics'), { ssr: false });
 const AnchorTenantCard = dynamic(() => import('@/components/consumer/AnchorTenantCard'), { ssr: false });
@@ -61,7 +62,8 @@ export function FieldReportModal({
   isAdmin,
   onPurchaseComplete,
   inline,
-  areaUnit = 'm2'
+  areaUnit = 'm2',
+  txSummary
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -78,6 +80,7 @@ export function FieldReportModal({
   onPurchaseComplete?: () => void;
   inline?: boolean;
   areaUnit?: 'm2' | 'pyeong';
+  txSummary?: any;
 }) {
   useSwipeNavigation({ onBack: onClose });
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -85,6 +88,7 @@ export function FieldReportModal({
   const displayAptName = getDisplayAptName(report.apartmentName);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('sec-summary');
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   // 차트 매매/전월세 토글
   const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
@@ -132,26 +136,44 @@ export function FieldReportModal({
           
           ctx.drawImage(img, 0, 0);
           
-          ctx.save();
-          ctx.translate(canvas.width / 2, canvas.height / 2);
-          ctx.rotate(-25 * Math.PI / 180);
+          // Add subtle dark background for text readability
+          const textMargin = canvas.width * 0.03;
+          const fontSize = Math.max(canvas.width * 0.025, 14);
           
-          // Match CSS mix-blend-overlay roughly with slightly stronger opacity
-          ctx.font = `900 ${canvas.width * 0.15}px sans-serif`;
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
+          ctx.font = `bold ${fontSize}px sans-serif`;
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'bottom';
           
+          const uploaderName = currentImgData?.uploaderName;
+          const watermarkText = uploaderName ? `D-VIEW x ${uploaderName}` : 'D-VIEW';
+          
+          const textMetrics = ctx.measureText(watermarkText);
+          const bgPaddingX = fontSize * 0.8;
+          const bgPaddingY = fontSize * 0.5;
+          const bgWidth = textMetrics.width + (bgPaddingX * 2);
+          const bgHeight = fontSize + (bgPaddingY * 2);
+          
+          const bgX = canvas.width - textMargin - bgWidth;
+          const bgY = canvas.height - textMargin - bgHeight;
+          
+          // Draw rounded rectangle background
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+          ctx.beginPath();
+          ctx.roundRect(bgX, bgY, bgWidth, bgHeight, fontSize * 0.4);
+          ctx.fill();
+          
+          // Draw text
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
           ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-          ctx.shadowBlur = 20;
-          ctx.shadowOffsetX = 10;
-          ctx.shadowOffsetY = 10;
+          ctx.shadowBlur = 8;
+          ctx.shadowOffsetX = 2;
+          ctx.shadowOffsetY = 2;
           
           if ('letterSpacing' in ctx) {
-            (ctx as any).letterSpacing = '0.3em';
+            (ctx as any).letterSpacing = '0.1em';
           }
           
-          ctx.fillText('D-VIEW', 0, 0);
+          ctx.fillText(watermarkText, canvas.width - textMargin - bgPaddingX, canvas.height - textMargin - bgPaddingY);
           ctx.restore();
           
           const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
@@ -252,7 +274,6 @@ export function FieldReportModal({
               />
             </div>
 
-            {/* Right: Title + Chart — mobile: 1번째, desktop: 2번째 (60%) */}
             <TransactionChartSection 
               transactions={transactions} 
               chartType={chartType} 
@@ -262,6 +283,7 @@ export function FieldReportModal({
               typeMap={typeMap} 
               areaUnit={areaUnit || 'm2'} 
               normalizeAptName={normalizeAptName} 
+              txSummary={txSummary}
             />
 
           </div>
@@ -282,7 +304,7 @@ export function FieldReportModal({
                   { id: 'sec-summary', label: '단지 기본정보', show: true },
                   { id: 'sec-infra-metrics', label: '단지 입지정보', show: !!report.metrics },
                   { id: 'sec-valuation', label: '밸류에이션 분석', show: transactions.length > 0 },
-                  { id: 'sec-photos', label: '현장 검증 사진', show: report.images && report.images.length > 0 },
+                  { id: 'sec-photos', label: '우리 단지 갤러리', show: true },
                   { id: 'sec-comments', label: '아파트 이야기', show: true },
                 ].filter(t => t.show);
 
@@ -594,22 +616,32 @@ export function FieldReportModal({
               </div>
             )}
 
-            {/* Photo Gallery — Category Tab Grid (100+ photos) */}
-            {report.images && report.images.length > 0 && (() => {
+            {/* Photo Gallery — Category Tab Grid (100+ photos) or Empty State */}
+            {report.images && report.images.length > 0 ? (() => {
               const IMAGE_TAG_LABELS: Record<string, string> = {
                 'gateImg': '정문', 'landscapeImg': '조경', 'parkingImg': '주차장',
                 'maintenanceImg': '공용부', 'communityImg': '커뮤니티', 'schoolImg': '통학로', 'commerceImg': '상권',
               };
               const allTags = ['전체', ...Array.from(new Set(report.images.map(img => img.locationTag || '기타')))];
               return (
-                <div id="sec-photos" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+                <div id="sec-photos" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 relative">
+                  <div className="absolute top-6 md:top-8 right-6 md:right-8 flex items-center gap-2 md:gap-3 z-10">
+                    <span className="text-[13px] font-bold text-[#8b95a1]">{report.images.length}장</span>
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsUploadModalOpen(true);
+                      }}
+                      className="text-[13px] font-bold text-[#3182f6] bg-[#e8f3ff] px-3 py-1.5 rounded-lg hover:bg-[#d1e7ff] transition-colors"
+                    >
+                      + 사진 추가
+                    </button>
+                  </div>
                   <details open>
-                    <summary className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-5 border-b border-[#e5e8eb] pb-3 cursor-pointer list-none">
+                    <summary className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-5 border-b border-[#e5e8eb] pb-3 cursor-pointer list-none pr-32">
                       <Camera size={20} className="text-[#3182f6]"/>
-                      현장 검증 사진
-                      <div className="ml-auto flex items-center gap-2 md:gap-3">
-                        <span className="text-[13px] font-bold text-[#8b95a1]">{report.images.length}장</span>
-                      </div>
+                      우리 단지 갤러리
                     </summary>
 
                     {/* Category Filter Chips */}
@@ -617,7 +649,46 @@ export function FieldReportModal({
                   </details>
                 </div>
               );
-            })()}
+            })() : (
+              <div id="sec-photos" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative group">
+                <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3">
+                  <Camera size={20} className="text-[#3182f6]"/> 우리 단지 갤러리
+                </h2>
+                <div className="w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f8f9fa] to-[#f2f4f6] border border-[#e5e8eb] p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px]">
+                  {/* Glassmorphism subtle background effects */}
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-[#3182f6] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
+                  <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#7c3aed] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform -translate-x-1/2 translate-y-1/2" />
+                  
+                  <div className="w-16 h-16 bg-white shadow-sm border border-[#e5e8eb] rounded-2xl flex items-center justify-center mb-5 relative z-10">
+                    <Camera className="text-[#3182f6]" size={32} strokeWidth={1.5} />
+                  </div>
+                  
+                  <h3 className="text-[18px] md:text-[20px] font-extrabold text-[#191f28] tracking-tight mb-2 relative z-10 text-center">
+                    데이터가 담지 못하는 우리 단지의 진정한 가치
+                  </h3>
+                  <p className="text-[14px] md:text-[15px] text-[#4e5968] font-medium leading-relaxed mb-8 max-w-md relative z-10 text-center">
+                    매수자의 첫인상을 결정하는 대표 이미지 1장.<br className="hidden md:block" />
+                    입주민의 시선으로 <strong className="text-[#3182f6]">우리 단지의 품격</strong>을 직접 완성해 주세요.
+                  </p>
+                  
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsUploadModalOpen(true);
+                    }}
+                    className="group relative z-10 flex items-center gap-2 bg-[#191f28] text-white text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-[#3182f6] hover:shadow-[0_4px_12px_rgba(49,130,246,0.3)] transition-all duration-300 transform hover:-translate-y-0.5"
+                  >
+                    <span>우리 단지 첫 번째 앰배서더 되기</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#3182f6] group-hover:bg-white animate-pulse" />
+                  </button>
+                  
+                  <p className="text-[12px] text-[#8b95a1] font-medium mt-5 relative z-10 text-center">
+                    * 고화질 사진이 풍부한 단지는 <span className="text-[#191f28] font-bold">인기 단지 탐색 상단에 우선 노출</span>됩니다.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {!s ? null : (
               // Advanced Template Render (요약은 위로 이동됨)
@@ -848,10 +919,10 @@ export function FieldReportModal({
               fetchPriority="high"
               className="max-w-[95vw] max-h-[85vh] object-contain select-none shadow-2xl pointer-events-none transition-opacity duration-300"
             />
-            {/* D-VIEW Watermark */}
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 overflow-hidden mix-blend-overlay">
-              <span className="text-white/40 font-black text-6xl md:text-8xl rotate-[-25deg] tracking-[0.3em] select-none drop-shadow-2xl">
-                D-VIEW
+            {/* Subtle Corner Watermark */}
+            <div className="absolute right-4 bottom-4 pointer-events-none z-20">
+              <span className="text-white/70 font-bold text-sm md:text-base tracking-widest select-none drop-shadow-xl bg-black/40 px-3 py-1.5 rounded-lg backdrop-blur-md border border-white/10">
+                {currentImgData?.uploaderName ? `D-VIEW x ${currentImgData.uploaderName}` : 'D-VIEW'}
               </span>
             </div>
           </div>
@@ -881,6 +952,17 @@ export function FieldReportModal({
       <div ref={modalRef} onScroll={handleScroll} className="bg-white h-full flex flex-col overflow-y-auto overflow-x-hidden">
         {content}
         <FullscreenOverlay />
+        
+        {/* Upload Modal */}
+        {isUploadModalOpen && (
+          <PhotoUploadModal
+            isOpen={isUploadModalOpen}
+            onClose={() => setIsUploadModalOpen(false)}
+            apartmentId={report.id}
+            apartmentName={report.apartmentName}
+            user={user}
+          />
+        )}
       </div>
     );
   }
@@ -934,6 +1016,18 @@ export function FieldReportModal({
           </div>
         </div>
       </div>
+      
+      {/* Upload Modal */}
+      {isUploadModalOpen && (
+        <PhotoUploadModal
+          isOpen={isUploadModalOpen}
+          onClose={() => setIsUploadModalOpen(false)}
+          apartmentId={report.id}
+          apartmentName={report.apartmentName}
+          user={user}
+        />
+      )}
+      
       <FullscreenOverlay />
     </>,
     document.getElementById('modal-root') || document.body

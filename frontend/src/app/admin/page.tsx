@@ -509,7 +509,7 @@ export default function AdminDashboard() {
           { label: '전체 단지', value: stats.total, color: '#3182f6', bg: '#e8f3ff', icon: Building, fk: 'all' as const },
           { label: '매핑 완료', value: stats.mapped, color: '#03c75a', bg: '#f0fdf4', icon: Check, fk: 'all' as const },
           { label: '미매핑', value: stats.unmapped, color: '#f04452', bg: '#ffebec', icon: AlertTriangle, fk: 'unmatched' as const },
-          { label: '입지분석', value: stats.analyzed, color: '#8b5cf6', bg: '#f5f3ff', icon: MapPin, fk: 'analyzed' as const },
+          { label: '가치평가', value: stats.analyzed, color: '#8b5cf6', bg: '#f5f3ff', icon: MapPin, fk: 'analyzed' as const },
           { label: '현장검증', value: stats.verified, color: '#ff8a3d', bg: '#fff4e6', icon: FileText, fk: 'verified' as const },
           { label: '공공임대', value: stats.publicR, color: '#8b95a1', bg: '#f2f4f6', icon: Home, fk: 'public' as const },
         ].map(s => (
@@ -535,7 +535,7 @@ export default function AdminDashboard() {
             className="w-full pl-11 pr-4 py-3 bg-white border border-[#e5e8eb] rounded-xl text-[14px] outline-none focus:border-[#3182f6] focus:ring-4 focus:ring-[#3182f6]/10 transition-all" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-2">
-          {([['all','전체'],['unmatched','미매핑'],['analyzed','입지분석'],['verified','현장검증'],['public','공공임대'],['private','일반분양']] as const).map(([key, label]) => (
+          {([['all','전체'],['unmatched','미매핑'],['analyzed','가치평가'],['verified','현장검증'],['public','공공임대'],['private','일반분양']] as const).map(([key, label]) => (
             <button key={key} onClick={() => startTransition(() => setFilter(key))}
               className={`shrink-0 px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${
                 filter === key ? 'bg-[#191f28] text-white' : 'bg-white border border-[#e5e8eb] text-[#4e5968] hover:bg-[#f2f4f6]'
@@ -593,7 +593,7 @@ export default function AdminDashboard() {
                             {verifiedReportsCount > 0 ? (
                               <span className="text-[11px] font-bold bg-[#fff4e6] text-[#ff8a3d] px-2 py-0.5 rounded-full mt-0.5">현장검증</span>
                             ) : analyzedApts.has(name) ? (
-                              <span className="text-[11px] font-bold bg-[#e8f3ff] text-[#1b64da] px-2 py-0.5 rounded-full mt-0.5">입지분석</span>
+                              <span className="text-[11px] font-bold bg-[#e8f3ff] text-[#1b64da] px-2 py-0.5 rounded-full mt-0.5">가치평가</span>
                             ) : null}
 
                             <span className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e5e8eb] rounded-lg text-[12px] font-bold text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28] transition-colors shadow-sm">

@@ -12,7 +12,29 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://dongtanview.com'),
   title: 'D-VIEW | 동탄 아파트 가치분석',
   description: 'D-VIEW — 동탄 179개 아파트의 실거래가·인프라·현장 검증 사진을 한눈에.',
-
+  keywords: '동탄, 아파트, 실거래가, 동탄역, 롯데캐슬, 가치분석, 임장기, 부동산, 전세가율',
+  openGraph: {
+    title: 'D-VIEW | 동탄 아파트 가치분석',
+    description: 'D-VIEW — 동탄 179개 아파트의 실거래가·인프라·현장 검증 사진을 한눈에.',
+    url: 'https://dongtanview.com',
+    siteName: 'D-VIEW',
+    locale: 'ko_KR',
+    type: 'website',
+    images: [
+      {
+        url: 'https://dongtanview.com/api/og?title=D-VIEW&subtitle=동탄 아파트 가치분석 및 임장 리포트',
+        width: 1200,
+        height: 630,
+        alt: 'D-VIEW 대표 이미지',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'D-VIEW | 동탄 아파트 가치분석',
+    description: 'D-VIEW — 동탄 179개 아파트의 실거래가·인프라·현장 검증 사진을 한눈에.',
+    images: ['https://dongtanview.com/api/og?title=D-VIEW&subtitle=동탄 아파트 가치분석 및 임장 리포트'],
+  },
   icons: {
     icon: '/icon-192x192.png',
     apple: '/icon-192x192.png'
