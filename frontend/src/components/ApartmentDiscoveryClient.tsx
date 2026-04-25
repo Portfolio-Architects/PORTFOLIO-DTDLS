@@ -39,9 +39,8 @@ export default function ApartmentDiscoveryClient({
   // Discovery Categories
   const CATEGORIES = [
     { id: 'price-rank', label: '평당가 기준', icon: TrendingUp, color: '#8b5cf6', desc: '최근 1개월 평균 평당가 기준' },
-    { id: 'popular', label: '인기 단지', icon: Flame, color: '#f04452', desc: '현재 가장 많이 조회된 단지' },
-    { id: 'favorites', label: '내 관심 단지', icon: Heart, color: '#ff3b30', desc: '내가 찜한 단지 모아보기' },
-    { id: 'recent', label: '최신 업데이트', icon: Clock, color: '#3182f6', desc: '최근 다녀온 현장기록' },
+    { id: 'sales-price', label: '매매가 기준', icon: Building2, color: '#f04452', desc: '최근 1개월 평균 매매가 기준' },
+    { id: 'lease-price', label: '전세가 기준', icon: Clock, color: '#3182f6', desc: '최근 1개월 평균 전세가 기준' },
   ];
 
   const [activeCategory, setActiveCategory] = useState<string>('price-rank');
@@ -77,28 +76,38 @@ export default function ApartmentDiscoveryClient({
       }).slice(0, 100);
     }
 
-    if (activeCategory === 'popular') {
+    if (activeCategory === 'sales-price') {
       return [...allApts].sort((a, b) => {
-        const rA = fieldReportsMap.get(a.name);
-        const rB = fieldReportsMap.get(b.name);
-        const diff = (rB?.viewCount || 0) - (rA?.viewCount || 0);
+        const rawKeyA = (a as any).txKey || a.name;
+        const txKeyA = findTxKey(rawKeyA, txSummaryData, nameMapping) || rawKeyA;
+        const sumA = txKeyA ? txSummaryData[txKeyA] : undefined;
+        const priceA = sumA ? (sumA.avg1MPrice || sumA.latestPrice || 0) : 0;
+
+        const rawKeyB = (b as any).txKey || b.name;
+        const txKeyB = findTxKey(rawKeyB, txSummaryData, nameMapping) || rawKeyB;
+        const sumB = txKeyB ? txSummaryData[txKeyB] : undefined;
+        const priceB = sumB ? (sumB.avg1MPrice || sumB.latestPrice || 0) : 0;
+
+        const diff = priceB - priceA;
         return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
-      }).slice(0, 50); // Top 50 limits
+      }).slice(0, 100);
     }
 
-    if (activeCategory === 'favorites') {
-      return allApts.filter(a => userFavorites.has(a.name));
-    }
+    if (activeCategory === 'lease-price') {
+      return [...allApts].sort((a, b) => {
+        const rawKeyA = (a as any).txKey || a.name;
+        const txKeyA = findTxKey(rawKeyA, txSummaryData, nameMapping) || rawKeyA;
+        const sumA = txKeyA ? txSummaryData[txKeyA] : undefined;
+        const priceA = sumA ? (sumA.avg1MRentDeposit || sumA.latestRentDeposit || 0) : 0;
 
-    if (activeCategory === 'recent') {
-      const reportedApts = allApts.filter(a => fieldReportsMap.has(a.name));
-      return reportedApts.sort((a, b) => {
-        const rA = fieldReportsMap.get(a.name);
-        const rB = fieldReportsMap.get(b.name);
-        const tA = rA?.createdAt ? new Date(rA.createdAt as string | number).getTime() : 0;
-        const tB = rB?.createdAt ? new Date(rB.createdAt as string | number).getTime() : 0;
-        return tB - tA;
-      }).slice(0, 50);
+        const rawKeyB = (b as any).txKey || b.name;
+        const txKeyB = findTxKey(rawKeyB, txSummaryData, nameMapping) || rawKeyB;
+        const sumB = txKeyB ? txSummaryData[txKeyB] : undefined;
+        const priceB = sumB ? (sumB.avg1MRentDeposit || sumB.latestRentDeposit || 0) : 0;
+
+        const diff = priceB - priceA;
+        return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
+      }).slice(0, 100);
     }
 
     return allApts;
@@ -219,7 +228,7 @@ export default function ApartmentDiscoveryClient({
           </p>
 
           {/* 인라인 프리미엄 광고 배너 (선택형 렌더링) */}
-          {(activeCategory === 'popular' || activeCategory === 'recent') && (
+          {(activeCategory === 'price-rank') && (
             <div className="mt-6 w-full bg-gradient-to-br from-[#191f28] to-[#222a35] rounded-[18px] p-5 flex items-center relative overflow-hidden group cursor-pointer shadow-md">
               <div className="absolute top-0 right-0 w-48 h-48 bg-[#3182f6] mix-blend-screen opacity-20 blur-3xl transform translate-x-1/2 -translate-y-1/2" />
               <div className="bg-white/10 p-2.5 rounded-xl border border-white/20 mr-4">
@@ -242,12 +251,10 @@ export default function ApartmentDiscoveryClient({
             <div className="flex flex-col items-center justify-center h-64 text-center px-4">
               <Heart className="w-12 h-12 text-[#d1d6db] mb-4" strokeWidth={1.5} />
               <h4 className="text-[16px] font-bold text-[#4e5968] mb-2">
-                {activeCategory === 'favorites' ? '찜한 단지가 없습니다.' : '해당하는 단지가 없습니다.'}
+                해당하는 단지가 없습니다.
               </h4>
               <p className="text-[13px] text-[#8b95a1]">
-                {activeCategory === 'favorites' 
-                  ? '다른 탭에서 단지의 하트를 눌러 관심 단지를 모아보세요!' 
-                  : '조건을 변경하여 다시 시도해주세요.'}
+                조건을 변경하여 다시 시도해주세요.
               </p>
             </div>
           ) : (
@@ -274,7 +281,7 @@ export default function ApartmentDiscoveryClient({
                       report={matchedReport}
                       isPublicRental={publicRentalSet.has(apt.name)}
                       onClick={() => handleSelectApt(apt as DongApartment)}
-                      rank={activeCategory === 'price-rank' || activeCategory === 'popular' ? index + 1 : undefined}
+                      rank={activeCategory === 'price-rank' || activeCategory === 'sales-price' || activeCategory === 'lease-price' ? index + 1 : undefined}
                       isFavorited={userFavorites.has(apt.name)}
                       favoriteCount={favoriteCounts[apt.name] || 0}
                       onToggleFavorite={() => onToggleFavorite(apt.name)}
