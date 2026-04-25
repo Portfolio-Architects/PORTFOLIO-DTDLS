@@ -57,50 +57,53 @@ export default function ApartmentDiscoveryClient({
     return map;
   }, [fieldReports, allApts, nameMapping]);
 
+  // Pre-calculate derived values to prevent O(N log N) repetitive lookups during sorting
+  const enrichedApts = useMemo(() => {
+    return allApts.map(apt => {
+      const rawKey = (apt as any).txKey || apt.name;
+      const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
+      const sum = txKey ? txSummaryData[txKey] : undefined;
+      
+      const pyeongPrice = sum?.avg1MPerPyeong || 0;
+      
+      const sales = sum ? (sum.avg1MPrice || sum.latestPrice || 0) : 0;
+      const jeonse = sum ? (sum.avg1MRentDeposit || sum.latestRentDeposit || 0) : 0;
+      const ratio = sales > 0 && jeonse > 0 ? (jeonse / sales) : 0;
+      
+      return {
+        apt,
+        pyeongPrice,
+        ratio,
+        hasTx: !!sum && !!(sum.avg1MPrice || sum.latestPrice) && !!(sum.avg1MRentDeposit || sum.latestRentDeposit)
+      };
+    });
+  }, [allApts, txSummaryData, nameMapping]);
+
   // Derived filtered & sorted list
   const displayList = useMemo(() => {
     if (activeCategory === 'price-rank') {
-      return [...allApts].sort((a, b) => {
-        const rawKeyA = (a as any).txKey || a.name;
-        const txKeyA = findTxKey(rawKeyA, txSummaryData, nameMapping) || rawKeyA;
-        const pyeongA = txSummaryData[txKeyA]?.avg1MPerPyeong || 0;
-
-        const rawKeyB = (b as any).txKey || b.name;
-        const txKeyB = findTxKey(rawKeyB, txSummaryData, nameMapping) || rawKeyB;
-        const pyeongB = txSummaryData[txKeyB]?.avg1MPerPyeong || 0;
-
-        const diff = pyeongB - pyeongA;
-        return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
-      }).slice(0, 100);
+      return [...enrichedApts]
+        .sort((a, b) => {
+          const diff = b.pyeongPrice - a.pyeongPrice;
+          return diff !== 0 ? diff : a.apt.name.localeCompare(b.apt.name, 'ko');
+        })
+        .slice(0, 100)
+        .map(e => e.apt);
     }
 
     if (activeCategory === 'valuation') {
-      return [...allApts].sort((a, b) => {
-        const getRatio = (apt: any) => {
-          const rawKey = apt.txKey || apt.name;
-          const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
-          const sum = txKey ? txSummaryData[txKey] : undefined;
-          if (!sum) return 0;
-          const sales = sum.avg1MPrice || sum.latestPrice || 0;
-          const jeonse = sum.avg1MRentDeposit || sum.latestRentDeposit || 0;
-          return sales > 0 && jeonse > 0 ? (jeonse / sales) : 0;
-        };
-
-        const ratioA = getRatio(a);
-        const ratioB = getRatio(b);
-
-        const diff = ratioB - ratioA;
-        return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
-      }).filter(apt => {
-          const rawKey = (apt as any).txKey || apt.name;
-          const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
-          const sum = txKey ? txSummaryData[txKey] : undefined;
-          return sum && (sum.avg1MPrice || sum.latestPrice) && (sum.avg1MRentDeposit || sum.latestRentDeposit);
-      }).slice(0, 100);
+      return [...enrichedApts]
+        .filter(e => e.hasTx)
+        .sort((a, b) => {
+          const diff = b.ratio - a.ratio;
+          return diff !== 0 ? diff : a.apt.name.localeCompare(b.apt.name, 'ko');
+        })
+        .slice(0, 100)
+        .map(e => e.apt);
     }
 
     return allApts;
-  }, [activeCategory, allApts, fieldReportsMap, userFavorites]);
+  }, [activeCategory, enrichedApts, allApts]);
 
   const activeCatObj = CATEGORIES.find(c => c.id === activeCategory);
 
