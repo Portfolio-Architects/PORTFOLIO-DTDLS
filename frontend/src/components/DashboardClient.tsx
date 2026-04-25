@@ -258,19 +258,18 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   window.history.pushState(null, '', '/');
                 }}
               >
-                <div className="relative">
-                  <img src="/d-view-icon.png" alt="D-VIEW" className="w-10 h-10 sm:w-11 sm:h-11 rounded-[12px] shadow-[0_4px_12px_rgba(49,130,246,0.12)] ring-1 ring-black/5 group-hover:scale-105 transition-transform duration-300" />
-                  <div className="absolute inset-0 rounded-[12px] shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] pointer-events-none" />
+                <div className="relative shrink-0">
+                  <img src="/d-view-icon.png" alt="D-VIEW" className="w-10 h-10 sm:w-11 sm:h-11 rounded-[12px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04] group-hover:-translate-y-0.5 group-hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-all duration-300" />
                 </div>
-                <div className="flex flex-col justify-center mt-0.5">
-                  <h1 className="text-[20px] sm:text-[24px] font-black tracking-[-0.03em] text-[#191f28] leading-none mb-1.5">
+                <div className="flex flex-col justify-center">
+                  <h1 className="text-[19px] sm:text-[22px] font-bold tracking-tight text-[#191f28] leading-none mb-1.5">
                     동탄 아파트 가치 분석
                   </h1>
-                  <div className="hidden sm:flex items-center gap-2">
-                    <span className="px-2 py-[3px] bg-[#191f28] text-white rounded-[5px] text-[10px] font-bold tracking-widest leading-none shadow-sm">
+                  <div className="hidden sm:flex items-center gap-1.5">
+                    <span className="px-1.5 py-[3px] bg-[#f2f4f6] text-[#4e5968] rounded-[4px] text-[10px] font-bold tracking-widest leading-none">
                       DATA LAB
                     </span>
-                    <span className="text-[11px] font-extrabold text-[#8b95a1] tracking-[0.1em] uppercase">
+                    <span className="text-[11px] font-semibold text-[#8b95a1] tracking-wide">
                       Powered by D-VIEW
                     </span>
                   </div>
