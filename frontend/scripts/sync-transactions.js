@@ -46,7 +46,7 @@ if (fs.existsSync(serviceAccountPath)) {
 }
 
 if (!admin.apps.length) {
-  const config = serviceAccount ? { credential: admin.credential.cert(serviceAccount) } : {};
+  const config = serviceAccount ? { credential: admin.credential.cert(serviceAccount) } : { projectId };
   admin.initializeApp(config);
 }
 

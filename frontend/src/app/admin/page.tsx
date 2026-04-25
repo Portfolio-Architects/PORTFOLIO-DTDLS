@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useTransition } from 'react';
+import { useState, useEffect, useMemo, useCallback, useTransition, useDeferredValue } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -439,8 +439,10 @@ export default function AdminDashboard() {
     return { total: allAptNames.length, mapped, unmapped, publicR, verified, analyzed, totalVerifiedReports };
   }, [meta, allAptNames, verifiedApts, analyzedApts, reports]);
 
+  const deferredSearch = useDeferredValue(search);
+
   const filteredDongs = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = deferredSearch.trim().toLowerCase();
     return Object.entries(aptsByDong)
       .map(([dong, apts]) => {
         let f = apts;
@@ -454,7 +456,7 @@ export default function AdminDashboard() {
       })
       .filter(([, a]) => a.length > 0)
       .sort(([a], [b]) => a.localeCompare(b, 'ko'));
-  }, [search, filter, aptsByDong, analyzedApts, verifiedApts]);
+  }, [deferredSearch, filter, aptsByDong, analyzedApts, verifiedApts]);
 
   if (!loaded) return (
     <div className="flex justify-center items-center py-32">
@@ -557,7 +559,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="flex-1 relative">
           <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8b95a1]" />
-          <input type="text" value={search} onChange={e => startTransition(() => setSearch(e.target.value))}
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="아파트명 또는 동 이름으로 검색..."
             className="w-full pl-11 pr-4 py-3 bg-white border border-[#e5e8eb] rounded-xl text-[14px] outline-none focus:border-[#3182f6] focus:ring-4 focus:ring-[#3182f6]/10 transition-all" />
         </div>
