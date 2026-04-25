@@ -11,6 +11,7 @@
  * → Vercel CPU 사용 0, 메인 페이지 즉시 렌더링
  */
 
+require('dotenv').config({ path: '.env.local' });
 const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
@@ -25,7 +26,9 @@ const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY || process.env.GOOGLE_
 const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'portfolio-dtdls';
 
-if (envKey) {
+if (fs.existsSync(serviceAccountPath)) {
+  serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+} else if (envKey) {
   try {
     serviceAccount = JSON.parse(envKey);
   } catch (e) {
@@ -37,8 +40,6 @@ if (envKey) {
     clientEmail,
     privateKey: privateKey.replace(/^"|"$/g, '').replace(/\\n/g, '\n'),
   };
-} else if (fs.existsSync(serviceAccountPath)) {
-  serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
 } else {
   console.log('⚠️ 인증 정보를 찾을 수 없습니다.');
   console.log('   기본 자격 증명을 시도합니다.');
