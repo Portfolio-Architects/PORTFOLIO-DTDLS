@@ -108,66 +108,58 @@ export default function AnchorTenantCard(props: AnchorTenantCardProps) {
         {anchors.map((anchor) => {
           if (anchor.distance == null) return null;
           const walkingTime = Math.ceil(anchor.distance / 80);
-          const barWidth = Math.min(100, Math.max(1, (anchor.distance / TRACK_MAX_DISTANCE) * 100));
           
           return (
-            <div key={anchor.id} className="group flex flex-col py-4 border-b border-[#f2f4f6] last:border-0 relative">
+            <div key={anchor.id} className="group flex items-center justify-between gap-3 md:gap-4 py-3.5 md:py-4 border-b border-[#f2f4f6] last:border-0 hover:bg-[#f9fafb] transition-colors -mx-6 px-6 md:-mx-8 md:px-8 rounded-none first:mt-2 last:mb-0">
               
-              {/* Top Row: Label & Distance Info */}
-              <div className="flex items-center justify-between gap-3 mb-2.5">
-                {/* Category Label */}
-                <div className="flex items-center gap-2">
+              {/* Left: Category & Name */}
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                {/* Category */}
+                <div className="flex items-center gap-1.5 md:gap-2 shrink-0 w-[60px] md:w-[70px]">
                   <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: anchor.color }}></div>
-                  <span className="text-[13px] md:text-[14px] font-bold text-[#4e5968]">{anchor.name}</span>
+                  <span className="text-[12px] md:text-[13px] font-bold text-[#8b95a1]">{anchor.name}</span>
                 </div>
                 
-                {/* Distance & Walking Time */}
-                <div className="flex items-baseline gap-1.5 md:gap-2">
-                  <span className="text-[15px] md:text-[16px] font-extrabold text-[#191f28] tabular-nums text-right">
-                    {(anchor.distance / 1000).toFixed(2)}<span className="text-[11px] font-medium text-[#8b95a1] ml-0.5">km</span>
+                {/* Store Name & Address */}
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="text-[#191f28] font-bold text-[13px] md:text-[14px] truncate">
+                    {anchor.metaName || "-"}
                   </span>
-                  <span className="text-[11px] font-medium text-[#4e5968] bg-[#f2f4f6] px-1.5 py-0.5 rounded-md">
+                  {anchor.metaAddress && (
+                    <span className="text-[#8b95a1] font-medium text-[11px] md:text-[12px] truncate mt-px hidden md:block">
+                      {anchor.metaAddress}
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              {/* Right: Distance & Map */}
+              <div className="flex items-center gap-3 md:gap-5 shrink-0">
+                <div className="flex flex-col items-end justify-center">
+                  <div className="flex items-baseline gap-0.5">
+                    <span className="text-[15px] md:text-[17px] font-extrabold text-[#191f28] tabular-nums">
+                      {(anchor.distance / 1000).toFixed(2)}
+                    </span>
+                    <span className="text-[11px] font-medium text-[#8b95a1] ml-0.5">km</span>
+                  </div>
+                  <span className="text-[10px] md:text-[11px] font-medium text-[#4e5968] bg-[#f2f4f6] px-1.5 py-0.5 rounded-md mt-0.5">
                     도보 {walkingTime}분
                   </span>
                 </div>
+                
+                {anchor.metaCoordinates && (
+                  <a 
+                    href={`https://www.google.com/maps/search/?api=1&query=${anchor.metaCoordinates}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="shrink-0 text-[#8b95a1] bg-white border border-[#e5e8eb] hover:bg-[#f2f4f6] hover:text-[#4e5968] p-2 md:px-2.5 md:py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                    title={`${anchor.metaName} 지도에서 보기`}
+                  >
+                    <MapPin size={14} strokeWidth={2.5} />
+                    <span className="text-[11px] font-bold hidden md:inline-block">지도</span>
+                  </a>
+                )}
               </div>
-
-              {/* Thin Progress Bar */}
-              <div className="w-full bg-[#f2f4f6] rounded-full h-[4px] overflow-hidden mb-3.5">
-                <div
-                  className="h-full rounded-full transition-all duration-700 ease-out bg-[#d1d6db] group-hover:bg-[#8b95a1]"
-                  style={{ width: `${barWidth}%` }}
-                />
-              </div>
-
-              {/* Bottom Row: Detail Card */}
-              {anchor.metaName && (
-                <div className="flex items-center justify-between gap-3 bg-[#f9fafb] border border-[#e5e8eb] px-3.5 py-3 rounded-xl transition-colors">
-                  <div className="flex flex-col min-w-0 flex-1">
-                    <div className="text-[#191f28] font-bold text-[12px] md:text-[13px] truncate">
-                      {anchor.metaName}
-                    </div>
-                    {anchor.metaAddress && (
-                      <div className="text-[#8b95a1] font-medium text-[11px] truncate mt-0.5">
-                        {anchor.metaAddress}
-                      </div>
-                    )}
-                  </div>
-                  
-                  {anchor.metaCoordinates && (
-                    <a 
-                      href={`https://www.google.com/maps/search/?api=1&query=${anchor.metaCoordinates}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="shrink-0 text-[#4e5968] bg-white border border-[#e5e8eb] hover:bg-[#f2f4f6] px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
-                      title={`${anchor.metaName} 지도에서 보기`}
-                    >
-                      <MapPin size={12} strokeWidth={2.5} />
-                      <span className="text-[11px] font-bold tracking-tight">지도</span>
-                    </a>
-                  )}
-                </div>
-              )}
             </div>
           );
         })}
