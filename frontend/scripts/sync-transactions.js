@@ -41,8 +41,9 @@ if (fs.existsSync(serviceAccountPath)) {
     privateKey: privateKey.replace(/^"|"$/g, '').replace(/\\n/g, '\n'),
   };
 } else {
-  console.log('⚠️ 인증 정보를 찾을 수 없습니다.');
-  console.log('   기본 자격 증명을 시도합니다.');
+  console.log('⚠️ 인증 정보를 찾을 수 없습니다. (CI/CD 환경 등)');
+  console.log('   Firestore 동기화를 건너뜁니다.');
+  process.exit(0);
 }
 
 if (!admin.apps.length) {
