@@ -36,11 +36,9 @@ export default function ApartmentDiscoveryClient({
   typeMap,
   areaUnit
 }: DiscoveryProps) {
-  // Discovery Categories
   const CATEGORIES = [
     { id: 'price-rank', label: '평당가 기준', icon: TrendingUp, color: '#8b5cf6', desc: '최근 1개월 평균 평당가 기준' },
-    { id: 'sales-price', label: '매매가 기준', icon: Building2, color: '#f04452', desc: '최근 1개월 평균 매매가 기준' },
-    { id: 'lease-price', label: '전세가 기준', icon: Clock, color: '#3182f6', desc: '최근 1개월 평균 전세가 기준' },
+    { id: 'valuation', label: '매매가/전세가 기준', icon: Building2, color: '#f04452', desc: '매매가 대비 전세가(전세가율) 밸류에이션 기준' },
   ];
 
   const [activeCategory, setActiveCategory] = useState<string>('price-rank');
@@ -76,37 +74,28 @@ export default function ApartmentDiscoveryClient({
       }).slice(0, 100);
     }
 
-    if (activeCategory === 'sales-price') {
+    if (activeCategory === 'valuation') {
       return [...allApts].sort((a, b) => {
-        const rawKeyA = (a as any).txKey || a.name;
-        const txKeyA = findTxKey(rawKeyA, txSummaryData, nameMapping) || rawKeyA;
-        const sumA = txKeyA ? txSummaryData[txKeyA] : undefined;
-        const priceA = sumA ? (sumA.avg1MPrice || sumA.latestPrice || 0) : 0;
+        const getRatio = (apt: any) => {
+          const rawKey = apt.txKey || apt.name;
+          const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
+          const sum = txKey ? txSummaryData[txKey] : undefined;
+          if (!sum) return 0;
+          const sales = sum.avg1MPrice || sum.latestPrice || 0;
+          const jeonse = sum.avg1MRentDeposit || sum.latestRentDeposit || 0;
+          return sales > 0 && jeonse > 0 ? (jeonse / sales) : 0;
+        };
 
-        const rawKeyB = (b as any).txKey || b.name;
-        const txKeyB = findTxKey(rawKeyB, txSummaryData, nameMapping) || rawKeyB;
-        const sumB = txKeyB ? txSummaryData[txKeyB] : undefined;
-        const priceB = sumB ? (sumB.avg1MPrice || sumB.latestPrice || 0) : 0;
+        const ratioA = getRatio(a);
+        const ratioB = getRatio(b);
 
-        const diff = priceB - priceA;
+        const diff = ratioB - ratioA;
         return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
-      }).slice(0, 100);
-    }
-
-    if (activeCategory === 'lease-price') {
-      return [...allApts].sort((a, b) => {
-        const rawKeyA = (a as any).txKey || a.name;
-        const txKeyA = findTxKey(rawKeyA, txSummaryData, nameMapping) || rawKeyA;
-        const sumA = txKeyA ? txSummaryData[txKeyA] : undefined;
-        const priceA = sumA ? (sumA.avg1MRentDeposit || sumA.latestRentDeposit || 0) : 0;
-
-        const rawKeyB = (b as any).txKey || b.name;
-        const txKeyB = findTxKey(rawKeyB, txSummaryData, nameMapping) || rawKeyB;
-        const sumB = txKeyB ? txSummaryData[txKeyB] : undefined;
-        const priceB = sumB ? (sumB.avg1MRentDeposit || sumB.latestRentDeposit || 0) : 0;
-
-        const diff = priceB - priceA;
-        return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
+      }).filter(apt => {
+          const rawKey = (apt as any).txKey || apt.name;
+          const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
+          const sum = txKey ? txSummaryData[txKey] : undefined;
+          return sum && (sum.avg1MPrice || sum.latestPrice) && (sum.avg1MRentDeposit || sum.latestRentDeposit);
       }).slice(0, 100);
     }
 
@@ -281,7 +270,7 @@ export default function ApartmentDiscoveryClient({
                       report={matchedReport}
                       isPublicRental={publicRentalSet.has(apt.name)}
                       onClick={() => handleSelectApt(apt as DongApartment)}
-                      rank={activeCategory === 'price-rank' || activeCategory === 'sales-price' || activeCategory === 'lease-price' ? index + 1 : undefined}
+                      rank={activeCategory === 'price-rank' || activeCategory === 'valuation' ? index + 1 : undefined}
                       isFavorited={userFavorites.has(apt.name)}
                       favoriteCount={favoriteCounts[apt.name] || 0}
                       onToggleFavorite={() => onToggleFavorite(apt.name)}
