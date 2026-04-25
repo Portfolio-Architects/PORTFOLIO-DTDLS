@@ -21,6 +21,9 @@ const serviceAccountPath = path.resolve(__dirname, '../serviceAccountKey.json');
 let serviceAccount;
 
 const envKey = process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY || process.env.GOOGLE_PRIVATE_KEY;
+const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'portfolio-dtdls';
 
 if (envKey) {
   try {
@@ -28,10 +31,16 @@ if (envKey) {
   } catch (e) {
     console.error('❌ FIREBASE_SERVICE_ACCOUNT 환경 변수 파싱 실패', e);
   }
+} else if (privateKey && clientEmail) {
+  serviceAccount = {
+    projectId,
+    clientEmail,
+    privateKey: privateKey.replace(/^"|"$/g, '').replace(/\\n/g, '\n'),
+  };
 } else if (fs.existsSync(serviceAccountPath)) {
   serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
 } else {
-  console.log('⚠️ serviceAccountKey.json과 FIREBASE_SERVICE_ACCOUNT_KEY 모두 찾을 수 없습니다.');
+  console.log('⚠️ 인증 정보를 찾을 수 없습니다.');
   console.log('   기본 자격 증명을 시도합니다.');
 }
 
