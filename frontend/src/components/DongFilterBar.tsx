@@ -10,8 +10,8 @@ interface DongFilterBarProps {
   totalAptCount: number;
   dongAptCounts: Record<string, number>;
   dongReportCounts: Record<string, number>;
-  listSort: 'views' | 'likes' | 'name' | 'price-rank' | 'valuation';
-  onSortChange: (sort: 'views' | 'likes' | 'name' | 'price-rank' | 'valuation') => void;
+  listSort: 'views' | 'likes' | 'name' | 'price-rank' | 'valuation' | 'total-price';
+  onSortChange: (sort: 'views' | 'likes' | 'name' | 'price-rank' | 'valuation' | 'total-price') => void;
 }
 
 export default function DongFilterBar({
@@ -96,9 +96,7 @@ export default function DongFilterBar({
       {/* 우: 정렬 탭 */}
       <div className="flex items-center gap-1 bg-body rounded-lg p-1 overflow-x-auto custom-scrollbar whitespace-nowrap shrink max-w-[65vw]">
         {[
-          { id: 'views' as const, label: '🔥 인기순' },
-          { id: 'likes' as const, label: '관심' },
-          { id: 'name' as const, label: '가나다' },
+          { id: 'total-price' as const, label: '매매가순' },
           { id: 'price-rank' as const, label: '평당가순' },
           { id: 'valuation' as const, label: '전세가율순' },
         ].map(s => (

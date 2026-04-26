@@ -218,9 +218,9 @@ export function TransactionTable({
             <div key={i} className={`flex items-center justify-between p-4 border-b border-body hover:bg-body transition-colors ${i >= displayedCount ? 'hidden md:flex' : 'flex'} ${isCancelled ? 'opacity-40' : ''}`}>
               
               {/* 좌측: 날짜 + 스펙 결합으로 시선 흐름 최적화 */}
-              <div className="flex items-center gap-3 md:gap-5 flex-1 min-w-0">
+              <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0 pr-1">
                 {/* 1. 날짜 */}
-                <div className="flex flex-col w-[72px] md:w-[80px] shrink-0 text-left">
+                <div className="flex flex-col w-[68px] md:w-[76px] shrink-0 text-left">
                   <div className={`text-[13px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-tertiary line-through decoration-[#ef4444]' : 'text-[#6b7684]'}`}>
                     {tx.contractYm.substring(2, 4)}. {m}. {d}.
                   </div>
@@ -232,28 +232,36 @@ export function TransactionTable({
                 </div>
                 
                 {/* 2. 평형 (독립 칼럼 & 폰트 크기 확대) */}
-                <div className="w-[45px] md:w-[55px] shrink-0 flex justify-center">
+                <div className="w-[42px] md:w-[50px] shrink-0 flex justify-center">
                   <span className={`w-full text-center text-[13px] md:text-[14px] tracking-tight font-extrabold py-0.5 rounded bg-body ${isCancelled ? 'text-tertiary' : 'text-[#333d4b]'}`} title={typeLabel}>
                     {typeLabel}
                   </span>
                 </div>
 
                 {/* 3. 층수 (독립 칼럼 & 폰트 크기 확대) */}
-                <div className="w-[32px] md:w-[40px] shrink-0 text-right">
+                <div className="w-[28px] md:w-[36px] shrink-0 text-right">
                   <span className={`text-[13px] md:text-[14px] font-bold ${isCancelled ? 'text-[#c8ced4]' : 'text-tertiary'}`}>
                     {tx.floor}층
                   </span>
                 </div>
+
+                {/* 4. 거래 유형 배지 (전/월/직) - 열 정렬을 위해 좌측 영역에 배치 */}
+                <div className="w-[22px] md:w-[26px] shrink-0 flex justify-center ml-0.5 md:ml-1">
+                  {(tx.dealType === '전세' || tx.dealType === '월세' || tx.dealType === '직거래') && (
+                    <span className={`w-[20px] h-[20px] flex items-center justify-center text-[11px] font-extrabold rounded-md ${isCancelled ? 'opacity-50' : ''} ${
+                      tx.dealType === '전세' ? 'bg-[#e6f4ea] text-[#0d652d]' : 
+                      tx.dealType === '월세' ? 'bg-[#fef0e6] text-[#c2410c]' : 
+                      'bg-toss-blue-light text-[#1b64da]'
+                    }`}>
+                      {tx.dealType.charAt(0)}
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {/* 우측: 직거래 배지 + 덴시티 최적화 가격 */}
+              {/* 우측: 덴시티 최적화 가격 */}
               <div className="flex flex-col items-end gap-1 shrink-0 text-right ml-2 w-auto">
                 <div className="flex items-center gap-1.5">
-                  {(tx.dealType === '직거래' || tx.dealType === '전세' || tx.dealType === '월세') && (
-                    <div className={`shrink-0 whitespace-nowrap text-[10px] font-extrabold px-1.5 py-0.5 rounded ${getBadgeColorClasses(tx.dealType)}`}>
-                      {getDealTypeLabel(tx.dealType)}
-                    </div>
-                  )}
                   {tx.isOutlier && (
                     <div className="group relative flex items-center justify-center cursor-help">
                       <AlertTriangle size={13} className="text-[#f59e0b] drop-shadow-sm" />

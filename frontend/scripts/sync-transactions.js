@@ -261,11 +261,59 @@ async function main() {
 
   for (const [aptName, txs] of Object.entries(byApt)) {
     // 매매와 전월세 분리 ('전세', '월세'가 명시된 것만 임대차 거래로 치고 나머지는 모두 매매로 취급)
-    const rentTxs = txs.filter(t => t.dealType === '전세' || t.dealType === '월세');
-    const saleTxs = txs.filter(t => t.dealType !== '전세' && t.dealType !== '월세');
+    const rawRentTxs = txs.filter(t => {
+      if (t.dealType === '전세') return true;
+      if (t.dealType === '월세' && t.monthlyRent && t.monthlyRent > 0) return true;
+      return false;
+    });
+    const rawSaleTxs = txs.filter(t => t.dealType !== '전세' && t.dealType !== '월세');
     
     // 매매/임대 데이터가 둘 다 없으면 스킵
-    if (saleTxs.length === 0 && rentTxs.length === 0) continue;
+    if (rawSaleTxs.length === 0 && rawRentTxs.length === 0) continue;
+
+    // 롤링 윈도우 기반 시계열 이상치 필터링 (최근 11건 기준 국소적 평균/표준편차 적용)
+    const filterOutliersRolling = (txs) => {
+      const sortedTxs = [...txs].sort((a, b) => {
+        const d1 = parseInt(a.contractYm + String(a.contractDay).padStart(2, '0'));
+        const d2 = parseInt(b.contractYm + String(b.contractDay).padStart(2, '0'));
+        return d1 - d2;
+      });
+
+      const byArea = {};
+      sortedTxs.forEach(t => {
+        const a = Math.round(t.area);
+        if (!byArea[a]) byArea[a] = [];
+        byArea[a].push(t);
+      });
+
+      const validTxs = [];
+      Object.values(byArea).forEach(group => {
+        const filtered = group.filter((t, idx) => {
+          const windowTxs = group.slice(Math.max(0, idx - 5), Math.min(group.length, idx + 6));
+          const prices = windowTxs.map(wt => {
+            return (wt.dealType === '전세' || wt.dealType === '월세') 
+              ? (wt.deposit || 0) + Math.round((wt.monthlyRent || 0) * 12 / 0.055)
+              : wt.price;
+          });
+          const p = (t.dealType === '전세' || t.dealType === '월세') 
+            ? (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055)
+            : t.price;
+          
+          if (prices.length < 4) return true;
+          
+          const mean = prices.reduce((sum, val) => sum + val, 0) / prices.length;
+          const variance = prices.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / prices.length;
+          const stdDev = Math.sqrt(variance);
+          
+          return Math.abs(p - mean) <= 2 * Math.max(stdDev, mean * 0.05);
+        });
+        validTxs.push(...filtered);
+      });
+      return validTxs;
+    };
+
+    const saleTxs = filterOutliersRolling(rawSaleTxs);
+    const rentTxs = filterOutliersRolling(rawRentTxs);
 
     // 공급면적(분양평수) 평당 가격으로 재조정 (DB의 d.areaPyeong는 전용면적 기반이므로 치명적인 왜곡 발생 방지)
     const getSupplyPyeong = (t) => {
@@ -288,6 +336,7 @@ async function main() {
     const latestTx = saleTxs.length > 0 ? saleTxs[0] : null;
 
     const oneMonthAgoSale = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    const threeMonthsAgoSale = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
 
     const recentMonthSale = saleTxs.filter(t => {
       if (!t.contractYm || t.contractYm.length < 6) return false;
@@ -298,6 +347,15 @@ async function main() {
       return txDate >= oneMonthAgoSale && t.price > 0 && t.areaPyeong > 0;
     });
 
+    const recent3MonthSale = saleTxs.filter(t => {
+      if (!t.contractYm || t.contractYm.length < 6) return false;
+      const y = parseInt(t.contractYm.slice(0, 4));
+      const m = parseInt(t.contractYm.slice(4, 6));
+      const d = parseInt(t.contractDay) || 1;
+      const txDate = new Date(y, m - 1, d);
+      return txDate >= threeMonthsAgoSale && t.price > 0 && t.areaPyeong > 0;
+    });
+
     let avg1MPriceRaw = 0;
     if (recentMonthSale.length > 0) {
       avg1MPriceRaw = recentMonthSale.reduce((s, t) => s + t.price, 0) / recentMonthSale.length;
@@ -306,6 +364,14 @@ async function main() {
     }
     const avg1MPrice = Math.round(avg1MPriceRaw / 100) * 100;
     
+    let avg3MPriceRaw = 0;
+    if (recent3MonthSale.length > 0) {
+      avg3MPriceRaw = recent3MonthSale.reduce((s, t) => s + t.price, 0) / recent3MonthSale.length;
+    } else if (latestTx && latestTx.price > 0) {
+      avg3MPriceRaw = latestTx.price;
+    }
+    const avg3MPrice = Math.round(avg3MPriceRaw / 100) * 100;
+
     let avg1MPerPyeongRaw = 0;
     if (recentMonthSale.length > 0) {
       avg1MPerPyeongRaw = recentMonthSale.reduce((s, t) => s + t.price / t.areaPyeong, 0) / recentMonthSale.length;
@@ -313,12 +379,21 @@ async function main() {
       avg1MPerPyeongRaw = latestTx.price / latestTx.areaPyeong;
     }
     const avg1MPerPyeong = Math.round(avg1MPerPyeongRaw);
+    
+    let avg3MPerPyeongRaw = 0;
+    if (recent3MonthSale.length > 0) {
+      avg3MPerPyeongRaw = recent3MonthSale.reduce((s, t) => s + t.price / t.areaPyeong, 0) / recent3MonthSale.length;
+    } else if (latestTx && latestTx.areaPyeong > 0) {
+      avg3MPerPyeongRaw = latestTx.price / latestTx.areaPyeong;
+    }
+    const avg3MPerPyeong = Math.round(avg3MPerPyeongRaw);
 
     // --- 전월세 요약 ---
     rentTxs.sort((a, b) => b.contractDate.localeCompare(a.contractDate));
     const latestRentTx = rentTxs.filter(t => t.deposit > 0)[0];
     
     const oneMonthAgoRent = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    const threeMonthsAgoRent = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
 
     const recentMonthRent = rentTxs.filter(t => {
       if (!t.contractYm || t.contractYm.length < 6) return false;
@@ -328,14 +403,32 @@ async function main() {
       const txDate = new Date(y, m - 1, d);
       return txDate >= oneMonthAgoRent && t.deposit > 0; // 전세 위주
     });
+    
+    const recent3MonthRent = rentTxs.filter(t => {
+      if (!t.contractYm || t.contractYm.length < 6) return false;
+      const y = parseInt(t.contractYm.slice(0, 4));
+      const m = parseInt(t.contractYm.slice(4, 6));
+      const d = parseInt(t.contractDay) || 1;
+      const txDate = new Date(y, m - 1, d);
+      return txDate >= threeMonthsAgoRent && t.deposit > 0;
+    });
 
     let avg1MDepositRaw = 0;
+    const getConvertedDeposit = (t) => t.deposit + (t.monthlyRent ? Math.round(t.monthlyRent * 12 / 0.055) : 0);
     if (recentMonthRent.length > 0) {
-      avg1MDepositRaw = recentMonthRent.reduce((s, t) => s + t.deposit, 0) / recentMonthRent.length;
+      avg1MDepositRaw = recentMonthRent.reduce((s, t) => s + getConvertedDeposit(t), 0) / recentMonthRent.length;
     } else if (latestRentTx && latestRentTx.deposit > 0) {
-      avg1MDepositRaw = latestRentTx.deposit;
+      avg1MDepositRaw = getConvertedDeposit(latestRentTx);
     }
     const avg1MDeposit = Math.round(avg1MDepositRaw / 100) * 100;
+    
+    let avg3MDepositRaw = 0;
+    if (recent3MonthRent.length > 0) {
+      avg3MDepositRaw = recent3MonthRent.reduce((s, t) => s + getConvertedDeposit(t), 0) / recent3MonthRent.length;
+    } else if (latestRentTx && latestRentTx.deposit > 0) {
+      avg3MDepositRaw = getConvertedDeposit(latestRentTx);
+    }
+    const avg3MDeposit = Math.round(avg3MDepositRaw / 100) * 100;
 
     summaries[aptName] = {
       // 매매 데이터
@@ -353,6 +446,10 @@ async function main() {
       avg1MPriceEok: formatPriceEok(avg1MPrice),
       avg1MPerPyeong,
       avg1MTxCount: recentMonthSale.length,
+      avg3MPrice,
+      avg3MPriceEok: formatPriceEok(avg3MPrice),
+      avg3MPerPyeong,
+      avg3MTxCount: recent3MonthSale.length,
       recent: saleTxs.slice(0, 4).map(t => ({
         date: `${t.contractYm.slice(4)}.${t.contractDay}`,
         priceEok: t.priceEok,
@@ -369,6 +466,8 @@ async function main() {
       latestRentDate: latestRentTx ? `${latestRentTx.contractYm}${latestRentTx.contractDay}` : "",
       avg1MRentDeposit: avg1MDeposit,
       avg1MRentDepositEok: formatPriceEok(avg1MDeposit),
+      avg3MRentDeposit: avg3MDeposit,
+      avg3MRentDepositEok: formatPriceEok(avg3MDeposit),
     };
     aptCount++;
   }
@@ -406,8 +505,12 @@ export interface AptTxSummary {
   txCount: number;
   avg1MPrice: number;
   avg1MPriceEok: string;
-  avg1MPerPyeong: number;
-  avg1MTxCount: number;
+  avg1MPerPyeong?: number;
+  avg1MTxCount?: number;
+  avg3MPrice?: number;
+  avg3MPriceEok?: string;
+  avg3MPerPyeong?: number;
+  avg3MTxCount?: number;
   recent: RecentTx[];
   
   // 전월세 (Rent/Jeonse)
@@ -418,6 +521,8 @@ export interface AptTxSummary {
   latestRentDate?: string;
   avg1MRentDeposit?: number;
   avg1MRentDepositEok?: string;
+  avg3MRentDeposit?: number;
+  avg3MRentDepositEok?: string;
 }
 
 /** 아파트명 → 거래 요약 */

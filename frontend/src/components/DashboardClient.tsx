@@ -2,7 +2,7 @@
 
 import { ArrowUp, Building, MapPin, Map as MapIcon, Compass, MessageSquare, Heart, X, FileText,
   LayoutDashboard, UserCircle, Star, Link2, Trash2, LogOut, TrendingUp, ShieldAlert,
-  Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil, ChevronDown, Eye } from 'lucide-react';
+  Home, PenLine, Send, Edit3, Shield, ShieldCheck, Building2, Check, Pencil, ChevronDown, Eye, Search } from 'lucide-react';
 import { logger } from '@/lib/services/logger';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -39,6 +39,44 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 import { useComments } from '@/hooks/useComments';
 import { usePWA } from '@/components/pwa/PWAProvider';
+
+const DebouncedSearchInput = ({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
+  const [localValue, setLocalValue] = useState(value);
+  
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      onChange(localValue);
+    }, 250); // 250ms debounce
+    return () => clearTimeout(handler);
+  }, [localValue, onChange]);
+
+  return (
+    <div className="relative flex-1 max-w-[180px]">
+      <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+        <Search size={14} className="text-tertiary" />
+      </div>
+      <input
+        type="text"
+        placeholder="아파트 검색"
+        value={localValue}
+        onChange={(e) => setLocalValue(e.target.value)}
+        className="w-full bg-[#f2f4f6] text-[13px] text-primary placeholder:text-tertiary rounded-[8px] pl-8 pr-8 py-1.5 focus:outline-none focus:ring-1 focus:ring-toss-blue transition-all"
+      />
+      {localValue && (
+        <button 
+          onClick={() => { setLocalValue(''); onChange(''); }}
+          className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-tertiary hover:text-secondary"
+        >
+          <X size={14} />
+        </button>
+      )}
+    </div>
+  );
+};
 
 export default function DashboardClient({ initialDashboardData, preselectedAptName }: { initialDashboardData?: DashboardInitialDataLocal, preselectedAptName?: string }) {
   const router = useRouter();
@@ -99,6 +137,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
 
   // We are using full-bleed layout, so window scroll won't happen. 
@@ -121,7 +160,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     }
   }, [mounted, activeTab]);
 
-  const [listSort, setListSort] = useState<'views' | 'likes' | 'name' | 'price-rank' | 'valuation'>('views');
+  const [listSort, setListSort] = useState<'views' | 'likes' | 'name' | 'price-rank' | 'valuation' | 'total-price'>('total-price');
   const [listHeight, setListHeight] = useState(600);
   const [isDesktop, setIsDesktop] = useState(true);
   const leftPanelRef = useRef<HTMLDivElement>(null);
@@ -232,15 +271,16 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
       const sum = txKey ? txSummaryData[txKey] : undefined;
       
-      const pyeongPrice = sum?.avg1MPerPyeong || 0;
+      const pyeongPrice = sum?.avg3MPerPyeong || sum?.avg1MPerPyeong || 0;
       
-      const sales = sum ? (sum.avg1MPrice || sum.latestPrice || 0) : 0;
-      const jeonse = sum ? (sum.avg1MRentDeposit || sum.latestRentDeposit || 0) : 0;
+      const sales = sum ? (sum.avg3MPrice || sum.avg1MPrice || sum.latestPrice || 0) : 0;
+      const jeonse = sum ? (sum.avg3MRentDeposit || sum.avg1MRentDeposit || sum.latestRentDeposit || 0) : 0;
       const ratio = sales > 0 && jeonse > 0 ? (jeonse / sales) : 0;
       
       return {
         apt,
         pyeongPrice,
+        totalPrice: sales,
         ratio,
         hasTx: !!sum && !!(sum.avg1MPrice || sum.latestPrice) && !!(sum.avg1MRentDeposit || sum.latestRentDeposit)
       };
@@ -253,7 +293,16 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       filteredApts = enrichedApts.filter(e => e.hasTx);
     }
 
+    if (searchQuery.trim() !== '') {
+      const q = searchQuery.toLowerCase().replace(/\s+/g, '');
+      filteredApts = filteredApts.filter(e => e.apt.name.toLowerCase().replace(/\s+/g, '').includes(q));
+    }
+
     return [...filteredApts].sort((a, b) => {
+      if (listSort === 'total-price') {
+        const diff = b.totalPrice - a.totalPrice;
+        return diff !== 0 ? diff : a.apt.name.localeCompare(b.apt.name, 'ko');
+      }
       if (listSort === 'price-rank') {
         const diff = b.pyeongPrice - a.pyeongPrice;
         return diff !== 0 ? diff : a.apt.name.localeCompare(b.apt.name, 'ko');
@@ -274,7 +323,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       }
       return a.apt.name.localeCompare(b.apt.name, 'ko');
     }).map(e => e.apt);
-  }, [enrichedApts, listSort, fieldReportsMap, favoriteCounts]);
+  }, [enrichedApts, listSort, fieldReportsMap, favoriteCounts, searchQuery]);
 
   return (
     <PullToRefresh scrollContainerId={activeTab === 'imjang' ? 'apartment-list-scroll' : 'recommend-scroll'}>
@@ -393,9 +442,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
           {(() => {
             return (
               <>
-                {/* 리스트 패널 타이틀 */}
-                <div className="bg-surface px-5 py-4 min-h-[54px] flex items-center w-full border-b border-border shrink-0">
-                  <span className="text-[16px] font-black text-primary tracking-tight">아파트 단지 목록</span>
+                {/* 리스트 패널 타이틀 & 검색창 */}
+                <div className="bg-surface px-5 py-3 min-h-[54px] flex items-center justify-between w-full border-b border-border shrink-0 gap-3">
+                  <span className="text-[16px] font-black text-primary tracking-tight whitespace-nowrap">아파트 단지 목록</span>
+                  <DebouncedSearchInput value={searchQuery} onChange={setSearchQuery} />
                 </div>
 
                 {/* 아파트 리스트 */}
@@ -412,26 +462,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                       onSortChange={setListSort}
                     />
                     
-                    {/* 정렬 배너 (특정 정렬 선택 시) */}
-                    {(listSort === 'price-rank' || listSort === 'valuation') && (
-                      <div className="mt-2 bg-gradient-to-r from-indigo-50 to-blue-50 px-4 py-2.5 rounded-xl border border-indigo-100/50 flex flex-col gap-0.5 relative overflow-hidden group cursor-pointer shadow-sm">
-                        <div className="flex items-center gap-1.5 z-10">
-                          {listSort === 'price-rank' ? <TrendingUp size={15} className="text-indigo-600" /> : <Building2 size={15} className="text-blue-600" />}
-                          <span className="text-[13px] font-extrabold text-primary">
-                            {listSort === 'price-rank' ? '평당가 기준' : '매매가/전세가 기준'}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-secondary font-medium z-10">
-                          {listSort === 'price-rank' ? '최근 1개월 평균 평당가 기준' : '매매가 대비 전세가(전세가율) 밸류에이션 기준'}
-                        </p>
-                        {/* Premium Ad embedded closely when price-rank */}
-                        {listSort === 'price-rank' && (
-                           <div className="absolute top-0 right-0 bottom-0 flex items-center pr-3 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity">
-                              <span className="text-[10px] font-extrabold text-indigo-700 bg-surface/60 px-2 py-0.5 rounded-full border border-indigo-200">AD: 삼성공인중개사 &rarr;</span>
-                           </div>
-                        )}
-                      </div>
-                    )}
+                    {/* 정렬 배너 제거됨 */}
                   </div>
                   <FixedSizeList
                     className="custom-scrollbar"
@@ -468,6 +499,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                             apt={apt}
                             txSummary={txSummary}
                             report={report}
+                            listSort={listSort}
                             isPublicRental={publicRentalSet.has(apt.name)}
                             rank={index + 1}
                             isSelected={!!(selectedReport && isSameApartment(selectedReport.apartmentName, apt.name, nameMapping))}

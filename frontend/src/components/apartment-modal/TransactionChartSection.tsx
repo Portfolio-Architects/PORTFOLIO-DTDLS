@@ -153,8 +153,7 @@ export function TransactionChartSection({
   };
 
   const momentum = {
-    m1: chartType === 'sale' ? (txSummary?.avg1MPrice ? txSummary.avg1MPrice / 10000 : getRecentAvgByMonths(1)) 
-                             : (txSummary?.avg1MRentDeposit ? txSummary.avg1MRentDeposit / 10000 : getRecentAvgByMonths(1)),
+    m1: getRecentAvgByMonths(1),
     m3: getRecentAvgByMonths(3),
     m6: getRecentAvgByMonths(6),
     y1: getRecentAvgByMonths(12),
@@ -203,7 +202,7 @@ export function TransactionChartSection({
             {(() => {
               if (prices.length > 0) {
                 const maxPrice = monthlyData.length > 0 ? Math.max(...monthlyData.map(d => d.monthAvg).filter(Boolean)) : Math.max(...prices);
-                const currentPrice = momentum.m1 || prices[prices.length - 1];
+                const currentPrice = momentum.m1 || prices[0];
                 if (maxPrice > 0 && currentPrice > 0) {
                   const dropRatio = ((maxPrice - currentPrice) / maxPrice) * 100;
                   const ratio = Math.max(0, Math.min(100, (currentPrice / maxPrice) * 100));

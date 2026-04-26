@@ -96,9 +96,19 @@ export function FieldReportModal({
   // 이상치 제거 (평균 기준 2 표준편차 초과 거래 숨김)
   const transactions = useMemo(() => {
     if (!rawTransactions || rawTransactions.length === 0) return [];
-    const filterOutliersByArea = (txs: TransactionRecord[]) => {
+    
+    // 롤링 윈도우 기반 시계열 이상치 필터링 (최근 11건 기준 국소적 평균/표준편차 적용)
+    const filterOutliersRolling = (txs: TransactionRecord[]) => {
+      // 1. 시간순(오름차순) 정렬
+      const sortedTxs = [...txs].sort((a, b) => {
+        const d1 = parseInt(a.contractYm + String(a.contractDay).padStart(2, '0'));
+        const d2 = parseInt(b.contractYm + String(b.contractDay).padStart(2, '0'));
+        return d1 - d2;
+      });
+
+      // 2. 면적별 그룹화
       const byArea: Record<number, TransactionRecord[]> = {};
-      txs.forEach(t => {
+      sortedTxs.forEach(t => {
         const a = Math.round(t.area);
         if (!byArea[a]) byArea[a] = [];
         byArea[a].push(t);
@@ -106,25 +116,26 @@ export function FieldReportModal({
 
       const validTxs: TransactionRecord[] = [];
       Object.values(byArea).forEach(group => {
-        if (group.length < 4) {
-          validTxs.push(...group);
-          return;
-        }
-        const prices = group.map(t => {
-           if (t.dealType === '전세' || t.dealType === '월세') {
-             return (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055);
-           }
-           return t.price;
-        });
-        const mean = prices.reduce((sum, p) => sum + p, 0) / prices.length;
-        const variance = prices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / prices.length;
-        const stdDev = Math.sqrt(variance);
-        
-        const filtered = group.filter(t => {
-           const p = (t.dealType === '전세' || t.dealType === '월세') 
-             ? (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055)
-             : t.price;
-           return Math.abs(p - mean) <= 2 * stdDev;
+        const filtered = group.filter((t, idx) => {
+          // 앞뒤 5건씩 총 11건의 국소 윈도우 생성
+          const windowTxs = group.slice(Math.max(0, idx - 5), Math.min(group.length, idx + 6));
+          const prices = windowTxs.map(wt => {
+            return (wt.dealType === '전세' || wt.dealType === '월세') 
+              ? (wt.deposit || 0) + Math.round((wt.monthlyRent || 0) * 12 / 0.055)
+              : wt.price;
+          });
+          const p = (t.dealType === '전세' || t.dealType === '월세') 
+            ? (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055)
+            : t.price;
+          
+          if (prices.length < 4) return true; // 비교 표본이 부족하면 패스
+          
+          const mean = prices.reduce((sum, val) => sum + val, 0) / prices.length;
+          const variance = prices.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / prices.length;
+          const stdDev = Math.sqrt(variance);
+          
+          // 최소 5%의 편차 여유를 두어 안정된 가격대에서의 미세한 변동이 삭제되는 것 방지
+          return Math.abs(p - mean) <= 2 * Math.max(stdDev, mean * 0.05);
         });
         validTxs.push(...filtered);
       });
@@ -132,12 +143,17 @@ export function FieldReportModal({
     };
 
     const saleTxs = rawTransactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
-    const jeonseTxs = rawTransactions.filter(t => t.dealType === '전세' || t.dealType === '월세');
+    const jeonseTxs = rawTransactions.filter(t => {
+      if (t.dealType === '전세') return true;
+      if (t.dealType === '월세' && t.monthlyRent && t.monthlyRent > 0) return true;
+      return false;
+    });
 
-    const combined = [...filterOutliersByArea(saleTxs), ...filterOutliersByArea(jeonseTxs)];
+    const combined = [...filterOutliersRolling(saleTxs), ...filterOutliersRolling(jeonseTxs)];
+
     return combined.sort((a, b) => {
-      const da = a.contractYm + a.contractDay.padStart(2, '0');
-      const db = b.contractYm + b.contractDay.padStart(2, '0');
+      const da = a.contractYm + String(a.contractDay).padStart(2, '0');
+      const db = b.contractYm + String(b.contractDay).padStart(2, '0');
       if (da !== db) return parseInt(db) - parseInt(da);
       return b.price - a.price;
     });
@@ -493,10 +509,12 @@ export function FieldReportModal({
                               </span>
                               <span className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full shrink-0 ${s.dot}`} />
                             </div>
-                            <div className="flex items-baseline gap-0.5 whitespace-nowrap">
-                              <span className="text-[20px] md:text-[28px] font-bold text-primary tracking-tight tabular-nums leading-none">{(school.dist! / 1000).toFixed(2)}</span>
-                              <span className="text-[10px] md:text-[13px] font-medium text-tertiary ml-0.5 mt-auto">km</span>
-                              <span className="text-[11px] md:text-[12px] font-medium text-secondary ml-1.5 md:ml-2 mt-auto bg-body px-1.5 py-0.5 rounded-md">도보 {Math.ceil(school.dist! / 80)}분</span>
+                            <div className="flex flex-col lg:flex-row lg:items-baseline gap-1 lg:gap-1.5 mt-0.5 lg:mt-0">
+                              <div className="flex items-baseline gap-0.5">
+                                <span className="text-[20px] md:text-[28px] font-bold text-primary tracking-tight tabular-nums leading-none">{(school.dist! / 1000).toFixed(2)}</span>
+                                <span className="text-[10px] md:text-[13px] font-medium text-tertiary mt-auto">km</span>
+                              </div>
+                              <span className="text-[10px] md:text-[12px] font-medium text-secondary bg-body px-1.5 py-0.5 rounded-md w-fit whitespace-nowrap">도보 {Math.ceil(school.dist! / 80)}분</span>
                             </div>
                             {school.name && (
                               <a 
@@ -537,10 +555,12 @@ export function FieldReportModal({
                             </span>
                             <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full shrink-0" style={{ backgroundColor: station.color }} />
                           </div>
-                          <div className="flex items-baseline gap-0.5 whitespace-nowrap">
-                            <span className="text-[20px] md:text-[28px] font-bold text-primary tracking-tight tabular-nums leading-none">{(station.dist! / 1000).toFixed(2)}</span>
-                            <span className="text-[10px] md:text-[13px] font-medium text-tertiary ml-0.5 mt-auto">km</span>
-                            <span className="text-[11px] md:text-[12px] font-medium text-secondary ml-1.5 md:ml-2 mt-auto bg-body px-1.5 py-0.5 rounded-md">도보 {Math.ceil(station.dist! / 80)}분</span>
+                          <div className="flex flex-col lg:flex-row lg:items-baseline gap-1 lg:gap-1.5 mt-0.5 lg:mt-0">
+                            <div className="flex items-baseline gap-0.5">
+                              <span className="text-[20px] md:text-[28px] font-bold text-primary tracking-tight tabular-nums leading-none">{(station.dist! / 1000).toFixed(2)}</span>
+                              <span className="text-[10px] md:text-[13px] font-medium text-tertiary mt-auto">km</span>
+                            </div>
+                            <span className="text-[10px] md:text-[12px] font-medium text-secondary bg-body px-1.5 py-0.5 rounded-md w-fit whitespace-nowrap">도보 {Math.ceil(station.dist! / 80)}분</span>
                           </div>
                           {station.name && (
                             <a 

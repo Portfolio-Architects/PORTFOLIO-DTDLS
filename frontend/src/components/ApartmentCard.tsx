@@ -26,9 +26,10 @@ interface ApartmentCardProps {
   onToggleFavorite?: () => void;
   typeMap?: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   areaUnit?: 'm2' | 'pyeong';
+  listSort?: string;
 }
 
-export default function ApartmentCard({ apt, txSummary, report, isPublicRental, onClick, rank, isSelected, isFavorited, favoriteCount, onToggleFavorite, typeMap, areaUnit = 'm2' }: ApartmentCardProps) {
+export default function ApartmentCard({ apt, txSummary, report, isPublicRental, onClick, rank, isSelected, isFavorited, favoriteCount, onToggleFavorite, typeMap, areaUnit = 'm2', listSort }: ApartmentCardProps) {
   // 사진 갯수 계산
   let photoCount = 0;
   if (report?.images?.length) {
@@ -125,8 +126,9 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
                 let rem = 0;
                 let hasValue = false;
                 
-                if (txSummary.avg1MPrice > 0) {
-                  const rounded = Math.round(txSummary.avg1MPrice / 100) * 100;
+                if ((txSummary.avg3MPrice || 0) > 0 || (txSummary.avg1MPrice || 0) > 0) {
+                  const price = txSummary.avg3MPrice || txSummary.avg1MPrice || 0;
+                  const rounded = Math.round(price / 100) * 100;
                   eok = Math.floor(rounded / 10000);
                   rem = rounded % 10000;
                   hasValue = true;
@@ -167,9 +169,20 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
             </div>
             <div className="flex items-center justify-end gap-1.5">
               {(() => {
-                // 1. If we have 1-month average, display the accurate 1-month per-pyeong calculation
-                if (txSummary.avg1MPrice > 0 && txSummary.avg1MPerPyeong > 0) {
-                  return <span className="text-xs font-bold text-[#6b7684]">{txSummary.avg1MPerPyeong.toLocaleString()}만/평</span>;
+                if (listSort === 'valuation') {
+                  const sales = txSummary.avg3MPrice || txSummary.avg1MPrice || txSummary.latestPrice || 0;
+                  const jeonse = txSummary.avg3MRentDeposit || txSummary.avg1MRentDeposit || txSummary.latestRentDeposit || 0;
+                  if (sales > 0 && jeonse > 0) {
+                    const ratio = (jeonse / sales) * 100;
+                    return <span className="text-xs font-bold text-toss-blue">전세가율 {ratio.toFixed(1)}%</span>;
+                  }
+                }
+
+                // 1. If we have 3-month average, display the accurate 3-month per-pyeong calculation
+                if ((txSummary.avg3MPrice || 0) > 0 && (txSummary.avg3MPerPyeong || 0) > 0) {
+                  return <span className="text-xs font-bold text-[#6b7684]">{txSummary.avg3MPerPyeong!.toLocaleString()}만/평</span>;
+                } else if ((txSummary.avg1MPrice || 0) > 0 && (txSummary.avg1MPerPyeong || 0) > 0) {
+                  return <span className="text-xs font-bold text-[#6b7684]">{txSummary.avg1MPerPyeong!.toLocaleString()}만/평</span>;
                 }
 
                 // 2. Otherwise, if we have recent transaction, calculate per-pyeong of that specific transaction
