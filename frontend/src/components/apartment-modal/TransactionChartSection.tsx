@@ -55,20 +55,20 @@ export function TransactionChartSection({
       <div className="w-full md:w-[60%] flex flex-col order-1 md:order-2">
         <div className="flex items-center justify-between mb-3 w-full">
           <div className="flex items-center gap-2">
-            <span className="bg-[#f2f4f6] text-[#4e5968] text-sm font-bold px-3 py-1 rounded-full">{dong || '동탄'}</span>
+            <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full">{dong || '동탄'}</span>
           </div>
-          <div className="bg-[#f2f4f6] p-0.5 rounded-xl flex items-center shadow-inner">
-            <button onClick={() => setChartType('sale')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>매매</button>
-            <button onClick={() => setChartType('jeonse')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>전월세</button>
+          <div className="bg-body p-0.5 rounded-xl flex items-center shadow-inner">
+            <button onClick={() => setChartType('sale')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>매매</button>
+            <button onClick={() => setChartType('jeonse')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
           </div>
         </div>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-[#191f28] flex items-center gap-2">
-          {displayAptName}
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-primary flex items-center gap-2 w-full min-w-0">
+          <span className="truncate">{displayAptName}</span>
         </h1>
-        <div className="bg-[#f9fafb] rounded-2xl p-8 flex flex-col items-center justify-center ring-1 ring-black/5 mt-4 min-h-[300px]">
+        <div className="bg-body rounded-2xl p-8 flex flex-col items-center justify-center ring-1 ring-black/5 mt-4 min-h-[300px]">
           <span className="text-[40px] mb-2">🤫</span>
-          <span className="text-[#8b95a1] text-[15px] font-extrabold tracking-tight">현재 숨고르기 중인 단지입니다</span>
-          <span className="text-[#b0b8c1] text-[12px] font-medium mt-1">해당 기간 내 실거래 기록이 없습니다</span>
+          <span className="text-tertiary text-[15px] font-extrabold tracking-tight">현재 숨고르기 중인 단지입니다</span>
+          <span className="text-tertiary text-[12px] font-medium mt-1">해당 기간 내 실거래 기록이 없습니다</span>
         </div>
       </div>
     );
@@ -173,30 +173,30 @@ export function TransactionChartSection({
     <div className="w-full md:w-[60%] flex flex-col order-1 md:order-2">
       <div className="flex items-center justify-between mb-3 w-full">
         <div className="flex items-center gap-2">
-          <span className="bg-[#f2f4f6] text-[#4e5968] text-sm font-bold px-3 py-1 rounded-full">{dong || '동탄'}</span>
+          <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full">{dong || '동탄'}</span>
         </div>
-        <div className="bg-[#f2f4f6] p-0.5 rounded-xl flex items-center shadow-inner">
-          <button onClick={() => setChartType('sale')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>매매</button>
-          <button onClick={() => setChartType('jeonse')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>전월세</button>
+        <div className="bg-body p-0.5 rounded-xl flex items-center shadow-inner">
+          <button onClick={() => setChartType('sale')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>매매</button>
+          <button onClick={() => setChartType('jeonse')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
         </div>
       </div>
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-[#191f28] flex items-center gap-2 break-keep">
-        {displayAptName}
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-primary flex items-center gap-2 w-full min-w-0">
+        <span className="truncate">{displayAptName}</span>
         <a 
           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayAptName + (displayAptName.includes('아파트') ? '' : ' 아파트'))}`}
           target="_blank" rel="noopener noreferrer"
-          className="text-[#3182f6] hover:bg-[#e8f3ff] p-1.5 md:p-2 rounded-full transition-colors group flex shrink-0 items-center justify-center -ml-1 md:ml-0"
+          className="text-toss-blue hover:bg-toss-blue-light p-1.5 md:p-2 rounded-full transition-colors group flex shrink-0 items-center justify-center -ml-1 md:ml-0"
           title="구글 지도에서 아파트 위치 보기"
         >
           <MapPin className="w-6 h-6 md:w-8 md:h-8 group-hover:scale-110 transition-transform" />
         </a>
       </h1>
 
-      <div className="mt-4 bg-white rounded-2xl p-5 ring-1 ring-black/5 flex-1">
+      <div className="mt-4 bg-surface rounded-2xl p-5 ring-1 ring-black/5 flex-1">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-3 w-full gap-3">
           <div className="flex flex-col gap-2 w-full md:w-1/2">
-            <h4 className="text-[14px] font-extrabold text-[#191f28] flex items-center gap-1.5 shrink-0">
-              <TrendingUp size={15} className="text-[#3182f6]" /> {chartType === 'sale' ? '매매가 추이' : '전월세 추이'}
+            <h4 className="text-[14px] font-extrabold text-primary flex items-center gap-1.5 shrink-0">
+              <TrendingUp size={15} className="text-toss-blue" /> {chartType === 'sale' ? '매매가 추이' : '전월세 추이'}
             </h4>
             
             {/* 최고 평균가 대비 현재 평균가 게이지 바 */}
@@ -210,10 +210,10 @@ export function TransactionChartSection({
                   return (
                     <div className="flex flex-col gap-1 mt-1">
                       <div className="flex justify-between text-[11px] font-bold">
-                        <span className="text-[#8b95a1]">최고 평균가 {formatAvgPriceEok(maxPrice)}</span>
-                        <span className="text-[#3182f6]">현재 {formatAvgPriceEok(currentPrice)} ({dropRatio > 0 ? `-${dropRatio.toFixed(1)}%` : `+${Math.abs(dropRatio).toFixed(1)}%`})</span>
+                        <span className="text-tertiary">최고 평균가 {formatAvgPriceEok(maxPrice)}</span>
+                        <span className="text-toss-blue">현재 {formatAvgPriceEok(currentPrice)} ({dropRatio > 0 ? `-${dropRatio.toFixed(1)}%` : `+${Math.abs(dropRatio).toFixed(1)}%`})</span>
                       </div>
-                      <div className="w-full h-1.5 bg-[#f2f4f6] rounded-full overflow-hidden">
+                      <div className="w-full h-1.5 bg-body rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-gradient-to-r from-[#3182f6] to-[#1b64da] rounded-full transition-all duration-1000" 
                           style={{ width: `${ratio}%` }} 
@@ -228,22 +228,22 @@ export function TransactionChartSection({
           </div>
           
           <div className="flex items-center gap-3 md:ml-auto">
-            <div className="flex items-center gap-0.5 bg-[#f2f4f6] p-0.5 rounded-lg shadow-inner">
+            <div className="flex items-center gap-0.5 bg-body p-0.5 rounded-lg shadow-inner">
               {(['6M','1Y','3Y','ALL'] as const).map(tf => (
                 <button key={tf} onClick={() => setChartTimeframe(tf)}
                   className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
-                    chartTimeframe === tf ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:bg-[#e5e8eb]'
+                    chartTimeframe === tf ? 'bg-surface text-primary shadow-sm' : 'text-tertiary hover:bg-[#e5e8eb]'
                   }`}>{tf}</button>
               ))}
             </div>
           </div>
         </div>
         
-        <div className="flex w-full divide-x divide-[#e5e8eb] mb-5 bg-[#f9fafb] py-3 rounded-xl border border-[#e5e8eb] overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
+        <div className="flex w-full divide-x divide-[#e5e8eb] mb-5 bg-body py-3 rounded-xl border border-border overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
           {[{label: '1개월 평균', val: momentum.m1}, {label: '3개월 평균', val: momentum.m3}, {label: '6개월 평균', val: momentum.m6}, {label: '1년 평균', val: momentum.y1}, {label: '3년 평균', val: momentum.y3}].map((item, idx) => (
             <div key={item.label} className={`flex flex-col items-center px-3 sm:px-5 shrink-0 min-w-[76px] sm:min-w-[85px] flex-1 snap-center ${idx === 4 ? 'border-r-0' : ''}`}>
-              <span className="text-[10px] sm:text-[11px] font-bold text-[#8b95a1] mb-0.5 whitespace-nowrap">{item.label}</span>
-              <span className={`text-[13px] sm:text-[16px] font-bold sm:font-extrabold ${idx < 2 ? 'text-[#191f28]' : 'text-[#4e5968]'} whitespace-nowrap`}>{formatAvgPriceEok(item.val)}</span>
+              <span className="text-[10px] sm:text-[11px] font-bold text-tertiary mb-0.5 whitespace-nowrap">{item.label}</span>
+              <span className={`text-[13px] sm:text-[16px] font-bold sm:font-extrabold ${idx < 2 ? 'text-primary' : 'text-secondary'} whitespace-nowrap`}>{formatAvgPriceEok(item.val)}</span>
             </div>
           ))}
         </div>
@@ -343,8 +343,8 @@ export function TransactionChartSection({
             );
           })()}
         </div>
-        <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 mt-2 px-1 text-[12px] sm:text-[13px] font-bold text-[#8b95a1]">
-          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[1.5px] bg-[#3182f6] rounded"/>평균가</span>
+        <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 mt-2 px-1 text-[12px] sm:text-[13px] font-bold text-tertiary">
+          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[1.5px] bg-toss-blue rounded"/>평균가</span>
           <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-3.5 h-3.5 bg-[#e5e8eb] rounded-sm"/>거래량</span>
         </div>
       </div>

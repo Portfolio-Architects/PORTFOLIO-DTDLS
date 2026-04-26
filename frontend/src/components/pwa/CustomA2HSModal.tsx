@@ -25,7 +25,7 @@ export default function CustomA2HSModal() {
       />
       
       {/* Bottom Sheet Modal */}
-      <div className="fixed bottom-0 left-0 right-0 z-[10000] bg-white rounded-t-2xl shadow-xl transform transition-transform duration-300 ease-out max-w-2xl mx-auto">
+      <div className="fixed bottom-0 left-0 right-0 z-[10000] bg-surface rounded-t-2xl shadow-xl transform transition-transform duration-300 ease-out max-w-2xl mx-auto">
         <div className="p-6">
           <div className="flex justify-between items-start mb-4">
             <div className="flex items-center gap-3">
@@ -71,7 +71,7 @@ export default function CustomA2HSModal() {
             </button>
             <button
               onClick={handleInstall}
-              className="flex-1 py-3.5 px-4 bg-[#3182f6] text-white font-semibold rounded-xl hover:bg-blue-600 active:scale-[0.98] transition-all shadow-sm"
+              className="flex-1 py-3.5 px-4 bg-toss-blue text-surface font-semibold rounded-xl hover:bg-blue-600 active:scale-[0.98] transition-all shadow-sm"
             >
               지금 추가하기
             </button>

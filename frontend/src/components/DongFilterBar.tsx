@@ -10,8 +10,8 @@ interface DongFilterBarProps {
   totalAptCount: number;
   dongAptCounts: Record<string, number>;
   dongReportCounts: Record<string, number>;
-  listSort: 'views' | 'likes' | 'name';
-  onSortChange: (sort: 'views' | 'likes' | 'name') => void;
+  listSort: 'views' | 'likes' | 'name' | 'price-rank' | 'valuation';
+  onSortChange: (sort: 'views' | 'likes' | 'name' | 'price-rank' | 'valuation') => void;
 }
 
 export default function DongFilterBar({
@@ -44,29 +44,29 @@ export default function DongFilterBar({
   return (
     <div className="flex items-center justify-between gap-3">
       {/* 좌: 동 드롭다운 */}
-      <div className="relative" ref={dropdownRef}>
+      <div className="relative shrink-0" ref={dropdownRef}>
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13px] font-bold transition-all border border-[#e5e8eb] bg-white hover:border-[#d1d6db] shadow-sm"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13px] font-bold transition-all border border-border bg-surface hover:border-toss-gray shadow-sm"
           style={dongInfo ? { borderColor: dongInfo.color, color: dongInfo.color } : { color: '#191f28' }}
         >
           {dongInfo && <span className="w-2 h-2 rounded-full" style={{ backgroundColor: dongInfo.color }} />}
           {currentLabel}
-          <span className="text-[#8b95a1] font-medium">({currentCount})</span>
-          <ChevronDown size={14} className={`text-[#8b95a1] transition-transform ${open ? 'rotate-180' : ''}`} />
+          <span className="text-tertiary font-medium">({currentCount})</span>
+          <ChevronDown size={14} className={`text-tertiary transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
 
         {/* 드롭다운 메뉴 */}
         {open && (
-          <div className="absolute top-full left-0 mt-1.5 bg-white border border-[#e5e8eb] rounded-xl shadow-lg z-50 min-w-[200px] py-1.5 max-h-[320px] overflow-y-auto custom-scrollbar">
+          <div className="absolute top-full left-0 mt-1.5 bg-surface border border-border rounded-xl shadow-lg z-50 min-w-[200px] py-1.5 max-h-[320px] overflow-y-auto custom-scrollbar">
             <button
               onClick={() => { onSelectDong(null); setOpen(false); }}
               className={`w-full text-left px-4 py-2.5 text-[13px] font-bold transition-colors flex items-center justify-between ${
-                !selectedDong ? 'bg-[#f2f4f6] text-[#191f28]' : 'text-[#4e5968] hover:bg-[#f8f9fa]'
+                !selectedDong ? 'bg-body text-primary' : 'text-secondary hover:bg-[#f8f9fa]'
               }`}
             >
               <span>전체</span>
-              <span className="text-[11px] text-[#8b95a1] font-medium">{totalAptCount}</span>
+              <span className="text-[11px] text-tertiary font-medium">{totalAptCount}</span>
             </button>
             {DONGS.map(dong => {
               const aptCount = dongAptCounts[dong.name] || 0;
@@ -77,7 +77,7 @@ export default function DongFilterBar({
                   key={dong.id}
                   onClick={() => { onSelectDong(isActive ? null : dong.name); setOpen(false); }}
                   className={`w-full text-left px-4 py-2.5 text-[13px] font-bold transition-colors flex items-center justify-between ${
-                    isActive ? 'text-white' : 'text-[#4e5968] hover:bg-[#f8f9fa]'
+                    isActive ? 'text-surface' : 'text-secondary hover:bg-[#f8f9fa]'
                   }`}
                   style={isActive ? { backgroundColor: dong.color } : {}}
                 >
@@ -85,7 +85,7 @@ export default function DongFilterBar({
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: dong.color }} />
                     {dong.name}
                   </span>
-                  <span className={`text-[11px] font-medium ${isActive ? 'text-white/70' : 'text-[#8b95a1]'}`}>{aptCount}</span>
+                  <span className={`text-[11px] font-medium ${isActive ? 'text-surface/70' : 'text-tertiary'}`}>{aptCount}</span>
                 </button>
               );
             })}
@@ -94,17 +94,19 @@ export default function DongFilterBar({
       </div>
 
       {/* 우: 정렬 탭 */}
-      <div className="flex items-center gap-1 bg-[#f2f4f6] rounded-lg p-1">
+      <div className="flex items-center gap-1 bg-body rounded-lg p-1 overflow-x-auto custom-scrollbar whitespace-nowrap shrink max-w-[65vw]">
         {[
-          { id: 'views' as const, label: '조회수' },
+          { id: 'views' as const, label: '🔥 인기순' },
           { id: 'likes' as const, label: '관심' },
           { id: 'name' as const, label: '가나다' },
+          { id: 'price-rank' as const, label: '평당가순' },
+          { id: 'valuation' as const, label: '전세가율순' },
         ].map(s => (
           <button
             key={s.id}
             onClick={() => onSortChange(s.id)}
-            className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${
-              listSort === s.id ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'
+            className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all shrink-0 ${
+              listSort === s.id ? 'bg-surface text-primary shadow-sm' : 'text-tertiary hover:text-secondary'
             }`}
           >
             {s.label}

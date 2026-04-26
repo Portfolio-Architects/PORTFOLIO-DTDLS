@@ -133,73 +133,102 @@ export default function PendingPhotosPage() {
     <div className="max-w-6xl mx-auto p-6 md:p-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-[24px] font-bold text-[#191f28] flex items-center gap-2">
-            <Camera className="text-[#3182f6]" /> 사진 등록 관리 (대기열)
+          <h1 className="text-[24px] font-bold text-primary flex items-center gap-2">
+            <Camera className="text-toss-blue" /> 사진 등록 관리 (대기열)
           </h1>
-          <p className="text-[15px] text-[#4e5968] mt-1">
+          <p className="text-[15px] text-secondary mt-1">
             입주민이 등록한 단지 사진을 검토하고 승인/거절합니다.
           </p>
         </div>
-        <div className="bg-[#f2f4f6] px-4 py-2 rounded-xl text-[14px] font-bold text-[#4e5968]">
-          대기 중: <span className="text-[#3182f6]">{photos.length}</span>건
+        <div className="bg-body px-4 py-2 rounded-xl text-[14px] font-bold text-secondary">
+          대기 중: <span className="text-toss-blue">{photos.length}</span>건
         </div>
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 text-[#8b95a1]">
+        <div className="flex flex-col items-center justify-center py-20 text-tertiary">
           <Loader2 size={32} className="animate-spin mb-4" />
           <p>업로드 내역을 불러오는 중...</p>
         </div>
       ) : photos.length === 0 ? (
-        <div className="bg-white border border-[#e5e8eb] rounded-2xl p-16 flex flex-col items-center justify-center text-center shadow-sm">
-          <div className="w-16 h-16 bg-[#f2f4f6] rounded-full flex items-center justify-center mb-4">
-            <Check size={32} className="text-[#8b95a1]" />
+        <div className="bg-surface border border-border rounded-2xl p-16 flex flex-col items-center justify-center text-center shadow-sm">
+          <div className="w-16 h-16 bg-body rounded-full flex items-center justify-center mb-4">
+            <Check size={32} className="text-tertiary" />
           </div>
-          <h3 className="text-[18px] font-bold text-[#191f28] mb-1">대기 중인 사진이 없습니다</h3>
-          <p className="text-[14px] text-[#8b95a1]">모든 등록 사진 처리가 완료되었습니다.</p>
+          <h3 className="text-[18px] font-bold text-primary mb-1">대기 중인 사진이 없습니다</h3>
+          <p className="text-[14px] text-tertiary">모든 등록 사진 처리가 완료되었습니다.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="flex flex-col gap-6">
           {photos.map(photo => (
-            <div key={photo.id} className="bg-white border border-[#e5e8eb] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
-              <div className="relative aspect-[4/3] w-full bg-[#f2f4f6]">
+            <div key={photo.id} className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row group">
+              {/* Image Preview Area - Large Left Panel */}
+              <div 
+                className="relative w-full md:w-[400px] lg:w-[480px] shrink-0 bg-body cursor-pointer overflow-hidden aspect-[4/3] md:aspect-auto md:min-h-[320px]"
+                onClick={() => window.open(photo.url, '_blank')}
+                title="클릭하여 원본 보기"
+              >
                 <Image 
                   src={photo.url} 
                   alt="등록 사진" 
                   fill 
-                  className="object-cover"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                  sizes="(max-width: 768px) 100vw, 480px"
                 />
-              </div>
-              <div className="p-5 flex-1 flex flex-col">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="bg-[#e8f3ff] text-[#3182f6] text-[12px] font-bold px-2 py-1 rounded-md">
-                    {photo.locationTag}
-                  </span>
-                  <span className="text-[12px] text-[#8b95a1]">
-                    {photo.createdAt?.toDate ? new Date(photo.createdAt.toDate()).toLocaleDateString() : '최근'}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-90" />
+                
+                <div className="absolute top-4 right-4">
+                  <span className="text-white/90 text-[12px] font-bold px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-lg shadow-sm">
+                    {photo.createdAt?.toDate ? new Date(photo.createdAt.toDate()).toLocaleDateString() : '최근 등록'}
                   </span>
                 </div>
-                <h3 className="text-[16px] font-bold text-[#191f28] mb-1">{photo.apartmentName}</h3>
-                <p className="text-[14px] text-[#4e5968] mb-5 line-clamp-2 min-h-[42px]">
-                  {photo.caption || <span className="text-[#8b95a1] italic">설명 없음</span>}
-                </p>
+
+                <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-1.5">
+                  <span className="w-fit bg-toss-blue text-white text-[12px] font-extrabold px-2.5 py-1 rounded shadow-sm uppercase tracking-wide">
+                    {photo.locationTag}
+                  </span>
+                  <h3 className="text-[20px] font-black text-white drop-shadow-md truncate">
+                    {photo.apartmentName}
+                  </h3>
+                </div>
+              </div>
+
+              {/* Card Body - Right Panel */}
+              <div className="p-6 md:p-8 flex-1 flex flex-col">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-[16px] font-extrabold text-primary">사진 설명 및 업로더 정보</h4>
+                  <div className="flex items-center gap-2 text-[13px] text-tertiary font-medium bg-body px-3 py-1.5 rounded-full">
+                    <div className="w-6 h-6 rounded-full bg-toss-blue/10 flex items-center justify-center text-toss-blue font-extrabold text-[11px]">
+                      {photo.uploaderName ? photo.uploaderName.charAt(0) : '익'}
+                    </div>
+                    {photo.uploaderName || '익명 사용자'}
+                  </div>
+                </div>
+
+                {/* Caption / Description Box */}
+                <div className="bg-body rounded-xl p-5 mb-6 flex-1 border border-border/50 shadow-inner">
+                  <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">
+                    {photo.caption ? `"${photo.caption}"` : <span className="text-tertiary italic">작성된 설명이 없습니다.</span>}
+                  </p>
+                </div>
                 
-                <div className="mt-auto grid grid-cols-2 gap-2 pt-4 border-t border-[#e5e8eb]">
+                {/* Action Buttons */}
+                <div className="grid grid-cols-2 gap-4 mt-auto pt-4">
                   <button 
                     onClick={() => handleReject(photo)}
                     disabled={processingId === photo.id}
-                    className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[14px] font-bold text-[#f04452] bg-[#feeceb] hover:bg-[#fddada] transition-colors disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 py-4 rounded-xl text-[15px] font-bold text-toss-red bg-toss-red/10 hover:bg-toss-red/20 transition-colors disabled:opacity-50"
                   >
-                    {processingId === photo.id ? <Loader2 size={16} className="animate-spin" /> : <X size={16} />}
-                    거절
+                    {processingId === photo.id ? <Loader2 size={18} className="animate-spin" /> : <X size={18} strokeWidth={3} />}
+                    거절 및 삭제
                   </button>
                   <button 
                     onClick={() => handleApprove(photo)}
                     disabled={processingId === photo.id}
-                    className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[14px] font-bold text-white bg-[#3182f6] hover:bg-[#1b64da] transition-colors disabled:opacity-50"
+                    className="flex items-center justify-center gap-2 py-4 rounded-xl text-[15px] font-bold text-white bg-toss-blue hover:opacity-90 shadow-sm hover:shadow transition-all disabled:opacity-50"
                   >
-                    {processingId === photo.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-                    승인 (노출)
+                    {processingId === photo.id ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} strokeWidth={3} />}
+                    승인 (즉시 노출)
                   </button>
                 </div>
               </div>

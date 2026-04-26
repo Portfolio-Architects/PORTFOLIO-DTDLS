@@ -196,11 +196,11 @@ export default function ReportPage() {
   return (
     <div className="animate-in fade-in duration-300">
       <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-[#191f28] tracking-tight mb-2">종합 보고서</h1>
-        <p className="text-[#4e5968] text-[14px]">프로젝트 아키텍처 및 엔지니어링 품질 총괄 리포트 (SSOT)</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-primary tracking-tight mb-2">종합 보고서</h1>
+        <p className="text-secondary text-[14px]">프로젝트 아키텍처 및 엔지니어링 품질 총괄 리포트 (SSOT)</p>
       </div>
 
-      <div ref={containerRef} className="bg-white rounded-2xl border border-[#e5e8eb] shadow-sm p-6 md:p-10">
+      <div ref={containerRef} className="bg-surface rounded-2xl border border-border shadow-sm p-6 md:p-10">
         <article className="report-prose">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{REPORT_MD}</ReactMarkdown>
         </article>

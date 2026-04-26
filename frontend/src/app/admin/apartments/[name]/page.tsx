@@ -89,12 +89,12 @@ function NumField({ label, value, unit, placeholder, onChange }: {
 }) {
   return (
     <div>
-      <label className="text-[13px] font-bold text-[#4e5968] mb-1.5 block">{label}</label>
+      <label className="text-[13px] font-bold text-secondary mb-1.5 block">{label}</label>
       <div className="relative">
         <input type="number" step="any" min={0} value={value ?? ''} placeholder={placeholder}
           onChange={e => onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-          className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-all" />
-        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b95a1] text-[13px]">{unit}</span>
+          className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[15px] outline-none focus:border-toss-blue focus:bg-surface transition-all" />
+        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-tertiary text-[13px]">{unit}</span>
       </div>
     </div>
   );
@@ -736,7 +736,7 @@ export default function ApartmentInfoPage() {
   // ── Render ──
   if (!loaded) return (
     <div className="flex justify-center items-center py-32">
-      <div className="w-8 h-8 border-4 border-[#3182f6] border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-toss-blue border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -744,18 +744,18 @@ export default function ApartmentInfoPage() {
     <div className="animate-in fade-in duration-300 pb-20">
       {/* Back + Header */}
       <div className="mb-6">
-        <button onClick={() => router.push('/admin')} className="flex items-center gap-1 text-[#8b95a1] hover:text-[#3182f6] text-[14px] font-bold mb-4 transition-colors">
+        <button onClick={() => router.push('/admin')} className="flex items-center gap-1 text-tertiary hover:text-toss-blue text-[14px] font-bold mb-4 transition-colors">
           <ChevronLeft size={16} /> 대시보드로 돌아가기
         </button>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-[#191f28] tracking-tight">{originalName}</h1>
-            <p className="text-[#4e5968] text-[14px] mt-2">단지 기본정보 · 가치평가 · 현장 사진을 통합 관리합니다.</p>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-primary tracking-tight">{originalName}</h1>
+            <p className="text-secondary text-[14px] mt-2">단지 기본정보 · 가치평가 · 현장 사진을 통합 관리합니다.</p>
           </div>
           <button onClick={handleAutoFetch} disabled={isCalculating}
-            className="px-5 py-2.5 bg-[#e8f3ff] hover:bg-[#d0e8ff] text-[#3182f6] font-bold text-[13px] rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 shrink-0">
+            className="px-5 py-2.5 bg-toss-blue-light hover:bg-[#d0e8ff] text-toss-blue font-bold text-[13px] rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 shrink-0">
             {isCalculating ? (
-              <><div className="w-4 h-4 border-2 border-[#3182f6] border-t-transparent rounded-full animate-spin" /> 불러오는 중...</>
+              <><div className="w-4 h-4 border-2 border-toss-blue border-t-transparent rounded-full animate-spin" /> 불러오는 중...</>
             ) : '📍 단지 정보 자동 출력'}
           </button>
         </div>
@@ -764,27 +764,27 @@ export default function ApartmentInfoPage() {
       {meta && (
         <div className="space-y-8">
           {/* ─── Section 1: 기본 정보 ─── */}
-          <div className="bg-white rounded-2xl border border-[#e5e8eb] shadow-sm p-5 md:p-8">
-            <h2 className="text-[16px] font-bold text-[#191f28] mb-5 border-b border-[#f2f4f6] pb-3">① 기본 정보</h2>
+          <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 md:p-8">
+            <h2 className="text-[16px] font-bold text-primary mb-5 border-b border-body pb-3">① 기본 정보</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div>
-                <label className="text-[13px] font-bold text-[#4e5968] mb-1.5 block">단지명 (이름 편집)</label>
+                <label className="text-[13px] font-bold text-secondary mb-1.5 block">단지명 (이름 편집)</label>
                 <input type="text" value={aptName} onChange={e => setAptName(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-all font-bold text-[#191f28]" />
+                  className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[15px] outline-none focus:border-toss-blue focus:bg-surface transition-all font-bold text-primary" />
               </div>
               <div>
-                <label className="text-[13px] font-bold text-[#4e5968] mb-1.5 flex items-center gap-1"><MapPin size={14}/> 법정동</label>
+                <label className="text-[13px] font-bold text-secondary mb-1.5 flex items-center gap-1"><MapPin size={14}/> 법정동</label>
                 <select value={meta.dong} onChange={e => setMeta({ ...meta, dong: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none focus:border-[#3182f6] focus:bg-white popup-select">
+                  className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[15px] outline-none focus:border-toss-blue focus:bg-surface popup-select">
                   {dongNames.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-[13px] font-bold text-[#4e5968] flex items-center gap-1"><Link2 size={14}/> TX 키</label>
+                  <label className="text-[13px] font-bold text-secondary flex items-center gap-1"><Link2 size={14}/> TX 키</label>
                   {suggestedTxKey && !meta?.txKey && (
                     <button onClick={() => setMeta({ ...meta, txKey: suggestedTxKey })}
-                      className="px-2 py-0.5 bg-[#e8f3ff] text-[#3182f6] hover:bg-[#3182f6] hover:text-white rounded text-[11px] font-bold transition-colors">
+                      className="px-2 py-0.5 bg-toss-blue-light text-toss-blue hover:bg-toss-blue hover:text-surface rounded text-[11px] font-bold transition-colors">
                       자동 추천: {suggestedTxKey}
                     </button>
                   )}
@@ -794,8 +794,8 @@ export default function ApartmentInfoPage() {
                   list="tx-keys" 
                   placeholder={meta.isPublicRental ? "공공임대는 실거래가(TX) 매핑 불가" : "예: 동탄역호반써밋"}
                   disabled={meta.isPublicRental}
-                  className={`w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none font-mono transition-all ${
-                    meta.isPublicRental ? 'opacity-60 cursor-not-allowed text-[#8b95a1]' : 'focus:border-[#3182f6] focus:bg-white'
+                  className={`w-full px-4 py-3 bg-body border border-border rounded-xl text-[15px] outline-none font-mono transition-all ${
+                    meta.isPublicRental ? 'opacity-60 cursor-not-allowed text-tertiary' : 'focus:border-toss-blue focus:bg-surface'
                   }`} />
                 {(() => {
                   const searchStr = (meta.txKey || '').trim().toLowerCase();
@@ -810,7 +810,7 @@ export default function ApartmentInfoPage() {
               <div className="flex flex-col justify-end pb-1">
                 <button type="button" onClick={() => setMeta({ ...meta, isPublicRental: !meta.isPublicRental })}
                   className={`flex items-center justify-center gap-2 h-[48px] rounded-xl text-[14px] font-bold transition-all border ${
-                    meta.isPublicRental ? 'bg-[#191f28] text-white border-[#191f28]' : 'bg-white border-[#e5e8eb] text-[#4e5968] hover:bg-[#f2f4f6]'
+                    meta.isPublicRental ? 'bg-primary text-surface border-[#191f28]' : 'bg-surface border-border text-secondary hover:bg-body'
                   }`}>
                   <Home size={16}/> 공공임대 단지 설정
                 </button>
@@ -818,36 +818,36 @@ export default function ApartmentInfoPage() {
             </div>
 
             {/* Extended meta */}
-            <div className="mt-6 pt-5 border-t border-[#f2f4f6]">
-              <h3 className="text-[14px] font-bold text-[#8b95a1] mb-4">📋 건물 상세</h3>
+            <div className="mt-6 pt-5 border-t border-body">
+              <h3 className="text-[14px] font-bold text-tertiary mb-4">📋 건물 상세</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <NumField label="세대수" value={meta.householdCount} unit="세대" placeholder="1200" onChange={v => setMeta({...meta, householdCount: v ? Math.round(v) : undefined})}/>
                 <div>
-                  <label className="text-[13px] font-bold text-[#4e5968] mb-1.5 block">시공사 (브랜드)</label>
+                  <label className="text-[13px] font-bold text-secondary mb-1.5 block">시공사 (브랜드)</label>
                   <input type="text" value={meta.brand || ''} onChange={e => setMeta({ ...meta, brand: e.target.value || undefined })}
-                    placeholder="예: 현대건설" className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none focus:border-[#3182f6] focus:bg-white" />
+                    placeholder="예: 현대건설" className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[15px] outline-none focus:border-toss-blue focus:bg-surface" />
                 </div>
                 <div>
-                  <label className="text-[13px] font-bold text-[#4e5968] mb-1.5 block">사용승인 (준공)</label>
+                  <label className="text-[13px] font-bold text-secondary mb-1.5 block">사용승인 (준공)</label>
                   <input type="text" value={meta.yearBuilt || ''} onChange={e => setMeta({ ...meta, yearBuilt: e.target.value || undefined })}
-                    placeholder="예: 202012" className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none focus:border-[#3182f6] focus:bg-white" />
+                    placeholder="예: 202012" className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[15px] outline-none focus:border-toss-blue focus:bg-surface" />
                 </div>
                 <NumField label="용적률" value={meta.far} unit="%" placeholder="249.8" onChange={v => setMeta({...meta, far: v})}/>
                 <NumField label="건폐율" value={meta.bcr} unit="%" placeholder="18.5" onChange={v => setMeta({...meta, bcr: v})}/>
                 <NumField label="주차대수" value={meta.parkingCount} unit="대" placeholder="1580" onChange={v => setMeta({...meta, parkingCount: v ? Math.round(v) : undefined})}/>
                 <NumField label="세대당 주차" value={meta.parkingPerHousehold} unit="대" placeholder="1.45" onChange={v => setMeta({...meta, parkingPerHousehold: v})}/>
                 <div className="md:col-span-2 lg:col-span-2">
-                  <label className="text-[13px] font-bold text-[#4e5968] mb-1.5 flex items-center gap-1"><MapPin size={14}/> 좌표 (위도, 경도)</label>
+                  <label className="text-[13px] font-bold text-secondary mb-1.5 flex items-center gap-1"><MapPin size={14}/> 좌표 (위도, 경도)</label>
                   <input type="text" value={meta.coordinates || ''} onChange={e => setMeta({ ...meta, coordinates: e.target.value || undefined })}
-                    placeholder="예: 37.2005, 127.0985" className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] outline-none focus:border-[#3182f6] focus:bg-white font-mono" />
+                    placeholder="예: 37.2005, 127.0985" className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[15px] outline-none focus:border-toss-blue focus:bg-surface font-mono" />
                 </div>
               </div>
             </div>
           </div>
 
           {/* ─── Section 2: 입지 분석 ─── */}
-          <div className="bg-[#f9fafb] rounded-2xl border border-[#e5e8eb] shadow-sm p-5 md:p-8">
-            <h2 className="text-[16px] font-bold text-[#191f28] mb-5 border-b border-[#e5e8eb] pb-3">② 입지 분석</h2>
+          <div className="bg-body rounded-2xl border border-border shadow-sm p-5 md:p-8">
+            <h2 className="text-[16px] font-bold text-primary mb-5 border-b border-border pb-3">② 입지 분석</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <NumField label="초등학교 통학거리" value={meta.distanceToElementary} unit="m" placeholder="300" onChange={v => setMeta({...meta, distanceToElementary: v})}/>
               <NumField label="중학교 통학거리" value={meta.distanceToMiddle} unit="m" placeholder="800" onChange={v => setMeta({...meta, distanceToMiddle: v})}/>
@@ -863,32 +863,32 @@ export default function ApartmentInfoPage() {
               <div>
                 <label className="text-[13px] font-bold text-[#00704A] mb-1.5 flex items-center gap-1">스타벅스 지점명</label>
                 <input type="text" value={meta.starbucksName || ''} onChange={e => setMeta({ ...meta, starbucksName: e.target.value || undefined })}
-                  placeholder="예: 스타벅스 동탄역점" className="w-full px-4 py-3 bg-white border border-[#bbf7d0] rounded-xl text-[15px] outline-none focus:border-[#00704A] transition-all" />
+                  placeholder="예: 스타벅스 동탄역점" className="w-full px-4 py-3 bg-surface border border-[#bbf7d0] rounded-xl text-[15px] outline-none focus:border-[#00704A] transition-all" />
               </div>
               <div className="md:col-span-2">
                 <label className="text-[13px] font-bold text-[#00704A] mb-1.5 flex items-center gap-1">스타벅스 주소 / 구글 맵 좌표</label>
                 <div className="flex gap-2">
                   <input type="text" value={meta.starbucksAddress || ''} onChange={e => setMeta({ ...meta, starbucksAddress: e.target.value || undefined })}
-                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-white border border-[#bbf7d0] rounded-xl text-[15px] outline-none focus:border-[#00704A] transition-all" />
+                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-surface border border-[#bbf7d0] rounded-xl text-[15px] outline-none focus:border-[#00704A] transition-all" />
                   <input type="text" value={meta.starbucksCoordinates || ''} onChange={e => setMeta({ ...meta, starbucksCoordinates: e.target.value || undefined })}
-                    placeholder="좌표 (위도,경도)" className="w-44 px-4 py-3 bg-white border border-[#bbf7d0] rounded-xl text-[15px] outline-none focus:border-[#00704A] transition-all font-mono" />
+                    placeholder="좌표 (위도,경도)" className="w-44 px-4 py-3 bg-surface border border-[#bbf7d0] rounded-xl text-[15px] outline-none focus:border-[#00704A] transition-all font-mono" />
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 p-4 rounded-xl border border-[#03c75a]/30 bg-[#03c75a]/5 text-[#03c75a]">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 p-4 rounded-xl border border-[#03c75a]/30 bg-toss-green/5 text-toss-green">
               <div>
                 <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">올리브영 지점명</label>
                 <input type="text" value={meta.oliveYoungName || ''} onChange={e => setMeta({ ...meta, oliveYoungName: e.target.value || undefined })}
-                  placeholder="예: 올리브영 동탄역점" className="w-full px-4 py-3 bg-white border border-[#03c75a]/30 rounded-xl text-[15px] outline-none focus:border-[#03c75a] transition-all" />
+                  placeholder="예: 올리브영 동탄역점" className="w-full px-4 py-3 bg-surface border border-[#03c75a]/30 rounded-xl text-[15px] outline-none focus:border-[#03c75a] transition-all" />
               </div>
               <div className="md:col-span-2">
                 <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">올리브영 주소 / 좌표</label>
                 <div className="flex gap-2">
                   <input type="text" value={meta.oliveYoungAddress || ''} onChange={e => setMeta({ ...meta, oliveYoungAddress: e.target.value || undefined })}
-                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-white border border-[#03c75a]/30 rounded-xl text-[15px] outline-none focus:border-[#03c75a] transition-all text-[#191f28]" />
+                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-surface border border-[#03c75a]/30 rounded-xl text-[15px] outline-none focus:border-[#03c75a] transition-all text-primary" />
                   <input type="text" value={meta.oliveYoungCoordinates || ''} onChange={e => setMeta({ ...meta, oliveYoungCoordinates: e.target.value || undefined })}
-                    placeholder="위도,경도" className="w-44 px-4 py-3 bg-white border border-[#03c75a]/30 rounded-xl text-[15px] outline-none focus:border-[#03c75a] transition-all font-mono text-[#191f28]" />
+                    placeholder="위도,경도" className="w-44 px-4 py-3 bg-surface border border-[#03c75a]/30 rounded-xl text-[15px] outline-none focus:border-[#03c75a] transition-all font-mono text-primary" />
                 </div>
               </div>
             </div>
@@ -897,15 +897,15 @@ export default function ApartmentInfoPage() {
               <div>
                 <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">다이소 지점명</label>
                 <input type="text" value={meta.daisoName || ''} onChange={e => setMeta({ ...meta, daisoName: e.target.value || undefined })}
-                  placeholder="예: 다이소 동탄역점" className="w-full px-4 py-3 bg-white border border-[#EF4444]/30 rounded-xl text-[15px] outline-none focus:border-[#EF4444] transition-all" />
+                  placeholder="예: 다이소 동탄역점" className="w-full px-4 py-3 bg-surface border border-[#EF4444]/30 rounded-xl text-[15px] outline-none focus:border-[#EF4444] transition-all" />
               </div>
               <div className="md:col-span-2">
                 <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">다이소 주소 / 좌표</label>
                 <div className="flex gap-2">
                   <input type="text" value={meta.daisoAddress || ''} onChange={e => setMeta({ ...meta, daisoAddress: e.target.value || undefined })}
-                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-white border border-[#EF4444]/30 rounded-xl text-[15px] outline-none focus:border-[#EF4444] transition-all text-[#191f28]" />
+                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-surface border border-[#EF4444]/30 rounded-xl text-[15px] outline-none focus:border-[#EF4444] transition-all text-primary" />
                   <input type="text" value={meta.daisoCoordinates || ''} onChange={e => setMeta({ ...meta, daisoCoordinates: e.target.value || undefined })}
-                    placeholder="위도,경도" className="w-44 px-4 py-3 bg-white border border-[#EF4444]/30 rounded-xl text-[15px] outline-none focus:border-[#EF4444] transition-all font-mono text-[#191f28]" />
+                    placeholder="위도,경도" className="w-44 px-4 py-3 bg-surface border border-[#EF4444]/30 rounded-xl text-[15px] outline-none focus:border-[#EF4444] transition-all font-mono text-primary" />
                 </div>
               </div>
             </div>
@@ -914,15 +914,15 @@ export default function ApartmentInfoPage() {
               <div>
                 <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">대형마트 지점명</label>
                 <input type="text" value={meta.supermarketName || ''} onChange={e => setMeta({ ...meta, supermarketName: e.target.value || undefined })}
-                  placeholder="예: 이마트 동탄점" className="w-full px-4 py-3 bg-white border border-[#f59e0b]/40 rounded-xl text-[15px] outline-none focus:border-[#f59e0b] transition-all" />
+                  placeholder="예: 이마트 동탄점" className="w-full px-4 py-3 bg-surface border border-[#f59e0b]/40 rounded-xl text-[15px] outline-none focus:border-[#f59e0b] transition-all" />
               </div>
               <div className="md:col-span-2">
                 <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">대형마트 주소 / 좌표</label>
                 <div className="flex gap-2">
                   <input type="text" value={meta.supermarketAddress || ''} onChange={e => setMeta({ ...meta, supermarketAddress: e.target.value || undefined })}
-                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-white border border-[#f59e0b]/40 rounded-xl text-[15px] outline-none focus:border-[#f59e0b] transition-all text-[#191f28]" />
+                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-surface border border-[#f59e0b]/40 rounded-xl text-[15px] outline-none focus:border-[#f59e0b] transition-all text-primary" />
                   <input type="text" value={meta.supermarketCoordinates || ''} onChange={e => setMeta({ ...meta, supermarketCoordinates: e.target.value || undefined })}
-                    placeholder="위도,경도" className="w-44 px-4 py-3 bg-white border border-[#f59e0b]/40 rounded-xl text-[15px] outline-none focus:border-[#f59e0b] transition-all font-mono text-[#191f28]" />
+                    placeholder="위도,경도" className="w-44 px-4 py-3 bg-surface border border-[#f59e0b]/40 rounded-xl text-[15px] outline-none focus:border-[#f59e0b] transition-all font-mono text-primary" />
                 </div>
               </div>
             </div>
@@ -931,15 +931,15 @@ export default function ApartmentInfoPage() {
               <div>
                 <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">맥도날드 지점명</label>
                 <input type="text" value={meta.mcdonaldsName || ''} onChange={e => setMeta({ ...meta, mcdonaldsName: e.target.value || undefined })}
-                  placeholder="예: 맥도날드 동탄점" className="w-full px-4 py-3 bg-white border border-[#DA291C]/30 rounded-xl text-[15px] outline-none focus:border-[#DA291C] transition-all" />
+                  placeholder="예: 맥도날드 동탄점" className="w-full px-4 py-3 bg-surface border border-[#DA291C]/30 rounded-xl text-[15px] outline-none focus:border-[#DA291C] transition-all" />
               </div>
               <div className="md:col-span-2">
                 <label className="text-[13px] font-bold mb-1.5 flex items-center gap-1">맥도날드 주소 / 좌표</label>
                 <div className="flex gap-2">
                   <input type="text" value={meta.mcdonaldsAddress || ''} onChange={e => setMeta({ ...meta, mcdonaldsAddress: e.target.value || undefined })}
-                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-white border border-[#DA291C]/30 rounded-xl text-[15px] outline-none focus:border-[#DA291C] transition-all text-[#191f28]" />
+                    placeholder="상세 주소" className="flex-1 px-4 py-3 bg-surface border border-[#DA291C]/30 rounded-xl text-[15px] outline-none focus:border-[#DA291C] transition-all text-primary" />
                   <input type="text" value={meta.mcdonaldsCoordinates || ''} onChange={e => setMeta({ ...meta, mcdonaldsCoordinates: e.target.value || undefined })}
-                    placeholder="위도,경도" className="w-44 px-4 py-3 bg-white border border-[#DA291C]/30 rounded-xl text-[15px] outline-none focus:border-[#DA291C] transition-all font-mono text-[#191f28]" />
+                    placeholder="위도,경도" className="w-44 px-4 py-3 bg-surface border border-[#DA291C]/30 rounded-xl text-[15px] outline-none focus:border-[#DA291C] transition-all font-mono text-primary" />
                 </div>
               </div>
             </div>
@@ -961,11 +961,11 @@ export default function ApartmentInfoPage() {
               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 {apiCategories.academyCategories && Object.keys(apiCategories.academyCategories).length > 0 && (
                   <div className="bg-[#f0fdf4] rounded-xl p-4 border border-[#bbf7d0]">
-                    <div className="text-[13px] font-bold text-[#03c75a] mb-2">학원 카테고리 ({Object.values(apiCategories.academyCategories).reduce((a,b) => a+b, 0)}개)</div>
+                    <div className="text-[13px] font-bold text-toss-green mb-2">학원 카테고리 ({Object.values(apiCategories.academyCategories).reduce((a,b) => a+b, 0)}개)</div>
                     {Object.entries(apiCategories.academyCategories).sort(([,a],[,b]) => b-a).map(([cat,cnt]) => (
                       <div key={cat} className="flex justify-between text-[12px] py-0.5 px-1">
-                        <span className="text-[#4e5968] truncate mr-2">{cat}</span>
-                        <span className="font-bold text-[#03c75a] shrink-0">{cnt}개</span>
+                        <span className="text-secondary truncate mr-2">{cat}</span>
+                        <span className="font-bold text-toss-green shrink-0">{cnt}개</span>
                       </div>
                     ))}
                   </div>
@@ -975,7 +975,7 @@ export default function ApartmentInfoPage() {
                     <div className="text-[13px] font-bold text-[#f59e0b] mb-2">음식점·카페 ({Object.values(apiCategories.restaurantCategories).reduce((a,b) => a+b, 0)}개)</div>
                     {Object.entries(apiCategories.restaurantCategories).sort(([,a],[,b]) => b-a).map(([cat,cnt]) => (
                       <div key={cat} className="flex justify-between text-[12px] py-0.5 px-1">
-                        <span className="text-[#4e5968] truncate mr-2">{cat}</span>
+                        <span className="text-secondary truncate mr-2">{cat}</span>
                         <span className="font-bold text-[#f59e0b] shrink-0">{cnt}개</span>
                       </div>
                     ))}
@@ -1001,18 +1001,18 @@ export default function ApartmentInfoPage() {
           />
 
           {/* ─── Floating Save Bar ─── */}
-          <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-40 bg-white/90 backdrop-blur-lg border-t border-[#e5e8eb] px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-            <span className="text-[13px] text-[#8b95a1] font-medium">
+          <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-40 bg-surface/90 backdrop-blur-lg border-t border-border px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+            <span className="text-[13px] text-tertiary font-medium">
               {uploadProgress ? `📤 업로드 중... ${uploadProgress.done}/${uploadProgress.total}장` : `📸 ${photos.length}장 · ${meta.dong}`}
             </span>
             <div className="flex items-center gap-2">
               <button onClick={handleDelete} disabled={saving}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-[14px] bg-white border border-[#f04452] text-[#f04452] hover:bg-[#fff1f2] disabled:opacity-60">
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-[14px] bg-surface border border-[#f04452] text-toss-red hover:bg-[#fff1f2] disabled:opacity-60">
                 <Trash2 size={16}/> 삭제
               </button>
               <button onClick={handleSave} disabled={saving}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all text-[14px] ${
-                  saved ? 'bg-[#03c75a] text-white shadow-lg shadow-[#03c75a]/20' : 'bg-[#3182f6] hover:bg-[#2b72d6] text-white shadow-lg shadow-[#3182f6]/20'
+                  saved ? 'bg-toss-green text-surface shadow-lg shadow-[#03c75a]/20' : 'bg-toss-blue hover:bg-[#2b72d6] text-surface shadow-lg shadow-[#3182f6]/20'
                 } disabled:opacity-60`}>
                 <Save size={16}/>
                 {saving ? '저장 중...' : saved ? '저장 완료!' : '통합 저장'}

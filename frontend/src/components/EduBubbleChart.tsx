@@ -25,10 +25,10 @@ export default function EduBubbleChart() {
     if (active && payload && payload.length) {
       const data = payload[0].payload as { area: string; name: string; x: number; y: number; z: number };
       return (
-        <div className="bg-[#191f28]/90 p-3 rounded-lg text-white border-none shadow-lg text-sm">
+        <div className="bg-primary/90 p-3 rounded-lg text-surface border-none shadow-lg text-sm">
           <p className="font-bold mb-1">{data.area} ({data.name})</p>
-          <p className="text-[#d1d6db]">밀집도 지수: <span className="text-white font-semibold">{data.z}</span></p>
-          <p className="text-[#d1d6db]">평균 수강단가: <span className="text-white font-semibold">{data.y}</span></p>
+          <p className="text-toss-gray">밀집도 지수: <span className="text-surface font-semibold">{data.z}</span></p>
+          <p className="text-toss-gray">평균 수강단가: <span className="text-surface font-semibold">{data.y}</span></p>
         </div>
       );
     }

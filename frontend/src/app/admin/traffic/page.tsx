@@ -143,45 +143,45 @@ export default function TrafficPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-[#191f28] tracking-tight mb-2">트래픽 분석</h1>
-          <p className="text-[#4e5968] text-[14px]">웹 사이트 및 임장 리포트 트래픽 지표</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-primary tracking-tight mb-2">트래픽 분석</h1>
+          <p className="text-secondary text-[14px]">웹 사이트 및 임장 리포트 트래픽 지표</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex bg-[#f2f4f6] p-1 rounded-xl mb-8 w-fit">
+      <div className="flex bg-body p-1 rounded-xl mb-8 w-fit">
         <button 
           onClick={() => handleTabChange('daily')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[14px] font-bold transition-all ${activeTab === 'daily' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[14px] font-bold transition-all ${activeTab === 'daily' ? 'bg-surface text-primary shadow-sm' : 'text-tertiary hover:text-secondary'}`}
         >
           <Activity size={16} /> 구글 애널리틱스 (GA4)
         </button>
         <button 
           onClick={() => handleTabChange('cumulative')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[14px] font-bold transition-all ${activeTab === 'cumulative' ? 'bg-white text-[#191f28] shadow-sm' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[14px] font-bold transition-all ${activeTab === 'cumulative' ? 'bg-surface text-primary shadow-sm' : 'text-tertiary hover:text-secondary'}`}
         >
           <BarChart2 size={16} /> 누적 아파트 지표
         </button>
       </div>
 
-      {loading && <div className="flex justify-center py-16"><div className="w-7 h-7 border-4 border-[#3182f6] border-t-transparent rounded-full animate-spin" /></div>}
+      {loading && <div className="flex justify-center py-16"><div className="w-7 h-7 border-4 border-toss-blue border-t-transparent rounded-full animate-spin" /></div>}
 
       {/* ─── 일자별 트래픽 탭 (Daily Tab) ─── */}
       {!loading && activeTab === 'daily' && (
         <div className="space-y-6">
           {/* Chart Section */}
-          <div className="bg-white rounded-2xl border border-[#e5e8eb] shadow-sm p-6">
-            <h2 className="text-[16px] font-bold text-[#191f28] mb-1 flex items-center justify-between">
+          <div className="bg-surface rounded-2xl border border-border shadow-sm p-6">
+            <h2 className="text-[16px] font-bold text-primary mb-1 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Activity size={18} className="text-[#3182f6]" /> 구글 애널리틱스 트래픽 (순수 방문자)
+                <Activity size={18} className="text-toss-blue" /> 구글 애널리틱스 트래픽 (순수 방문자)
               </div>
-              <span className="text-[12px] font-medium text-[#8b95a1] bg-[#f2f4f6] px-2 py-1 rounded-md">
+              <span className="text-[12px] font-medium text-tertiary bg-body px-2 py-1 rounded-md">
                 과도한 봇(Bot) 및 내부 개발자 트래픽이 자동 필터링됩니다.
               </span>
             </h2>
             <div className="h-[280px] w-full mt-6">
               {gaData.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-[#8b95a1]">구글 애널리틱스 데이터를 불러오는 중이거나 아직 기록이 없습니다.</div>
+                <div className="h-full flex items-center justify-center text-tertiary">구글 애널리틱스 데이터를 불러오는 중이거나 아직 기록이 없습니다.</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                   <BarChart data={gaData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -214,16 +214,16 @@ export default function TrafficPage() {
           </div>
 
           {/* Daily Content Views Section */}
-          <div className="bg-white rounded-2xl border border-[#e5e8eb] shadow-sm p-6 overflow-hidden">
+          <div className="bg-surface rounded-2xl border border-border shadow-sm p-6 overflow-hidden">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-              <h2 className="text-[16px] font-bold text-[#191f28] flex items-center gap-2">
+              <h2 className="text-[16px] font-bold text-primary flex items-center gap-2">
                 <CalendarDays size={18} className="text-[#ff8a3d]" /> 
                 일자별 콘텐츠 콘텐츠 조회수
               </h2>
               <select 
                 value={selectedDate}
                 onChange={e => handleDateChange(e.target.value)}
-                className="bg-[#f2f4f6] text-[#4e5968] font-bold text-[14px] px-4 py-2 rounded-xl outline-none"
+                className="bg-body text-secondary font-bold text-[14px] px-4 py-2 rounded-xl outline-none"
               >
                 {[...gaData].reverse().map(s => (
                   <option key={s.date} value={s.date}>{s.date}</option>
@@ -232,30 +232,30 @@ export default function TrafficPage() {
             </div>
 
             {contentViews.length === 0 ? (
-              <div className="py-12 text-center text-[#8b95a1]">해당 일자에 조회된 콘텐츠가 없습니다.</div>
+              <div className="py-12 text-center text-tertiary">해당 일자에 조회된 콘텐츠가 없습니다.</div>
             ) : (
               <table className="w-full text-sm">
-                <thead className="bg-[#f9fafb] border-b border-[#e5e8eb]">
-                  <tr className="text-[#8b95a1] text-xs font-bold">
+                <thead className="bg-body border-b border-border">
+                  <tr className="text-tertiary text-xs font-bold">
                     <th className="py-3 pl-4 text-left w-8">#</th>
                     <th className="py-3 text-left w-16">구분</th>
                     <th className="py-3 text-left">콘텐츠 명</th>
-                    <th className="py-3 pr-4 text-right text-[#3182f6]">조회수</th>
+                    <th className="py-3 pr-4 text-right text-toss-blue">조회수</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#f2f4f6]">
                   {contentViews.map((c, i) => (
-                    <tr key={c.id} className="hover:bg-[#f9fafb] transition-colors">
+                    <tr key={c.id} className="hover:bg-body transition-colors">
                       <td className="py-3 pl-4 text-center">
-                        <span className={`text-xs font-extrabold ${i < 3 ? 'text-[#f59e0b]' : 'text-[#8b95a1]'}`}>{i + 1}</span>
+                        <span className={`text-xs font-extrabold ${i < 3 ? 'text-[#f59e0b]' : 'text-tertiary'}`}>{i + 1}</span>
                       </td>
                       <td className="py-3">
-                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${c.type === 'report' ? 'bg-[#ffebec] text-[#f04452]' : 'bg-[#e8f3ff] text-[#3182f6]'}`}>
+                        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${c.type === 'report' ? 'bg-[#ffebec] text-toss-red' : 'bg-toss-blue-light text-toss-blue'}`}>
                           {c.type === 'report' ? '리포트' : '라운지'}
                         </span>
                       </td>
-                      <td className="py-3 font-bold text-[#191f28] text-[13px] line-clamp-1">{c.title}</td>
-                      <td className="py-3 pr-4 text-right font-bold text-[#3182f6]">{c.views}</td>
+                      <td className="py-3 font-bold text-primary text-[13px] line-clamp-1">{c.title}</td>
+                      <td className="py-3 pr-4 text-right font-bold text-toss-blue">{c.views}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -272,26 +272,26 @@ export default function TrafficPage() {
             {/* Dong Tabs */}
             <div className="flex flex-wrap gap-2">
               <button onClick={() => handleDongChange('전체')} 
-                className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${selectedDong === '전체' ? 'bg-[#3182f6] text-white shadow-sm' : 'bg-white border border-[#e5e8eb] text-[#4e5968] hover:bg-[#f2f4f6]'}`}>
+                className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${selectedDong === '전체' ? 'bg-toss-blue text-surface shadow-sm' : 'bg-surface border border-border text-secondary hover:bg-body'}`}>
                 전체
               </button>
               {dongs.map(dong => (
                 <button key={dong} onClick={() => handleDongChange(dong)} 
-                  className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${selectedDong === dong ? 'bg-[#3182f6] text-white shadow-sm' : 'bg-white border border-[#e5e8eb] text-[#4e5968] hover:bg-[#f2f4f6]'}`}>
+                  className={`px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${selectedDong === dong ? 'bg-toss-blue text-surface shadow-sm' : 'bg-surface border border-border text-secondary hover:bg-body'}`}>
                   {dong}
                 </button>
               ))}
             </div>
 
             <div className="flex items-center gap-4">
-              <button onClick={handleReset} className="px-3 py-2 text-[12px] font-bold text-[#f04452] bg-[#ffebec] hover:bg-[#f04452] hover:text-white rounded-lg transition-colors shadow-sm whitespace-nowrap">
+              <button onClick={handleReset} className="px-3 py-2 text-[12px] font-bold text-toss-red bg-[#ffebec] hover:bg-toss-red hover:text-surface rounded-lg transition-colors shadow-sm whitespace-nowrap">
                 데이터 전체 초기화
               </button>
-              <div className="flex gap-1.5 border-l border-[#e5e8eb] pl-4">
+              <div className="flex gap-1.5 border-l border-border pl-4">
                 {(['viewCount', 'likes'] as const).map(k => (
                   <button key={k} onClick={() => handleSortChange(k)}
                     className={`flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2.5 rounded-xl text-[12px] sm:text-[13px] font-bold transition-all ${
-                      trafficSort === k ? 'bg-[#191f28] text-white shadow-sm' : 'bg-white border border-[#e5e8eb] text-[#4e5968] hover:bg-[#f2f4f6]'
+                      trafficSort === k ? 'bg-primary text-surface shadow-sm' : 'bg-surface border border-border text-secondary hover:bg-body'
                     }`}>
                     {k === 'viewCount' ? <><Eye size={14}/> 조회순</> : <><Heart size={14}/> 관심순</>}
                   </button>
@@ -302,69 +302,69 @@ export default function TrafficPage() {
 
           {/* Summary Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="bg-white p-4 rounded-2xl border border-[#e5e8eb] shadow-sm">
+            <div className="bg-surface p-4 rounded-2xl border border-border shadow-sm">
               <div className="flex items-center gap-2 mb-2">
-                <div className="p-1.5 rounded-lg bg-[#e8f3ff] text-[#3182f6]"><BarChart2 size={14}/></div>
-                <span className="text-[11px] font-bold text-[#8b95a1]">선택 단지</span>
+                <div className="p-1.5 rounded-lg bg-toss-blue-light text-toss-blue"><BarChart2 size={14}/></div>
+                <span className="text-[11px] font-bold text-tertiary">선택 단지</span>
               </div>
-              <div className="text-[26px] font-extrabold text-[#3182f6]">{sortedData.length}</div>
+              <div className="text-[26px] font-extrabold text-toss-blue">{sortedData.length}</div>
             </div>
-            <div className="bg-white p-4 rounded-2xl border border-[#e5e8eb] shadow-sm">
+            <div className="bg-surface p-4 rounded-2xl border border-border shadow-sm">
               <div className="flex items-center gap-2 mb-2">
-                <div className="p-1.5 rounded-lg bg-[#e8f3ff] text-[#3182f6]"><Eye size={14}/></div>
-                <span className="text-[11px] font-bold text-[#8b95a1]">총 조회수</span>
+                <div className="p-1.5 rounded-lg bg-toss-blue-light text-toss-blue"><Eye size={14}/></div>
+                <span className="text-[11px] font-bold text-tertiary">총 조회수</span>
               </div>
-              <div className="text-[26px] font-extrabold text-[#3182f6]">{totalViews.toLocaleString()}</div>
+              <div className="text-[26px] font-extrabold text-toss-blue">{totalViews.toLocaleString()}</div>
             </div>
-            <div className="bg-white p-4 rounded-2xl border border-[#e5e8eb] shadow-sm">
+            <div className="bg-surface p-4 rounded-2xl border border-border shadow-sm">
               <div className="flex items-center gap-2 mb-2">
-                <div className="p-1.5 rounded-lg bg-[#ffebec] text-[#f04452]"><Heart size={14}/></div>
-                <span className="text-[11px] font-bold text-[#8b95a1]">총 관심</span>
+                <div className="p-1.5 rounded-lg bg-[#ffebec] text-toss-red"><Heart size={14}/></div>
+                <span className="text-[11px] font-bold text-tertiary">총 관심</span>
               </div>
-              <div className="text-[26px] font-extrabold text-[#f04452]">{totalLikes.toLocaleString()}</div>
+              <div className="text-[26px] font-extrabold text-toss-red">{totalLikes.toLocaleString()}</div>
             </div>
-            <div className="bg-white p-4 rounded-2xl border border-[#e5e8eb] shadow-sm">
+            <div className="bg-surface p-4 rounded-2xl border border-border shadow-sm">
               <div className="flex items-center gap-2 mb-2">
                 <div className="p-1.5 rounded-lg bg-[#fff4e6] text-[#ff8a3d]"><Eye size={14}/></div>
-                <span className="text-[11px] font-bold text-[#8b95a1]">활성 단지</span>
+                <span className="text-[11px] font-bold text-tertiary">활성 단지</span>
               </div>
               <div className="text-[26px] font-extrabold text-[#ff8a3d]">{sortedData.filter(r => r.viewCount > 0 || r.likes > 0).length}</div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-[#e5e8eb] shadow-sm overflow-x-auto">
+          <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-x-auto">
             <table className="w-full text-sm min-w-[500px]">
-              <thead className="bg-[#f9fafb] border-b border-[#e5e8eb]">
-                <tr className="text-[#8b95a1] text-xs font-bold">
+              <thead className="bg-body border-b border-border">
+                <tr className="text-tertiary text-xs font-bold">
                   <th className="py-3 pl-4 text-left w-8">#</th>
                   <th className="py-3 text-left">아파트명</th>
-                  <th className="py-3 text-left text-[#8b95a1]">동</th>
-                  <th className="py-3 pr-4 text-right text-[#3182f6]">조회수</th>
-                  <th className="py-3 pr-4 text-right text-[#f04452]">관심</th>
+                  <th className="py-3 text-left text-tertiary">동</th>
+                  <th className="py-3 pr-4 text-right text-toss-blue">조회수</th>
+                  <th className="py-3 pr-4 text-right text-toss-red">관심</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#f2f4f6]">
                 {sortedData.map((row, i) => (
-                  <tr key={row.name} className={`hover:bg-[#f9fafb] transition-colors ${i < 3 ? 'bg-[#fffbf5]' : ''}`}>
+                  <tr key={row.name} className={`hover:bg-body transition-colors ${i < 3 ? 'bg-[#fffbf5]' : ''}`}>
                     <td className="py-3 pl-4 text-center">
-                      <span className={`text-xs font-extrabold ${i === 0 ? 'text-[#f59e0b]' : i === 1 ? 'text-[#8b95a1]' : i === 2 ? 'text-[#cd7c2f]' : 'text-[#d1d6db]'}`}>{i + 1}</span>
+                      <span className={`text-xs font-extrabold ${i === 0 ? 'text-[#f59e0b]' : i === 1 ? 'text-tertiary' : i === 2 ? 'text-[#cd7c2f]' : 'text-toss-gray'}`}>{i + 1}</span>
                     </td>
-                    <td className="py-3 font-bold text-[#191f28] text-[13px]">{row.name}</td>
-                    <td className="py-3 text-xs text-[#8b95a1]">{row.dong}</td>
+                    <td className="py-3 font-bold text-primary text-[13px]">{row.name}</td>
+                    <td className="py-3 text-xs text-tertiary">{row.dong}</td>
                     <td className="py-3 pr-4">
                       <div className="flex items-center justify-end gap-2">
-                        <div className="w-16 sm:w-20 h-1.5 bg-[#f2f4f6] rounded-full overflow-hidden">
-                          <div className="h-full bg-[#3182f6] rounded-full" style={{ width: `${(row.viewCount / maxViews) * 100}%` }} />
+                        <div className="w-16 sm:w-20 h-1.5 bg-body rounded-full overflow-hidden">
+                          <div className="h-full bg-toss-blue rounded-full" style={{ width: `${(row.viewCount / maxViews) * 100}%` }} />
                         </div>
-                        <span className="text-xs font-bold text-[#3182f6] tabular-nums w-8 text-right">{row.viewCount}</span>
+                        <span className="text-xs font-bold text-toss-blue tabular-nums w-8 text-right">{row.viewCount}</span>
                       </div>
                     </td>
                     <td className="py-3 pr-4">
                       <div className="flex items-center justify-end gap-2">
-                        <div className="w-16 sm:w-20 h-1.5 bg-[#f2f4f6] rounded-full overflow-hidden">
-                          <div className="h-full bg-[#f04452] rounded-full" style={{ width: `${(row.likes / maxLikes) * 100}%` }} />
+                        <div className="w-16 sm:w-20 h-1.5 bg-body rounded-full overflow-hidden">
+                          <div className="h-full bg-toss-red rounded-full" style={{ width: `${(row.likes / maxLikes) * 100}%` }} />
                         </div>
-                        <span className="text-xs font-bold text-[#f04452] tabular-nums w-8 text-right">{row.likes}</span>
+                        <span className="text-xs font-bold text-toss-red tabular-nums w-8 text-right">{row.likes}</span>
                       </div>
                     </td>
                   </tr>
@@ -372,7 +372,7 @@ export default function TrafficPage() {
               </tbody>
             </table>
             {trafficData.every(r => r.viewCount === 0 && r.likes === 0) && (
-              <div className="py-12 text-center text-[#8b95a1] text-sm">임장 리포트가 있는 단지에서만 조회수가 집계됩니다.</div>
+              <div className="py-12 text-center text-tertiary text-sm">임장 리포트가 있는 단지에서만 조회수가 집계됩니다.</div>
             )}
           </div>
         </div>

@@ -151,30 +151,30 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
   if (transactions.length === 0 || periodData.length === 0) return null;
 
   return (
-    <div className="bg-white w-full px-4 md:px-10 pb-6 border-b border-[#e5e8eb]">
+    <div className="bg-surface w-full px-4 md:px-10 pb-6 border-b border-border">
       <div className="pt-4">
         <div className="flex items-center justify-between gap-2 mb-3 flex-wrap w-full">
           <div className="flex items-center gap-2 justify-between w-full sm:w-auto sm:justify-start">
-            <h5 className="text-[15px] font-bold text-[#4e5968] flex items-center gap-1.5">기간별 평균가격
+            <h5 className="text-[15px] font-bold text-secondary flex items-center gap-1.5">기간별 평균가격
               <button
                 onClick={(e) => { e.stopPropagation(); setShowPriceHelp((prev) => !prev); }}
-                className="w-4 h-4 rounded-full bg-[#d1d6db] hover:bg-[#8b95a1] text-[10px] font-extrabold text-white inline-flex items-center justify-center transition-colors leading-none flex-shrink-0"
+                className="w-4 h-4 rounded-full bg-toss-gray hover:bg-[#8b95a1] text-[10px] font-extrabold text-surface inline-flex items-center justify-center transition-colors leading-none flex-shrink-0"
                 aria-label="기준 설명"
               >?</button>
             </h5>
-            <div className="bg-[#f2f4f6] p-1 rounded-lg flex items-center shadow-inner ml-2">
-              <button onClick={() => setPeriodDealType('sale')} className={`px-3 py-1 rounded-md text-[13px] font-bold transition-all ${periodDealType === 'sale' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>매매</button>
-              <button onClick={() => setPeriodDealType('jeonse')} className={`px-3 py-1 rounded-md text-[13px] font-bold transition-all ${periodDealType === 'jeonse' ? 'bg-white text-[#191f28] shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}>전월세</button>
+            <div className="bg-body p-1 rounded-lg flex items-center shadow-inner ml-2">
+              <button onClick={() => setPeriodDealType('sale')} className={`px-3 py-1 rounded-md text-[13px] font-bold transition-all ${periodDealType === 'sale' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>매매</button>
+              <button onClick={() => setPeriodDealType('jeonse')} className={`px-3 py-1 rounded-md text-[13px] font-bold transition-all ${periodDealType === 'jeonse' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
             </div>
           </div>
           {showPriceHelp && (
             <>
               <div className="fixed inset-0 z-[9998]" onClick={() => setShowPriceHelp(false)} />
-              <div className="absolute left-4 top-12 z-[9999] w-[260px] bg-[#1e293b] text-white text-[11px] leading-relaxed rounded-xl px-4 py-3 shadow-2xl">
+              <div className="absolute left-4 top-12 z-[9999] w-[260px] bg-[#1e293b] text-surface text-[11px] leading-relaxed rounded-xl px-4 py-3 shadow-2xl">
                 <div className="font-bold mb-1.5">📊 기간별 평균가격이란?</div>
-                <p className="text-white/80">각 기간 내 실거래된 모든 자료의 <span className="text-white font-bold">산술 평균</span>입니다.</p>
-                <p className="text-white/80 mt-1">100만 원 단위로 반올림하여 표시합니다.</p>
-                <p className="text-white/50 mt-1.5 text-[10px]">예: "1개월" = 최근 1개월간 거래된 가격의 평균</p>
+                <p className="text-surface/80">각 기간 내 실거래된 모든 자료의 <span className="text-surface font-bold">산술 평균</span>입니다.</p>
+                <p className="text-surface/80 mt-1">100만 원 단위로 반올림하여 표시합니다.</p>
+                <p className="text-surface/50 mt-1.5 text-[10px]">예: "1개월" = 최근 1개월간 거래된 가격의 평균</p>
               </div>
             </>
           )}
@@ -186,17 +186,17 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
               <button key={f.key} onClick={() => setPriceTypeFilter(f.key)}
                 className={`shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
                   isActive
-                    ? 'bg-[#191f28] text-white shadow-sm'
-                    : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb]'
+                    ? 'bg-primary text-surface shadow-sm'
+                    : 'bg-body text-tertiary hover:bg-[#e5e8eb]'
                 }`}
               >{f.label}</button>
             );
           })}
         </div>
         <div className="overflow-x-auto custom-scrollbar -mx-4 md:-mx-10 px-4 md:px-10 mt-1">
-          <table className="w-full text-sm min-w-[600px] border-t border-[#f2f4f6]">
+          <table className="w-full text-sm min-w-[600px] border-t border-body">
             <thead>
-              <tr className="border-b border-[#e5e8eb] text-[#8b95a1] text-[12px] font-bold bg-[#f9fafb]">
+              <tr className="border-b border-border text-tertiary text-[12px] font-bold bg-body">
                 <th className="py-2.5 px-2 text-center w-[52px] min-w-[52px] shrink-0">구분</th>
                 {periodData.map(p => (
                   <th key={`th-${p.key}`} className="py-2.5 px-3 text-center whitespace-nowrap">{p.label}</th>
@@ -204,8 +204,8 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
-                <td className="py-3 px-2 text-[12px] md:text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50 align-middle">
+              <tr className="border-b border-body hover:bg-[#f8faff] transition-colors">
+                <td className="py-3 px-2 text-[12px] md:text-[13px] font-bold text-secondary bg-body/50 align-middle">
                   <div className="flex flex-col items-center justify-center leading-tight">
                     <span>평균</span>
                     <span>가격</span>
@@ -213,12 +213,12 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
                 </td>
                 {periodData.map(p => (
                   <td key={`price-${p.key}`} className="py-3 px-3 text-center whitespace-nowrap">
-                    <span className="text-[13px] md:text-[14px] font-bold md:font-extrabold text-[#191f28]">{p.avgPriceEok}</span>
+                    <span className="text-[13px] md:text-[14px] font-bold md:font-extrabold text-primary">{p.avgPriceEok}</span>
                   </td>
                 ))}
               </tr>
-              <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
-                <td className="py-3 px-2 text-[12px] md:text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50 align-middle">
+              <tr className="border-b border-body hover:bg-[#f8faff] transition-colors">
+                <td className="py-3 px-2 text-[12px] md:text-[13px] font-bold text-secondary bg-body/50 align-middle">
                   <div className="flex flex-col items-center justify-center leading-tight">
                     <span>평당</span>
                     <span>가격</span>
@@ -227,14 +227,14 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
                 {periodData.map(p => (
                   <td key={`perpyeong-${p.key}`} className="py-3 px-3 text-center">
                     <div className="flex items-center justify-center gap-0.5 whitespace-nowrap">
-                      <span className="text-[12px] md:text-[13px] font-bold text-[#4e5968]">{p.perPyeongEok}</span>
-                      <span className="text-[10px] md:text-[11px] text-[#8b95a1] font-medium tracking-tight">/평</span>
+                      <span className="text-[12px] md:text-[13px] font-bold text-secondary">{p.perPyeongEok}</span>
+                      <span className="text-[10px] md:text-[11px] text-tertiary font-medium tracking-tight">/평</span>
                     </div>
                   </td>
                 ))}
               </tr>
-              <tr className="border-b border-[#f2f4f6] hover:bg-[#f8faff] transition-colors">
-                <td className="py-3 px-2 text-[12px] md:text-[13px] font-bold text-[#4e5968] bg-[#f9fafb]/50 align-middle">
+              <tr className="border-b border-body hover:bg-[#f8faff] transition-colors">
+                <td className="py-3 px-2 text-[12px] md:text-[13px] font-bold text-secondary bg-body/50 align-middle">
                   <div className="flex flex-col items-center justify-center leading-tight">
                     <span>거래</span>
                     <span>건수</span>
@@ -242,7 +242,7 @@ export function TransactionSummaryMetrics({ transactions, apartmentName, typeMap
                 </td>
                 {periodData.map(p => (
                   <td key={`count-${p.key}`} className="py-3 px-3 text-center whitespace-nowrap">
-                    <span className="text-[12px] md:text-[13px] font-medium text-[#8b95a1]">{p.count}건</span>
+                    <span className="text-[12px] md:text-[13px] font-medium text-tertiary">{p.count}건</span>
                   </td>
                 ))}
               </tr>

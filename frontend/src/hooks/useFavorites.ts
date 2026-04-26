@@ -6,6 +6,20 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
   const [favoriteCounts, setFavoriteCounts] = useState<Record<string, number>>(initialFavoriteCounts);
 
+  // Fetch latest global favorite counts on mount to ensure sync across devices
+  useEffect(() => {
+    let unmounted = false;
+    fetch('/api/favorite-counts')
+      .then(res => res.json())
+      .then(data => {
+        if (!unmounted && data.counts) {
+          setFavoriteCounts(data.counts);
+        }
+      })
+      .catch(err => logger.warn('Dashboard', 'Failed to fetch global favorite counts', {}, err));
+    return () => { unmounted = true; };
+  }, []);
+
   useEffect(() => {
     let unmounted = false;
     if (user) {

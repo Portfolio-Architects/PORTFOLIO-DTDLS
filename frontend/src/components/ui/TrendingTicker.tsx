@@ -31,10 +31,10 @@ export function TrendingTicker({ topApts }: TrendingTickerProps) {
       </div>
       
       <div className="flex-1 relative h-5 ml-4 overflow-hidden flex items-center">
-        <span className="text-[13px] font-bold text-[#8b95a1]">-</span>
+        <span className="text-[13px] font-bold text-tertiary">-</span>
       </div>
 
-      <TrendingUp size={14} className="text-[#8b95a1] shrink-0 ml-2" />
+      <TrendingUp size={14} className="text-tertiary shrink-0 ml-2" />
     </div>
   );
 }

@@ -55,16 +55,16 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
   return (
     <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center" onClick={onClose}>
       <div
-        className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl max-h-[85vh] overflow-y-auto"
+        className="relative w-full sm:max-w-md bg-surface rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl max-h-[85vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-[18px] font-extrabold text-[#191f28]">
+          <h2 className="text-[18px] font-extrabold text-primary">
             {step === 1 ? '어떤 단지인가요?' : '리뷰 작성'}
           </h2>
-          <button onClick={onClose} className="p-1.5 hover:bg-[#f2f4f6] rounded-full transition-colors">
-            <X size={20} className="text-[#8b95a1]" />
+          <button onClick={onClose} className="p-1.5 hover:bg-body rounded-full transition-colors">
+            <X size={20} className="text-tertiary" />
           </button>
         </div>
 
@@ -79,8 +79,8 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
                   onClick={() => { setSelectedDong(dong); setSelectedApt(''); }}
                   className={`shrink-0 px-3.5 py-1.5 rounded-full text-[13px] font-bold transition-all border ${
                     selectedDong === dong
-                      ? 'bg-[#191f28] text-white border-[#191f28]'
-                      : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'
+                      ? 'bg-primary text-surface border-[#191f28]'
+                      : 'bg-surface text-secondary border-toss-gray hover:border-toss-blue'
                   }`}
                 >
                   {dong}
@@ -90,15 +90,15 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
 
             {/* Apartment list */}
             {selectedDong ? (
-              <div className="bg-[#f9fafb] border border-[#d1d6db] rounded-xl overflow-hidden max-h-52 overflow-y-auto p-2">
+              <div className="bg-body border border-toss-gray rounded-xl overflow-hidden max-h-52 overflow-y-auto p-2">
                 {filteredApts.map(apt => (
                   <button
                     key={apt}
                     onClick={() => setSelectedApt(apt)}
                     className={`w-full text-left px-4 py-2.5 text-[13px] font-medium rounded-lg transition-colors ${
                       selectedApt === apt
-                        ? 'bg-[#e8f3ff] text-[#3182f6] font-bold'
-                        : 'text-[#191f28] hover:bg-[#f2f4f6]'
+                        ? 'bg-toss-blue-light text-toss-blue font-bold'
+                        : 'text-primary hover:bg-body'
                     }`}
                   >
                     {apt}
@@ -106,7 +106,7 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
                 ))}
               </div>
             ) : (
-              <div className="bg-[#f9fafb] border border-dashed border-[#d1d6db] rounded-xl p-8 text-center text-[13px] text-[#8b95a1]">
+              <div className="bg-body border border-dashed border-toss-gray rounded-xl p-8 text-center text-[13px] text-tertiary">
                 위에서 <strong>동 이름</strong>을 선택해주세요
               </div>
             )}
@@ -117,8 +117,8 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
               disabled={!selectedApt}
               className={`w-full mt-4 py-3.5 rounded-xl font-bold text-[14px] transition-all ${
                 selectedApt
-                  ? 'bg-[#3182f6] text-white active:scale-[0.98]'
-                  : 'bg-[#f2f4f6] text-[#8b95a1] cursor-not-allowed'
+                  ? 'bg-toss-blue text-surface active:scale-[0.98]'
+                  : 'bg-body text-tertiary cursor-not-allowed'
               }`}
             >
               다음
@@ -130,13 +130,13 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
         {step === 2 && (
           <div>
             {/* Selected apt badge */}
-            <div className="bg-[#f2f4f6] rounded-xl px-4 py-2.5 mb-5 text-[13px] font-bold text-[#4e5968] truncate">
+            <div className="bg-body rounded-xl px-4 py-2.5 mb-5 text-[13px] font-bold text-secondary truncate">
               📍 {selectedApt}
             </div>
 
             {/* Emoji Rating */}
             <div className="mb-5">
-              <label className="block text-[13px] font-bold text-[#191f28] mb-3">별점을 매겨주세요</label>
+              <label className="block text-[13px] font-bold text-primary mb-3">별점을 매겨주세요</label>
               <div className="flex items-center justify-center gap-3">
                 {RATING_EMOJIS.map((emoji, idx) => {
                   const r = idx + 1;
@@ -176,27 +176,27 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
 
             {/* Content */}
             <div className="mb-4">
-              <label className="block text-[13px] font-bold text-[#191f28] mb-2">한줄평</label>
+              <label className="block text-[13px] font-bold text-primary mb-2">한줄평</label>
               <textarea
                 value={content}
                 onChange={e => setContent(e.target.value)}
                 placeholder="이 단지에 대한 솔직한 한마디를 남겨주세요"
                 rows={3}
                 maxLength={200}
-                className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors resize-none focus:ring-4 focus:ring-[#3182f6]/10"
+                className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3 text-[14px] outline-none focus:border-toss-blue focus:bg-surface transition-colors resize-none focus:ring-4 focus:ring-toss-blue/10"
               />
-              <div className="text-right text-[11px] text-[#8b95a1] mt-1">{content.length}/200</div>
+              <div className="text-right text-[11px] text-tertiary mt-1">{content.length}/200</div>
             </div>
 
             {/* Optional Photo */}
             <div className="mb-5">
-              <label className="block text-[13px] font-bold text-[#191f28] mb-2">사진 (선택)</label>
+              <label className="block text-[13px] font-bold text-primary mb-2">사진 (선택)</label>
               {imagePreview ? (
-                <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-[#e5e8eb]">
+                <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-border">
                   <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                   <button
                     onClick={() => { setImageFile(null); setImagePreview(null); }}
-                    className="absolute top-1 right-1 w-5 h-5 bg-black/50 rounded-full flex items-center justify-center text-white"
+                    className="absolute top-1 right-1 w-5 h-5 bg-black/50 rounded-full flex items-center justify-center text-surface"
                   >
                     <X size={10} />
                   </button>
@@ -204,9 +204,9 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
               ) : (
                 <button
                   onClick={() => fileRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-[#f2f4f6] hover:bg-[#e5e8eb] rounded-xl text-[13px] font-bold text-[#4e5968] transition-colors"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-body hover:bg-[#e5e8eb] rounded-xl text-[13px] font-bold text-secondary transition-colors"
                 >
-                  <Camera size={16} className="text-[#3182f6]" />
+                  <Camera size={16} className="text-toss-blue" />
                   사진 추가
                 </button>
               )}
@@ -217,7 +217,7 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
             <div className="flex gap-3">
               <button
                 onClick={() => setStep(1)}
-                className="w-1/3 py-3.5 rounded-xl font-bold bg-[#f2f4f6] text-[#4e5968] active:bg-[#e5e8eb] transition-colors text-[14px]"
+                className="w-1/3 py-3.5 rounded-xl font-bold bg-body text-secondary active:bg-[#e5e8eb] transition-colors text-[14px]"
               >
                 이전
               </button>
@@ -226,8 +226,8 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
                 disabled={isSubmitting || rating === 0 || !content.trim()}
                 className={`flex-1 py-3.5 rounded-xl font-bold text-[14px] flex items-center justify-center gap-2 transition-all ${
                   rating > 0 && content.trim()
-                    ? 'bg-[#191f28] text-white active:scale-[0.98]'
-                    : 'bg-[#f2f4f6] text-[#8b95a1] cursor-not-allowed'
+                    ? 'bg-primary text-surface active:scale-[0.98]'
+                    : 'bg-body text-tertiary cursor-not-allowed'
                 }`}
               >
                 {isSubmitting ? '저장 중...' : <><Send size={14} /> 리뷰 등록</>}

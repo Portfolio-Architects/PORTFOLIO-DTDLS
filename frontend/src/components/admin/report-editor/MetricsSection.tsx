@@ -24,16 +24,16 @@ const NumberInput = ({ name, label, placeholder, unit }: { name: string, label: 
   const { register } = useFormContext<FormValues>();
   return (
     <div className="flex flex-col mb-4">
-      <label className="text-[12px] font-bold text-[#4e5968] mb-1.5">{label}</label>
+      <label className="text-[12px] font-bold text-secondary mb-1.5">{label}</label>
       <div className="relative">
         <input 
           type="number"
           step="0.01"
           {...register(name as Path<FormValues>, { required: false })}
-          className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-all placeholder-[#b0b8c1]"
+          className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[15px] focus:ring-2 focus:ring-toss-blue/30 focus:border-toss-blue outline-none transition-all placeholder-[#b0b8c1]"
           placeholder={placeholder}
         />
-        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8b95a1] font-bold text-[14px]">{unit}</span>
+        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-tertiary font-bold text-[14px]">{unit}</span>
       </div>
     </div>
   );
@@ -43,12 +43,12 @@ const TextInput = ({ name, label, placeholder }: { name: string, label: string, 
   const { register } = useFormContext<FormValues>();
   return (
     <div className="flex flex-col mb-4">
-      <label className="text-[12px] font-bold text-[#4e5968] mb-1.5">{label}</label>
+      <label className="text-[12px] font-bold text-secondary mb-1.5">{label}</label>
       <input 
         type="text" 
         {...register(name as Path<FormValues>, { required: false })} 
         placeholder={placeholder} 
-        className="w-full px-4 py-3 bg-[#f9fafb] border border-[#e5e8eb] rounded-xl text-[15px] focus:ring-2 focus:ring-[#3182f6]/30 focus:border-[#3182f6] outline-none transition-all placeholder-[#b0b8c1]" 
+        className="w-full px-4 py-3 bg-body border border-border rounded-xl text-[15px] focus:ring-2 focus:ring-toss-blue/30 focus:border-toss-blue outline-none transition-all placeholder-[#b0b8c1]" 
       />
     </div>
   );
@@ -159,34 +159,34 @@ export function MetricsSection({
   };
 
   return (
-    <section className="mb-12 bg-[#f9fafb] -mx-6 md:-mx-8 px-6 md:px-8 py-8 border-y border-[#e5e8eb]">
+    <section className="mb-12 bg-body -mx-6 md:-mx-8 px-6 md:px-8 py-8 border-y border-border">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2">
-          <span className="w-6 h-6 rounded-full bg-white text-[#4e5968] shadow-sm flex items-center justify-center text-[12px]">2</span>
+        <h3 className="text-[18px] font-bold text-primary flex items-center gap-2">
+          <span className="w-6 h-6 rounded-full bg-surface text-secondary shadow-sm flex items-center justify-center text-[12px]">2</span>
           객관적 지표 통계
         </h3>
         <button
           type="button"
           disabled={isCalculating}
           onClick={handleCalculate}
-          className="px-5 py-2.5 bg-[#e8f3ff] hover:bg-[#d0e8ff] text-[#3182f6] font-bold text-[13px] rounded-xl transition-all flex items-center gap-2 disabled:opacity-50"
+          className="px-5 py-2.5 bg-toss-blue-light hover:bg-[#d0e8ff] text-toss-blue font-bold text-[13px] rounded-xl transition-all flex items-center gap-2 disabled:opacity-50"
         >
           {isCalculating ? (
-            <><div className="w-4 h-4 border-2 border-[#3182f6] border-t-transparent rounded-full animate-spin" /> 불러오는 중...</>
+            <><div className="w-4 h-4 border-2 border-toss-blue border-t-transparent rounded-full animate-spin" /> 불러오는 중...</>
           ) : (
             <>📍 단지 정보 자동 출력</>
           )}
         </button>
       </div>
-      <p className="text-[14px] text-[#4e5968] mb-6">입력하신 실제 데이터는 소비자 대상 팩트 프리미엄 지표로 자동 가공되어 표시됩니다.</p>
+      <p className="text-[14px] text-secondary mb-6">입력하신 실제 데이터는 소비자 대상 팩트 프리미엄 지표로 자동 가공되어 표시됩니다.</p>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-2 mb-4">
         <div>
-          <label className="block text-[13px] font-bold text-[#4e5968] mb-1 pl-0.5">대표 시공사 (브랜드)</label>
+          <label className="block text-[13px] font-bold text-secondary mb-1 pl-0.5">대표 시공사 (브랜드)</label>
           <input
             {...register('metrics.brand')}
             placeholder="예: 현대건설"
-            className="w-full bg-[#f9fafb] border border-[#e5e8eb] rounded-xl px-4 py-3 text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors"
+            className="w-full bg-body border border-border rounded-xl px-4 py-3 text-[15px] outline-none focus:border-toss-blue focus:bg-surface transition-colors"
           />
         </div>
         <NumberInput name="metrics.householdCount" label="총 세대수 (단지 규모)" placeholder="예: 1200" unit="세대" />
@@ -211,22 +211,22 @@ export function MetricsSection({
         <NumberInput name="metrics.distanceToTram" label="동탄트램 거리" placeholder="예: 300" unit="m" />
       </div>
 
-      <div className="border-t border-[#f2f4f6] pt-4 mt-6 mb-6">
-        <h3 className="text-[14px] font-bold text-[#191f28] flex gap-2 mb-3 items-center">
+      <div className="border-t border-body pt-4 mt-6 mb-6">
+        <h3 className="text-[14px] font-bold text-primary flex gap-2 mb-3 items-center">
           앵커 테넌트 (주요 편의시설)
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mb-4">
-          <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb] flex flex-col gap-3">
-            <span className="text-[13px] font-bold text-[#00704A] flex items-center gap-1.5 border-b border-[#e5e8eb] pb-2">☕ 스타벅스</span>
+          <div className="bg-body p-4 rounded-xl border border-border flex flex-col gap-3">
+            <span className="text-[13px] font-bold text-[#00704A] flex items-center gap-1.5 border-b border-border pb-2">☕ 스타벅스</span>
             <NumberInput name="metrics.distanceToStarbucks" label="반경 거리" placeholder="예: 250" unit="m" />
             <TextInput name="metrics.starbucksName" label="지점명" placeholder="예: 스타벅스 동탄역점" />
             <TextInput name="metrics.starbucksAddress" label="상세 주소" placeholder="예: 경기도 화성시 동탄역로 123" />
             <TextInput name="metrics.starbucksCoordinates" label="지도 좌표 (위도, 경도)" placeholder="예: 37.1982, 127.0984" />
           </div>
           
-          <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb] grid grid-cols-2 gap-x-4 gap-y-3 content-start">
-            <div className="col-span-2 border-b border-[#e5e8eb] pb-2 mb-1">
-               <span className="text-[13px] font-bold text-[#191f28]">기타 주요 시설 거리</span>
+          <div className="bg-body p-4 rounded-xl border border-border grid grid-cols-2 gap-x-4 gap-y-3 content-start">
+            <div className="col-span-2 border-b border-border pb-2 mb-1">
+               <span className="text-[13px] font-bold text-primary">기타 주요 시설 거리</span>
             </div>
             <NumberInput name="metrics.distanceToOliveYoung" label="올리브영 거리" placeholder="예: 300" unit="m" />
             <NumberInput name="metrics.distanceToDaiso" label="다이소 거리" placeholder="예: 400" unit="m" />
@@ -245,19 +245,19 @@ export function MetricsSection({
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Academy Categories */}
         <div className="bg-[#f0fdf4] rounded-xl p-4 border border-[#bbf7d0]">
-          <div className="text-[13px] font-bold text-[#03c75a] mb-2">학원 카테고리 ({apiCategories.academyCategories ? Object.values(apiCategories.academyCategories).reduce((a, b) => a + b, 0) : 0}개)</div>
+          <div className="text-[13px] font-bold text-toss-green mb-2">학원 카테고리 ({apiCategories.academyCategories ? Object.values(apiCategories.academyCategories).reduce((a, b) => a + b, 0) : 0}개)</div>
           <div className="space-y-1">
             {apiCategories.academyCategories && Object.keys(apiCategories.academyCategories).length > 0 ? (
               Object.entries(apiCategories.academyCategories)
                 .sort(([,a], [,b]) => b - a)
                 .map(([cat, cnt]) => (
                   <div key={cat} className="flex justify-between text-[12px] py-0.5 px-1">
-                    <span className="text-[#4e5968] truncate mr-2">{cat}</span>
-                    <span className="font-bold text-[#03c75a] shrink-0">{cnt}개</span>
+                    <span className="text-secondary truncate mr-2">{cat}</span>
+                    <span className="font-bold text-toss-green shrink-0">{cnt}개</span>
                   </div>
                 ))
             ) : (
-              <p className="text-[11px] text-[#8b95a1] italic">단지 정보 불러오기 후 자동 표시됩니다</p>
+              <p className="text-[11px] text-tertiary italic">단지 정보 불러오기 후 자동 표시됩니다</p>
             )}
           </div>
         </div>
@@ -270,12 +270,12 @@ export function MetricsSection({
                 .sort(([,a], [,b]) => b - a)
                 .map(([cat, cnt]) => (
                   <div key={cat} className="flex justify-between text-[12px] py-0.5 px-1">
-                    <span className="text-[#4e5968] truncate mr-2">{cat}</span>
+                    <span className="text-secondary truncate mr-2">{cat}</span>
                     <span className="font-bold text-[#f59e0b] shrink-0">{cnt}개</span>
                   </div>
                 ))
             ) : (
-              <p className="text-[11px] text-[#8b95a1] italic">단지 정보 불러오기 후 자동 표시됩니다</p>
+              <p className="text-[11px] text-tertiary italic">단지 정보 불러오기 후 자동 표시됩니다</p>
             )}
           </div>
         </div>

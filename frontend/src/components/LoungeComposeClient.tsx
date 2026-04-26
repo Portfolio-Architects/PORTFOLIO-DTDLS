@@ -120,14 +120,14 @@ export default function LoungeComposeClient({ currentCategory = '동탄 임장/�
               setPostContent(MARKDOWN_TEMPLATE);
             }
           }}
-          className="fixed bottom-[96px] sm:bottom-6 right-4 sm:right-6 w-14 h-14 bg-[#3182f6] hover:bg-[#1b6de8] text-white rounded-full shadow-lg shadow-[#3182f6]/30 flex items-center justify-center transition-all active:scale-95 z-20"
+          className="fixed bottom-[96px] sm:bottom-6 right-4 sm:right-6 w-14 h-14 bg-toss-blue hover:bg-[#1b6de8] text-surface rounded-full shadow-lg shadow-[#3182f6]/30 flex items-center justify-center transition-all active:scale-95 z-20"
         >
           <PenLine size={22} />
         </button>
       ) : (
         <button
           onClick={handleLogin}
-          className="fixed bottom-[96px] sm:bottom-6 right-4 sm:right-6 w-14 h-14 bg-[#191f28] hover:bg-[#333d4b] text-white rounded-full shadow-lg shadow-[#191f28]/30 flex items-center justify-center transition-all active:scale-95 z-20"
+          className="fixed bottom-[96px] sm:bottom-6 right-4 sm:right-6 w-14 h-14 bg-primary hover:bg-[#333d4b] text-surface rounded-full shadow-lg shadow-[#191f28]/30 flex items-center justify-center transition-all active:scale-95 z-20"
         >
           <PenLine size={22} />
         </button>
@@ -136,39 +136,39 @@ export default function LoungeComposeClient({ currentCategory = '동탄 임장/�
       {showCompose && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowCompose(false)} />
-          <div className="relative w-full sm:max-w-3xl bg-white rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl">
+          <div className="relative w-full sm:max-w-3xl bg-surface rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-[18px] font-extrabold text-[#191f28]">커뮤니티 글쓰기</h2>
-              <button onClick={() => setShowCompose(false)} className="w-8 h-8 rounded-full bg-[#f2f4f6] flex items-center justify-center hover:bg-[#e5e8eb] transition-colors">
-                <X size={16} className="text-[#4e5968]" />
+              <h2 className="text-[18px] font-extrabold text-primary">커뮤니티 글쓰기</h2>
+              <button onClick={() => setShowCompose(false)} className="w-8 h-8 rounded-full bg-body flex items-center justify-center hover:bg-[#e5e8eb] transition-colors">
+                <X size={16} className="text-secondary" />
               </button>
             </div>
             
 
             <div className="flex gap-2 mb-4 overflow-x-auto">
               {['동탄 임장/분석', '부동산 고민상담', '동탄 청약/대출', '동탄 교통/상권'].map((cat) => (
-                <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-[#191f28] text-white border-[#191f28]' : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'}`}>{cat}</button>
+                <button key={cat} onClick={() => setPostCategory(cat)} className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${postCategory === cat ? 'bg-primary text-surface border-[#191f28]' : 'bg-surface text-secondary border-toss-gray hover:border-toss-blue'}`}>{cat}</button>
               ))}
             </div>
-            <input value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="검색에 노출될 확실한 글 제목을 입력하세요" className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-[#3182f6] focus:bg-white transition-colors mb-2" autoFocus />
+            <input value={postTitle} onChange={(e) => setPostTitle(e.target.value)} placeholder="검색에 노출될 확실한 글 제목을 입력하세요" className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-toss-blue focus:bg-surface transition-colors mb-2" autoFocus />
             <textarea 
               ref={textareaRef}
               value={postContent} 
               onChange={(e) => setPostContent(e.target.value)} 
               placeholder={isUserAdmin ? "동탄 이야기를 자유롭게 나눠보세요... 마크다운 문법을 사용하여 구조적인 글을 작성해보세요." : "동탄 이야기를 자유롭게 나눠보세요... 글을 작성해보세요."} 
               rows={12} 
-              className="w-full bg-[#f9fafb] border border-[#d1d6db] rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#3182f6] focus:bg-white transition-colors resize-none focus:ring-4 focus:ring-[#3182f6]/10 mb-4" 
+              className="w-full bg-body border border-toss-gray rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-toss-blue focus:bg-surface transition-colors resize-none focus:ring-4 focus:ring-toss-blue/10 mb-4" 
             />
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 sm:gap-4">
-                <span className="text-[12px] text-[#8b95a1] hidden sm:inline-block">🎭 {displayAuthorName}</span>
+                <span className="text-[12px] text-tertiary hidden sm:inline-block">🎭 {displayAuthorName}</span>
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploadingImage}
-                  className="flex items-center gap-1.5 text-[13px] font-bold text-[#4e5968] hover:text-[#3182f6] hover:bg-[#f2f4f6] transition-colors px-3 py-2 rounded-lg disabled:opacity-50 border border-[#e5e8eb]"
+                  className="flex items-center gap-1.5 text-[13px] font-bold text-secondary hover:text-toss-blue hover:bg-body transition-colors px-3 py-2 rounded-lg disabled:opacity-50 border border-border"
                   title="이미지 업로드"
                 >
-                  {isUploadingImage ? <Loader2 size={16} className="animate-spin text-[#3182f6]" /> : <ImagePlus size={16} />}
+                  {isUploadingImage ? <Loader2 size={16} className="animate-spin text-toss-blue" /> : <ImagePlus size={16} />}
                   <span>사진 첨부</span>
                 </button>
                 <input 
@@ -192,7 +192,7 @@ export default function LoungeComposeClient({ currentCategory = '동탄 임장/�
                   finally { setIsSubmitting(false); }
                 }}
                 disabled={isSubmitting || !postTitle.trim()}
-                className="flex items-center gap-2 px-6 py-3 bg-[#3182f6] hover:bg-[#1b6de8] disabled:bg-[#d1d6db] text-white rounded-xl font-bold text-[14px] transition-all active:scale-95"
+                className="flex items-center gap-2 px-6 py-3 bg-toss-blue hover:bg-[#1b6de8] disabled:bg-toss-gray text-surface rounded-xl font-bold text-[14px] transition-all active:scale-95"
               >
                 {isSubmitting ? '작성 중...' : '작성 완료'}
               </button>

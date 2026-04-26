@@ -4,6 +4,17 @@
 @theme inline {
   --color-background: var(--bg-body);
   --color-foreground: var(--text-primary);
+  --color-body: var(--bg-body);
+  --color-surface: var(--bg-surface);
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-tertiary: var(--text-tertiary);
+  --color-border: var(--border-color);
+  --color-toss-blue: var(--toss-blue);
+  --color-toss-blue-light: var(--toss-blue-light);
+  --color-toss-red: var(--toss-red);
+  --color-toss-green: var(--toss-green);
+  --color-toss-gray: var(--toss-gray);
   --font-sans: "Pretendard Variable", Pretendard, system-ui, sans-serif;
 }
 
@@ -19,6 +30,7 @@
     --toss-red: #f04452;
     --toss-green: #03c75a;
     --toss-gray: #d1d6db;
+    --border-color: #e5e8eb;
     --border-radius-xl: 24px;
     --border-radius-lg: 16px;
     --border-radius-md: 12px;
@@ -28,12 +40,29 @@
     --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
   }
 
+  .dark {
+    --bg-body: #121212;
+    --bg-surface: #1e1e1e;
+    --text-primary: #f9fafb;
+    --text-secondary: #d1d5db;
+    --text-tertiary: #9ca3af;
+    --toss-blue: #3b82f6;
+    --toss-blue-light: #1e3a8a;
+    --toss-red: #ef4444;
+    --toss-green: #10b981;
+    --toss-gray: #374151;
+    --border-color: #374151;
+    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.6);
+  }
+
   body {
     font-family: var(--font-sans);
     background-color: var(--bg-body);
     color: var(--text-primary);
     min-height: 100vh;
     overflow-x: hidden;
+    overscroll-behavior-y: none;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
@@ -178,5 +207,14 @@
   .custom-scrollbar {
     scrollbar-width: thin; /* Firefox */
     scrollbar-color: #d1d6db transparent;
+  }
+
+  /* Hide scrollbar for clean horizontal scrolls */
+  .hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }

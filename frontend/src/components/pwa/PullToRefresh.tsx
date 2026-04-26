@@ -65,18 +65,32 @@ export default function PullToRefresh({
         setIsRefreshing(true);
         setPullProgress(100); // Lock it at 100% while refreshing
         
-        if (onRefresh) {
-          await onRefresh();
-        } else {
-          // Fallback to Next.js router refresh
-          router.refresh();
-          // Artificial delay for better UX
-          await new Promise(resolve => setTimeout(resolve, 800));
+        try {
+          if (onRefresh) {
+            await onRefresh();
+          } else {
+            // Fallback to Next.js router refresh
+            router.refresh();
+            // Artificial delay for better UX
+            await new Promise(resolve => setTimeout(resolve, 800));
+          }
+        } catch (error) {
+          console.error("Refresh failed:", error);
+        } finally {
+          setIsRefreshing(false);
+          setIsPulling(false);
+          setPullProgress(0);
+          startY.current = null;
         }
-        
-        setIsRefreshing(false);
+      } else {
+        setIsPulling(false);
+        setPullProgress(0);
+        startY.current = null;
       }
-      
+    };
+
+    const handleTouchCancel = () => {
+      if (isRefreshing) return;
       setIsPulling(false);
       setPullProgress(0);
       startY.current = null;
@@ -87,6 +101,7 @@ export default function PullToRefresh({
       element.addEventListener('touchstart', handleTouchStart, { passive: true });
       element.addEventListener('touchmove', handleTouchMove, { passive: false });
       element.addEventListener('touchend', handleTouchEnd);
+      element.addEventListener('touchcancel', handleTouchCancel);
     }
 
     return () => {
@@ -94,6 +109,7 @@ export default function PullToRefresh({
         element.removeEventListener('touchstart', handleTouchStart);
         element.removeEventListener('touchmove', handleTouchMove);
         element.removeEventListener('touchend', handleTouchEnd);
+        element.removeEventListener('touchcancel', handleTouchCancel);
       }
     };
   }, [pullProgress, isRefreshing, pullThreshold, onRefresh, router]);
@@ -108,7 +124,7 @@ export default function PullToRefresh({
           opacity: Math.min(pullProgress / 100, 1),
         }}
       >
-        <div className="bg-white rounded-full p-2.5 shadow-md flex items-center justify-center">
+        <div className="bg-surface rounded-full p-2.5 shadow-md flex items-center justify-center">
           <RefreshCw 
             size={20} 
             className={`text-blue-500 transition-transform ${isRefreshing ? 'animate-spin' : ''}`}

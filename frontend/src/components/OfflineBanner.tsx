@@ -32,8 +32,8 @@ export default function OfflineBanner() {
     <div
       className={`fixed top-0 left-0 right-0 z-[9999] flex items-center justify-center gap-2 py-2.5 px-4 text-[13px] font-bold transition-all duration-300 ${
         isOnline
-          ? 'bg-[#03c75a] text-white animate-in slide-in-from-top'
-          : 'bg-[#333d4b] text-white animate-in slide-in-from-top'
+          ? 'bg-toss-green text-surface animate-in slide-in-from-top'
+          : 'bg-[#333d4b] text-surface animate-in slide-in-from-top'
       }`}
     >
       {isOnline ? (

@@ -20,7 +20,8 @@ const app = getApps().length === 0 && firebaseConfig.apiKey
 
 export const db = (app ? initializeFirestore(app, { 
   localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()}),
-  ignoreUndefinedProperties: true 
+  ignoreUndefinedProperties: true,
+  experimentalForceLongPolling: true
 }) : null) as unknown as ReturnType<typeof initializeFirestore>;
 
 

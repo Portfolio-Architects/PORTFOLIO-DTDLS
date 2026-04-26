@@ -253,9 +253,9 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
         <ImageUploadSection />
 
         {/* 4. Publishing & Save */}
-        <div className="fixed bottom-0 left-0 right-0 md:left-[240px] bg-white/90 backdrop-blur-md p-4 border-t border-[#e5e8eb] shadow-[0_-10px_30px_rgba(0,0,0,0.05)] flex justify-end gap-3 z-50">
+        <div className="fixed bottom-0 left-0 right-0 md:left-[240px] bg-surface/90 backdrop-blur-md p-4 border-t border-border shadow-[0_-10px_30px_rgba(0,0,0,0.05)] flex justify-end gap-3 z-50">
           {onCancel && (
-            <button type="button" onClick={onCancel} className="px-6 py-3 font-bold text-[#8b95a1] bg-white border border-[#e5e8eb] hover:bg-[#f2f4f6] rounded-xl transition-colors">
+            <button type="button" onClick={onCancel} className="px-6 py-3 font-bold text-tertiary bg-surface border border-border hover:bg-body rounded-xl transition-colors">
               취소
             </button>
           )}
@@ -281,14 +281,14 @@ export default function ReportEditorForm({ initialData = null, reportId, lockedM
                 alert('임시 저장에 실패했습니다.');
               }
             }}
-            className="px-6 py-3 font-bold text-[#4e5968] bg-[#f2f4f6] hover:bg-[#e5e8eb] rounded-xl transition-colors"
+            className="px-6 py-3 font-bold text-secondary bg-body hover:bg-[#e5e8eb] rounded-xl transition-colors"
           >
             임시 저장
           </button>
           <button 
             type="submit" 
             disabled={isSubmitting}
-            className="px-8 py-3 font-bold text-white bg-[#3182f6] hover:bg-[#2b72d6] active:bg-[#1b64da] rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 min-w-[180px] justify-center"
+            className="px-8 py-3 font-bold text-surface bg-toss-blue hover:bg-[#2b72d6] active:bg-[#1b64da] rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 min-w-[180px] justify-center"
           >
             {isSubmitting ? (
               <>

@@ -55,7 +55,7 @@ export function FieldReportModal({
   onCommentChange,
   onSubmitComment,
   user,
-  transactions,
+  transactions: rawTransactions,
   typeMap,
   isLoadingDetail,
   isPurchased,
@@ -92,6 +92,56 @@ export function FieldReportModal({
 
   // 차트 매매/전월세 토글
   const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
+
+  // 이상치 제거 (평균 기준 2 표준편차 초과 거래 숨김)
+  const transactions = useMemo(() => {
+    if (!rawTransactions || rawTransactions.length === 0) return [];
+    const filterOutliersByArea = (txs: TransactionRecord[]) => {
+      const byArea: Record<number, TransactionRecord[]> = {};
+      txs.forEach(t => {
+        const a = Math.round(t.area);
+        if (!byArea[a]) byArea[a] = [];
+        byArea[a].push(t);
+      });
+
+      const validTxs: TransactionRecord[] = [];
+      Object.values(byArea).forEach(group => {
+        if (group.length < 4) {
+          validTxs.push(...group);
+          return;
+        }
+        const prices = group.map(t => {
+           if (t.dealType === '전세' || t.dealType === '월세') {
+             return (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055);
+           }
+           return t.price;
+        });
+        const mean = prices.reduce((sum, p) => sum + p, 0) / prices.length;
+        const variance = prices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / prices.length;
+        const stdDev = Math.sqrt(variance);
+        
+        const filtered = group.filter(t => {
+           const p = (t.dealType === '전세' || t.dealType === '월세') 
+             ? (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055)
+             : t.price;
+           return Math.abs(p - mean) <= 2 * stdDev;
+        });
+        validTxs.push(...filtered);
+      });
+      return validTxs;
+    };
+
+    const saleTxs = rawTransactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
+    const jeonseTxs = rawTransactions.filter(t => t.dealType === '전세' || t.dealType === '월세');
+
+    const combined = [...filterOutliersByArea(saleTxs), ...filterOutliersByArea(jeonseTxs)];
+    return combined.sort((a, b) => {
+      const da = a.contractYm + a.contractDay.padStart(2, '0');
+      const db = b.contractYm + b.contractDay.padStart(2, '0');
+      if (da !== db) return parseInt(db) - parseInt(da);
+      return b.price - a.price;
+    });
+  }, [rawTransactions]);
 
   // Hydration-safe portal mount
   useEffect(() => {
@@ -221,7 +271,7 @@ export function FieldReportModal({
   const coverImage = report.imageUrl || s?.infra?.gateImg || s?.infra?.landscapeImg || s?.ecosystem?.communityImg;
   const rating = report.premiumScores?.totalPremiumScore ? Math.max(1, Math.round(report.premiumScores.totalPremiumScore / 20)) : (report.rating || 5);
 
-  const typeBadgeColors: [string, string][] = [['text-[#3182f6]','bg-[#e8f3ff]'], ['text-[#059669]','bg-[#d1fae5]'], ['text-[#7c3aed]','bg-[#ede9fe]'], ['text-[#d97706]','bg-[#fef3c7]'], ['text-[#db2777]','bg-[#fce7f3]']];
+  const typeBadgeColors: [string, string][] = [['text-toss-blue','bg-toss-blue-light'], ['text-[#059669]','bg-[#d1fae5]'], ['text-[#7c3aed]','bg-[#ede9fe]'], ['text-[#d97706]','bg-[#fef3c7]'], ['text-[#db2777]','bg-[#fce7f3]']];
   const groupSet = new Set<number>();
   transactions.forEach(tx => {
     const norm = normalizeAptName(tx.aptName);
@@ -236,7 +286,7 @@ export function FieldReportModal({
   const groupColorIdx = new Map(sortedGroups.map((g, i) => [g, i]));
 
   const getBadgeColorClasses = (label: string | null) => {
-    if (!label) return ['text-[#3182f6]', 'bg-[#e8f3ff]'];
+    if (!label) return ['text-toss-blue', 'bg-toss-blue-light'];
     const m = label.match(/\d+/);
     const group = m ? Math.round(parseInt(m[0]) / 3) : 0;
     const cIdx = (groupColorIdx.get(group) ?? 0) % typeBadgeColors.length;
@@ -253,7 +303,7 @@ export function FieldReportModal({
   const dealTypes = Array.from(new Set(transactions.map(tx => tx.dealType))).sort();
 
   const chipClass = (active: boolean) => `w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-    active ? 'bg-[#e8f3ff] text-[#3182f6]' : 'bg-transparent text-[#4e5968] hover:bg-[#f2f4f6]'
+    active ? 'bg-toss-blue-light text-toss-blue' : 'bg-transparent text-secondary hover:bg-body'
   }`;
 
 
@@ -261,7 +311,7 @@ export function FieldReportModal({
   const content = (
     <>
       {/* Hero Section — Layout: 40% table / 60% chart */}
-          <div className={`bg-white w-full flex flex-col md:flex-row p-4 ${inline ? 'md:p-6' : 'md:p-10'} gap-4 md:gap-8 ${inline ? '' : 'rounded-t-3xl'} shrink-0 pt-4 md:pt-8 ${inline ? 'border-b border-[#f2f4f6]' : 'border-b border-[#e5e8eb]'}`}>
+          <div className={`bg-surface w-full flex flex-col md:flex-row p-4 ${inline ? 'md:p-6' : 'md:p-10'} gap-4 md:gap-8 ${inline ? '' : 'rounded-t-3xl'} shrink-0 pt-4 md:pt-8 ${inline ? 'border-b border-body' : 'border-b border-border'}`}>
             
             {/* Left: 실거래가 전체 리스트 — mobile: 2번째, desktop: 1번째 (40%) */}
             <div className="w-full md:w-[40%] shrink-0 order-2 md:order-1 flex flex-col self-start md:self-stretch">
@@ -297,7 +347,7 @@ export function FieldReportModal({
           />
 
           {/* Sticky Section Nav */}
-          <nav className="sticky top-0 z-[60] bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] px-4 md:px-8 pt-3 pb-0 shadow-sm shadow-[#191f28]/5">
+          <nav className="sticky top-0 z-[60] bg-surface/95 backdrop-blur-md border-b border-border px-4 md:px-8 pt-3 pb-0 shadow-sm shadow-[#191f28]/5">
             <div className="flex gap-6 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full relative">
               {(() => {
                 const tabs = [
@@ -315,12 +365,12 @@ export function FieldReportModal({
                       key={tab.id}
                       onClick={() => scrollToSection(tab.id)}
                       className={`relative shrink-0 pb-3 text-[14px] font-bold transition-all duration-200 outline-none ${
-                         isActive ? 'text-[#191f28]' : 'text-[#8b95a1] hover:text-[#191f28]'
+                         isActive ? 'text-primary' : 'text-tertiary hover:text-primary'
                       }`}
                     >
                       {tab.label}
                       {isActive && (
-                        <span className="absolute bottom-0 left-0 w-full h-[3px] bg-[#191f28] rounded-t-sm" />
+                        <span className="absolute bottom-0 left-0 w-full h-[3px] bg-primary rounded-t-sm" />
                       )}
                     </button>
                   );
@@ -334,18 +384,18 @@ export function FieldReportModal({
 
             {/* 1. 단지 기본 명세 (Specs) */}
             {report.metrics && (
-              <div id="sec-specs" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#e5e8eb]">
-                 <h2 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2 mb-5 border-b border-[#e5e8eb] pb-3">
-                   <Building size={18} className="text-[#3182f6]"/> 단지 기본정보
+              <div id="sec-specs" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm border border-border">
+                 <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3">
+                   <Building size={18} className="text-toss-blue"/> 단지 기본정보
                  </h2>
                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-                    <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
-                      <p className="text-[12px] text-[#8b95a1] font-bold mb-1">단지명 / 시공사</p>
-                      <p className="text-[15px] text-[#191f28] font-bold">{displayAptName} {report.metrics.brand && <span className="block text-[13px] text-[#4e5968] font-medium mt-0.5">({report.metrics.brand})</span>}</p>
+                    <div className="bg-body p-4 rounded-xl border border-border">
+                      <p className="text-[12px] text-tertiary font-bold mb-1">단지명 / 시공사</p>
+                      <p className="text-[15px] text-primary font-bold">{displayAptName} {report.metrics.brand && <span className="block text-[13px] text-secondary font-medium mt-0.5">({report.metrics.brand})</span>}</p>
                     </div>
-                    <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
-                      <p className="text-[12px] text-[#8b95a1] font-bold mb-1">사용승인일 (연차)</p>
-                      <p className="text-[15px] text-[#191f28] font-bold">
+                    <div className="bg-body p-4 rounded-xl border border-border">
+                      <p className="text-[12px] text-tertiary font-bold mb-1">사용승인일 (연차)</p>
+                      <p className="text-[15px] text-primary font-bold">
                         {report.metrics.yearBuilt ? (() => {
                           const ybStr = String(report.metrics.yearBuilt);
                           const now = new Date();
@@ -369,26 +419,26 @@ export function FieldReportModal({
                               else if (y > 0) ageStr = `${y}년차`;
                               else ageStr = `${m}개월차`;
                             }
-                            return <>{year}년 {month}월 <span className="block text-[13px] text-[#3182f6] font-medium mt-0.5">({ageStr})</span></>;
+                            return <>{year}년 {month}월 <span className="block text-[13px] text-toss-blue font-medium mt-0.5">({ageStr})</span></>;
                           }
                           
                           const year = parseInt(ybStr);
                           const age = currentYear - year + 1;
-                          return <>{year}년 <span className="block text-[13px] text-[#3182f6] font-medium mt-0.5">({age}년차)</span></>;
+                          return <>{year}년 <span className="block text-[13px] text-toss-blue font-medium mt-0.5">({age}년차)</span></>;
                         })() : '-'}
                       </p>
                     </div>
-                    <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
-                      <p className="text-[12px] text-[#8b95a1] font-bold mb-1">규모 (세대/층)</p>
-                      <p className="text-[15px] text-[#191f28] font-bold">{report.metrics.householdCount ? `${report.metrics.householdCount}세대` : '-'} <span className="block text-[#8b95a1] text-[13px] font-medium mt-0.5">/ {report.metrics.maxFloor ? `최고 ${report.metrics.maxFloor}층` : '-'}</span></p>
+                    <div className="bg-body p-4 rounded-xl border border-border">
+                      <p className="text-[12px] text-tertiary font-bold mb-1">규모 (세대/층)</p>
+                      <p className="text-[15px] text-primary font-bold">{report.metrics.householdCount ? `${report.metrics.householdCount}세대` : '-'} <span className="block text-tertiary text-[13px] font-medium mt-0.5">/ {report.metrics.maxFloor ? `최고 ${report.metrics.maxFloor}층` : '-'}</span></p>
                     </div>
-                    <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
-                      <p className="text-[12px] text-[#8b95a1] font-bold mb-1">용적률 / 건폐율</p>
-                      <p className="text-[15px] text-[#191f28] font-bold">{report.metrics.far ? `${report.metrics.far}%` : '-'} <span className="block text-[#8b95a1] text-[13px] font-medium mt-0.5">/ {report.metrics.bcr ? `${report.metrics.bcr}%` : '-'}</span></p>
+                    <div className="bg-body p-4 rounded-xl border border-border">
+                      <p className="text-[12px] text-tertiary font-bold mb-1">용적률 / 건폐율</p>
+                      <p className="text-[15px] text-primary font-bold">{report.metrics.far ? `${report.metrics.far}%` : '-'} <span className="block text-tertiary text-[13px] font-medium mt-0.5">/ {report.metrics.bcr ? `${report.metrics.bcr}%` : '-'}</span></p>
                     </div>
-                    <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
-                      <p className="text-[12px] text-[#8b95a1] font-bold mb-1">주차대수 (세대당)</p>
-                      <p className="text-[15px] text-[#191f28] font-bold">{report.metrics.parkingCount ? `${report.metrics.parkingCount}대` : '-'} <span className="block text-[#8b95a1] text-[13px] font-medium mt-0.5">/ {report.metrics.parkingPerHousehold ? `${report.metrics.parkingPerHousehold}대` : '-'}</span></p>
+                    <div className="bg-body p-4 rounded-xl border border-border">
+                      <p className="text-[12px] text-tertiary font-bold mb-1">주차대수 (세대당)</p>
+                      <p className="text-[15px] text-primary font-bold">{report.metrics.parkingCount ? `${report.metrics.parkingCount}대` : '-'} <span className="block text-tertiary text-[13px] font-medium mt-0.5">/ {report.metrics.parkingPerHousehold ? `${report.metrics.parkingPerHousehold}대` : '-'}</span></p>
                     </div>
 
                  </div>
@@ -405,12 +455,12 @@ export function FieldReportModal({
 
 
           {/* 단지 입지정보 컨테이너 (인프라 + 앵커 테넌트 묶음) */}
-          <div id="sec-infra-metrics" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-[#e5e8eb] flex flex-col gap-10 scroll-mt-14">
+          <div id="sec-infra-metrics" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-10 scroll-mt-14">
             {/* Location Infrastructure Info — Enhanced Design v2 */}
             {report.metrics && (report.metrics.distanceToElementary || report.metrics.distanceToSubway || report.metrics.academyDensity) && (
               <div className="flex flex-col w-full">
-                <h2 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3">
-                  <MapPin size={18} className="text-[#3182f6]"/> 단지 입지정보
+                <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
+                  <MapPin size={18} className="text-toss-blue"/> 단지 입지정보
                 </h2>
 
                 {/* ─── 🎓 학군 Section ─── */}
@@ -418,7 +468,7 @@ export function FieldReportModal({
                   <div className="mb-6">
                     <div className="flex items-center gap-2 mb-3">
 
-                      <span className="text-[13px] font-bold text-[#4e5968] tracking-wide uppercase">학군</span>
+                      <span className="text-[13px] font-bold text-secondary tracking-wide uppercase">학군</span>
                       <div className="flex-1 h-px bg-gradient-to-r from-[#e5e8eb] to-transparent ml-2" />
                     </div>
                     <div className="grid grid-cols-3 gap-1.5 md:gap-2.5">
@@ -429,24 +479,24 @@ export function FieldReportModal({
                       ].filter(s => s.dist && s.dist > 0).map(school => {
                         const grade = school.dist! <= 300 ? 'excellent' : school.dist! <= 700 ? 'good' : school.dist! <= 1000 ? 'average' : 'far';
                         const gradeStyles = {
-                          excellent: { dot: 'bg-[#3182f6]', badge: 'bg-[#f2f4f6] text-[#4e5968]' },
-                          good: { dot: 'bg-[#22c55e]', badge: 'bg-[#f2f4f6] text-[#4e5968]' },
-                          average: { dot: 'bg-[#f59e0b]', badge: 'bg-[#f2f4f6] text-[#4e5968]' },
-                          far: { dot: 'bg-[#ef4444]', badge: 'bg-[#f2f4f6] text-[#4e5968]' },
+                          excellent: { dot: 'bg-toss-blue', badge: 'bg-body text-secondary' },
+                          good: { dot: 'bg-[#22c55e]', badge: 'bg-body text-secondary' },
+                          average: { dot: 'bg-[#f59e0b]', badge: 'bg-body text-secondary' },
+                          far: { dot: 'bg-[#ef4444]', badge: 'bg-body text-secondary' },
                         };
                         const s = gradeStyles[grade];
                         return (
-                          <div key={school.label} className="bg-white rounded-xl md:rounded-2xl p-2.5 md:p-4 flex flex-col border border-[#e5e8eb] shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all duration-200 group">
+                          <div key={school.label} className="bg-surface rounded-xl md:rounded-2xl p-2.5 md:p-4 flex flex-col border border-border shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all duration-200 group">
                             <div className="flex items-center justify-between mb-1.5 md:mb-2.5">
-                              <span className="text-[11px] md:text-[13px] font-semibold text-[#8b95a1] truncate pr-1">
+                              <span className="text-[11px] md:text-[13px] font-semibold text-tertiary truncate pr-1">
                                 {school.label}
                               </span>
                               <span className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full shrink-0 ${s.dot}`} />
                             </div>
                             <div className="flex items-baseline gap-0.5 whitespace-nowrap">
-                              <span className="text-[20px] md:text-[28px] font-bold text-[#191f28] tracking-tight tabular-nums leading-none">{(school.dist! / 1000).toFixed(2)}</span>
-                              <span className="text-[10px] md:text-[13px] font-medium text-[#8b95a1] ml-0.5 mt-auto">km</span>
-                              <span className="text-[11px] md:text-[12px] font-medium text-[#4e5968] ml-1.5 md:ml-2 mt-auto bg-[#f2f4f6] px-1.5 py-0.5 rounded-md">도보 {Math.ceil(school.dist! / 80)}분</span>
+                              <span className="text-[20px] md:text-[28px] font-bold text-primary tracking-tight tabular-nums leading-none">{(school.dist! / 1000).toFixed(2)}</span>
+                              <span className="text-[10px] md:text-[13px] font-medium text-tertiary ml-0.5 mt-auto">km</span>
+                              <span className="text-[11px] md:text-[12px] font-medium text-secondary ml-1.5 md:ml-2 mt-auto bg-body px-1.5 py-0.5 rounded-md">도보 {Math.ceil(school.dist! / 80)}분</span>
                             </div>
                             {school.name && (
                               <a 
@@ -471,7 +521,7 @@ export function FieldReportModal({
                   <div className="mb-6">
                     <div className="flex items-center gap-2 mb-3">
 
-                      <span className="text-[13px] font-bold text-[#4e5968] tracking-wide uppercase">교통</span>
+                      <span className="text-[13px] font-bold text-secondary tracking-wide uppercase">교통</span>
                       <div className="flex-1 h-px bg-gradient-to-r from-[#e5e8eb] to-transparent ml-2" />
                     </div>
                     <div className="grid grid-cols-3 gap-1.5 md:gap-2.5">
@@ -480,23 +530,23 @@ export function FieldReportModal({
                         { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestIndeokwonCoords, color: '#7c3aed', bgFrom: '#f5f3ff', bgTo: '#ede9fe' },
                         { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#0891b2', bgFrom: '#ecfeff', bgTo: '#cffafe' },
                       ].filter(s => s.dist != null && s.dist > 0).map(station => (
-                        <div key={station.label} className="bg-white rounded-xl md:rounded-2xl p-2.5 md:p-4 flex flex-col border border-[#e5e8eb] shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all duration-200 group">
+                        <div key={station.label} className="bg-surface rounded-xl md:rounded-2xl p-2.5 md:p-4 flex flex-col border border-border shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all duration-200 group">
                           <div className="flex items-center justify-between mb-1.5 md:mb-2.5">
-                            <span className="text-[11px] md:text-[13px] font-semibold text-[#8b95a1] truncate pr-1">
+                            <span className="text-[11px] md:text-[13px] font-semibold text-tertiary truncate pr-1">
                               {station.label}
                             </span>
                             <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full shrink-0" style={{ backgroundColor: station.color }} />
                           </div>
                           <div className="flex items-baseline gap-0.5 whitespace-nowrap">
-                            <span className="text-[20px] md:text-[28px] font-bold text-[#191f28] tracking-tight tabular-nums leading-none">{(station.dist! / 1000).toFixed(2)}</span>
-                            <span className="text-[10px] md:text-[13px] font-medium text-[#8b95a1] ml-0.5 mt-auto">km</span>
-                            <span className="text-[11px] md:text-[12px] font-medium text-[#4e5968] ml-1.5 md:ml-2 mt-auto bg-[#f2f4f6] px-1.5 py-0.5 rounded-md">도보 {Math.ceil(station.dist! / 80)}분</span>
+                            <span className="text-[20px] md:text-[28px] font-bold text-primary tracking-tight tabular-nums leading-none">{(station.dist! / 1000).toFixed(2)}</span>
+                            <span className="text-[10px] md:text-[13px] font-medium text-tertiary ml-0.5 mt-auto">km</span>
+                            <span className="text-[11px] md:text-[12px] font-medium text-secondary ml-1.5 md:ml-2 mt-auto bg-body px-1.5 py-0.5 rounded-md">도보 {Math.ceil(station.dist! / 80)}분</span>
                           </div>
                           {station.name && (
                             <a 
                               href={station.coords ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.coords)}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.name + (station.name.includes('정거장') ? ' 동탄' : ' 역'))}`}
                               target="_blank" rel="noopener noreferrer"
-                              className="text-[10px] md:text-[12px] flex items-center justify-center gap-0.5 md:gap-1 font-semibold mt-2 md:mt-2.5 rounded-md md:rounded-lg px-1.5 py-1 md:px-2.5 md:py-1.5 text-center bg-[#f2f4f6] text-[#4e5968] hover:opacity-80 transition-opacity"
+                              className="text-[10px] md:text-[12px] flex items-center justify-center gap-0.5 md:gap-1 font-semibold mt-2 md:mt-2.5 rounded-md md:rounded-lg px-1.5 py-1 md:px-2.5 md:py-1.5 text-center bg-body text-secondary hover:opacity-80 transition-opacity"
                               title={`${station.name} 구글 지도에서 보기`}
                             >
                               <MapPin size={10} className="shrink-0 md:w-3 md:h-3" />
@@ -514,22 +564,22 @@ export function FieldReportModal({
                   <div>
                     <div className="flex items-center gap-2 mb-3">
 
-                      <span className="text-[13px] font-bold text-[#4e5968] tracking-wide uppercase">생활 인프라</span>
+                      <span className="text-[13px] font-bold text-secondary tracking-wide uppercase">생활 인프라</span>
                       <div className="flex-1 h-px bg-gradient-to-r from-[#e5e8eb] to-transparent ml-2" />
                     </div>
                     <div className="grid grid-cols-2 gap-1.5 md:gap-2.5">
                       {/* Academy Density */}
                       {report.metrics.academyDensity > 0 && (
-                        <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-5 flex flex-col border border-[#e5e8eb] shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all duration-200 group">
+                        <div className="bg-surface rounded-xl md:rounded-2xl p-3 md:p-5 flex flex-col border border-border shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all duration-200 group">
                           <div className="flex items-center justify-between mb-1 md:mb-2">
-                            <span className="text-[11px] md:text-[13px] font-semibold text-[#8b95a1] truncate pr-1">
+                            <span className="text-[11px] md:text-[13px] font-semibold text-tertiary truncate pr-1">
                               학원 · 500m 반경
                             </span>
                             <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full shrink-0 bg-[#22c55e]" />
                           </div>
                           <div className="flex items-baseline gap-0.5 mb-2.5 md:mb-3 whitespace-nowrap">
-                            <span className="text-[22px] md:text-[30px] font-bold text-[#191f28] tracking-tight tabular-nums leading-none">{report.metrics.academyDensity}</span>
-                            <span className="text-[11px] md:text-[13px] font-medium text-[#8b95a1] ml-0.5">개</span>
+                            <span className="text-[22px] md:text-[30px] font-bold text-primary tracking-tight tabular-nums leading-none">{report.metrics.academyDensity}</span>
+                            <span className="text-[11px] md:text-[13px] font-medium text-tertiary ml-0.5">개</span>
                           </div>
                           {report.metrics.academyCategories && Object.keys(report.metrics.academyCategories).length > 0 && (
                             <div className="flex flex-col gap-1.5 mt-auto">
@@ -537,9 +587,9 @@ export function FieldReportModal({
                                 .sort(([,a], [,b]) => (b as number) - (a as number))
                                 .slice(0, 5)
                                 .map(([cat, cnt]) => (
-                                  <div key={cat} className="flex justify-between items-center bg-[#f2f4f6] rounded-lg px-2 md:px-2.5 py-1 md:py-1.5">
-                                    <span className="text-[10px] md:text-[12px] text-[#4e5968] font-medium truncate mr-1 md:mr-2">{cat}</span>
-                                    <span className="font-semibold text-[10px] md:text-[12px] text-[#4e5968] shrink-0 tabular-nums">{cnt as number}개</span>
+                                  <div key={cat} className="flex justify-between items-center bg-body rounded-lg px-2 md:px-2.5 py-1 md:py-1.5">
+                                    <span className="text-[10px] md:text-[12px] text-secondary font-medium truncate mr-1 md:mr-2">{cat}</span>
+                                    <span className="font-semibold text-[10px] md:text-[12px] text-secondary shrink-0 tabular-nums">{cnt as number}개</span>
                                   </div>
                                 ))}
                             </div>
@@ -548,16 +598,16 @@ export function FieldReportModal({
                       )}
                       {/* Restaurant/Cafe Density */}
                       {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
-                        <div className="bg-white rounded-xl md:rounded-2xl p-3 md:p-5 flex flex-col border border-[#e5e8eb] shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all duration-200 group">
+                        <div className="bg-surface rounded-xl md:rounded-2xl p-3 md:p-5 flex flex-col border border-border shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] transition-all duration-200 group">
                           <div className="flex items-center justify-between mb-1 md:mb-2">
-                            <span className="text-[11px] md:text-[13px] font-semibold text-[#8b95a1] truncate pr-1">
+                            <span className="text-[11px] md:text-[13px] font-semibold text-tertiary truncate pr-1">
                               음식점·카페·500m
                             </span>
                             <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full shrink-0 bg-[#f59e0b]" />
                           </div>
                           <div className="flex items-baseline gap-0.5 mb-2.5 md:mb-3 whitespace-nowrap">
-                            <span className="text-[22px] md:text-[30px] font-bold text-[#191f28] tracking-tight tabular-nums leading-none">{report.metrics.restaurantDensity}</span>
-                            <span className="text-[11px] md:text-[13px] font-medium text-[#8b95a1] ml-0.5">개</span>
+                            <span className="text-[22px] md:text-[30px] font-bold text-primary tracking-tight tabular-nums leading-none">{report.metrics.restaurantDensity}</span>
+                            <span className="text-[11px] md:text-[13px] font-medium text-tertiary ml-0.5">개</span>
                           </div>
                           {report.metrics.restaurantCategories && Object.keys(report.metrics.restaurantCategories).length > 0 && (
                             <div className="flex flex-col gap-1.5 mt-auto">
@@ -565,9 +615,9 @@ export function FieldReportModal({
                                 .sort(([,a], [,b]) => (b as number) - (a as number))
                                 .slice(0, 5)
                                 .map(([cat, cnt]) => (
-                                  <div key={cat} className="flex justify-between items-center bg-[#f2f4f6] rounded-lg px-2 md:px-2.5 py-1 md:py-1.5">
-                                    <span className="text-[10px] md:text-[12px] text-[#4e5968] font-medium truncate mr-1 md:mr-2">{cat}</span>
-                                    <span className="font-semibold text-[10px] md:text-[12px] text-[#4e5968] shrink-0 tabular-nums">{cnt as number}개</span>
+                                  <div key={cat} className="flex justify-between items-center bg-body rounded-lg px-2 md:px-2.5 py-1 md:py-1.5">
+                                    <span className="text-[10px] md:text-[12px] text-secondary font-medium truncate mr-1 md:mr-2">{cat}</span>
+                                    <span className="font-semibold text-[10px] md:text-[12px] text-secondary shrink-0 tabular-nums">{cnt as number}개</span>
                                   </div>
                                 ))}
                             </div>
@@ -623,23 +673,23 @@ export function FieldReportModal({
               };
               const allTags = ['전체', ...Array.from(new Set(report.images.map(img => img.locationTag || '기타')))];
               return (
-                <div id="sec-photos" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 relative">
+                <div id="sec-photos" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 relative">
                   <div className="absolute top-6 md:top-8 right-6 md:right-8 flex items-center gap-2 md:gap-3 z-10">
-                    <span className="text-[13px] font-bold text-[#8b95a1]">{report.images.length}장</span>
+                    <span className="text-[13px] font-bold text-tertiary">{report.images.length}장</span>
                     <button 
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         setIsUploadModalOpen(true);
                       }}
-                      className="text-[13px] font-bold text-[#3182f6] bg-[#e8f3ff] px-3 py-1.5 rounded-lg hover:bg-[#d1e7ff] transition-colors"
+                      className="text-[13px] font-bold text-toss-blue bg-toss-blue-light px-3 py-1.5 rounded-lg hover:bg-[#d1e7ff] transition-colors"
                     >
                       + 사진 추가
                     </button>
                   </div>
                   <details open>
-                    <summary className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-5 border-b border-[#e5e8eb] pb-3 cursor-pointer list-none pr-32">
-                      <Camera size={20} className="text-[#3182f6]"/>
+                    <summary className="text-[20px] font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3 cursor-pointer list-none pr-32">
+                      <Camera size={20} className="text-toss-blue"/>
                       우리 단지 갤러리
                     </summary>
 
@@ -649,25 +699,25 @@ export function FieldReportModal({
                 </div>
               );
             })() : (
-              <div id="sec-photos" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative group">
-                <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3">
-                  <Camera size={20} className="text-[#3182f6]"/> 우리 단지 갤러리
+              <div id="sec-photos" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative group">
+                <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
+                  <Camera size={20} className="text-toss-blue"/> 우리 단지 갤러리
                 </h2>
-                <div className="w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f8f9fa] to-[#f2f4f6] border border-[#e5e8eb] p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px]">
+                <div className="w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f8f9fa] to-[#f2f4f6] border border-border p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px]">
                   {/* Glassmorphism subtle background effects */}
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-[#3182f6] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-toss-blue mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
                   <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#7c3aed] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform -translate-x-1/2 translate-y-1/2" />
                   
-                  <div className="w-16 h-16 bg-white shadow-sm border border-[#e5e8eb] rounded-2xl flex items-center justify-center mb-5 relative z-10">
-                    <Camera className="text-[#3182f6]" size={32} strokeWidth={1.5} />
+                  <div className="w-16 h-16 bg-surface shadow-sm border border-border rounded-2xl flex items-center justify-center mb-5 relative z-10">
+                    <Camera className="text-toss-blue" size={32} strokeWidth={1.5} />
                   </div>
                   
-                  <h3 className="text-[18px] md:text-[20px] font-extrabold text-[#191f28] tracking-tight mb-2 relative z-10 text-center">
+                  <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight mb-2 relative z-10 text-center">
                     데이터가 담지 못하는 우리 단지의 진정한 가치
                   </h3>
-                  <p className="text-[14px] md:text-[15px] text-[#4e5968] font-medium leading-relaxed mb-8 max-w-md relative z-10 text-center">
+                  <p className="text-[14px] md:text-[15px] text-secondary font-medium leading-relaxed mb-8 max-w-md relative z-10 text-center">
                     매수자의 첫인상을 결정하는 대표 이미지 1장.<br className="hidden md:block" />
-                    입주민의 시선으로 <strong className="text-[#3182f6]">우리 단지의 품격</strong>을 직접 완성해 주세요.
+                    입주민의 시선으로 <strong className="text-toss-blue">우리 단지의 품격</strong>을 직접 완성해 주세요.
                   </p>
                   
                   <button 
@@ -676,14 +726,14 @@ export function FieldReportModal({
                       e.stopPropagation();
                       setIsUploadModalOpen(true);
                     }}
-                    className="group relative z-10 flex items-center gap-2 bg-[#191f28] text-white text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-[#3182f6] hover:shadow-[0_4px_12px_rgba(49,130,246,0.3)] transition-all duration-300 transform hover:-translate-y-0.5"
+                    className="group relative z-10 flex items-center gap-2 bg-primary text-surface text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-toss-blue hover:shadow-[0_4px_12px_rgba(49,130,246,0.3)] transition-all duration-300 transform hover:-translate-y-0.5"
                   >
                     <span>우리 단지 첫 번째 앰배서더 되기</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#3182f6] group-hover:bg-white animate-pulse" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-toss-blue group-hover:bg-surface animate-pulse" />
                   </button>
                   
-                  <p className="text-[12px] text-[#8b95a1] font-medium mt-5 relative z-10 text-center">
-                    * 고화질 사진이 풍부한 단지는 <span className="text-[#191f28] font-bold">인기 단지 탐색 상단에 우선 노출</span>됩니다.
+                  <p className="text-[12px] text-tertiary font-medium mt-5 relative z-10 text-center">
+                    * 고화질 사진이 풍부한 단지는 <span className="text-primary font-bold">인기 단지 탐색 상단에 우선 노출</span>됩니다.
                   </p>
                 </div>
               </div>
@@ -694,59 +744,59 @@ export function FieldReportModal({
               <>
 
                 {/* 2. 단지 기본정보 (Specs) */}
-                <div id="sec-specs" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
-                   <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Building size={20} className="text-[#3182f6]"/> 단지 기본정보</h2>
+                <div id="sec-specs" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+                   <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3"><Building size={20} className="text-toss-blue"/> 단지 기본정보</h2>
                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
-                        <p className="text-[12px] text-[#8b95a1] font-bold mb-1">준공 연월 / 연차</p>
-                        <p className="text-[15px] text-[#191f28] font-medium">{s.specs.builtYear || '-'}</p>
+                      <div className="bg-body p-4 rounded-xl border border-border">
+                        <p className="text-[12px] text-tertiary font-bold mb-1">준공 연월 / 연차</p>
+                        <p className="text-[15px] text-primary font-medium">{s.specs.builtYear || '-'}</p>
                       </div>
-                      <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
-                        <p className="text-[12px] text-[#8b95a1] font-bold mb-1">규모 (세대/동)</p>
-                        <p className="text-[15px] text-[#191f28] font-medium">{s.specs.scale || '-'}</p>
+                      <div className="bg-body p-4 rounded-xl border border-border">
+                        <p className="text-[12px] text-tertiary font-bold mb-1">규모 (세대/동)</p>
+                        <p className="text-[15px] text-primary font-medium">{s.specs.scale || '-'}</p>
                       </div>
-                      <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
-                        <p className="text-[12px] text-[#8b95a1] font-bold mb-1">용적률 / 건폐율</p>
-                        <p className="text-[15px] text-[#191f28] font-medium">{s.specs.farBuild || '-'}</p>
+                      <div className="bg-body p-4 rounded-xl border border-border">
+                        <p className="text-[12px] text-tertiary font-bold mb-1">용적률 / 건폐율</p>
+                        <p className="text-[15px] text-primary font-medium">{s.specs.farBuild || '-'}</p>
                       </div>
-                      <div className="bg-[#f9fafb] p-4 rounded-xl border border-[#e5e8eb]">
-                        <p className="text-[12px] text-[#8b95a1] font-bold mb-1">세대당 주차 (지하%)</p>
-                        <p className="text-[15px] text-[#191f28] font-medium">{s.specs.parkingRatio || '-'}</p>
+                      <div className="bg-body p-4 rounded-xl border border-border">
+                        <p className="text-[12px] text-tertiary font-bold mb-1">세대당 주차 (지하%)</p>
+                        <p className="text-[15px] text-primary font-medium">{s.specs.parkingRatio || '-'}</p>
                       </div>
                    </div>
                 </div>
 
                 {/* 3. 물리적 인프라 & 조경 */}
-                <div id="sec-infra" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
-                   <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Camera size={20} className="text-[#3182f6]"/> 현장 인프라 둘러보기</h2>
+                <div id="sec-infra" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+                   <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3"><Camera size={20} className="text-toss-blue"/> 현장 인프라 둘러보기</h2>
                    <div className="flex flex-col gap-8">
                       {/* Gate */}
                       {(s.infra.gateText || s.infra.gateImg) && (
                         <div className="flex flex-col md:flex-row gap-6">
-                          {s.infra.gateImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.infra.gateImg} alt="진입로/문주" fill sizes="280px" className="object-cover" /></div>}
+                          {s.infra.gateImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body"><Image src={s.infra.gateImg} alt="진입로/문주" fill sizes="280px" className="object-cover" /></div>}
                           <div>
-                            <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f2f4f6] inline-block px-3 py-1 rounded-lg">진입로 및 정문</h4>
-                            <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.infra.gateText || '사진만 제공됨'}</p>
+                            <h4 className="text-[15px] font-bold text-primary mb-2 bg-body inline-block px-3 py-1 rounded-lg">진입로 및 정문</h4>
+                            <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.infra.gateText || '사진만 제공됨'}</p>
                           </div>
                         </div>
                       )}
                       {/* Landscaping */}
                       {(s.infra.landscapeText || s.infra.landscapeImg) && (
-                        <div className="flex flex-col md:flex-row-reverse gap-6 pt-6 border-t border-[#f2f4f6]">
-                          {s.infra.landscapeImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.infra.landscapeImg} alt="조경/지형" fill sizes="280px" className="object-cover" /></div>}
+                        <div className="flex flex-col md:flex-row-reverse gap-6 pt-6 border-t border-body">
+                          {s.infra.landscapeImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body"><Image src={s.infra.landscapeImg} alt="조경/지형" fill sizes="280px" className="object-cover" /></div>}
                           <div>
-                            <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f2f4f6] inline-block px-3 py-1 rounded-lg">단지 조경 및 지형</h4>
-                            <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.infra.landscapeText || '사진만 제공됨'}</p>
+                            <h4 className="text-[15px] font-bold text-primary mb-2 bg-body inline-block px-3 py-1 rounded-lg">단지 조경 및 지형</h4>
+                            <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.infra.landscapeText || '사진만 제공됨'}</p>
                           </div>
                         </div>
                       )}
                       {/* Parking & Maintenance ... (Skip strict layout for brevity, just render them similarly) */}
                        {(s.infra.parkingText || s.infra.parkingImg) && (
-                        <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-[#f2f4f6]">
-                          {s.infra.parkingImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.infra.parkingImg} alt="지하주차장" fill sizes="280px" className="object-cover" /></div>}
+                        <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-body">
+                          {s.infra.parkingImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body"><Image src={s.infra.parkingImg} alt="지하주차장" fill sizes="280px" className="object-cover" /></div>}
                           <div>
-                            <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f2f4f6] inline-block px-3 py-1 rounded-lg">지하주차장 인프라</h4>
-                            <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.infra.parkingText || '사진만 제공됨'}</p>
+                            <h4 className="text-[15px] font-bold text-primary mb-2 bg-body inline-block px-3 py-1 rounded-lg">지하주차장 인프라</h4>
+                            <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.infra.parkingText || '사진만 제공됨'}</p>
                           </div>
                         </div>
                       )}
@@ -754,24 +804,24 @@ export function FieldReportModal({
                 </div>
 
                  {/* 4. Ecosystem */}
-                <div id="sec-eco" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
-                   <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><Info size={20} className="text-[#3182f6]"/> 생활 편의시설 및 거시 입지</h2>
+                <div id="sec-eco" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+                   <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3"><Info size={20} className="text-toss-blue"/> 생활 편의시설 및 거시 입지</h2>
                    <div className="flex flex-col gap-8">
                       {(s.ecosystem.schoolText || s.ecosystem.schoolImg) && (
                         <div className="flex flex-col md:flex-row gap-6">
-                          {s.ecosystem.schoolImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.ecosystem.schoolImg} alt="학군" fill sizes="280px" className="object-cover" /></div>}
+                          {s.ecosystem.schoolImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body"><Image src={s.ecosystem.schoolImg} alt="학군" fill sizes="280px" className="object-cover" /></div>}
                           <div>
-                            <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f8f9fa] border border-[#e5e8eb] inline-block px-3 py-1 rounded-lg">학군 및 통학로</h4>
-                            <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.ecosystem.schoolText}</p>
+                            <h4 className="text-[15px] font-bold text-primary mb-2 bg-[#f8f9fa] border border-border inline-block px-3 py-1 rounded-lg">학군 및 통학로</h4>
+                            <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.ecosystem.schoolText}</p>
                           </div>
                         </div>
                       )}
                       {(s.ecosystem.commerceText || s.ecosystem.commerceImg) && (
-                        <div className="flex flex-col md:flex-row-reverse gap-6 pt-6 border-t border-[#f2f4f6]">
-                          {s.ecosystem.commerceImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-[#f2f4f6]"><Image src={s.ecosystem.commerceImg} alt="상권" fill sizes="280px" className="object-cover" /></div>}
+                        <div className="flex flex-col md:flex-row-reverse gap-6 pt-6 border-t border-body">
+                          {s.ecosystem.commerceImg && <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body"><Image src={s.ecosystem.commerceImg} alt="상권" fill sizes="280px" className="object-cover" /></div>}
                           <div>
-                            <h4 className="text-[15px] font-bold text-[#191f28] mb-2 bg-[#f8f9fa] border border-[#e5e8eb] inline-block px-3 py-1 rounded-lg">동네 상권</h4>
-                            <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.ecosystem.commerceText}</p>
+                            <h4 className="text-[15px] font-bold text-primary mb-2 bg-[#f8f9fa] border border-border inline-block px-3 py-1 rounded-lg">동네 상권</h4>
+                            <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.ecosystem.commerceText}</p>
                           </div>
                         </div>
                       )}
@@ -779,24 +829,24 @@ export function FieldReportModal({
                 </div>
 
                  {/* 5. 최종 결론 */}
-                <div id="sec-conclusion" className="bg-white rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
-                   <h2 className="text-[20px] font-bold text-[#191f28] flex items-center gap-2 mb-6 border-b border-[#e5e8eb] pb-3"><ShieldAlert size={20} className="text-[#3182f6]"/> 최종 매수 타당성 평가</h2>
+                <div id="sec-conclusion" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+                   <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3"><ShieldAlert size={20} className="text-toss-blue"/> 최종 매수 타당성 평가</h2>
                    <div className="flex flex-col gap-4">
-                      <div className="bg-[#191f28] p-6 rounded-2xl text-white">
-                        <h4 className="text-[13px] font-bold text-[#8b95a1] mb-2">교통 및 개발 호재</h4>
+                      <div className="bg-primary p-6 rounded-2xl text-surface">
+                        <h4 className="text-[13px] font-bold text-tertiary mb-2">교통 및 개발 호재</h4>
                         <p className="text-[15px] leading-relaxed whitespace-pre-wrap mb-4 pb-4 border-b border-white/10">{s.location.trafficText || '-'}</p>
                         <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{s.location.developmentText || '-'}</p>
                       </div>
                       <div className="p-6 rounded-2xl border-2 border-[#191f28] bg-[#fdfdfd]">
-                        <h4 className="text-[16px] font-extrabold text-[#191f28] mb-2">💡 최종 결론</h4>
-                        <p className="text-[15px] text-[#4e5968] leading-relaxed whitespace-pre-wrap">{s.assessment.synthesis || '-'}</p>
+                        <h4 className="text-[16px] font-extrabold text-primary mb-2">💡 최종 결론</h4>
+                        <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.assessment.synthesis || '-'}</p>
                         
                         {s.assessment.probability && (
-                          <div className="mt-6 p-4 bg-[#e8f3ff] rounded-xl flex items-start gap-3">
-                             <Radar size={20} className="text-[#3182f6] shrink-0 mt-0.5" />
+                          <div className="mt-6 p-4 bg-toss-blue-light rounded-xl flex items-start gap-3">
+                             <Radar size={20} className="text-toss-blue shrink-0 mt-0.5" />
                              <div>
-                               <h5 className="text-[13px] font-bold text-[#3182f6] mb-1">향후 가격 전망</h5>
-                               <p className="text-[14px] text-[#191f28] leading-snug">{s.assessment.probability}</p>
+                               <h5 className="text-[13px] font-bold text-toss-blue mb-1">향후 가격 전망</h5>
+                               <p className="text-[14px] text-primary leading-snug">{s.assessment.probability}</p>
                              </div>
                           </div>
                         )}
@@ -876,13 +926,13 @@ export function FieldReportModal({
         onClick={() => setFullscreenImage(null)}
       >
         <button 
-          className="absolute top-6 right-6 z-50 text-white/50 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+          className="absolute top-6 right-6 z-50 text-surface/50 hover:text-surface p-2 rounded-full bg-surface/10 hover:bg-surface/20 transition-colors"
           onClick={(e) => { e.stopPropagation(); setFullscreenImage(null); }}
         >
           <X size={24} />
         </button>
         <button 
-          className="absolute top-6 right-20 z-50 text-white/50 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+          className="absolute top-6 right-20 z-50 text-surface/50 hover:text-surface p-2 rounded-full bg-surface/10 hover:bg-surface/20 transition-colors"
           onClick={(e) => { e.stopPropagation(); handleDownloadWatermarkedImage(fullscreenImage); }}
           title="이미지 저장 (워터마크 포함)"
         >
@@ -892,7 +942,7 @@ export function FieldReportModal({
         {/* Left Arrow */}
         {currentImageIndex > 0 && (
           <button
-            className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-50 text-white/50 hover:text-white p-3 rounded-full bg-black/20 hover:bg-white/20 transition-colors"
+            className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-50 text-surface/50 hover:text-surface p-3 rounded-full bg-black/20 hover:bg-surface/20 transition-colors"
             onClick={handlePrevImage}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
@@ -902,7 +952,7 @@ export function FieldReportModal({
         {/* Right Arrow */}
         {hasImages && currentImageIndex < report!.images!.length - 1 && (
           <button
-            className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-50 text-white/50 hover:text-white p-3 rounded-full bg-black/20 hover:bg-white/20 transition-colors"
+            className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-50 text-surface/50 hover:text-surface p-3 rounded-full bg-black/20 hover:bg-surface/20 transition-colors"
             onClick={handleNextImage}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
@@ -920,7 +970,7 @@ export function FieldReportModal({
             />
             {/* Subtle Corner Watermark */}
             <div className="absolute right-4 bottom-4 pointer-events-none z-20">
-              <span className="text-white/70 font-bold text-sm md:text-base tracking-widest select-none drop-shadow-xl bg-black/40 px-3 py-1.5 rounded-lg backdrop-blur-md border border-white/10">
+              <span className="text-surface/70 font-bold text-sm md:text-base tracking-widest select-none drop-shadow-xl bg-black/40 px-3 py-1.5 rounded-lg backdrop-blur-md border border-white/10">
                 {currentImgData?.uploaderName ? `D-VIEW x ${currentImgData.uploaderName}` : 'D-VIEW'}
               </span>
             </div>
@@ -929,13 +979,13 @@ export function FieldReportModal({
           {/* Metadata Footer */}
           <div className="absolute bottom-8 left-0 right-0 flex justify-center pointer-events-none">
             <div className="bg-black/60 backdrop-blur-md px-6 py-2.5 rounded-full flex items-center gap-3 border border-white/10 shadow-lg">
-              <span className="text-white/90 text-[13px] font-bold">
-                {currentImageIndex + 1} <span className="text-white/40 font-normal">/ {report!.images!.length}</span>
+              <span className="text-surface/90 text-[13px] font-bold">
+                {currentImageIndex + 1} <span className="text-surface/40 font-normal">/ {report!.images!.length}</span>
               </span>
               {currentImgData?.locationTag && (
                 <>
-                  <span className="w-1 h-1 rounded-full bg-white/30" />
-                  <span className="text-white/80 text-[13px] font-medium">{currentImgData.locationTag}</span>
+                  <span className="w-1 h-1 rounded-full bg-surface/30" />
+                  <span className="text-surface/80 text-[13px] font-medium">{currentImgData.locationTag}</span>
                 </>
               )}
             </div>
@@ -948,7 +998,7 @@ export function FieldReportModal({
   // ── Return: inline panel vs modal overlay ──
   if (inline) {
     return (
-      <div ref={modalRef} onScroll={handleScroll} className="bg-white h-full flex flex-col overflow-y-auto overflow-x-hidden">
+      <div ref={modalRef} onScroll={handleScroll} className="bg-surface h-full flex flex-col overflow-y-auto overflow-x-hidden">
         {content}
         <FullscreenOverlay />
         
@@ -972,11 +1022,11 @@ export function FieldReportModal({
   return createPortal(
     <>
       <div className="fixed inset-0 z-[100] flex flex-col justify-end md:items-center md:justify-center p-0 md:p-12 animate-in fade-in duration-200" style={{ position: 'fixed' }}>
-        <div className="absolute inset-0 bg-[#191f28]/60 backdrop-blur-sm" onClick={onClose} />
+        <div className="absolute inset-0 bg-primary/60 backdrop-blur-sm" onClick={onClose} />
         
-        <div ref={modalRef} onScroll={handleScroll} className={`relative bg-[#f2f4f6] w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] h-[100dvh] md:h-auto md:max-h-[90vh] rounded-none md:rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden shadow-2xl transition-transform duration-300 ring-1 ring-black/5 pb-24 md:pb-0 slide-in-from-bottom`}>
+        <div ref={modalRef} onScroll={handleScroll} className={`relative bg-body w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1200px] h-[100dvh] md:h-auto md:max-h-[90vh] rounded-none md:rounded-3xl'} flex flex-col overflow-y-auto overflow-x-hidden shadow-2xl transition-transform duration-300 ring-1 ring-black/5 pb-24 md:pb-0 slide-in-from-bottom`}>
 
-          <button onClick={onClose} className="sticky top-4 z-[100] ml-auto mr-4 mt-4 -mb-14 bg-[#191f28]/80 hover:bg-[#191f28] text-white w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0 hidden md:flex">
+          <button onClick={onClose} className="sticky top-4 z-[100] ml-auto mr-4 mt-4 -mb-14 bg-primary/80 hover:bg-primary text-surface w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md transition-colors shadow-lg shrink-0 hidden md:flex">
             <X size={20} />
           </button>
           
@@ -985,11 +1035,11 @@ export function FieldReportModal({
           <div className="h-28 md:hidden shrink-0" />
 
           {/* Mobile Sticky CTA (공유하기) */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-[#e5e8eb] md:hidden z-[100]">
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-surface/80 backdrop-blur-md border-t border-border md:hidden z-[100]">
             <div className="flex items-center gap-3 w-full">
               <button
                 onClick={onClose}
-                className="w-[56px] h-[56px] bg-[#f2f4f6] hover:bg-[#e5e8eb] text-[#4e5968] rounded-2xl flex items-center justify-center transition-colors shrink-0"
+                className="w-[56px] h-[56px] bg-body hover:bg-[#e5e8eb] text-secondary rounded-2xl flex items-center justify-center transition-colors shrink-0"
                 title="뒤로가기"
               >
                 <ArrowLeft size={24} strokeWidth={2.5} />
@@ -1006,7 +1056,7 @@ export function FieldReportModal({
                     alert('공유하기 기능이 지원되지 않는 브라우저입니다.');
                   }
                 }}
-                className="flex-1 h-[56px] bg-[#3182f6] hover:bg-[#1b64da] text-white font-extrabold text-[16px] rounded-2xl flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(49,130,246,0.2)] transition-colors"
+                className="flex-1 h-[56px] bg-toss-blue hover:bg-[#1b64da] text-surface font-extrabold text-[16px] rounded-2xl flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(49,130,246,0.2)] transition-colors"
               >
                 <Share size={20} strokeWidth={2.5} />
                 공유하기

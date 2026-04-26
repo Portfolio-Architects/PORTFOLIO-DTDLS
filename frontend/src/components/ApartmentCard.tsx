@@ -73,7 +73,7 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
   return (
     <div
       onClick={onClick}
-      className={`relative flex items-center gap-3 px-4 py-3.5 transition-all duration-150 cursor-pointer hover:bg-[#f9fafb] active:bg-[#f2f4f6] border-b border-[#f2f4f6] last:border-b-0 group ${
+      className={`relative flex items-center gap-3 px-4 py-3.5 transition-all duration-150 cursor-pointer hover:bg-body active:bg-body border-b border-body last:border-b-0 group ${
         !hasAnalysis && !hasPhotos && !txSummary ? 'opacity-60' : ''
       } ${
         isSelected ? 'bg-[#f8faff]' : ''
@@ -81,36 +81,36 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
     >
       {/* 선택 액센트 바 */}
       {isSelected && (
-        <div className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-[#3182f6]" />
+        <div className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-toss-blue" />
       )}
       {/* 순위 */}
       {rank != null && (
-        <span className="text-sm font-extrabold text-[#8b95a1] w-7 text-center shrink-0 tabular-nums">
+        <span className="text-sm font-extrabold text-tertiary w-7 text-center shrink-0 tabular-nums">
           {rank}
         </span>
       )}
 
       {/* 아파트 정보 */}
       <div className="flex-1 min-w-0 pr-2 flex flex-col justify-center">
-        <h4 className="text-[15px] font-extrabold text-[#191f28] truncate group-hover:text-[#3182f6] transition-colors leading-tight">
+        <h4 className="text-[15px] font-extrabold text-primary truncate group-hover:text-toss-blue transition-colors leading-tight">
           {apt.name}
         </h4>
         
-        <div className="flex items-center gap-1.5 mt-1.5 overflow-hidden">
-          <span className="text-[11px] font-medium text-[#8b95a1] shrink-0">{apt.dong}</span>
+        <div className="flex items-center gap-1.5 mt-1.5 overflow-x-auto hide-scrollbar">
+          <span className="text-[11px] font-medium text-tertiary shrink-0">{apt.dong}</span>
           
           {hasAnalysis && (
-            <span className="inline-flex items-center gap-0.5 bg-[#f2f4f6] text-[#4e5968] text-[11px] font-bold px-2 py-[2px] rounded shrink-0 leading-tight">
+            <span className="inline-flex items-center gap-0.5 bg-body text-secondary text-[11px] font-bold px-2 py-[2px] rounded shrink-0 leading-tight">
               가치평가
             </span>
           )}
           {hasPhotos && (
-            <span className="inline-flex items-center gap-0.5 bg-[#fff4e6] text-[#ff8a3d] text-[11px] font-bold px-2 py-[2px] rounded shrink-0 leading-tight">
-              현장사진 {photoCount}장
+            <span className="inline-flex items-center gap-0.5 bg-[#fff4e6] text-[#ff8a3d] text-[11px] font-bold px-1.5 py-[2px] rounded shrink-0 leading-tight">
+              사진 {photoCount}
             </span>
           )}
           {(!hasAnalysis && !hasPhotos) && isPublicRental && (
-            <span className="text-[11px] font-bold bg-[#f2f4f6] text-[#8b95a1] px-1.5 py-[1px] rounded shrink-0 leading-tight">공공</span>
+            <span className="text-[11px] font-bold bg-body text-tertiary px-1.5 py-[1px] rounded shrink-0 leading-tight">공공</span>
           )}
         </div>
       </div>
@@ -118,8 +118,8 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
       {/* 가격 영역 */}
       <div className="flex items-center shrink-0">
         {txSummary ? (
-          <div className="text-right min-w-[80px]">
-            <div className="flex justify-end items-baseline text-base leading-none mb-1">
+          <div className="text-right min-w-[65px]">
+            <div className="flex justify-end items-baseline text-[15px] leading-none mb-1">
               {(() => {
                 let eok = 0;
                 let rem = 0;
@@ -151,8 +151,8 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
                 if (hasValue) {
                    return (
                      <>
-                       <span className="font-extrabold text-[#191f28] tabular-nums">{eok >= 1 ? `${eok}억` : ''}</span>
-                       <span className={`inline-block text-left font-bold tabular-nums ml-[2px] ${eok > 0 ? 'w-[38px] text-[14.5px] text-[#4e5968]' : 'text-base text-[#191f28]'}`}>
+                       <span className="font-extrabold text-primary tabular-nums">{eok >= 1 ? `${eok}억` : ''}</span>
+                       <span className={`inline-block text-left font-bold tabular-nums ml-[2px] ${eok > 0 ? 'w-[32px] text-[13px] text-secondary' : 'text-[15px] text-primary'}`}>
                          {rem > 0 ? (eok === 0 ? `${rem.toLocaleString()}만` : rem.toLocaleString()) : (eok === 0 ? '0' : '')}
                        </span>
                      </>
@@ -160,9 +160,9 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
                 }
 
                 if (txSummary && (txSummary.latestRentDeposit || 0) > 0) {
-                  return <span className="font-extrabold text-[#191f28] text-[14.5px] tracking-tight">{`전/월세 ${txSummary.latestRentDepositEok}`}</span>;
+                  return <span className="font-extrabold text-primary text-[14.5px] tracking-tight">{`전/월세 ${txSummary.latestRentDepositEok}`}</span>;
                 }
-                return <span className="font-extrabold text-[#191f28]">-</span>;
+                return <span className="font-extrabold text-primary">-</span>;
               })()}
             </div>
             <div className="flex items-center justify-end gap-1.5">
@@ -193,29 +193,29 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
             </div>
           </div>
         ) : (
-          <span className="text-xs text-[#d1d6db]">—</span>
+          <span className="text-xs text-toss-gray">—</span>
         )}
       </div>
 
       {/* ♡ 가격 투표 / 관심 등록 버튼 (Gamification) */}
       {onToggleFavorite && (
-        <div className="flex flex-col items-center justify-center shrink-0 ml-1">
+        <div className="flex flex-col items-center justify-center shrink-0 ml-1.5">
           <button
             onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-            className={`w-12 h-12 flex flex-col items-center justify-center gap-0.5 rounded-xl transition-all ${
+            className={`w-10 h-10 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-all ${
               isFavorited 
                 ? 'bg-[#fff0f0] text-[#ff3b30]' 
-                : 'bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb] hover:text-[#4e5968]'
+                : 'bg-body text-tertiary hover:bg-[#e5e8eb] hover:text-secondary'
             }`}
             title={isFavorited ? '관심 해제' : '관심 등록'}
           >
-            <span className="flex items-center justify-center leading-none h-[16px]"><Heart size={16} fill={isFavorited ? 'currentColor' : 'none'} strokeWidth={2.5} /></span>
+            <span className="flex items-center justify-center leading-none h-[14px]"><Heart size={14} fill={isFavorited ? 'currentColor' : 'none'} strokeWidth={2.5} /></span>
             {favoriteCount != null ? (
-              <span className="text-[10px] font-extrabold tabular-nums leading-none">
+              <span className="text-[9px] font-extrabold tabular-nums leading-none mt-0.5">
                 {favoriteCount}
               </span>
             ) : (
-              <span className="text-[9px] font-bold leading-none">투표</span>
+              <span className="text-[8px] font-bold leading-none mt-0.5">투표</span>
             )}
           </button>
         </div>

@@ -111,11 +111,11 @@ export function TransactionTable({
     !dealType || (dealType !== '전세' && dealType !== '월세');
 
   const getBadgeColorClasses = (dealType: string | undefined) => {
-    if (!dealType || dealType === '-') return 'bg-[#e8f3ff] text-[#1b64da]'; // 매매 기본
+    if (!dealType || dealType === '-') return 'bg-toss-blue-light text-[#1b64da]'; // 매매 기본
     if (dealType === '전세') return 'bg-[#e6f4ea] text-[#0d652d]';
     if (dealType === '월세') return 'bg-[#fef0e6] text-[#c2410c]';
     // 중개거래, 직거래, 매매 등 모두 매매 계열
-    return 'bg-[#e8f3ff] text-[#1b64da]';
+    return 'bg-toss-blue-light text-[#1b64da]';
   };
 
   const getDealTypeLabel = (dealType: string | undefined) => {
@@ -126,22 +126,22 @@ export function TransactionTable({
   };
 
   return (
-    <div className="flex flex-col bg-white rounded-2xl ring-1 ring-[#e5e8eb] overflow-hidden md:h-full">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 p-4 bg-white border-b border-[#e5e8eb] w-full">
-        <h4 className="text-[14px] font-bold text-[#4e5968] shrink-0">
-          실거래가 <span className="text-[#3182f6] ml-1">{filteredTransactions.length}</span>건
+    <div className="flex flex-col bg-surface rounded-2xl ring-1 ring-[#e5e8eb] overflow-hidden md:h-full">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 p-4 bg-surface border-b border-border w-full">
+        <h4 className="text-[14px] font-bold text-secondary shrink-0">
+          실거래가 <span className="text-toss-blue ml-1">{filteredTransactions.length}</span>건
         </h4>
-        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar w-full md:w-auto pb-0.5">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] w-full md:w-auto pb-0.5">
           {/* 면적 필터 */}
           <div className="relative" onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'area' ? null : 'area'); }}>
-            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#e5e8eb] bg-white text-[12px] font-bold text-[#4e5968] hover:bg-[#f9fafb] transition-colors whitespace-nowrap shrink-0">
+            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-surface text-[12px] font-bold text-secondary hover:bg-body transition-colors whitespace-nowrap shrink-0">
               {txFilterArea === 'ALL' ? '전체 면적' : `${txFilterArea}m²`}
-              <ChevronDown size={14} className={`text-[#8b95a1] transition-transform ${activeDropdown === 'area' ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-tertiary transition-transform ${activeDropdown === 'area' ? 'rotate-180' : ''}`} />
             </button>
             {activeDropdown === 'area' && (
-              <div className="absolute top-10 left-0 w-[140px] bg-white border border-[#e5e8eb] rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] py-1.5 z-[100]">
+              <div className="absolute top-10 left-0 w-[140px] bg-surface border border-border rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] py-1.5 z-[100]">
                 {[{ label: '전체 면적', value: 'ALL' }, ...areaTypes.map(a => ({ label: `${a}m²`, value: String(a) }))].map(opt => (
-                  <button key={opt.value} className={`w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-[#f9fafb] transition-colors ${txFilterArea === opt.value ? 'text-[#3182f6] bg-[#f2f4f6]/50' : 'text-[#4e5968]'}`}
+                  <button key={opt.value} className={`w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-body transition-colors ${txFilterArea === opt.value ? 'text-toss-blue bg-body/50' : 'text-secondary'}`}
                     onClick={(e) => { e.stopPropagation(); setTxFilterArea(opt.value); setActiveDropdown(null); }}>
                     {opt.label}
                   </button>
@@ -151,14 +151,14 @@ export function TransactionTable({
           </div>
           {/* 거래유형 필터 */}
           <div className="relative" onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'dealType' ? null : 'dealType'); }}>
-            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#e5e8eb] bg-white text-[12px] font-bold text-[#4e5968] hover:bg-[#f9fafb] transition-colors whitespace-nowrap shrink-0">
+            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-surface text-[12px] font-bold text-secondary hover:bg-body transition-colors whitespace-nowrap shrink-0">
               {txFilterDealType === 'ALL' ? '전체 유형' : txFilterDealType}
-              <ChevronDown size={14} className={`text-[#8b95a1] transition-transform ${activeDropdown === 'dealType' ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-tertiary transition-transform ${activeDropdown === 'dealType' ? 'rotate-180' : ''}`} />
             </button>
             {activeDropdown === 'dealType' && (
-              <div className="absolute top-10 left-0 w-[140px] bg-white border border-[#e5e8eb] rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] py-1.5 z-[100]">
+              <div className="absolute top-10 left-0 w-[140px] bg-surface border border-border rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] py-1.5 z-[100]">
                 {[{ label: '전체 유형', value: 'ALL' }, ...dealTypes.map(d => ({ label: d, value: d }))].map(opt => (
-                  <button key={opt.value} className={`w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-[#f9fafb] transition-colors ${txFilterDealType === opt.value ? 'text-[#3182f6] bg-[#f2f4f6]/50' : 'text-[#4e5968]'}`}
+                  <button key={opt.value} className={`w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-body transition-colors ${txFilterDealType === opt.value ? 'text-toss-blue bg-body/50' : 'text-secondary'}`}
                     onClick={(e) => { e.stopPropagation(); setTxFilterDealType(opt.value); setActiveDropdown(null); }}>
                     {opt.label}
                   </button>
@@ -168,19 +168,19 @@ export function TransactionTable({
           </div>
           {/* 정렬 필터 */}
           <div className="relative" onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === 'sort' ? null : 'sort'); }}>
-            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#e5e8eb] bg-white text-[12px] font-bold text-[#4e5968] hover:bg-[#f9fafb] transition-colors whitespace-nowrap shrink-0">
+            <button className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-surface text-[12px] font-bold text-secondary hover:bg-body transition-colors whitespace-nowrap shrink-0">
               {{ 'date_desc': '최신순', 'date_asc': '과거순', 'price_desc': '높은가격순', 'price_asc': '낮은가격순' }[txSort]}
-              <ChevronDown size={14} className={`text-[#8b95a1] transition-transform ${activeDropdown === 'sort' ? 'rotate-180' : ''}`} />
+              <ChevronDown size={14} className={`text-tertiary transition-transform ${activeDropdown === 'sort' ? 'rotate-180' : ''}`} />
             </button>
             {activeDropdown === 'sort' && (
-              <div className="absolute top-10 right-0 w-[140px] bg-white border border-[#e5e8eb] rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] py-1.5 z-[100]">
+              <div className="absolute top-10 right-0 w-[140px] bg-surface border border-border rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] py-1.5 z-[100]">
                 {[
                   { label: '최신순 (계약일)', value: 'date_desc' },
                   { label: '과거순 (계약일)', value: 'date_asc' },
                   { label: '높은가격순', value: 'price_desc' },
                   { label: '낮은가격순', value: 'price_asc' },
                 ].map(opt => (
-                  <button key={opt.value} className={`w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-[#f9fafb] transition-colors ${txSort === opt.value ? 'text-[#3182f6] bg-[#f2f4f6]/50' : 'text-[#4e5968]'}`}
+                  <button key={opt.value} className={`w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-body transition-colors ${txSort === opt.value ? 'text-toss-blue bg-body/50' : 'text-secondary'}`}
                     onClick={(e) => { e.stopPropagation(); setTxSort(opt.value as 'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'); setActiveDropdown(null); }}>
                     {opt.label}
                   </button>
@@ -191,7 +191,7 @@ export function TransactionTable({
         </div>
       </div>
 
-      <div className="md:overflow-y-auto custom-scrollbar flex-1 relative md:max-h-[500px] xl:max-h-[560px]">
+      <div className="md:overflow-y-auto overscroll-y-contain custom-scrollbar flex-1 relative md:max-h-[500px] xl:max-h-[560px]">
         {sortedFilteredTransactions.map((tx, i) => {
           const m = tx.contractYm.substring(4, 6);
           const d = tx.contractDay;
@@ -215,13 +215,13 @@ export function TransactionTable({
           const isCancelled = !!(tx.cancelDate && /^\d{6,}$/.test(tx.cancelDate.trim()));
 
           return (
-            <div key={i} className={`flex items-center justify-between p-4 border-b border-[#f2f4f6] hover:bg-[#f9fafb] transition-colors ${i >= displayedCount ? 'hidden md:flex' : 'flex'} ${isCancelled ? 'opacity-40' : ''}`}>
+            <div key={i} className={`flex items-center justify-between p-4 border-b border-body hover:bg-body transition-colors ${i >= displayedCount ? 'hidden md:flex' : 'flex'} ${isCancelled ? 'opacity-40' : ''}`}>
               
               {/* 좌측: 날짜 + 스펙 결합으로 시선 흐름 최적화 */}
               <div className="flex items-center gap-3 md:gap-5 flex-1 min-w-0">
                 {/* 1. 날짜 */}
                 <div className="flex flex-col w-[72px] md:w-[80px] shrink-0 text-left">
-                  <div className={`text-[13px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-[#8b95a1] line-through decoration-[#ef4444]' : 'text-[#6b7684]'}`}>
+                  <div className={`text-[13px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-tertiary line-through decoration-[#ef4444]' : 'text-[#6b7684]'}`}>
                     {tx.contractYm.substring(2, 4)}. {m}. {d}.
                   </div>
                   {isCancelled && (
@@ -233,14 +233,14 @@ export function TransactionTable({
                 
                 {/* 2. 평형 (독립 칼럼 & 폰트 크기 확대) */}
                 <div className="w-[45px] md:w-[55px] shrink-0 flex justify-center">
-                  <span className={`w-full text-center text-[13px] md:text-[14px] tracking-tight font-extrabold py-0.5 rounded bg-[#f2f4f6] ${isCancelled ? 'text-[#8b95a1]' : 'text-[#333d4b]'}`} title={typeLabel}>
+                  <span className={`w-full text-center text-[13px] md:text-[14px] tracking-tight font-extrabold py-0.5 rounded bg-body ${isCancelled ? 'text-tertiary' : 'text-[#333d4b]'}`} title={typeLabel}>
                     {typeLabel}
                   </span>
                 </div>
 
                 {/* 3. 층수 (독립 칼럼 & 폰트 크기 확대) */}
                 <div className="w-[32px] md:w-[40px] shrink-0 text-right">
-                  <span className={`text-[13px] md:text-[14px] font-bold ${isCancelled ? 'text-[#c8ced4]' : 'text-[#8b95a1]'}`}>
+                  <span className={`text-[13px] md:text-[14px] font-bold ${isCancelled ? 'text-[#c8ced4]' : 'text-tertiary'}`}>
                     {tx.floor}층
                   </span>
                 </div>
@@ -257,27 +257,27 @@ export function TransactionTable({
                   {tx.isOutlier && (
                     <div className="group relative flex items-center justify-center cursor-help">
                       <AlertTriangle size={13} className="text-[#f59e0b] drop-shadow-sm" />
-                      <div className="absolute right-0 bottom-full mb-1 sm:bottom-auto sm:-left-2 sm:translate-x-0 w-36 sm:w-max opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all bg-[#191f28] text-white text-[10px] sm:text-[11px] p-2 rounded-lg shadow-lg z-50 pointer-events-none break-keep text-center sm:text-left">
+                      <div className="absolute right-0 bottom-full mb-1 sm:bottom-auto sm:-left-2 sm:translate-x-0 w-36 sm:w-max opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all bg-primary text-surface text-[10px] sm:text-[11px] p-2 rounded-lg shadow-lg z-50 pointer-events-none break-keep text-center sm:text-left">
                         시세 대비 이례적 편차
                       </div>
                     </div>
                   )}
                   
                   {/* 가격 위계 분리 (억 단위 강조, 만 단위 고정폭 정렬) */}
-                  <div className={`flex items-baseline justify-end shrink-0 whitespace-nowrap tracking-tight ${tx.isOutlier || isCancelled ? 'text-[#8b95a1] line-through decoration-[#c8ced4] decoration-2' : ''}`}>
-                    {eok > 0 && <span className={`text-[15px] font-black mr-[2px] ${!(tx.isOutlier || isCancelled) ? 'text-[#191f28]' : ''}`}>{eok}억</span>}
+                  <div className={`flex items-baseline justify-end shrink-0 whitespace-nowrap tracking-tight ${tx.isOutlier || isCancelled ? 'text-tertiary line-through decoration-[#c8ced4] decoration-2' : ''}`}>
+                    {eok > 0 && <span className={`text-[15px] font-black mr-[2px] ${!(tx.isOutlier || isCancelled) ? 'text-primary' : ''}`}>{eok}억</span>}
                     
                     {eok > 0 ? (
-                      <span className={`inline-block text-left tabular-nums w-[38px] text-[14px] font-bold ${!(tx.isOutlier || isCancelled) ? 'text-[#4e5968]' : ''}`}>
+                      <span className={`inline-block text-left tabular-nums text-[14px] font-bold ${!(tx.isOutlier || isCancelled) ? 'text-secondary' : ''} ${displayMonthly > 0 ? '' : 'w-[38px]'}`}>
                         {rem > 0 ? rem.toLocaleString() : ''}
                       </span>
                     ) : (
-                      <span className={`text-[14px] font-black tabular-nums ${!(tx.isOutlier || isCancelled) ? 'text-[#191f28]' : ''}`}>
-                        {rem > 0 ? `${rem.toLocaleString()}만` : '0'}
+                      <span className={`text-[14px] font-black tabular-nums ${!(tx.isOutlier || isCancelled) ? 'text-primary' : ''}`}>
+                        {rem > 0 ? (displayMonthly > 0 ? rem.toLocaleString() : `${rem.toLocaleString()}만`) : '0'}
                       </span>
                     )}
 
-                    {displayMonthly > 0 && <span className="text-[#8b95a1] ml-1 text-[13px] font-bold">/ {displayMonthly.toLocaleString()}만</span>}
+                    {displayMonthly > 0 && <span className={`text-[14px] font-bold ml-0.5 tabular-nums ${!(tx.isOutlier || isCancelled) ? 'text-tertiary' : ''}`}>/ {displayMonthly.toLocaleString()}</span>}
                   </div>
                 </div>
               </div>
@@ -287,8 +287,8 @@ export function TransactionTable({
         })}
 
         {filteredTransactions.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-[200px] text-[#8b95a1] gap-2">
-            <AlertCircle size={24} className="text-[#d1d6db]" />
+          <div className="flex flex-col items-center justify-center h-[200px] text-tertiary gap-2">
+            <AlertCircle size={24} className="text-toss-gray" />
             <span className="text-[13px] font-bold">조건에 맞는 거래 내역이 없습니다.</span>
           </div>
         )}
@@ -296,10 +296,10 @@ export function TransactionTable({
 
       {/* Expand/Collapse Button */}
       {displayedCount < filteredTransactions.length && (
-        <div className="md:hidden flex justify-center py-4 bg-white border-t border-[#f2f4f6]">
+        <div className="md:hidden flex justify-center py-4 bg-surface border-t border-body">
           <button
             onClick={() => setDisplayedCount(prev => prev + 10)}
-            className="flex items-center justify-center gap-1.5 bg-[#191f28] text-white py-2.5 px-6 rounded-full text-[13px] font-extrabold shadow-[0_4px_12px_rgba(0,0,0,0.15)] hover:bg-[#191f28]/90 transition-colors"
+            className="flex items-center justify-center gap-1.5 bg-primary text-surface py-2.5 px-6 rounded-full text-[13px] font-extrabold shadow-[0_4px_12px_rgba(0,0,0,0.15)] hover:bg-primary/90 transition-colors"
           >
             더보기 <ChevronDown size={14} />
           </button>

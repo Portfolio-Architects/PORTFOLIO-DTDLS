@@ -28,14 +28,14 @@ export default function LoungeContainerClient({ initialPosts }: { initialPosts: 
       {/* LEFT SIDEBAR: Categories */}
       <aside className="md:col-span-3 lg:col-span-3 hidden md:block">
         <div className="sticky top-[100px]">
-          <h2 className="text-[14px] font-extrabold text-[#191f28] mb-4 px-2">게시판 카테고리</h2>
+          <h2 className="text-[14px] font-extrabold text-primary mb-4 px-2">게시판 카테고리</h2>
           <div className="flex flex-col gap-1">
             {categories.map((cat) => (
               <button 
                 key={cat} 
                 onClick={() => setCurrentTab(cat)}
                 className={`text-left px-4 py-3 rounded-xl text-[15px] font-bold transition-all ${
-                  currentTab === cat ? 'bg-[#f2f4f6] text-[#191f28]' : 'text-[#4e5968] hover:bg-[#f9fafb]'
+                  currentTab === cat ? 'bg-body text-primary' : 'text-secondary hover:bg-body'
                 }`}
               >
                 {cat}
@@ -48,8 +48,8 @@ export default function LoungeContainerClient({ initialPosts }: { initialPosts: 
       {/* CENTER COLUMN: Main Feed */}
       <section className="md:col-span-9 lg:col-span-6 w-full max-w-[600px] mx-auto md:mx-0">
         <div className="mb-6 md:hidden">
-          <h1 className="text-[24px] font-extrabold tracking-tight text-[#191f28] mb-1">실시간 동탄 커뮤니티</h1>
-          <p className="text-[14px] text-[#8b95a1] font-medium mb-4">동탄 주민들의 솔직한 이야기</p>
+          <h1 className="text-[24px] font-extrabold tracking-tight text-primary mb-1">실시간 동탄 커뮤니티</h1>
+          <p className="text-[14px] text-tertiary font-medium mb-4">동탄 주민들의 솔직한 이야기</p>
           {/* Mobile Horizontal Tabs */}
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {categories.map((cat) => (
@@ -57,7 +57,7 @@ export default function LoungeContainerClient({ initialPosts }: { initialPosts: 
                 key={cat} 
                 onClick={() => setCurrentTab(cat)}
                 className={`shrink-0 px-4 py-2 rounded-full text-[13px] font-bold border transition-all ${
-                  currentTab === cat ? 'bg-[#191f28] text-white border-[#191f28]' : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'
+                  currentTab === cat ? 'bg-primary text-surface border-[#191f28]' : 'bg-surface text-secondary border-toss-gray hover:border-toss-blue'
                 }`}
               >
                 {cat}
@@ -73,11 +73,11 @@ export default function LoungeContainerClient({ initialPosts }: { initialPosts: 
 
       {/* RIGHT SIDEBAR: Placeholder for Popular Posts / Widgets */}
       <aside className="hidden lg:block lg:col-span-3">
-        <div className="sticky top-[100px] bg-white rounded-2xl border border-[#e5e8eb] p-5">
-          <h2 className="text-[14px] font-extrabold text-[#191f28] mb-4 flex items-center gap-1">
-            <span className="text-[#f04452]">🔥</span> 주간 인기글
+        <div className="sticky top-[100px] bg-surface rounded-2xl border border-border p-5">
+          <h2 className="text-[14px] font-extrabold text-primary mb-4 flex items-center gap-1">
+            <span className="text-toss-red">🔥</span> 주간 인기글
           </h2>
-          <p className="text-[13px] text-[#8b95a1] leading-relaxed">
+          <p className="text-[13px] text-tertiary leading-relaxed">
             최근 일주일 동안 동탄 주민들이 가장 많이 본 인기글이 곧 제공될 예정입니다.
           </p>
         </div>

@@ -7,6 +7,7 @@ import { PWAProvider } from '@/components/pwa/PWAProvider';
 import CustomA2HSModal from '@/components/pwa/CustomA2HSModal';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import NextTopLoader from 'nextjs-toploader';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://dongtanview.com'),
@@ -59,38 +60,40 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko" suppressHydrationWarning>
-      <body className="antialiased">
-        {/* 🔧 Register PWA Service Worker (Dev 모드에서는 기존 캐시 충돌 방지를 위해 해제) */}
-        <script dangerouslySetInnerHTML={{ __html: `
-          if ('serviceWorker' in navigator) {
-            if ('${process.env.NODE_ENV}' === 'development') {
-              navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                  registration.unregister();
-                }
-              });
-            } else {
-              window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').catch(function(err) {
-                  console.log('ServiceWorker registration failed: ', err);
+      <body className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {/* 🔧 Register PWA Service Worker (Dev 모드에서는 기존 캐시 충돌 방지를 위해 해제) */}
+          <script dangerouslySetInnerHTML={{ __html: `
+            if ('serviceWorker' in navigator) {
+              if ('${process.env.NODE_ENV}' === 'development') {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                  for(let registration of registrations) {
+                    registration.unregister();
+                  }
                 });
-              });
+              } else {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                  });
+                });
+              }
             }
-          }
-        `}} />
-        <NextTopLoader color="#3182f6" showSpinner={false} />
-        <PWAProvider>
-          <OfflineBanner />
-          <SiteTracker />
-          {children}
-          <CustomA2HSModal />
-        </PWAProvider>
-        <div id="modal-root" />
-        
-        {/* Google Analytics 4 (Only renders if NEXT_PUBLIC_GA_ID exists) */}
-        {process.env.NEXT_PUBLIC_GA_ID && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
-        )}
+          `}} />
+          <NextTopLoader color="#3182f6" showSpinner={false} />
+          <PWAProvider>
+            <OfflineBanner />
+            <SiteTracker />
+            {children}
+            <CustomA2HSModal />
+          </PWAProvider>
+          <div id="modal-root" />
+          
+          {/* Google Analytics 4 (Only renders if NEXT_PUBLIC_GA_ID exists) */}
+          {process.env.NEXT_PUBLIC_GA_ID && (
+            <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+          )}
+        </ThemeProvider>
       </body>
     </html>
   );

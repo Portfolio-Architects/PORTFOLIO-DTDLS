@@ -42,7 +42,7 @@ export default function MainChart() {
   }, []);
 
   if (loading) {
-    return <div className="text-[#8b95a1] font-medium animate-pulse">데이터를 불러오는 중입니다...</div>;
+    return <div className="text-tertiary font-medium animate-pulse">데이터를 불러오는 중입니다...</div>;
   }
 
   return (

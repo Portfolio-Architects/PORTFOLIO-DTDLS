@@ -80,7 +80,7 @@ export default function PaymentButton({
         relative overflow-hidden
         bg-gradient-to-r from-[#3182f6] to-[#4A6CF7]
         hover:from-[#1b64da] hover:to-[#3B5DE6]
-        text-white font-extrabold text-[15px]
+        text-surface font-extrabold text-[15px]
         px-8 py-4 rounded-2xl
         transition-all duration-200
         shadow-lg shadow-[#3182f6]/25

@@ -9,7 +9,6 @@ import Link from 'next/link';
 
 import { useDashboardData, dashboardFacade, CommentData, FieldReportData, UserReview } from '@/lib/DashboardFacade';
 import ApartmentCard from '@/components/ApartmentCard';
-import ApartmentDiscoveryClient from '@/components/ApartmentDiscoveryClient';
 import DongFilterBar from '@/components/DongFilterBar';
 import { TrendingTicker } from '@/components/ui/TrendingTicker';
 import FloatingUserBar from '@/components/FloatingUserBar';
@@ -62,7 +61,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
   const { triggerCustomA2HSModal } = usePWA();
 
-  const [activeTab, setActiveTab] = useState<'imjang' | 'lounge' | 'recommend'>('imjang');
+  const [activeTab, setActiveTab] = useState<'imjang' | 'lounge'>('imjang');
   const [isPending, startTransition] = useTransition();
 
   const fieldReportsMap = useMemo(() => {
@@ -89,7 +88,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
       const handleHashChange = () => {
         startTransition(() => {
-          if (window.location.hash === '#recommend') setActiveTab('recommend');
+          if (window.location.hash === '#lounge') setActiveTab('lounge');
           else if (window.location.hash === '#imjang' || window.location.hash === '') setActiveTab('imjang');
         });
       };
@@ -106,7 +105,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   // We can track internal scrolling if needed, but for now we keep the static header.
   useEffect(() => {
     let ticking = false;
-    const scrollContainer = document.getElementById('left-panel-scroll');
+    const scrollContainer = document.getElementById('apartment-list-scroll');
     const handleScroll = (e: Event) => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
@@ -122,7 +121,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
     }
   }, [mounted, activeTab]);
 
-  const [listSort, setListSort] = useState<'views' | 'likes' | 'name'>('views');
+  const [listSort, setListSort] = useState<'views' | 'likes' | 'name' | 'price-rank' | 'valuation'>('views');
   const [listHeight, setListHeight] = useState(600);
   const [isDesktop, setIsDesktop] = useState(true);
   const leftPanelRef = useRef<HTMLDivElement>(null);
@@ -220,24 +219,81 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
   const [areaUnit, setAreaUnit] = useState<'m2' | 'pyeong'>('m2');
 
+  const rawApts = selectedDong 
+    ? (sheetApartments[selectedDong] || [])
+    : Object.values(sheetApartments).flat();
+    
+  const allApts = useMemo(() => rawApts.filter(a => !publicRentalSet.has(a.name)), [rawApts, publicRentalSet]);
+
+  const enrichedApts = useMemo(() => {
+    return allApts.map(apt => {
+      const overrideKey = HARDCODED_MAPPING[normalizeAptName(apt.name)];
+      const rawKey = overrideKey || apt.txKey || apt.name;
+      const txKey = findTxKey(rawKey, txSummaryData, nameMapping) || rawKey;
+      const sum = txKey ? txSummaryData[txKey] : undefined;
+      
+      const pyeongPrice = sum?.avg1MPerPyeong || 0;
+      
+      const sales = sum ? (sum.avg1MPrice || sum.latestPrice || 0) : 0;
+      const jeonse = sum ? (sum.avg1MRentDeposit || sum.latestRentDeposit || 0) : 0;
+      const ratio = sales > 0 && jeonse > 0 ? (jeonse / sales) : 0;
+      
+      return {
+        apt,
+        pyeongPrice,
+        ratio,
+        hasTx: !!sum && !!(sum.avg1MPrice || sum.latestPrice) && !!(sum.avg1MRentDeposit || sum.latestRentDeposit)
+      };
+    });
+  }, [allApts, txSummaryData, nameMapping]);
+
+  const sortedApts = useMemo(() => {
+    let filteredApts = enrichedApts;
+    if (listSort === 'valuation') {
+      filteredApts = enrichedApts.filter(e => e.hasTx);
+    }
+
+    return [...filteredApts].sort((a, b) => {
+      if (listSort === 'price-rank') {
+        const diff = b.pyeongPrice - a.pyeongPrice;
+        return diff !== 0 ? diff : a.apt.name.localeCompare(b.apt.name, 'ko');
+      }
+      if (listSort === 'valuation') {
+        const diff = b.ratio - a.ratio;
+        return diff !== 0 ? diff : a.apt.name.localeCompare(b.apt.name, 'ko');
+      }
+      if (listSort === 'views') {
+        const aReport = fieldReportsMap.get(a.apt.name);
+        const bReport = fieldReportsMap.get(b.apt.name);
+        const diff = (bReport?.viewCount || 0) - (aReport?.viewCount || 0);
+        return diff !== 0 ? diff : a.apt.name.localeCompare(b.apt.name, 'ko');
+      }
+      if (listSort === 'likes') {
+        const diff = (favoriteCounts[b.apt.name] || 0) - (favoriteCounts[a.apt.name] || 0);
+        return diff !== 0 ? diff : a.apt.name.localeCompare(b.apt.name, 'ko');
+      }
+      return a.apt.name.localeCompare(b.apt.name, 'ko');
+    }).map(e => e.apt);
+  }, [enrichedApts, listSort, fieldReportsMap, favoriteCounts]);
+
   return (
-    <PullToRefresh scrollContainerId="left-panel-scroll">
-      <div className="flex flex-col h-[100dvh] overflow-hidden bg-white font-sans selection:bg-[#3182f6]/20">
+    <PullToRefresh scrollContainerId={activeTab === 'imjang' ? 'apartment-list-scroll' : 'recommend-scroll'}>
+      <div className="flex flex-col h-[100dvh] overflow-hidden bg-surface font-sans selection:bg-toss-blue/20">
         
         {/* a11y: Skip to Content */}
         <a href="#main-content" className="skip-to-content">내용으로 건너뛰기</a>
 
       {/* Dynamic Minimal Sticky Header */}
       <div 
-        className={`fixed top-0 inset-x-0 w-full bg-white/95 backdrop-blur-md border-b border-[#e5e8eb] shadow-sm z-50 transition-transform duration-300 flex items-center justify-between px-3 md:px-10 lg:px-16 h-[52px] ${
+        className={`fixed top-0 inset-x-0 w-full bg-surface/95 backdrop-blur-md border-b border-border shadow-sm z-50 transition-transform duration-300 flex items-center justify-between px-3 md:px-10 lg:px-16 h-[52px] ${
           isScrolled ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        <span className="font-extrabold text-[#191f28] tracking-tight text-[15px] flex items-center gap-2">
+        <span className="font-extrabold text-primary tracking-tight text-[15px] flex items-center gap-2">
            <img src="/d-view-icon.png" alt="D-VIEW" className="w-[22px] h-[22px] rounded-md" />
-           <span className="text-[#191f28]">D-VIEW</span>
-           <span className="text-[#b0b8c1] font-normal text-[13px]">|</span>
-           <span className="text-[#4e5968] font-semibold text-[14px]">동탄 아파트 가치 분석</span>
+           <span className="text-primary">D-VIEW</span>
+           <span className="text-tertiary font-normal text-[13px]">|</span>
+           <span className="text-secondary font-semibold text-[14px]">동탄 아파트 가치 분석</span>
         </span>
         <div className="flex items-center -mr-1">
           <FloatingUserBar />
@@ -245,7 +301,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       </div>
       
       {/* Main Header — Logo + Nav integrated */}
-      <header className="shrink-0 bg-white/95 backdrop-blur-xl border-b border-[#e5e8eb] relative z-40" role="banner">
+      <header className="shrink-0 bg-surface/95 backdrop-blur-xl border-b border-border relative z-40" role="banner">
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16">
           <div className="flex flex-col md:flex-row md:items-center justify-between pt-4 pb-3 md:py-4 gap-4 md:gap-0">
             
@@ -262,14 +318,14 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                   <img src="/d-view-icon.png" alt="D-VIEW" className="w-10 h-10 sm:w-11 sm:h-11 rounded-[12px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04] group-hover:-translate-y-0.5 group-hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-all duration-300" />
                 </div>
                 <div className="flex flex-col justify-center">
-                  <h1 className="text-[19px] sm:text-[22px] font-bold tracking-tight text-[#191f28] leading-none mb-1.5">
+                  <h1 className="text-[19px] sm:text-[22px] font-bold tracking-tight text-primary leading-none mb-1.5">
                     동탄 아파트 가치 분석
                   </h1>
                   <div className="hidden sm:flex items-center gap-1.5">
-                    <span className="px-1.5 py-[3px] bg-[#f2f4f6] text-[#4e5968] rounded-[4px] text-[10px] font-bold tracking-widest leading-none">
+                    <span className="px-1.5 py-[3px] bg-body text-secondary rounded-[4px] text-[10px] font-bold tracking-widest leading-none">
                       DATA LAB
                     </span>
-                    <span className="text-[11px] font-semibold text-[#8b95a1] tracking-wide">
+                    <span className="text-[11px] font-semibold text-tertiary tracking-wide">
                       Powered by D-VIEW
                     </span>
                   </div>
@@ -283,38 +339,26 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             </div>
 
             {/* Center: Nav Tabs (Segmented Control Style) */}
-            <nav className="hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-[#f2f4f6]/80 p-1.5 rounded-[16px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
+            <nav className="hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-body/80 p-1.5 rounded-[16px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
               <button
                 onClick={() => startTransition(() => setActiveTab('imjang'))}
                 className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
                   activeTab === 'imjang'
-                    ? 'bg-white text-[#191f28] shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
-                    : 'text-[#8b95a1] hover:text-[#4e5968] hover:bg-black/5'
+                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
+                    : 'text-tertiary hover:text-secondary hover:bg-black/5'
                 }`}
               >
-                <TrendingUp size={16} className={activeTab === 'imjang' ? 'text-[#191f28]' : 'text-[#8b95a1] group-hover:scale-110 transition-transform duration-200'} />
-                <span>단지 분석</span>
+                <Home size={16} className={activeTab === 'imjang' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                <span>아파트 탐색</span>
               </button>
               
               <Link
                 href="/lounge"
-                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-[#8b95a1] hover:text-[#4e5968] hover:bg-black/5`}
+                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5`}
               >
-                <MessageSquare size={16} className="text-[#8b95a1] group-hover:scale-110 transition-transform duration-200" />
+                <MessageSquare size={16} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
                 <span>커뮤니티</span>
               </Link>
-              
-              <button
-                onClick={() => startTransition(() => setActiveTab('recommend'))}
-                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
-                  activeTab === 'recommend'
-                    ? 'bg-white text-[#191f28] shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
-                    : 'text-[#8b95a1] hover:text-[#4e5968] hover:bg-black/5'
-                }`}
-              >
-                <Home size={16} className={activeTab === 'recommend' ? 'text-[#191f28]' : 'text-[#8b95a1] group-hover:scale-110 transition-transform duration-200'} />
-                <span>아파트 탐색</span>
-              </button>
               
               {dashboardFacade.isAdmin(user?.email) && (
                 <Link
@@ -343,53 +387,21 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         {mounted && activeTab === 'imjang' && (
         <section className="h-full">
           {/* ── 마스터-디테일 레이아웃 ── */}
-          <div className="flex flex-col md:flex-row h-full rounded-none md:rounded-[20px] md:border md:border-[#e5e8eb] md:shadow-[0_2px_20px_rgba(0,0,0,0.04)] overflow-hidden">
+          <div className="flex flex-col md:flex-row h-full rounded-none md:rounded-[20px] md:border md:border-border md:shadow-[0_2px_20px_rgba(0,0,0,0.04)] overflow-hidden">
             {/* LEFT: 아파트 리스트 (1/3) */}
-            <div id="left-panel-scroll" ref={leftPanelRef} className="w-full md:w-[420px] lg:w-[460px] md:shrink-0 h-full overflow-y-auto md:overflow-hidden md:border-r md:border-[#e5e8eb] flex flex-col bg-white pb-[100px] md:pb-0 relative">
+            <div id="left-panel-scroll" ref={leftPanelRef} className="w-full md:w-[420px] lg:w-[460px] md:shrink-0 h-full overflow-hidden md:border-r md:border-border flex flex-col bg-surface pb-[100px] md:pb-0 relative">
           {(() => {
-            // 전체: 모든 아파트 플랫 리스트 / 특정 동: 해당 동만
-            const rawApts = selectedDong 
-              ? (sheetApartments[selectedDong] || [])
-              : Object.values(sheetApartments).flat();
-              
-            const allApts = rawApts.filter(a => !publicRentalSet.has(a.name));
-
-            // 정렬 로직
-            const sorted = [...allApts].sort((a, b) => {
-              if (listSort === 'views') {
-                const aReport = fieldReportsMap.get(a.name);
-                const bReport = fieldReportsMap.get(b.name);
-                const diff = (bReport?.viewCount || 0) - (aReport?.viewCount || 0);
-                return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
-              }
-              if (listSort === 'likes') {
-                const diff = (favoriteCounts[b.name] || 0) - (favoriteCounts[a.name] || 0);
-                return diff !== 0 ? diff : a.name.localeCompare(b.name, 'ko');
-              }
-              // 'name' — 가나다순
-              return a.name.localeCompare(b.name, 'ko');
-            });
-
             return (
               <>
-                {/* 실시간 인기 검색 (Trending Ticker) */}
-                {(() => {
-                  const allApts = Object.values(sheetApartments).flat();
-                  const trending = [...allApts]
-                    .map(a => {
-                      const r = fieldReportsMap.get(a.name);
-                      return { name: a.name, views: r?.viewCount || 0 };
-                    })
-                    .sort((a, b) => b.views - a.views)
-                    .slice(0, 10)
-                    .map((a, idx) => ({ name: a.name, rank: idx + 1 }));
-                  return <TrendingTicker topApts={trending} />;
-                })()}
+                {/* 리스트 패널 타이틀 */}
+                <div className="bg-surface px-5 py-4 min-h-[54px] flex items-center w-full border-b border-border shrink-0">
+                  <span className="text-[16px] font-black text-primary tracking-tight">아파트 단지 목록</span>
+                </div>
 
                 {/* 아파트 리스트 */}
-                <div className="bg-white flex-1 flex flex-col">
+                <div className="bg-surface flex-1 flex flex-col">
                   {/* 통합 필터 바 — 리스트 상단에 고정 */}
-                  <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-[#f2f4f6] px-3 py-2.5">
+                  <div className="sticky top-0 z-30 bg-surface/95 backdrop-blur-sm border-b border-body px-3 py-2.5">
                     <DongFilterBar
                       selectedDong={selectedDong}
                       onSelectDong={setSelectedDong}
@@ -399,17 +411,39 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                       listSort={listSort}
                       onSortChange={setListSort}
                     />
+                    
+                    {/* 정렬 배너 (특정 정렬 선택 시) */}
+                    {(listSort === 'price-rank' || listSort === 'valuation') && (
+                      <div className="mt-2 bg-gradient-to-r from-indigo-50 to-blue-50 px-4 py-2.5 rounded-xl border border-indigo-100/50 flex flex-col gap-0.5 relative overflow-hidden group cursor-pointer shadow-sm">
+                        <div className="flex items-center gap-1.5 z-10">
+                          {listSort === 'price-rank' ? <TrendingUp size={15} className="text-indigo-600" /> : <Building2 size={15} className="text-blue-600" />}
+                          <span className="text-[13px] font-extrabold text-primary">
+                            {listSort === 'price-rank' ? '평당가 기준' : '매매가/전세가 기준'}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-secondary font-medium z-10">
+                          {listSort === 'price-rank' ? '최근 1개월 평균 평당가 기준' : '매매가 대비 전세가(전세가율) 밸류에이션 기준'}
+                        </p>
+                        {/* Premium Ad embedded closely when price-rank */}
+                        {listSort === 'price-rank' && (
+                           <div className="absolute top-0 right-0 bottom-0 flex items-center pr-3 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity">
+                              <span className="text-[10px] font-extrabold text-indigo-700 bg-surface/60 px-2 py-0.5 rounded-full border border-indigo-200">AD: 삼성공인중개사 &rarr;</span>
+                           </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <FixedSizeList
                     className="custom-scrollbar"
                     height={listHeight}
-                    itemCount={sorted.length + (isDesktop ? 0 : 4)} // Reserve 4 items (328px) for the Footer on mobile
+                    itemCount={sortedApts.length + (isDesktop ? 0 : 4)} // Reserve 4 items (328px) for the Footer on mobile
                     itemSize={82}
                     width="100%"
                     overscanCount={5}
+                    outerProps={{ id: 'apartment-list-scroll' }}
                   >
                     {({ index, style }: { index: number; style: React.CSSProperties }) => {
-                      if (index === sorted.length) {
+                      if (index === sortedApts.length) {
                         return (
                           <div style={style} className="relative z-0">
                             <div className="absolute top-0 w-full md:hidden">
@@ -418,11 +452,11 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                           </div>
                         );
                       }
-                      if (index > sorted.length) {
+                      if (index > sortedApts.length) {
                         return <div style={style} />;
                       }
 
-                      const apt = sorted[index];
+                      const apt = sortedApts[index];
                       const overrideKey = HARDCODED_MAPPING[normalizeAptName(apt.name)];
                       const txKey = overrideKey || apt.txKey || findTxKey(apt.name, txSummaryData, nameMapping);
                       const txSummary = txKey ? txSummaryData[txKey] : undefined;
@@ -483,10 +517,10 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             </div>
 
             {/* RIGHT: 인라인 디테일 패널 (2/3, 데스크톱 전용) */}
-            <div className={`hidden md:flex flex-col flex-1 h-full ${resolvedReport ? 'overflow-y-auto' : 'overflow-hidden'} overflow-x-hidden bg-[#f9fafb] custom-scrollbar relative`}>
+            <div className={`hidden md:flex flex-col flex-1 h-full ${resolvedReport ? 'overflow-y-auto' : 'overflow-hidden'} overflow-x-hidden bg-body custom-scrollbar relative`}>
               {resolvedReport ? (
                 <>
-                  <div className="flex-1 flex flex-col bg-white">
+                  <div className="flex-1 flex flex-col bg-surface">
                     <FieldReportModal 
                       report={resolvedReport} 
                       onClose={() => {
@@ -513,28 +547,28 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                       inline
                     />
                   </div>
-                  <div className="mt-auto bg-white w-full">
+                  <div className="mt-auto bg-surface w-full">
                     <Footer />
                   </div>
                 </>
               ) : (
-                <div className="flex flex-col h-full bg-[#f9fafb]">
+                <div className="flex flex-col h-full bg-body">
                   <div className="flex-1 w-full bg-gradient-to-br from-[#191f28] to-[#222a35] relative overflow-hidden group flex flex-col items-center justify-center p-8 text-center min-h-[500px]">
                       {/* Background noise/pattern */}
                       <div className="absolute inset-0 bg-black/10 mix-blend-overlay pointer-events-none"></div>
                       <div className="absolute top-0 right-0 w-64 h-64 bg-[#ffffff] rounded-full mix-blend-overlay filter blur-[80px] opacity-10 transform translate-x-1/2 -translate-y-1/2"></div>
                       
                       {/* AD Badge */}
-                      <div className="absolute top-5 right-5 bg-white/10 backdrop-blur-md px-2.5 py-1 rounded text-[11px] text-white/90 font-extrabold uppercase tracking-widest border border-white/20">
+                      <div className="absolute top-5 right-5 bg-surface/10 backdrop-blur-md px-2.5 py-1 rounded text-[11px] text-surface/90 font-extrabold uppercase tracking-widest border border-white/20">
                         AD
                       </div>
                       
                       <div className="relative z-10 w-full max-w-[280px]">
-                        <div className="w-16 h-16 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-                          <Building2 className="text-white drop-shadow-sm" size={32} strokeWidth={1.5} />
+                        <div className="w-16 h-16 bg-surface/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                          <Building2 className="text-surface drop-shadow-sm" size={32} strokeWidth={1.5} />
                         </div>
                         
-                        <h3 className="text-[22px] font-extrabold text-white tracking-tight mb-3 leading-snug">
+                        <h3 className="text-[22px] font-extrabold text-surface tracking-tight mb-3 leading-snug">
                           동탄 부동산 핵심 타겟<br/>프리미엄 광고 파트너 모집
                         </h3>
                         
@@ -545,7 +579,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                         
                         <button 
                           onClick={() => setIsAdModalOpen(true)}
-                          className="w-full bg-white text-[#191f28] text-[15px] font-extrabold py-3.5 rounded-xl shadow-[0_4px_14px_0_rgba(255,255,255,0.39)] hover:bg-[#f2f4f6] hover:shadow-[0_6px_20px_rgba(255,255,255,0.23)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 duration-200">
+                          className="w-full bg-surface text-primary text-[15px] font-extrabold py-3.5 rounded-xl shadow-[0_4px_14px_0_rgba(255,255,255,0.39)] hover:bg-body hover:shadow-[0_6px_20px_rgba(255,255,255,0.23)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 duration-200">
                           광고/제휴 문의하기
                         </button>
                       </div>
@@ -593,34 +627,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
         {/* ═══ TAB 2: 라운지 제거됨 (별도 페이지로 이동) ═══ */}
 
-        {/* ═══ TAB 3: 아파트 추천 (Toss-Style Discovery) ═══ */}
-        {activeTab === 'recommend' && (
-          <section className={`h-full transition-opacity duration-300 ${isPending ? 'opacity-50' : 'opacity-100'}`}>
-            <ApartmentDiscoveryClient
-              sheetApartments={sheetApartments}
-              fieldReports={fieldReports || []}
-              userFavorites={userFavorites}
-              nameMapping={nameMapping || {}}
-              publicRentalSet={publicRentalSet}
-              txSummaryData={txSummaryData}
-              favoriteCounts={favoriteCounts}
-              onToggleFavorite={(name) => handleToggleFavorite(name, handleLogin)}
-              onSelectReport={(report) => {
-                setSelectedReport(report as FieldReportData);
-                window.history.pushState(null, '', `/apartment/${encodeURIComponent(report.apartmentName)}`);
-                if (typeof window !== 'undefined') {
-                  if (window.innerWidth < 768) {
-                    setMobileModalOpen(true);
-                  } else {
-                    startTransition(() => setActiveTab('imjang'));
-                  }
-                }
-              }}
-              typeMap={typeMap}
-              areaUnit={areaUnit}
-            />
-          </section>
-        )}
+        {/* ═══ TAB 3: 아파트 추천 (Toss-Style Discovery) 제거됨 ═══ */}
         
         <Footer />
       </main>
@@ -633,7 +640,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       {/* Scroll to Top Button */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className={`fixed z-50 bottom-24 sm:bottom-8 right-4 sm:right-8 bg-white text-[#191f28] shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-[#e5e8eb] w-[46px] h-[46px] rounded-full flex items-center justify-center transition-all duration-300 hover:bg-[#f8f9fa] hover:scale-105 active:scale-95 ${
+        className={`fixed z-50 bottom-24 sm:bottom-8 right-4 sm:right-8 bg-surface text-primary shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border w-[46px] h-[46px] rounded-full flex items-center justify-center transition-all duration-300 hover:bg-[#f8f9fa] hover:scale-105 active:scale-95 ${
           isScrolled ? 'translate-y-0 opacity-100 pointer-events-auto' : 'translate-y-10 opacity-0 pointer-events-none'
         }`}
         aria-label="맨 위로 이동"

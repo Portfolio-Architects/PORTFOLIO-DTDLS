@@ -293,21 +293,21 @@ export default function WriteFieldReport() {
   const gradeInfo = computeAutoGrade(sections);
 
   return (
-    <div className="min-h-screen bg-[#f2f4f6] pb-24">
+    <div className="min-h-screen bg-body pb-24">
       {/* Draft Recovery Modal */}
       {showDraftModal && (
         <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-95 duration-300">
-            <div className="w-12 h-12 bg-[#e8f3ff] rounded-full flex items-center justify-center mx-auto mb-4">
-              <RotateCcw size={22} className="text-[#3182f6]" />
+          <div className="bg-surface rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+            <div className="w-12 h-12 bg-toss-blue-light rounded-full flex items-center justify-center mx-auto mb-4">
+              <RotateCcw size={22} className="text-toss-blue" />
             </div>
-            <h3 className="text-[18px] font-extrabold text-[#191f28] text-center mb-2">작성 중인 임장기가 있어요</h3>
-            <p className="text-[14px] text-[#4e5968] text-center mb-6">이전에 작성하던 내용을 이어서 작성하시겠습니까?</p>
+            <h3 className="text-[18px] font-extrabold text-primary text-center mb-2">작성 중인 임장기가 있어요</h3>
+            <p className="text-[14px] text-secondary text-center mb-6">이전에 작성하던 내용을 이어서 작성하시겠습니까?</p>
             <div className="flex gap-3">
-              <button onClick={clearDraft} className="flex-1 py-3 rounded-xl font-bold bg-[#f2f4f6] text-[#4e5968] active:bg-[#e5e8eb] transition-colors text-[14px]">
+              <button onClick={clearDraft} className="flex-1 py-3 rounded-xl font-bold bg-body text-secondary active:bg-[#e5e8eb] transition-colors text-[14px]">
                 새로 작성
               </button>
-              <button onClick={restoreDraft} className="flex-1 py-3 rounded-xl font-bold bg-[#3182f6] text-white active:scale-[0.98] transition-transform text-[14px]">
+              <button onClick={restoreDraft} className="flex-1 py-3 rounded-xl font-bold bg-toss-blue text-surface active:scale-[0.98] transition-transform text-[14px]">
                 이어서 작성
               </button>
             </div>
@@ -316,12 +316,12 @@ export default function WriteFieldReport() {
       )}
 
       {/* Header */}
-      <header className="bg-white sticky top-0 z-10 border-b border-[#e5e8eb] px-4 py-3 flex items-center justify-between">
+      <header className="bg-surface sticky top-0 z-10 border-b border-border px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={handlePrevStep} className="text-[#191f28] hover:bg-[#f2f4f6] p-1.5 rounded-full transition-colors">
+          <button onClick={handlePrevStep} className="text-primary hover:bg-body p-1.5 rounded-full transition-colors">
             <ChevronLeft size={24} />
           </button>
-          <h1 className="text-[16px] font-bold text-[#191f28]">현장 임장기 작성</h1>
+          <h1 className="text-[16px] font-bold text-primary">현장 임장기 작성</h1>
         </div>
         <div className="flex items-center gap-2">
           {lastSaved && (
@@ -330,15 +330,15 @@ export default function WriteFieldReport() {
               {lastSaved}
             </div>
           )}
-          <div className="text-[12px] font-bold text-[#8b95a1] bg-[#f9fafb] px-3 py-1 rounded-full border border-[#e5e8eb]">
-            {step} <span className="text-[#d1d6db]">/ 6</span>
+          <div className="text-[12px] font-bold text-tertiary bg-body px-3 py-1 rounded-full border border-border">
+            {step} <span className="text-toss-gray">/ 6</span>
           </div>
         </div>
       </header>
 
       {/* Progress Bar */}
       <div className="w-full bg-[#e5e8eb] h-1.5">
-        <div className="bg-[#3182f6] h-full transition-all duration-300 ease-out rounded-r-full" style={{ width: `${(step / 6) * 100}%` }} />
+        <div className="bg-toss-blue h-full transition-all duration-300 ease-out rounded-r-full" style={{ width: `${(step / 6) * 100}%` }} />
       </div>
 
       <main className="max-w-xl mx-auto p-4 md:p-6 mt-2">
@@ -347,28 +347,28 @@ export default function WriteFieldReport() {
         {step === 1 && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="mb-6 px-1">
-              <h2 className="text-[22px] font-extrabold text-[#191f28] leading-tight mb-2">어떤 단지를<br/>다녀오셨나요?</h2>
-              <p className="text-[13px] text-[#4e5968]">사는 동네를 먼저 고른 뒤, 단지를 골라주세요.</p>
+              <h2 className="text-[22px] font-extrabold text-primary leading-tight mb-2">어떤 단지를<br/>다녀오셨나요?</h2>
+              <p className="text-[13px] text-secondary">사는 동네를 먼저 고른 뒤, 단지를 골라주세요.</p>
             </div>
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#e5e8eb]">
-              <label className="block text-[13px] font-bold text-[#191f28] mb-3 flex items-center gap-1.5"><MapPin size={15} className="text-[#3182f6]" /> 다녀오신 아파트를 선택해주세요</label>
+            <div className="bg-surface rounded-2xl p-5 shadow-sm border border-border">
+              <label className="block text-[13px] font-bold text-primary mb-3 flex items-center gap-1.5"><MapPin size={15} className="text-toss-blue" /> 다녀오신 아파트를 선택해주세요</label>
               {dongtanApartments.length === 0 ? (
-                <div className="bg-[#f2f4f6] rounded-xl p-8 flex flex-col items-center justify-center text-center animate-pulse border border-[#e5e8eb]"><div className="w-8 h-8 rounded-full border-2 border-[#3182f6] border-t-transparent animate-spin mb-3"></div><p className="text-[13px] font-bold text-[#4e5968]">단지 목록 가져오는 중...</p></div>
+                <div className="bg-body rounded-xl p-8 flex flex-col items-center justify-center text-center animate-pulse border border-border"><div className="w-8 h-8 rounded-full border-2 border-toss-blue border-t-transparent animate-spin mb-3"></div><p className="text-[13px] font-bold text-secondary">단지 목록 가져오는 중...</p></div>
               ) : (
                 <>
                   <div className="flex gap-2 overflow-x-auto pb-3 custom-scrollbar mb-3">
                     {availableDongs.map(dong => (
-                      <button key={dong} onClick={() => { setSelectedDong(dong); setReportAptName(''); }} className={`shrink-0 px-3.5 py-1.5 rounded-full text-[13px] font-bold transition-all border ${selectedDong === dong ? 'bg-[#191f28] text-white border-[#191f28]' : 'bg-white text-[#4e5968] border-[#d1d6db] hover:border-[#3182f6]'}`}>{dong}</button>
+                      <button key={dong} onClick={() => { setSelectedDong(dong); setReportAptName(''); }} className={`shrink-0 px-3.5 py-1.5 rounded-full text-[13px] font-bold transition-all border ${selectedDong === dong ? 'bg-primary text-surface border-[#191f28]' : 'bg-surface text-secondary border-toss-gray hover:border-toss-blue'}`}>{dong}</button>
                     ))}
                   </div>
                   {selectedDong && (
-                    <div className="bg-[#f9fafb] border border-[#d1d6db] rounded-xl overflow-hidden max-h-60 overflow-y-auto custom-scrollbar p-2">
+                    <div className="bg-body border border-toss-gray rounded-xl overflow-hidden max-h-60 overflow-y-auto custom-scrollbar p-2">
                       {filteredApts.map(apt => (
-                        <button key={apt} onClick={() => setReportAptName(apt)} className={`w-full text-left px-4 py-2.5 text-[13px] font-medium rounded-lg transition-colors ${reportAptName === apt ? 'bg-[#e8f3ff] text-[#3182f6] font-bold' : 'text-[#191f28] hover:bg-[#f2f4f6]'}`}>{apt}</button>
+                        <button key={apt} onClick={() => setReportAptName(apt)} className={`w-full text-left px-4 py-2.5 text-[13px] font-medium rounded-lg transition-colors ${reportAptName === apt ? 'bg-toss-blue-light text-toss-blue font-bold' : 'text-primary hover:bg-body'}`}>{apt}</button>
                       ))}
                     </div>
                   )}
-                  {!selectedDong && <div className="bg-[#f9fafb] border border-dashed border-[#d1d6db] rounded-xl p-4 text-center text-[12px] text-[#8b95a1]">위에서 <strong>'동네 명'</strong>을 골라주세요.</div>}
+                  {!selectedDong && <div className="bg-body border border-dashed border-toss-gray rounded-xl p-4 text-center text-[12px] text-tertiary">위에서 <strong>'동네 명'</strong>을 골라주세요.</div>}
                 </>
               )}
             </div>
@@ -379,10 +379,10 @@ export default function WriteFieldReport() {
         {step === 2 && (
           <div className="animate-in fade-in slide-in-from-right-8 duration-500">
             <div className="mb-6 px-1">
-              <h2 className="text-[22px] font-extrabold text-[#191f28] leading-tight mb-2">단지의 기본 정보를<br/>입력해주세요</h2>
-              <p className="text-[13px] text-[#4e5968]">{reportAptName}</p>
+              <h2 className="text-[22px] font-extrabold text-primary leading-tight mb-2">단지의 기본 정보를<br/>입력해주세요</h2>
+              <p className="text-[13px] text-secondary">{reportAptName}</p>
             </div>
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#e5e8eb]">
+            <div className="bg-surface rounded-2xl p-5 shadow-sm border border-border">
                <SelectInput section="specs" field="builtYear" label="준공 연월 (연차)" options={[
                  { value: "신축 (5년 이내)", label: "신축 (5년 이내)" },
                  { value: "준신축 (5~10년)", label: "준신축 (5~10년)" },
@@ -417,24 +417,24 @@ export default function WriteFieldReport() {
         {step === 3 && (
           <div className="animate-in fade-in slide-in-from-right-8 duration-500">
             <div className="mb-6 px-1">
-               <h2 className="text-[22px] font-extrabold text-[#191f28] leading-tight mb-2 flex gap-2 items-center"><Building className="text-[#3182f6]"/> 단지 내부 살펴보기</h2>
-               <p className="text-[13px] text-[#4e5968]">이모지를 눌러 빠르게 점수를 매기고, 사진을 여러 장 찍어주세요.</p>
+               <h2 className="text-[22px] font-extrabold text-primary leading-tight mb-2 flex gap-2 items-center"><Building className="text-toss-blue"/> 단지 내부 살펴보기</h2>
+               <p className="text-[13px] text-secondary">이모지를 눌러 빠르게 점수를 매기고, 사진을 여러 장 찍어주세요.</p>
             </div>
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#e5e8eb] flex flex-col gap-6">
+            <div className="bg-surface rounded-2xl p-5 shadow-sm border border-border flex flex-col gap-6">
                {/* Gate */}
-               <div className="pb-5 border-b border-[#f2f4f6]">
+               <div className="pb-5 border-b border-body">
                  <EmojiRating section="infra" field="gateRating" label="🚪 진입로 및 정문" />
                  <TextInput section="infra" field="gateText" label="" placeholder="차량 진출입이 편한가요? 문주의 규모는?" isTextarea />
                  <MultiPhotoDropzone label="📸 정문 사진" apiKey="gateImg" placeholder="정문 사진 촬영/선택" />
                </div>
                {/* Landscape */}
-               <div className="pb-5 border-b border-[#f2f4f6]">
+               <div className="pb-5 border-b border-body">
                  <EmojiRating section="infra" field="landscapeRating" label="🌳 조경 및 지형" />
                  <TextInput section="infra" field="landscapeText" label="" placeholder="지상 차량 유무, 경사(언덕) 처리는?" isTextarea />
                  <MultiPhotoDropzone label="📸 조경/광장 사진" apiKey="landscapeImg" placeholder="조경 사진 촬영/선택" />
                </div>
                {/* Parking */}
-               <div className="pb-5 border-b border-[#f2f4f6]">
+               <div className="pb-5 border-b border-body">
                  <EmojiRating section="infra" field="parkingRating" label="🅿️ 지하 주차장" />
                  <TextInput section="infra" field="parkingText" label="" placeholder="택배차량 진입 가능 층고? 주차 공간 넓이?" isTextarea />
                  <MultiPhotoDropzone label="📸 주차장 사진" apiKey="parkingImg" placeholder="주차장 사진 촬영/선택" />
@@ -453,16 +453,16 @@ export default function WriteFieldReport() {
         {step === 4 && (
           <div className="animate-in fade-in slide-in-from-right-8 duration-500">
             <div className="mb-6 px-1">
-               <h2 className="text-[22px] font-extrabold text-[#191f28] leading-tight mb-2 flex gap-2 items-center"><Info className="text-[#03c75a]"/> 주변 생활 편의시설</h2>
-               <p className="text-[13px] text-[#4e5968]">커뮤니티, 학군, 상권을 이모지로 빠르게 평가해주세요.</p>
+               <h2 className="text-[22px] font-extrabold text-primary leading-tight mb-2 flex gap-2 items-center"><Info className="text-toss-green"/> 주변 생활 편의시설</h2>
+               <p className="text-[13px] text-secondary">커뮤니티, 학군, 상권을 이모지로 빠르게 평가해주세요.</p>
             </div>
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#e5e8eb] flex flex-col gap-6">
-               <div className="pb-5 border-b border-[#f2f4f6]">
+            <div className="bg-surface rounded-2xl p-5 shadow-sm border border-border flex flex-col gap-6">
+               <div className="pb-5 border-b border-body">
                  <EmojiRating section="ecosystem" field="communityRating" label="🏊 커뮤니티 센터" />
                  <TextInput section="ecosystem" field="communityText" label="" placeholder="골프장, 수영장, 조식 서비스 등 눈에 띄는 시설?" isTextarea />
                  <MultiPhotoDropzone label="📸 커뮤니티 사진" apiKey="communityImg" placeholder="커뮤니티 사진 촬영/선택" />
                </div>
-               <div className="pb-5 border-b border-[#f2f4f6]">
+               <div className="pb-5 border-b border-body">
                  <EmojiRating section="ecosystem" field="schoolRating" label="🎒 학군 및 통학로" />
                  <TextInput section="ecosystem" field="schoolText" label="" placeholder="초등학교까지 도로 횡단 여부? 초품아?" isTextarea />
                  <MultiPhotoDropzone label="📸 통학로 사진" apiKey="schoolImg" placeholder="통학로 사진 촬영/선택" />
@@ -480,11 +480,11 @@ export default function WriteFieldReport() {
         {step === 5 && (
           <div className="animate-in fade-in slide-in-from-right-8 duration-500">
             <div className="mb-6 px-1">
-               <h2 className="text-[22px] font-extrabold text-[#191f28] leading-tight mb-2 flex gap-2 items-center"><MapIcon className="text-[#a46cfd]"/> 교통과 거시 입지</h2>
-               <p className="text-[13px] text-[#4e5968]">강남 출퇴근과 대형 호재를 평가해주세요.</p>
+               <h2 className="text-[22px] font-extrabold text-primary leading-tight mb-2 flex gap-2 items-center"><MapIcon className="text-[#a46cfd]"/> 교통과 거시 입지</h2>
+               <p className="text-[13px] text-secondary">강남 출퇴근과 대형 호재를 평가해주세요.</p>
             </div>
-             <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#e5e8eb] flex flex-col gap-6">
-               <div className="pb-5 border-b border-[#f2f4f6]">
+             <div className="bg-surface rounded-2xl p-5 shadow-sm border border-border flex flex-col gap-6">
+               <div className="pb-5 border-b border-body">
                  <EmojiRating section="location" field="trafficRating" label="🚇 교통망 접근성" />
                  <TextInput section="location" field="trafficText" label="" placeholder="GTX-A/SRT역 도보 시간, 강남(GBD)까지 실소요시간 등" isTextarea />
                </div>
@@ -500,30 +500,30 @@ export default function WriteFieldReport() {
         {step === 6 && (
           <div className="animate-in fade-in slide-in-from-right-8 duration-500">
             <div className="mb-6 px-1">
-               <h2 className="text-[22px] font-extrabold text-[#191f28] leading-tight mb-2 flex gap-2 items-center"><ShieldAlert className="text-[#f04452]"/> 최종 평가</h2>
-               <p className="text-[13px] text-[#4e5968]">현장에서 느낀 장단점을 정리해주세요.</p>
+               <h2 className="text-[22px] font-extrabold text-primary leading-tight mb-2 flex gap-2 items-center"><ShieldAlert className="text-toss-red"/> 최종 평가</h2>
+               <p className="text-[13px] text-secondary">현장에서 느낀 장단점을 정리해주세요.</p>
             </div>
 
             {/* Auto-Generated Grade Card */}
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#e5e8eb] mb-4">
+            <div className="bg-surface rounded-2xl p-5 shadow-sm border border-border mb-4">
               <div className="flex items-center gap-2 mb-3">
-                <Zap size={16} className="text-[#3182f6]" />
-                <p className="text-[13px] font-bold text-[#4e5968]">이모지 평가 기반 자동 산출 등급</p>
+                <Zap size={16} className="text-toss-blue" />
+                <p className="text-[13px] font-bold text-secondary">이모지 평가 기반 자동 산출 등급</p>
               </div>
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-[28px] font-black text-white shadow-lg"
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-[28px] font-black text-surface shadow-lg"
                   style={{ backgroundColor: gradeInfo.color }}
                 >
                   {gradeInfo.grade}
                 </div>
                 <div>
-                  <p className="text-[18px] font-extrabold text-[#191f28]">{gradeInfo.label}</p>
-                  <p className="text-[13px] text-[#8b95a1]">종합 점수 {gradeInfo.score}점 / 100점</p>
+                  <p className="text-[18px] font-extrabold text-primary">{gradeInfo.label}</p>
+                  <p className="text-[13px] text-tertiary">종합 점수 {gradeInfo.score}점 / 100점</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#e5e8eb]">
+            <div className="bg-surface rounded-2xl p-5 shadow-sm border border-border">
                <TextInput section="assessment" field="alphaDriver" label="💎 이 단지의 핵심 장점" placeholder="예: 남향 위주, 초품아, 조경이 아파트 중 최고 등" isTextarea />
                <TextInput section="assessment" field="systemicRisk" label="⚠️ 주의할 단점" placeholder="예: 언덕 지형, 주차 부족, 향후 대규모 분양 예정 등" isTextarea />
                <TextInput section="assessment" field="synthesis" label="📊 종합 결론" placeholder="장단점을 종합해봤을 때, 이 단지 살 만한가요?" isTextarea />
@@ -535,9 +535,9 @@ export default function WriteFieldReport() {
       </main>
 
       {/* Sticky Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-[#e5e8eb] shadow-lg flex gap-3 z-20">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-surface/95 backdrop-blur-md border-t border-border shadow-lg flex gap-3 z-20">
         {step > 1 && (
-           <button onClick={handlePrevStep} className="w-1/3 py-3.5 rounded-xl font-bold bg-[#f2f4f6] text-[#4e5968] active:bg-[#e5e8eb] transition-colors text-[14px]">
+           <button onClick={handlePrevStep} className="w-1/3 py-3.5 rounded-xl font-bold bg-body text-secondary active:bg-[#e5e8eb] transition-colors text-[14px]">
               이전
            </button>
         )}
@@ -553,16 +553,16 @@ export default function WriteFieldReport() {
               alert('임시 저장에 실패했습니다.');
             }
           }}
-          className="py-3.5 px-4 rounded-xl font-bold bg-[#f2f4f6] text-[#4e5968] active:bg-[#e5e8eb] transition-colors text-[14px]"
+          className="py-3.5 px-4 rounded-xl font-bold bg-body text-secondary active:bg-[#e5e8eb] transition-colors text-[14px]"
         >
           💾 저장
         </button>
         {step < 6 ? (
-           <button onClick={handleNextStep} className="flex-1 py-3.5 rounded-xl font-bold bg-[#3182f6] text-white active:scale-[0.98] transition-transform text-[14px]">
+           <button onClick={handleNextStep} className="flex-1 py-3.5 rounded-xl font-bold bg-toss-blue text-surface active:scale-[0.98] transition-transform text-[14px]">
               다음 단계로
            </button>
         ) : (
-           <button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 py-3.5 rounded-xl font-bold bg-[#191f28] text-white active:scale-[0.98] transition-transform flex items-center justify-center gap-2 text-[14px]">
+           <button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 py-3.5 rounded-xl font-bold bg-primary text-surface active:scale-[0.98] transition-transform flex items-center justify-center gap-2 text-[14px]">
                {isSubmitting ? (uploadProgress ? `📤 ${uploadProgress.done}/${uploadProgress.total}장 업로드 중...` : '서버에 저장 중...') : '🔥 최종 제출하기'}
            </button>
         )}

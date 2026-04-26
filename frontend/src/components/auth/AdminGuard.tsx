@@ -54,10 +54,10 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
   if (isAuthorized === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f2f4f6]">
+      <div className="min-h-screen flex items-center justify-center bg-body">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="animate-spin text-[#3182f6]" size={40} />
-          <p className="text-[#4e5968] font-medium">관리자 권한을 확인하고 있습니다...</p>
+          <Loader2 className="animate-spin text-toss-blue" size={40} />
+          <p className="text-secondary font-medium">관리자 권한을 확인하고 있습니다...</p>
         </div>
       </div>
     );

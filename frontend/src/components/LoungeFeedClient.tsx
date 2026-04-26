@@ -117,9 +117,9 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
 
   if (filteredPosts.length === 0) {
     return (
-      <div className="bg-transparent rounded-2xl p-12 text-center border border-dashed border-[#d1d6db]">
-        <MessageSquare size={40} className="mx-auto mb-4 text-[#d1d6db]" />
-        <p className="text-[15px] font-bold text-[#4e5968]">아직 '{currentTab}' 관련 글이 없습니다</p>
+      <div className="bg-transparent rounded-2xl p-12 text-center border border-dashed border-toss-gray">
+        <MessageSquare size={40} className="mx-auto mb-4 text-toss-gray" />
+        <p className="text-[15px] font-bold text-secondary">아직 '{currentTab}' 관련 글이 없습니다</p>
       </div>
     );
   }
@@ -128,14 +128,14 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
     <div className="flex flex-col gap-3">
       {filteredPosts.map((news) => {
         return (
-          <Link key={news.id} href={`/lounge/${news.id}`} scroll={false} className="bg-white rounded-2xl border border-[#e5e8eb] px-5 pt-4 pb-0 hover:bg-[#f9fafb] transition-colors cursor-pointer block overflow-hidden">
+          <Link key={news.id} href={`/lounge/${news.id}`} scroll={false} className="bg-surface rounded-2xl border border-border px-5 pt-4 pb-0 hover:bg-body transition-colors cursor-pointer block overflow-hidden">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div>
-                  <div className="text-[14px] font-extrabold text-[#191f28] leading-none mb-1">
+                  <div className="text-[14px] font-extrabold text-primary leading-none mb-1">
                     {news.author || '익명'}
                   </div>
-                  <div className="text-[12px] font-medium text-[#8b95a1] leading-none">
+                  <div className="text-[12px] font-medium text-tertiary leading-none">
                     {news.meta?.split('·')[0]?.trim() || '방금 전'}
                   </div>
                 </div>
@@ -143,10 +143,10 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
               
               <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
                 (news.category === '동탄 임장/분석' || news.category === '임장기') ? 'bg-[#e8f8f0] text-[#00a06c]' :
-                (news.category === '부동산 고민상담' || news.category === '부동산 기초') ? 'bg-[#ffe8e8] text-[#f04452]' :
-                (news.category === '동탄 청약/대출' || news.category === '정책자금 대출') ? 'bg-[#e8f3ff] text-[#3182f6]' :
+                (news.category === '부동산 고민상담' || news.category === '부동산 기초') ? 'bg-[#ffe8e8] text-toss-red' :
+                (news.category === '동탄 청약/대출' || news.category === '정책자금 대출') ? 'bg-toss-blue-light text-toss-blue' :
                 (news.category === '동탄 교통/상권' || news.category === '인프라') ? 'bg-[#f4e8ff] text-[#9b51e0]' :
-                'bg-[#f2f4f6] text-[#4e5968]'
+                'bg-body text-secondary'
               }`}>
                 {news.category === '임장기' ? '동탄 임장/분석' : 
                  news.category === '부동산 기초' ? '부동산 고민상담' :
@@ -157,33 +157,33 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
             </div>
             
             <div className="mb-3">
-              <h2 className="text-[16px] font-extrabold text-[#191f28] leading-snug mb-1.5">{news.title}</h2>
+              <h2 className="text-[16px] font-extrabold text-primary leading-snug mb-1.5">{news.title}</h2>
               {news.summary && (
                 <div className="flex flex-col gap-1">
-                  <p className="text-[14.5px] text-[#4e5968] leading-[1.6] line-clamp-3">
+                  <p className="text-[14.5px] text-secondary leading-[1.6] line-clamp-3">
                     {news.summary}
                   </p>
                   {news.summary.length > 80 && (
-                    <span className="text-[13px] font-bold text-[#3182f6] hover:underline">자세히 보기...</span>
+                    <span className="text-[13px] font-bold text-toss-blue hover:underline">자세히 보기...</span>
                   )}
                 </div>
               )}
             </div>
 
             {news.imageUrl && (
-              <div className="w-full aspect-[4/3] sm:aspect-video rounded-xl overflow-hidden mb-3 border border-[#f2f4f6] bg-[#f9fafb]">
+              <div className="w-full aspect-[4/3] sm:aspect-video rounded-xl overflow-hidden mb-3 border border-body bg-body">
                 <img src={news.imageUrl} alt="post image" className="w-full h-full object-cover" loading="lazy" />
               </div>
             )}
 
-            <div className="flex items-center gap-4 py-3 border-t border-[#f2f4f6] mt-4">
-              <div className={`flex items-center gap-1.5 text-[13px] font-medium ${news.likes > 0 ? 'text-[#f04452]' : 'text-[#8b95a1]'}`}>
+            <div className="flex items-center gap-4 py-3 border-t border-body mt-4">
+              <div className={`flex items-center gap-1.5 text-[13px] font-medium ${news.likes > 0 ? 'text-toss-red' : 'text-tertiary'}`}>
                 <Heart size={16} className={news.likes > 0 ? 'fill-current' : ''} /> {news.likes || 0}
               </div>
-              <div className="flex items-center gap-1.5 text-[13px] text-[#8b95a1] font-medium">
+              <div className="flex items-center gap-1.5 text-[13px] text-tertiary font-medium">
                 <MessageSquare size={16} /> {/* If we had commentCount we'd put it here */}
               </div>
-              <div className="flex items-center gap-1.5 text-[13px] text-[#8b95a1] font-medium ml-auto">
+              <div className="flex items-center gap-1.5 text-[13px] text-tertiary font-medium ml-auto">
                 <Eye size={16} /> {news.views || 0}
               </div>
             </div>
@@ -192,7 +192,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
       })}
 
       {hasMore && (
-        <div ref={observerTarget} className="py-8 flex justify-center text-[#8b95a1]">
+        <div ref={observerTarget} className="py-8 flex justify-center text-tertiary">
           {isLoadingMore ? <Loader2 className="animate-spin w-6 h-6" /> : "스크롤하여 더 보기"}
         </div>
       )}

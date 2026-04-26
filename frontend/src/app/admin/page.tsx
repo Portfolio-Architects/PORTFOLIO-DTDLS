@@ -460,7 +460,7 @@ export default function AdminDashboard() {
 
   if (!loaded) return (
     <div className="flex justify-center items-center py-32">
-      <div className="w-8 h-8 border-4 border-[#3182f6] border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-toss-blue border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -469,38 +469,38 @@ export default function AdminDashboard() {
       {/* Header & Tabs */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-[#191f28] tracking-tight mb-2">관리자 대시보드</h1>
-          <p className="text-[#4e5968] text-[14px]">아파트 데이터 및 문의 통합 관리</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-primary tracking-tight mb-2">관리자 대시보드</h1>
+          <p className="text-secondary text-[14px]">아파트 데이터 및 문의 통합 관리</p>
         </div>
         {activeAdminTab === 'apartments' && (
           <div className="flex gap-2">
             <button onClick={handleSync} disabled={isSyncing}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#1b64da] bg-[#e8f3ff] hover:bg-[#3182f6] hover:text-white disabled:opacity-50 transition-all text-[13px]">
+              className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#1b64da] bg-toss-blue-light hover:bg-toss-blue hover:text-surface disabled:opacity-50 transition-all text-[13px]">
               <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} /> 
               {isSyncing ? '동기화 중...' : '실거래가 수동 동기화'}
             </button>
             <button onClick={() => setShowAddForm(!showAddForm)}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#3182f6] bg-[#e8f3ff] hover:bg-[#3182f6] hover:text-white transition-all text-[13px]">
+              className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-toss-blue bg-toss-blue-light hover:bg-toss-blue hover:text-surface transition-all text-[13px]">
               <Plus size={16}/> 아파트 추가
             </button>
           </div>
         )}
       </div>
 
-      <div className="flex gap-4 border-b border-[#e5e8eb] mb-8 overflow-x-auto">
+      <div className="flex gap-4 border-b border-border mb-8 overflow-x-auto">
         <button 
           onClick={() => startTransition(() => setActiveAdminTab('apartments'))}
-          className={`pb-3 text-[15px] font-bold transition-colors whitespace-nowrap ${activeAdminTab === 'apartments' ? 'text-[#3182f6] border-b-2 border-[#3182f6]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}
+          className={`pb-3 text-[15px] font-bold transition-colors whitespace-nowrap ${activeAdminTab === 'apartments' ? 'text-toss-blue border-b-2 border-toss-blue' : 'text-tertiary hover:text-secondary'}`}
         >
           아파트 데이터 관리
         </button>
         <button 
           onClick={() => startTransition(() => setActiveAdminTab('inquiries'))}
-          className={`pb-3 text-[15px] font-bold transition-colors whitespace-nowrap flex items-center gap-1.5 ${activeAdminTab === 'inquiries' ? 'text-[#3182f6] border-b-2 border-[#3182f6]' : 'text-[#8b95a1] hover:text-[#4e5968]'}`}
+          className={`pb-3 text-[15px] font-bold transition-colors whitespace-nowrap flex items-center gap-1.5 ${activeAdminTab === 'inquiries' ? 'text-toss-blue border-b-2 border-toss-blue' : 'text-tertiary hover:text-secondary'}`}
         >
           광고/제휴 문의 관리
           {inquiries.filter(i => i.status === 'pending').length > 0 && (
-            <span className="bg-[#ff3b30] text-white text-[10px] px-1.5 py-0.5 rounded-full">{inquiries.filter(i => i.status === 'pending').length}</span>
+            <span className="bg-[#ff3b30] text-surface text-[10px] px-1.5 py-0.5 rounded-full">{inquiries.filter(i => i.status === 'pending').length}</span>
           )}
         </button>
       </div>
@@ -511,23 +511,23 @@ export default function AdminDashboard() {
 
       {/* Add Apartment Form */}
       {showAddForm && (
-        <div className="bg-[#e8f3ff] rounded-2xl p-5 mb-6 flex flex-col sm:flex-row gap-3 items-end animate-in slide-in-from-top duration-200">
+        <div className="bg-toss-blue-light rounded-2xl p-5 mb-6 flex flex-col sm:flex-row gap-3 items-end animate-in slide-in-from-top duration-200">
           <div className="flex-1 min-w-0">
-            <label className="text-[12px] font-bold text-[#3182f6] mb-1 block">아파트 이름</label>
+            <label className="text-[12px] font-bold text-toss-blue mb-1 block">아파트 이름</label>
             <input type="text" value={newAptName} onChange={e => setNewAptName(e.target.value)}
               placeholder="예: 동탄역 힐스테이트 2차"
-              className="w-full px-3 py-2.5 border border-[#3182f6]/30 rounded-xl text-[14px] outline-none focus:border-[#3182f6] bg-white" />
+              className="w-full px-3 py-2.5 border border-toss-blue/30 rounded-xl text-[14px] outline-none focus:border-toss-blue bg-surface" />
           </div>
           <div className="shrink-0">
-            <label className="text-[12px] font-bold text-[#3182f6] mb-1 block">동</label>
+            <label className="text-[12px] font-bold text-toss-blue mb-1 block">동</label>
             <select value={newAptDong} onChange={e => setNewAptDong(e.target.value)}
-              className="px-3 py-2.5 border border-[#3182f6]/30 rounded-xl text-[14px] bg-white outline-none focus:border-[#3182f6]">
+              className="px-3 py-2.5 border border-toss-blue/30 rounded-xl text-[14px] bg-surface outline-none focus:border-toss-blue">
               {dongNames.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
           </div>
           <div className="flex gap-2 shrink-0">
-            <button onClick={addApartment} className="px-4 py-2.5 bg-[#3182f6] text-white rounded-xl text-[13px] font-bold hover:bg-[#2b72d6] transition-colors">추가</button>
-            <button onClick={() => setShowAddForm(false)} className="px-4 py-2.5 bg-white text-[#8b95a1] rounded-xl text-[13px] font-bold hover:bg-[#f2f4f6] transition-colors">취소</button>
+            <button onClick={addApartment} className="px-4 py-2.5 bg-toss-blue text-surface rounded-xl text-[13px] font-bold hover:bg-[#2b72d6] transition-colors">추가</button>
+            <button onClick={() => setShowAddForm(false)} className="px-4 py-2.5 bg-surface text-tertiary rounded-xl text-[13px] font-bold hover:bg-body transition-colors">취소</button>
           </div>
         </div>
       )}
@@ -543,12 +543,12 @@ export default function AdminDashboard() {
           { label: '공공임대', value: stats.publicR, color: '#8b95a1', bg: '#f2f4f6', icon: Home, fk: 'public' as const },
         ].map(s => (
           <div key={s.label} onClick={() => startTransition(() => setFilter(s.fk))}
-            className={`bg-white p-4 rounded-2xl border shadow-sm cursor-pointer hover:shadow-md transition-all ${
-              filter === s.fk && s.fk !== 'all' ? 'border-[#3182f6] ring-2 ring-[#3182f6]/10' : 'border-[#e5e8eb]'
+            className={`bg-surface p-4 rounded-2xl border shadow-sm cursor-pointer hover:shadow-md transition-all ${
+              filter === s.fk && s.fk !== 'all' ? 'border-toss-blue ring-2 ring-toss-blue/10' : 'border-border'
             }`}>
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1.5 rounded-lg" style={{ backgroundColor: s.bg, color: s.color }}><s.icon size={14}/></div>
-              <span className="text-[11px] font-bold text-[#8b95a1]">{s.label}</span>
+              <span className="text-[11px] font-bold text-tertiary">{s.label}</span>
             </div>
             <div className="text-[26px] font-extrabold" style={{ color: s.color }}>{s.value}</div>
           </div>
@@ -558,16 +558,16 @@ export default function AdminDashboard() {
       {/* Search + Filter */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="flex-1 relative">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8b95a1]" />
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-tertiary" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="아파트명 또는 동 이름으로 검색..."
-            className="w-full pl-11 pr-4 py-3 bg-white border border-[#e5e8eb] rounded-xl text-[14px] outline-none focus:border-[#3182f6] focus:ring-4 focus:ring-[#3182f6]/10 transition-all" />
+            className="w-full pl-11 pr-4 py-3 bg-surface border border-border rounded-xl text-[14px] outline-none focus:border-toss-blue focus:ring-4 focus:ring-toss-blue/10 transition-all" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-2">
           {([['all','전체'],['unmatched','미매핑'],['analyzed','가치평가'],['verified','현장검증'],['public','공공임대'],['private','일반분양']] as const).map(([key, label]) => (
             <button key={key} onClick={() => startTransition(() => setFilter(key))}
               className={`shrink-0 px-4 py-2 rounded-xl text-[13px] font-bold transition-all ${
-                filter === key ? 'bg-[#191f28] text-white' : 'bg-white border border-[#e5e8eb] text-[#4e5968] hover:bg-[#f2f4f6]'
+                filter === key ? 'bg-primary text-surface' : 'bg-surface border border-border text-secondary hover:bg-body'
               }`}>{label}</button>
           ))}
         </div>
@@ -583,21 +583,21 @@ export default function AdminDashboard() {
           const dongVerified = apts.filter(a => verifiedApts.has(a.name)).length;
 
           return (
-            <div key={dong} className="bg-white rounded-2xl border border-[#e5e8eb] shadow-sm overflow-hidden">
+            <div key={dong} className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
               <button onClick={() => toggleDong(dong)}
-                className="w-full px-4 sm:px-6 py-4 flex items-center gap-3 hover:bg-[#f9fafb] transition-colors">
-                {isExpanded ? <ChevronDown size={18} className="text-[#8b95a1] shrink-0"/> : <ChevronRight size={18} className="text-[#8b95a1] shrink-0"/>}
-                <h3 className="text-[15px] font-extrabold text-[#191f28]">{dong}</h3>
-                <span className="text-[11px] font-bold text-[#8b95a1] bg-[#f2f4f6] px-2 py-0.5 rounded-full">{apts.length}개</span>
+                className="w-full px-4 sm:px-6 py-4 flex items-center gap-3 hover:bg-body transition-colors">
+                {isExpanded ? <ChevronDown size={18} className="text-tertiary shrink-0"/> : <ChevronRight size={18} className="text-tertiary shrink-0"/>}
+                <h3 className="text-[15px] font-extrabold text-primary">{dong}</h3>
+                <span className="text-[11px] font-bold text-tertiary bg-body px-2 py-0.5 rounded-full">{apts.length}개</span>
                 <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                  dongMapped === apts.length ? 'bg-[#f0fdf4] text-[#03c75a]' : dongMapped > 0 ? 'bg-[#fff4e6] text-[#ff8a3d]' : 'bg-[#f2f4f6] text-[#8b95a1]'
+                  dongMapped === apts.length ? 'bg-[#f0fdf4] text-toss-green' : dongMapped > 0 ? 'bg-[#fff4e6] text-[#ff8a3d]' : 'bg-body text-tertiary'
                 }`}>TX {dongMapped}/{apts.length}</span>
-                {dongAnalyzed > 0 && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#e8f3ff] text-[#1b64da]">📍 {dongAnalyzed}</span>}
+                {dongAnalyzed > 0 && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-toss-blue-light text-[#1b64da]">📍 {dongAnalyzed}</span>}
                 {dongVerified > 0 && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#fff4e6] text-[#ff8a3d]">📸 {dongVerified}</span>}
               </button>
 
               {isExpanded && (
-                <div className="border-t border-[#e5e8eb] divide-y divide-[#f2f4f6]">
+                <div className="border-t border-border divide-y divide-[#f2f4f6]">
                   {apts.map(({ name, meta: m }) => {
                     const resolvedTxKey = m.txKey ? (findTxKey(m.txKey, TX_SUMMARY) || m.txKey) : null;
                     const hasValidTx = resolvedTxKey && TX_SUMMARY[resolvedTxKey as keyof typeof TX_SUMMARY];
@@ -607,25 +607,25 @@ export default function AdminDashboard() {
                     const isAptExpanded = expandedApts.has(name);
 
                     return (
-                      <div key={name} className={`${m.isPublicRental ? 'bg-[#f9fafb]' : !hasValidTx ? 'bg-[#fffbf5]' : ''}`}>
+                      <div key={name} className={`${m.isPublicRental ? 'bg-body' : !hasValidTx ? 'bg-[#fffbf5]' : ''}`}>
                         {/* Apartment Unit Header */}
-                        <Link href={`/admin/apartments/${encodeURIComponent(name)}`} className="block px-4 sm:px-6 py-4 hover:bg-[#f6f8fa] transition-colors border-b border-[#f2f4f6] last:border-0">
+                        <Link href={`/admin/apartments/${encodeURIComponent(name)}`} className="block px-4 sm:px-6 py-4 hover:bg-[#f6f8fa] transition-colors border-b border-body last:border-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            {hasValidTx ? <Check size={14} className="text-[#03c75a] shrink-0"/> : <AlertTriangle size={14} className="text-[#f04452] shrink-0"/>}
+                            {hasValidTx ? <Check size={14} className="text-toss-green shrink-0"/> : <AlertTriangle size={14} className="text-toss-red shrink-0"/>}
                             
-                            <span className="text-[13px] sm:text-[14px] font-bold text-[#191f28]">{name}</span>
+                            <span className="text-[13px] sm:text-[14px] font-bold text-primary">{name}</span>
 
                             {/* Report badge */}
                             {m.isPublicRental && (
-                              <span className="text-[11px] font-bold bg-[#f2f4f6] text-[#4e5968] px-2 py-0.5 rounded-full mt-0.5 border border-[#e5e8eb]">공공임대</span>
+                              <span className="text-[11px] font-bold bg-body text-secondary px-2 py-0.5 rounded-full mt-0.5 border border-border">공공임대</span>
                             )}
                             {verifiedReportsCount > 0 ? (
                               <span className="text-[11px] font-bold bg-[#fff4e6] text-[#ff8a3d] px-2 py-0.5 rounded-full mt-0.5">현장검증</span>
                             ) : analyzedApts.has(name) ? (
-                              <span className="text-[11px] font-bold bg-[#e8f3ff] text-[#1b64da] px-2 py-0.5 rounded-full mt-0.5">가치평가</span>
+                              <span className="text-[11px] font-bold bg-toss-blue-light text-[#1b64da] px-2 py-0.5 rounded-full mt-0.5">가치평가</span>
                             ) : null}
 
-                            <span className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e5e8eb] rounded-lg text-[12px] font-bold text-[#4e5968] hover:bg-[#f2f4f6] hover:text-[#191f28] transition-colors shadow-sm">
+                            <span className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-border rounded-lg text-[12px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors shadow-sm">
                               상세보기
                               <ChevronRight size={14}/>
                             </span>
@@ -642,16 +642,16 @@ export default function AdminDashboard() {
       </div>
 
       {/* Orphaned TX Keys */}
-      <div className="mt-8 bg-white rounded-2xl border border-[#e5e8eb] shadow-sm overflow-hidden">
-        <div className="px-4 sm:px-6 py-4 bg-[#f9fafb] border-b border-[#e5e8eb]">
-          <h3 className="font-bold text-[14px] text-[#191f28]">매핑되지 않은 TX 키</h3>
-          <p className="text-[11px] text-[#8b95a1]">실거래 데이터에 있지만 아파트 목록에 연결 안 된 키</p>
+      <div className="mt-8 bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+        <div className="px-4 sm:px-6 py-4 bg-body border-b border-border">
+          <h3 className="font-bold text-[14px] text-primary">매핑되지 않은 TX 키</h3>
+          <p className="text-[11px] text-tertiary">실거래 데이터에 있지만 아파트 목록에 연결 안 된 키</p>
         </div>
         <div className="px-4 sm:px-6 py-4 flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto">
           {(() => {
             const used = new Set(Object.values(meta).map(m => m.txKey).filter(Boolean));
             return txKeys.filter(k => !used.has(k)).map(k => (
-              <span key={k} className="bg-[#f2f4f6] text-[#4e5968] text-[11px] font-mono px-2.5 py-1 rounded-lg">{k}</span>
+              <span key={k} className="bg-body text-secondary text-[11px] font-mono px-2.5 py-1 rounded-lg">{k}</span>
               ));
             })()}
         </div>
@@ -659,11 +659,11 @@ export default function AdminDashboard() {
 
       {/* Floating Save Bar */}
       {activeAdminTab === 'apartments' && (
-        <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-40 bg-white/90 backdrop-blur-lg border-t border-[#e5e8eb] px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-          <span className="text-[13px] text-[#8b95a1] font-medium">{stats.total}개 단지 · {stats.mapped} 매핑 · 📸 {stats.totalVerifiedReports} 현장검증</span>
+        <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-40 bg-surface/90 backdrop-blur-lg border-t border-border px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+          <span className="text-[13px] text-tertiary font-medium">{stats.total}개 단지 · {stats.mapped} 매핑 · 📸 {stats.totalVerifiedReports} 현장검증</span>
           <button onClick={handleSave} disabled={saving}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all text-[14px] ${
-              saved ? 'bg-[#03c75a] text-white shadow-lg shadow-[#03c75a]/20' : 'bg-[#3182f6] hover:bg-[#2b72d6] text-white shadow-lg shadow-[#3182f6]/20'
+              saved ? 'bg-toss-green text-surface shadow-lg shadow-[#03c75a]/20' : 'bg-toss-blue hover:bg-[#2b72d6] text-surface shadow-lg shadow-[#3182f6]/20'
             } disabled:opacity-60`}>
             <Save size={16}/>
             {saving ? '저장 중...' : saved ? '저장 완료!' : '저장하기'}
@@ -675,41 +675,41 @@ export default function AdminDashboard() {
       <div className="h-20" />
       </>
       ) : (
-        <div className="bg-white rounded-2xl border border-[#e5e8eb] shadow-sm overflow-hidden flex flex-col gap-0 divide-y divide-[#e5e8eb]">
+        <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden flex flex-col gap-0 divide-y divide-[#e5e8eb]">
           {inquiries.length === 0 ? (
-            <div className="p-10 text-center text-[#8b95a1] text-[14px]">아직 접수된 광고/제휴 문의가 없습니다.</div>
+            <div className="p-10 text-center text-tertiary text-[14px]">아직 접수된 광고/제휴 문의가 없습니다.</div>
           ) : (
             inquiries.map(inquiry => (
-              <div key={inquiry.id} className={`p-5 sm:p-6 transition-colors ${inquiry.status === 'pending' ? 'bg-[#f9fafb]' : 'bg-white opacity-80'}`}>
+              <div key={inquiry.id} className={`p-5 sm:p-6 transition-colors ${inquiry.status === 'pending' ? 'bg-body' : 'bg-surface opacity-80'}`}>
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
                   <div>
                     <div className="flex items-center gap-2 mb-1.5">
                       {inquiry.status === 'pending' ? (
                         <span className="px-2 py-0.5 rounded-md bg-[#ffe6e6] text-[#ff3b30] text-[11px] font-bold">확인 요망</span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-md bg-[#e5e8eb] text-[#8b95a1] text-[11px] font-bold">확인 완료</span>
+                        <span className="px-2 py-0.5 rounded-md bg-[#e5e8eb] text-tertiary text-[11px] font-bold">확인 완료</span>
                       )}
-                      <h3 className="text-[16px] font-extrabold text-[#191f28]">{inquiry.companyName}</h3>
+                      <h3 className="text-[16px] font-extrabold text-primary">{inquiry.companyName}</h3>
                     </div>
-                    <p className="text-[13px] text-[#4e5968] mb-1"><span className="font-bold text-[#8b95a1] mr-1">연락처/이메일:</span> {inquiry.contactInfo}</p>
-                    <p className="text-[11px] text-[#b0b8c1]">접수일: {inquiry.createdAt?.toDate ? inquiry.createdAt.toDate().toLocaleString('ko-KR') : '알 수 없음'}</p>
+                    <p className="text-[13px] text-secondary mb-1"><span className="font-bold text-tertiary mr-1">연락처/이메일:</span> {inquiry.contactInfo}</p>
+                    <p className="text-[11px] text-tertiary">접수일: {inquiry.createdAt?.toDate ? inquiry.createdAt.toDate().toLocaleString('ko-KR') : '알 수 없음'}</p>
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <button 
                       onClick={() => toggleInquiryStatus(inquiry.id, inquiry.status)}
-                      className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-colors ${inquiry.status === 'pending' ? 'bg-[#3182f6] text-white' : 'bg-[#f2f4f6] text-[#4e5968]'}`}
+                      className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-colors ${inquiry.status === 'pending' ? 'bg-toss-blue text-surface' : 'bg-body text-secondary'}`}
                     >
                       {inquiry.status === 'pending' ? '읽음 처리' : '미확인으로 변경'}
                     </button>
                     <button 
                       onClick={() => deleteInquiry(inquiry.id)}
-                      className="px-3 py-1.5 rounded-lg bg-[#fff0f1] text-[#f04452] text-[12px] font-bold hover:bg-[#ffe6e6] transition-colors flex items-center gap-1"
+                      className="px-3 py-1.5 rounded-lg bg-[#fff0f1] text-toss-red text-[12px] font-bold hover:bg-[#ffe6e6] transition-colors flex items-center gap-1"
                     >
                       <Trash2 size={12} /> 삭제
                     </button>
                   </div>
                 </div>
-                <div className="bg-white border border-[#e5e8eb] p-4 rounded-xl text-[14px] text-[#333d4b] whitespace-pre-wrap leading-relaxed">
+                <div className="bg-surface border border-border p-4 rounded-xl text-[14px] text-[#333d4b] whitespace-pre-wrap leading-relaxed">
                   {inquiry.message}
                 </div>
               </div>

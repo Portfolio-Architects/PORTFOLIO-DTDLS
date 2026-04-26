@@ -52,25 +52,25 @@ export default function PropertyScoreChart({ scores }: Props) {
   }));
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-[#e5e8eb] animate-in fade-in duration-500">
+    <div className="bg-surface rounded-2xl shadow-sm border border-border animate-in fade-in duration-500">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-[#e5e8eb]">
+      <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-border">
         <div>
-          <h2 className="text-[18px] font-bold text-[#191f28] flex items-center gap-2">
-            <ShieldCheck size={20} className="text-[#3182f6]"/>
+          <h2 className="text-[18px] font-bold text-primary flex items-center gap-2">
+            <ShieldCheck size={20} className="text-toss-blue"/>
             아파트 가치 분석
           </h2>
-          <p className="text-[13px] text-[#8b95a1] mt-1 tracking-[0.5px] font-medium">학군·교통·쾌적·경쟁력·생활 5대 핵심 지표</p>
+          <p className="text-[13px] text-tertiary mt-1 tracking-[0.5px] font-medium">학군·교통·쾌적·경쟁력·생활 5대 핵심 지표</p>
         </div>
 
         {/* Total Score Badge */}
         <div className="px-4 py-2.5 rounded-2xl flex flex-col items-center border" style={{ backgroundColor: `${grade.color}10`, borderColor: `${grade.color}30` }}>
           <div className="flex items-center gap-1.5 mb-0.5">
             <span className="text-[11px] font-extrabold" style={{ color: grade.color }}>{grade.grade}</span>
-            <span className="text-[10px] font-bold text-[#8b95a1]">{grade.label}</span>
+            <span className="text-[10px] font-bold text-tertiary">{grade.label}</span>
           </div>
-          <span className="text-[26px] font-extrabold text-[#191f28] leading-none">
-            {s.totalScore}<span className="text-[13px] text-[#4e5968] font-bold ml-0.5">점</span>
+          <span className="text-[26px] font-extrabold text-primary leading-none">
+            {s.totalScore}<span className="text-[13px] text-secondary font-bold ml-0.5">점</span>
           </span>
         </div>
       </div>
@@ -103,13 +103,13 @@ export default function PropertyScoreChart({ scores }: Props) {
             const val = s[area.key];
             const color = getScoreColor(val);
             return (
-              <div key={area.key} className="bg-[#f9fafb] border border-[#e5e8eb] p-3 rounded-2xl hover:border-[#3182f6]/30 transition-colors text-center">
-                <h4 className="text-[13px] text-[#8b95a1] font-bold mb-1 truncate">{area.label}</h4>
+              <div key={area.key} className="bg-body border border-border p-3 rounded-2xl hover:border-toss-blue/30 transition-colors text-center">
+                <h4 className="text-[13px] text-tertiary font-bold mb-1 truncate">{area.label}</h4>
                 <div className="flex items-end justify-center gap-0.5 mb-1">
                   <span className="text-[22px] font-extrabold leading-none" style={{ color }}>{val}</span>
-                  <span className="text-[11px] font-bold text-[#8b95a1] mb-0.5">점</span>
+                  <span className="text-[11px] font-bold text-tertiary mb-0.5">점</span>
                 </div>
-                <p className="text-[11px] text-[#4e5968] font-medium leading-tight">{area.desc}</p>
+                <p className="text-[11px] text-secondary font-medium leading-tight">{area.desc}</p>
               </div>
             );
           })}

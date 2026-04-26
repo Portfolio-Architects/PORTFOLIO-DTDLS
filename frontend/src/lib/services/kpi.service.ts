@@ -24,14 +24,14 @@ export function createInitialKPIs(): KPIData[] {
       title: '우와! 이번주 최고가',
       subtitle: '동탄역 롯데캐슬 84㎡',
       badgeText: 'HOT',
-      badgeStyle: 'bg-[#f04452] text-white',
+      badgeStyle: 'bg-toss-red text-surface',
       mainValue: '16.5억',
       subValue: '↑ 2.1억',
       description: '이전 최고가: 14.4억 (24년 10월)',
       icon: TrendingUp,
       gradientBackground: 'from-[#ffffff] to-[#fff5f5]',
       borderColor: 'border-[#ffebec]',
-      titleColor: 'text-[#f04452]',
+      titleColor: 'text-toss-red',
     },
     {
       id: 'kpi-2',
@@ -43,21 +43,21 @@ export function createInitialKPIs(): KPIData[] {
       icon: Users,
       gradientBackground: 'from-[#ffffff] to-[#f4f8ff]',
       borderColor: 'border-[#e8f3ff]',
-      titleColor: 'text-[#3182f6]',
+      titleColor: 'text-toss-blue',
     },
     {
       id: 'kpi-3',
       title: '요즘 동탄 매수 열기',
       subtitle: '주간 아파트 거래량',
       badgeText: '매수자 우위',
-      badgeStyle: 'bg-[#e8f5e9] text-[#03c75a]',
+      badgeStyle: 'bg-[#e8f5e9] text-toss-green',
       mainValue: '142건',
       subValue: '↑ 12%',
       description: '',
       icon: RefreshCw,
       gradientBackground: '',
       borderColor: '',
-      titleColor: 'text-[#03c75a]',
+      titleColor: 'text-toss-green',
     },
   ];
 }
@@ -84,7 +84,7 @@ export function startKPISimulation(
       mainValue: `${data.price}억`,
       subValue: `↑ ${data.up}`,
       description: `이전 최고가: ${data.prev}`,
-      badgeStyle: 'bg-[#f04452] text-white animate-pulse',
+      badgeStyle: 'bg-toss-red text-surface animate-pulse',
     };
 
     onUpdate();

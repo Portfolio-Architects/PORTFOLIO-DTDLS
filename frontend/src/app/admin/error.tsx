@@ -19,9 +19,9 @@ export default function AdminError({
     <div className="min-h-[60vh] flex items-center justify-center px-4 animate-in fade-in duration-300">
       <div className="max-w-md w-full text-center">
         <div className="w-16 h-16 rounded-2xl bg-[#fff0f1] flex items-center justify-center mx-auto mb-6">
-          <AlertTriangle size={32} className="text-[#f04452]" />
+          <AlertTriangle size={32} className="text-toss-red" />
         </div>
-        <h2 className="text-xl font-extrabold text-[#191f28] mb-2">
+        <h2 className="text-xl font-extrabold text-primary mb-2">
           관리자 페이지 오류
         </h2>
         <p className="text-[14px] text-[#6b7684] leading-relaxed mb-8">
@@ -31,14 +31,14 @@ export default function AdminError({
         <div className="flex items-center justify-center gap-3">
           <button
             onClick={reset}
-            className="flex items-center gap-2 px-6 py-3 bg-[#3182f6] text-white rounded-xl font-bold text-[14px] hover:bg-[#2b72d6] transition-colors shadow-lg shadow-[#3182f6]/20"
+            className="flex items-center gap-2 px-6 py-3 bg-toss-blue text-surface rounded-xl font-bold text-[14px] hover:bg-[#2b72d6] transition-colors shadow-lg shadow-[#3182f6]/20"
           >
             <RefreshCw size={16} />
             다시 시도
           </button>
           <Link
             href="/admin"
-            className="flex items-center gap-2 px-6 py-3 bg-[#f2f4f6] text-[#4e5968] rounded-xl font-bold text-[14px] hover:bg-[#e5e8eb] transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-body text-secondary rounded-xl font-bold text-[14px] hover:bg-[#e5e8eb] transition-colors"
           >
             <Home size={16} />
             대시보드로
