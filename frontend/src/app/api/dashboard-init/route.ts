@@ -103,7 +103,5 @@ export async function GET() {
     console.warn('[dashboard-init] apartmentMeta error:', e);
   }
 
-  return NextResponse.json(result, {
-    headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' },
-  });
+  return NextResponse.json(result);
 }

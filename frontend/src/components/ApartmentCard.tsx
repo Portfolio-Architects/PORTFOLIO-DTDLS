@@ -180,9 +180,9 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
 
                 // 1. If we have 3-month average, display the accurate 3-month per-pyeong calculation
                 if ((txSummary.avg3MPrice || 0) > 0 && (txSummary.avg3MPerPyeong || 0) > 0) {
-                  return <span className="text-xs font-bold text-[#6b7684]">{txSummary.avg3MPerPyeong!.toLocaleString()}만/평</span>;
+                  return <span className="text-xs font-bold text-toss-blue">{txSummary.avg3MPerPyeong!.toLocaleString()}만/평</span>;
                 } else if ((txSummary.avg1MPrice || 0) > 0 && (txSummary.avg1MPerPyeong || 0) > 0) {
-                  return <span className="text-xs font-bold text-[#6b7684]">{txSummary.avg1MPerPyeong!.toLocaleString()}만/평</span>;
+                  return <span className="text-xs font-bold text-toss-blue">{txSummary.avg1MPerPyeong!.toLocaleString()}만/평</span>;
                 }
 
                 // 2. Otherwise, if we have recent transaction, calculate per-pyeong of that specific transaction
@@ -197,7 +197,7 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
                   }
                   
                   if (priceMan > 0 && r.areaPyeong > 0) {
-                    return <span className="text-xs font-bold text-[#6b7684]">{Math.round(priceMan / r.areaPyeong).toLocaleString()}만/평</span>;
+                    return <span className="text-xs font-bold text-toss-blue">{Math.round(priceMan / r.areaPyeong).toLocaleString()}만/평</span>;
                   }
                 }
                 

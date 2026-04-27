@@ -12,14 +12,18 @@ import { MacroEnvironment, SupplyPipeline } from '../types/macro.types';
  * @param macro 거시 경제 지표
  * @param riskPremium 자산 고유 리스크 프리미엄 (기본 1.5%)
  */
-export function calculateDynamicDCF(currentJeonse: number, macro: MacroEnvironment, riskPremium: number = 1.5) {
+export function calculateDynamicDCF(currentJeonse: number, macro: MacroEnvironment, riskPremium: number = 1.5, utilityScore: number = 50) {
   // 1. Discount Rate (r) 산출: 국채금리 + 리스크 프리미엄 + 조달비용 스프레드
   // 전세대출금리가 4.0%를 초과할 경우 유동성 프리미엄 가산
   const fundingSpread = Math.max(0, macro.fundingCost - 4.0) * 0.5;
   const discountRate = (macro.riskFreeRate + riskPremium + fundingSpread) / 100; // e.g. (3.25 + 1.5 + 0.05) / 100 = 0.048
 
-  // 2. Expected Growth Rate (g) 산출: 장기 인플레이션 적용
-  const growthRate = macro.baseInflationRate; // e.g. 0.02
+  // 2. Expected Growth Rate (g) 산출: 장기 인플레이션 + 유틸리티 점수 기반 성장 프리미엄
+  // 평균 점수 50점 기준을 인플레이션(2%)으로 설정, 10점당 0.2%p 프리미엄 부여
+  // (예: 80점 = +0.6%p = 2.6%, 30점 = -0.4%p = 1.6%)
+  // 제한: 최소 0.5%, 최대 3.5%
+  const growthPremium = (utilityScore - 50) * 0.0002;
+  const growthRate = Math.max(0.005, Math.min(0.035, macro.baseInflationRate + growthPremium));
 
   // 3. Cap Rate (자본환원율) 산출: r - g
   // 이론적으로 무한대 방지를 위해 최소 Cap Rate 2.0% 설정
@@ -42,7 +46,8 @@ export function calculateDynamicDCF(currentJeonse: number, macro: MacroEnvironme
     fairPER,
     fairJeonseMultiple,
     impliedValue,
-    discountRate: discountRate * 100 // %
+    discountRate: discountRate * 100, // %
+    growthRate: growthRate * 100 // %
   };
 }
 

@@ -131,11 +131,26 @@ function calculateUtilityScoreV2(report: FieldReportData) {
     const m = report.metrics as import('@/lib/types/scoutingReport').ObjectiveMetrics & Record<string, unknown>;
     
     // 교통 (역 거리 - 세분화) (Max 20점)
-    if (m.distanceToSubway <= 300) { subScore = 20; subLabel = '300m 이내 (초역세권)'; }
-    else if (m.distanceToSubway <= 500) { subScore = 16; subLabel = '500m 이내 (역세권)'; }
-    else if (m.distanceToSubway <= 800) { subScore = 10; subLabel = '800m 이내 (도보권)'; }
-    else if (m.distanceToSubway <= 1200) { subScore = 5; subLabel = '1.2km 이내 (준역세권)'; }
-    else { subScore = 2; subLabel = '1.2km 초과 (대중교통 환승)'; }
+    const getSubScore = (dist: number, weight: number) => {
+      if (dist <= 300) return 20 * weight;
+      if (dist <= 500) return 16 * weight;
+      if (dist <= 800) return 10 * weight;
+      if (dist <= 1200) return 5 * weight;
+      return 2 * weight;
+    };
+    
+    const gtxScore = getSubScore(m.distanceToSubway || 9999, 3.0); // GTX 가중치 3배로 상향
+    const indkScore = getSubScore(m.distanceToIndeokwon || 9999, 0.85); // 동인선 가중치
+    const tramScore = getSubScore(m.distanceToTram || 9999, 0.6); // 트램 가중치
+    
+    subScore = Math.round(Math.max(gtxScore, indkScore, tramScore));
+    
+    const distTexts = [];
+    if (m.distanceToSubway && m.distanceToSubway < 2000) distTexts.push(`GTX ${m.distanceToSubway}m`);
+    if (m.distanceToIndeokwon && m.distanceToIndeokwon < 2000) distTexts.push(`동인선 ${m.distanceToIndeokwon}m`);
+    if (m.distanceToTram && m.distanceToTram < 2000) distTexts.push(`트램 ${m.distanceToTram}m`);
+    
+    subLabel = distTexts.length > 0 ? distTexts.join(', ') : '1.2km 초과 (대중교통 환승)';
     
     // 학군 (학교 거리 - 초/중/고 중 최소거리) (Max 15점)
     const minSchool = Math.min(m.distanceToElementary || 9999, m.distanceToMiddle || 9999, m.distanceToHigh || 9999);
@@ -165,13 +180,13 @@ function calculateUtilityScoreV2(report: FieldReportData) {
   }
   
   breakDown.infra = subScore + schScore + storeScore + parkDistScore;
-  logs.push({ icon: Train, category: '핵심 궤도교통 역세권', score: subScore, max: 20, label: subLabel, isInfra: true });
+  logs.push({ icon: Train, category: '핵심 궤도교통 역세권', score: subScore, max: 60, label: subLabel, isInfra: true });
   logs.push({ icon: GraduationCap, category: '통학 학군 (초등 중심)', score: schScore, max: 15, label: schLabel, isInfra: true });
   logs.push({ icon: Store, category: '거점 상권/학원/앵커', score: storeScore, max: 15, label: storeLabel, isInfra: true });
   logs.push({ icon: TreePine, category: '자연 환경 (호수/상징공원)', score: parkDistScore, max: 10, label: parkDistLabel, isInfra: true });
 
   const rawScore = breakDown.specs + breakDown.infra;
-  score = Math.min(100, Math.max(55, rawScore));
+  score = Math.max(55, rawScore);
   const isCapped = rawScore < 55;
   
   return { total: score, breakDown, logs, rawScore, isCapped };
@@ -179,6 +194,8 @@ function calculateUtilityScoreV2(report: FieldReportData) {
 
 export default function AdvancedValuationMetrics({ report, transactions }: Props) {
   const [isRatioModalOpen, setIsRatioModalOpen] = useState(false);
+  const [isFormulaModalOpen, setIsFormulaModalOpen] = useState(false);
+  const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
   const [macroConfig, setMacroConfig] = useState(MOCK_MACRO_CONFIG.macroEnvironment);
 
   useEffect(() => {
@@ -187,10 +204,11 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
         const res = await fetch('/api/macro/rates');
         if (res.ok) {
           const json = await res.json();
-          if (json.success && json.data && json.data.riskFreeRate) {
+          if (json.success && json.data) {
             setMacroConfig(prev => ({
               ...prev,
-              riskFreeRate: json.data.riskFreeRate,
+              ...(json.data.riskFreeRate ? { riskFreeRate: json.data.riskFreeRate } : {}),
+              ...(json.data.fundingCost ? { fundingCost: json.data.fundingCost } : {}),
             }));
           }
         }
@@ -243,9 +261,42 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
   const dongName = report.apartmentName.includes('동탄') ? '동탄2신도시' : '화성시';
   const pipeline = MOCK_MACRO_CONFIG.supplyPipelines[dongName] || MOCK_MACRO_CONFIG.supplyPipelines['화성시'];
   
-  // 1. Dynamic DCF (거시 금리 연동)
-  const dcf = calculateDynamicDCF(avg3MRent, macroConfig);
+  // 0. 전월세전환율 동적 스프레드 산출 (입지 및 주택유형 반영)
+  let conversionRateSpread = 0;
+  const spreadReasons: string[] = [];
   
+  if (report.metrics) {
+    const m = report.metrics as import('@/lib/types/scoutingReport').ObjectiveMetrics & Record<string, unknown>;
+    
+    // 교통 (역세권 프리미엄 vs 외곽 패널티)
+    if (m.distanceToSubway <= 500) {
+      conversionRateSpread -= 0.005;
+      spreadReasons.push('역세권(-0.5%p)');
+    } else if (m.distanceToSubway > 1200) {
+      conversionRateSpread += 0.005;
+      spreadReasons.push('외곽(+0.5%p)');
+    }
+
+    // 연식 및 브랜드 (신축/랜드마크 프리미엄 vs 구축 패널티)
+    const year = m.yearBuilt ? parseInt(String(m.yearBuilt).substring(0, 4)) : new Date().getFullYear();
+    const age = new Date().getFullYear() - year + 1;
+    const mu = getBrandMultiplier(m.brand || report.apartmentName || '');
+    
+    if (age <= 5 || mu >= 1.09) {
+      conversionRateSpread -= 0.005;
+      spreadReasons.push('신축/1군(-0.5%p)');
+    } else if (age > 15) {
+      conversionRateSpread += 0.005;
+      spreadReasons.push('구축감가(+0.5%p)');
+    }
+  }
+
+  const dynamicConversionRate = Math.max(0.035, Math.min(0.065, macroConfig.jeonseConversionRate + conversionRateSpread));
+  const dynamicMacroConfig = { ...macroConfig, jeonseConversionRate: dynamicConversionRate };
+
+  // 1. Dynamic DCF (거시 금리 연동 및 동적 전환율 적용)
+  const utilityScoreResult = calculateUtilityScoreV2(report);
+  const dcf = calculateDynamicDCF(avg3MRent, dynamicMacroConfig, 1.5, utilityScoreResult.total);
   // 2. Dong Spread (인접 단지 상대평가) - 임시 모의 데이터 사용
   const mockDongPERs = realEstatePER > 0 ? [realEstatePER - 0.1, realEstatePER + 0.05, realEstatePER - 0.15, realEstatePER + 0.2] : [];
   const spreadData = calculateDongSpread(realEstatePER, mockDongPERs);
@@ -323,13 +374,42 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
           <h3 className="text-[15px] font-extrabold text-secondary flex items-center gap-1.5">
             매매가/전세가
           </h3>
-          <span className="text-[9px] font-bold text-toss-blue bg-toss-blue/10 px-2 py-0.5 rounded-sm uppercase tracking-wider">
-            Fundamental Value
-          </span>
         </div>
         
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Left: Main PER Metric Box */}
+          {/* Left: Data Components (Previously Right) */}
+          <div className="flex-1 flex flex-col justify-center">
+            <div className="bg-body border border-border rounded-2xl p-5 flex flex-col justify-center gap-5 h-full">
+              <h4 className="text-[13px] font-bold text-secondary">기준 실거래 데이터</h4>
+              
+              <div className="flex flex-col gap-3.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-tertiary font-medium flex items-center gap-1">
+                    3개월 평균 매매가
+                  </span>
+                  <span className="text-[15px] font-extrabold text-primary">{formatPrice(avg3MSale)}</span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-tertiary font-medium flex items-center gap-1">
+                    3개월 평균 전세가
+                  </span>
+                  <span className="text-[15px] font-extrabold text-toss-blue">{formatPrice(avg3MRent)}</span>
+                </div>
+
+                <div className="h-px w-full bg-[#e5e8eb] my-1" />
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-tertiary font-bold">도출된 전세가율</span>
+                  <span className="text-[15px] font-extrabold text-primary bg-surface px-2 py-0.5 rounded shadow-sm border border-border">
+                    {jeonseRatio > 0 ? `${jeonseRatio.toFixed(1)}%` : '-'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Main PER Metric Box (Previously Left) */}
           <div className="flex-1 flex flex-col justify-center">
             <div className="flex flex-col items-center justify-center pb-6">
               <div className="flex items-center justify-center gap-1.5 text-[12px] font-bold text-tertiary mb-1 cursor-pointer hover:text-secondary transition-colors" onClick={() => setIsRatioModalOpen(true)}>
@@ -363,38 +443,6 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
               </div>
             )}
           </div>
-
-          {/* Right: Data Components */}
-          <div className="flex-1 flex flex-col justify-center">
-            <div className="bg-body border border-border rounded-2xl p-5 flex flex-col justify-center gap-5 h-full">
-              <h4 className="text-[13px] font-bold text-secondary">기준 실거래 데이터</h4>
-              
-              <div className="flex flex-col gap-3.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[13px] text-tertiary font-medium flex items-center gap-1">
-                    3개월 평균 매매가
-                  </span>
-                  <span className="text-[15px] font-extrabold text-primary">{formatPrice(avg3MSale)}</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-[13px] text-tertiary font-medium flex items-center gap-1">
-                    3개월 평균 전세가
-                  </span>
-                  <span className="text-[15px] font-extrabold text-toss-blue">{formatPrice(avg3MRent)}</span>
-                </div>
-
-                <div className="h-px w-full bg-[#e5e8eb] my-1" />
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-[13px] text-tertiary font-bold">도출된 전세가율</span>
-                  <span className="text-[15px] font-extrabold text-primary bg-surface px-2 py-0.5 rounded shadow-sm border border-border">
-                    {jeonseRatio > 0 ? `${jeonseRatio.toFixed(1)}%` : '-'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -408,35 +456,7 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
           </div>
 
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* Left: Main Cap Rate Box */}
-            <div className="flex-1 flex flex-col justify-center">
-              <div className="flex flex-col items-center justify-center pb-6">
-                <div className="text-[12px] font-bold text-tertiary mb-1">
-                  산출된 적정 매매가
-                </div>
-                <div className="flex items-end gap-1.5">
-                  <span className="text-[44px] font-black text-primary leading-none tracking-tighter">
-                    {formatPrice(dcf.impliedValue)}
-                  </span>
-                </div>
-                <div className="text-[14px] font-bold text-toss-blue mt-3 bg-toss-blue/10 px-4 py-1.5 rounded-full border border-toss-blue/20 shadow-sm">
-                  적용 요구수익률(Cap Rate) {dcf.capRate.toFixed(2)}%
-                </div>
-              </div>
-
-              {/* Status Alert / Brief formula explanation */}
-              <div className="p-3.5 rounded-xl border flex gap-3 items-start bg-body border-border">
-                <Info size={18} className="text-secondary shrink-0 mt-0.5" />
-                <div className="flex flex-col gap-1.5">
-                  <h4 className="text-[13px] font-extrabold text-secondary">어떻게 계산했나요?</h4>
-                  <p className="text-[11.5px] text-tertiary leading-relaxed font-medium">
-                    현재 은행 금리(국채 및 대출금리)와 해당 단지의 전월세 시세를 바탕으로, 월세 수익 가치를 역산해 낸 이론적인 적정 매매가입니다.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Formula & Data Components */}
+            {/* Left: Formula & Data Components (Previously Right) */}
             <div className="flex-1 flex flex-col justify-center">
               <div className="bg-body border border-border rounded-2xl p-5 flex flex-col justify-center gap-4 h-full">
                 <h4 className="text-[13px] font-bold text-secondary">적용 수식 및 산출 근거</h4>
@@ -444,7 +464,7 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
                 <div className="flex flex-col gap-3">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-[13px] text-tertiary font-medium">할인율 (r: 국채+리스크 등)</span>
+                      <span className="text-[13px] text-tertiary font-medium">기본 투자 요구 이자율 (할인율 r)</span>
                       <span className="text-[13px] font-bold text-primary">{dcf.discountRate.toFixed(2)}%</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-[11px] text-[#8b95a1] bg-[#f9fafb] px-2 py-1.5 rounded-md mt-0.5 border border-[#e5e8eb]/50">
@@ -452,35 +472,106 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
                       <span className="text-[#d1d6db]">+</span>
                       <span>리스크 1.50%</span>
                       <span className="text-[#d1d6db]">+</span>
-                      <span>조달금리 페널티 {(Math.max(0, macroConfig.fundingCost - 4.0) * 0.5).toFixed(2)}%</span>
+                      <span>조달 페널티({macroConfig.fundingCost.toFixed(2)}%) {(Math.max(0, macroConfig.fundingCost - 4.0) * 0.5).toFixed(2)}%</span>
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between">
-                    <span className="text-[13px] text-tertiary font-medium">기대 성장률 (g: 장기 인플레)</span>
-                    <span className="text-[13px] font-bold text-primary">{(macroConfig.baseInflationRate * 100).toFixed(2)}%</span>
+                  <div className="flex items-start justify-between">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[13px] text-tertiary font-medium">장기 집값 상승 기대치 (성장률 g)</span>
+                      <button 
+                        onClick={() => setIsScoreModalOpen(true)}
+                        className="text-[11px] text-[#8b95a1] flex items-center gap-1 hover:text-toss-blue transition-colors cursor-pointer text-left"
+                      >
+                        물가(2.0%) ± 단지 가치평가(Max 1.5%p)
+                        <Info className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <span className="text-[13px] font-bold text-primary">{dcf.growthRate.toFixed(2)}%</span>
                   </div>
 
                   <div className="h-px w-full bg-[#e5e8eb] my-1" />
                   
                   <div className="flex items-center justify-between">
-                    <span className="text-[13px] text-secondary font-bold">도출된 Cap Rate (r - g)</span>
+                    <span className="text-[13px] text-secondary font-bold">실질 목표 수익률 (Cap Rate)</span>
                     <span className="text-[14px] font-extrabold text-toss-blue">
                       {dcf.capRate.toFixed(2)}%
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-[13px] text-tertiary font-medium">연간 환산 임대수익 (전세금 × 5%)</span>
-                    <span className="text-[13px] font-bold text-primary">{formatPrice(avg3MRent * macroConfig.jeonseConversionRate)}</span>
+                  <div className="flex items-start justify-between mt-2 pt-2 border-t border-border">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[13px] text-tertiary font-medium">1년 치 월세 가치 (환산 임대료)</span>
+                      <span className="text-[11px] text-[#8b95a1] break-keep">
+                        최근 3개월 평균 전세가 × 전환율 {(dynamicConversionRate * 100).toFixed(1)}% 
+                        {spreadReasons.length > 0 ? (
+                          <> (기본 5.0% + {spreadReasons.map((r, i) => (
+                            <span key={i} className="whitespace-nowrap">
+                              {r}{i < spreadReasons.length - 1 ? ', ' : ''}
+                            </span>
+                          ))})</>
+                        ) : ' (기본 5.0%)'}
+                      </span>
+                    </div>
+                    <span className="text-[13px] font-bold text-primary whitespace-nowrap flex-shrink-0 ml-4">{formatPrice(avg3MRent * dynamicConversionRate)}</span>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-[13px] text-tertiary font-medium">도출된 적정 전세가 배수 (P/J)</span>
-                    <span className="text-[13px] font-bold text-primary">{dcf.fairJeonseMultiple.toFixed(2)}배</span>
+                  <div className="flex items-start justify-between">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[13px] text-tertiary font-medium">수익률 기준 적정 전세가율</span>
+                      <span className="text-[11px] text-[#8b95a1] break-keep">
+                        Cap Rate({dcf.capRate.toFixed(2)}%) ÷ 전환율({(dynamicConversionRate * 100).toFixed(1)}%)
+                      </span>
+                    </div>
+                    <span className="text-[13px] font-bold text-primary whitespace-nowrap flex-shrink-0 ml-4">{(100 / dcf.fairJeonseMultiple).toFixed(1)}%</span>
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Right: Main Cap Rate Box (Previously Left) */}
+            <div className="flex-1 flex flex-col">
+              <div className="flex-1 flex flex-col items-center justify-center pb-6">
+                <div className="text-[13px] font-bold text-tertiary mb-1">
+                  적정 집값
+                </div>
+                <div className="flex items-end gap-1.5">
+                  <span className="text-[44px] font-black text-primary leading-none tracking-tighter">
+                    {formatPrice(dcf.impliedValue)}
+                  </span>
+                </div>
+                {avg3MSale > 0 && (
+                  <div className={`mt-5 w-full max-w-[280px] mx-auto flex flex-col items-center p-4 rounded-2xl ${
+                    avg3MSale > dcf.impliedValue ? 'bg-toss-red/5 border border-toss-red/10' : 'bg-toss-blue/5 border border-toss-blue/10'
+                  }`}>
+                    <div className="text-[12px] font-bold text-tertiary mb-0.5">
+                      최근 3개월 실거래 평균
+                    </div>
+                    <div className="text-[22px] font-extrabold text-primary mb-2.5">
+                      {formatPrice(avg3MSale)}
+                    </div>
+                    <div className={`px-3 py-1.5 rounded-lg text-[12px] font-bold ${
+                      avg3MSale > dcf.impliedValue ? 'bg-toss-red/10 text-toss-red' : 'bg-toss-blue/10 text-toss-blue'
+                    }`}>
+                      적정가 대비 {formatPrice(Math.abs(avg3MSale - dcf.impliedValue))} {avg3MSale > dcf.impliedValue ? '고평가' : '저평가'}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Status Alert / Brief formula explanation */}
+              <button 
+                onClick={() => setIsFormulaModalOpen(true)}
+                className="mt-auto w-full p-4 rounded-xl border flex items-center justify-between bg-body hover:bg-[#f9fafb] border-border transition-all active:scale-[0.99] group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-toss-blue/10 flex items-center justify-center group-hover:bg-toss-blue/20 transition-colors">
+                    <Info size={18} className="text-toss-blue" />
+                  </div>
+                  <span className="text-[14px] font-extrabold text-secondary">어떻게 계산했나요?</span>
+                </div>
+                <span className="text-[12px] font-bold text-toss-blue px-3 py-1.5 rounded-lg bg-toss-blue/10">계산식 보기</span>
+              </button>
             </div>
           </div>
         </div>
@@ -617,6 +708,142 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Formula Modal */}
+      {isFormulaModalOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 sm:p-0" onClick={() => setIsFormulaModalOpen(false)}>
+          <div 
+            className="relative w-full sm:w-[500px] bg-surface rounded-3xl p-6 shadow-2xl overflow-y-auto max-h-[85vh] hide-scrollbar"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-toss-blue/10 flex items-center justify-center">
+                  <Info size={18} className="text-toss-blue" />
+                </div>
+                <h3 className="text-[18px] font-extrabold text-primary tracking-tight">어떻게 계산했나요?</h3>
+              </div>
+              <button onClick={() => setIsFormulaModalOpen(false)} className="p-2 hover:bg-body rounded-full transition-colors active:scale-95">
+                <X size={20} className="text-tertiary" />
+              </button>
+            </div>
+            
+            <div className="bg-body rounded-2xl p-4 border border-border mb-6">
+              <div className="text-[14px] font-extrabold text-primary mb-2 flex items-center gap-1.5">
+                적정 집값 = 1년 예상 월세 ÷ 은행 예금이자
+              </div>
+              <p className="text-[13px] text-secondary leading-relaxed font-medium">
+                이 아파트를 매수하는 대신 그 돈을 은행에 넣었을 때 받을 수 있는 이자와, 이 아파트에서 나오는 월세 수익을 비교하여 거꾸로 적정 가격을 계산한 결과입니다.
+              </p>
+            </div>
+            
+            <div className="flex flex-col gap-6 px-1">
+              <div className="flex gap-4 items-start">
+                <div className="w-6 h-6 rounded-full bg-toss-blue text-surface flex items-center justify-center text-[12px] font-black shrink-0 mt-0.5 shadow-sm">1</div>
+                <div className="flex flex-col gap-1.5 pt-0.5">
+                  <span className="text-[14px] font-extrabold text-primary tracking-tight">목표수익 기준 설정</span>
+                  <span className="text-[13px] text-secondary font-medium leading-relaxed">
+                    은행 금리({macroConfig.riskFreeRate.toFixed(2)}%)만큼은 기본으로 깔고, 부동산 투자의 위험성(1.50%)을 더해 <strong>"최소 이 정도 수익은 나야 해"</strong>라는 기준을 세웁니다.
+                  </span>
+                  <div className="text-[12px] text-tertiary bg-body p-3 rounded-lg border border-border mt-1 leading-relaxed">
+                    ※ 현재 주담대 금리({macroConfig.fundingCost.toFixed(2)}%)가 높아 투자 매력도가 떨어지는 만큼, 기준 수익률을 더 높게 잡았습니다.
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4 items-start">
+                <div className="w-6 h-6 rounded-full bg-toss-blue text-surface flex items-center justify-center text-[12px] font-black shrink-0 mt-0.5 shadow-sm">2</div>
+                <div className="flex flex-col gap-1.5 pt-0.5">
+                  <span className="text-[14px] font-extrabold text-primary tracking-tight">예상 월세 도출</span>
+                  <span className="text-[13px] text-secondary font-medium leading-relaxed">
+                    최근 전세금을 바탕으로, <strong>"만약 이 집을 전부 월세로 돌린다면 1년에 얼마를 받을 수 있을까?"</strong>를 법정 기준({(dynamicConversionRate * 100).toFixed(1)}%)으로 계산합니다.
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex gap-4 items-start">
+                <div className="w-6 h-6 rounded-full bg-toss-blue text-surface flex items-center justify-center text-[12px] font-black shrink-0 mt-0.5 shadow-sm">3</div>
+                <div className="flex flex-col gap-1.5 pt-0.5">
+                  <span className="text-[14px] font-extrabold text-primary tracking-tight">적정 집값 역산</span>
+                  <span className="text-[13px] text-secondary font-medium leading-relaxed">
+                    매년 꾸준한 월세가 들어오고 집값도 단지 가치에 비례해 매년 오를({dcf.growthRate.toFixed(2)}%) 것이라 가정했을 때, 1단계에서 세운 목표 수익률을 맞추려면 <strong>"지금 당장 얼마에 사야 할까?"</strong>를 계산한 값입니다.
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => setIsFormulaModalOpen(false)}
+              className="w-full mt-8 py-4 rounded-2xl font-extrabold text-[15px] bg-primary text-surface hover:bg-[#191f28] active:scale-[0.98] transition-all"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Score Modal */}
+      {isScoreModalOpen && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm"
+          onClick={() => setIsScoreModalOpen(false)}
+        >
+          <div 
+            className="bg-surface w-full sm:w-[480px] max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-6 pb-8 shadow-2xl animate-in slide-in-from-bottom-4 duration-200"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-[#f59e0b]/10 flex items-center justify-center">
+                  <Award size={18} className="text-[#f59e0b]" />
+                </div>
+                <h3 className="text-[18px] font-extrabold text-primary tracking-tight">단지 가치평가 상세</h3>
+              </div>
+              <button onClick={() => setIsScoreModalOpen(false)} className="p-2 hover:bg-body rounded-full transition-colors active:scale-95">
+                <X size={20} className="text-tertiary" />
+              </button>
+            </div>
+            
+            <div className="bg-body rounded-2xl p-5 border border-border mb-6">
+              <div className="flex items-end gap-2 mb-2">
+                <span className="text-[32px] font-extrabold text-primary leading-none">{utilityScoreResult.total}</span>
+                <span className="text-[14px] text-tertiary font-bold mb-1">점</span>
+              </div>
+              <p className="text-[13px] text-secondary leading-relaxed font-medium">
+                {utilityScoreResult.total >= 70 ? '뛰어난 상품성과 인프라를 갖춰 평균(2.0%)보다 높은 성장률 프리미엄이 부여됩니다.' : 
+                 utilityScoreResult.total >= 50 ? '표준적인 상품성과 인프라를 갖춰 물가상승률(2.0%) 수준의 성장률이 적용됩니다.' : 
+                 '단지 스펙 및 인프라 한계로 인해 평균보다 다소 낮은 성장률이 적용됩니다.'}
+              </p>
+            </div>
+            
+            <div className="flex flex-col gap-5 px-1">
+              {utilityScoreResult.logs.map((log, i) => {
+                const Icon = log.icon;
+                return (
+                  <div key={i} className="flex gap-4 items-start">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${log.isInfra ? 'bg-toss-blue/10 text-toss-blue' : 'bg-[#f59e0b]/10 text-[#f59e0b]'}`}>
+                      <Icon size={20} />
+                    </div>
+                    <div className="flex flex-col gap-1 w-full pt-0.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[14px] font-bold text-primary">{log.category}</span>
+                        <span className="text-[14px] font-extrabold text-secondary">{log.score} <span className="text-[12px] text-tertiary font-medium">/ {log.max}</span></span>
+                      </div>
+                      <span className="text-[13px] text-secondary font-medium">{log.label}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            <button 
+              onClick={() => setIsScoreModalOpen(false)}
+              className="w-full mt-8 py-4 rounded-2xl font-extrabold text-[15px] bg-primary text-surface hover:bg-[#191f28] active:scale-[0.98] transition-all"
+            >
+              확인
+            </button>
           </div>
         </div>
       )}

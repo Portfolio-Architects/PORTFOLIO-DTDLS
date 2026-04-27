@@ -54,23 +54,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // API Requests (e.g. /api/dashboard-init) -> Stale-While-Revalidate
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(
-      caches.match(req).then((cachedRes) => {
-        const fetchPromise = fetch(req).then((networkRes) => {
-          const clone = networkRes.clone();
-          caches.open(DYNAMIC_CACHE_NAME).then((cache) => cache.put(req, clone));
-          return networkRes;
-        }).catch((err) => {
-          console.warn('Network fetch failed for SWR:', err);
-        });
-        // Return cached response immediately if available, otherwise wait for network
-        return cachedRes || fetchPromise;
-      })
-    );
-    return;
-  }
 
   // Default: Network First, Fallback to Cache
   event.respondWith(

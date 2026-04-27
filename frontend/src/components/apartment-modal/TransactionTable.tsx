@@ -218,10 +218,10 @@ export function TransactionTable({
             <div key={i} className={`flex items-center justify-between p-4 border-b border-body hover:bg-body transition-colors ${i >= displayedCount ? 'hidden md:flex' : 'flex'} ${isCancelled ? 'opacity-40' : ''}`}>
               
               {/* 좌측: 날짜 + 스펙 결합으로 시선 흐름 최적화 */}
-              <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0 pr-1">
+              <div className="flex items-center gap-3 md:gap-6 flex-1 min-w-0 pr-2">
                 {/* 1. 날짜 */}
-                <div className="flex flex-col w-[68px] md:w-[76px] shrink-0 text-left">
-                  <div className={`text-[13px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-tertiary line-through decoration-[#ef4444]' : 'text-[#6b7684]'}`}>
+                <div className="flex flex-col w-[74px] md:w-[84px] shrink-0 text-left">
+                  <div className={`text-[13px] md:text-[14px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-tertiary line-through decoration-[#ef4444]' : 'text-[#6b7684]'}`}>
                     {tx.contractYm.substring(2, 4)}. {m}. {d}.
                   </div>
                   {isCancelled && (
@@ -232,31 +232,19 @@ export function TransactionTable({
                 </div>
                 
                 {/* 2. 평형 (독립 칼럼 & 폰트 크기 확대) */}
-                <div className="w-[42px] md:w-[50px] shrink-0 flex justify-center">
+                <div className="w-[48px] md:w-[56px] shrink-0 flex justify-center">
                   <span className={`w-full text-center text-[13px] md:text-[14px] tracking-tight font-extrabold py-0.5 rounded bg-body ${isCancelled ? 'text-tertiary' : 'text-[#333d4b]'}`} title={typeLabel}>
                     {typeLabel}
                   </span>
                 </div>
 
                 {/* 3. 층수 (독립 칼럼 & 폰트 크기 확대) */}
-                <div className="w-[28px] md:w-[36px] shrink-0 text-right">
+                <div className="w-[36px] md:w-[48px] shrink-0 text-center">
                   <span className={`text-[13px] md:text-[14px] font-bold ${isCancelled ? 'text-[#c8ced4]' : 'text-tertiary'}`}>
                     {tx.floor}층
                   </span>
                 </div>
 
-                {/* 4. 거래 유형 배지 (전/월/직) - 열 정렬을 위해 좌측 영역에 배치 */}
-                <div className="w-[22px] md:w-[26px] shrink-0 flex justify-center ml-0.5 md:ml-1">
-                  {(tx.dealType === '전세' || tx.dealType === '월세' || tx.dealType === '직거래') && (
-                    <span className={`w-[20px] h-[20px] flex items-center justify-center text-[11px] font-extrabold rounded-md ${isCancelled ? 'opacity-50' : ''} ${
-                      tx.dealType === '전세' ? 'bg-[#e6f4ea] text-[#0d652d]' : 
-                      tx.dealType === '월세' ? 'bg-[#fef0e6] text-[#c2410c]' : 
-                      'bg-toss-blue-light text-[#1b64da]'
-                    }`}>
-                      {tx.dealType.charAt(0)}
-                    </span>
-                  )}
-                </div>
               </div>
 
               {/* 우측: 덴시티 최적화 가격 */}
@@ -269,6 +257,16 @@ export function TransactionTable({
                         시세 대비 이례적 편차
                       </div>
                     </div>
+                  )}
+
+                  {(tx.dealType === '전세' || tx.dealType === '월세' || tx.dealType === '직거래') && (
+                    <span className={`w-[20px] h-[20px] md:w-[22px] md:h-[22px] flex items-center justify-center text-[11px] font-extrabold rounded-md shrink-0 ${isCancelled ? 'opacity-50' : ''} ${
+                      tx.dealType === '전세' ? 'bg-[#e6f4ea] text-[#0d652d]' : 
+                      tx.dealType === '월세' ? 'bg-[#fef0e6] text-[#c2410c]' : 
+                      'bg-toss-blue-light text-[#1b64da]'
+                    }`}>
+                      {tx.dealType.charAt(0)}
+                    </span>
                   )}
                   
                   {/* 가격 위계 분리 (억 단위 강조, 만 단위 고정폭 정렬) */}

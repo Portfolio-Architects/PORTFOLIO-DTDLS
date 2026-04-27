@@ -3,7 +3,9 @@ import DashboardClient from '@/components/DashboardClient';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 
-export const revalidate = 300;
+import { redis } from '@/lib/redis';
+
+export const revalidate = 60;
 
 async function getInitialData() {
   const result: {
@@ -23,12 +25,26 @@ async function getInitialData() {
     ]);
 
   try {
-    if (adminDb) {
+    if (redis) {
+      const cachedCounts = await redis.hgetall('DTDLS:cache:favoriteCounts');
+      if (cachedCounts && Object.keys(cachedCounts).length > 0) {
+        result.favoriteCounts = cachedCounts as Record<string, number>;
+      } else if (adminDb) {
+        const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 5000);
+        snap.docs.forEach((doc) => {
+          const data = doc.data();
+          if (data.count > 0) result.favoriteCounts[data.aptName || doc.id] = data.count;
+        });
+      }
+    } else if (adminDb) {
       const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), 5000);
       snap.docs.forEach((doc) => {
         const data = doc.data();
         if (data.count > 0) result.favoriteCounts[data.aptName || doc.id] = data.count;
       });
+    }
+
+    if (adminDb) {
       const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 5000);
       if (metaDoc.exists) {
         result.apartmentMeta = (metaDoc.data() || {}) as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
@@ -40,7 +56,7 @@ async function getInitialData() {
 
   try {
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_TABS.TYPE_MAP)}`;
-    const res = await fetch(csvUrl, { next: { revalidate: 86400 } });
+    const res = await fetch(csvUrl, { next: { revalidate: 3600 } });
     if (res.ok) {
       const csvText = await res.text();
       const lines = csvText.split('\n').filter((l: string) => l.trim());
