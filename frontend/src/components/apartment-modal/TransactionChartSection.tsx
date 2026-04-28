@@ -239,12 +239,20 @@ export function TransactionChartSection({
         </div>
         
         <div className="flex w-full divide-x divide-[#e5e8eb] mb-5 bg-body py-3 rounded-xl border border-border overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
-          {[{label: '1개월 평균', val: momentum.m1}, {label: '3개월 평균', val: momentum.m3}, {label: '6개월 평균', val: momentum.m6}, {label: '1년 평균', val: momentum.y1}, {label: '3년 평균', val: momentum.y3}].map((item, idx) => (
-            <div key={item.label} className={`flex flex-col items-center px-3 sm:px-5 shrink-0 min-w-[76px] sm:min-w-[85px] flex-1 snap-center ${idx === 4 ? 'border-r-0' : ''}`}>
-              <span className="text-[10px] sm:text-[11px] font-bold text-tertiary mb-0.5 whitespace-nowrap">{item.label}</span>
-              <span className={`text-[13px] sm:text-[16px] font-bold sm:font-extrabold ${idx < 2 ? 'text-primary' : 'text-secondary'} whitespace-nowrap`}>{formatAvgPriceEok(item.val)}</span>
-            </div>
-          ))}
+          {[{label: '1개월 평균', val: momentum.m1}, {label: '3개월 평균', val: momentum.m3}, {label: '6개월 평균', val: momentum.m6}, {label: '1년 평균', val: momentum.y1}, {label: '3년 평균', val: momentum.y3}].map((item, idx) => {
+            const isTarget = item.label === '3개월 평균';
+            return (
+              <div key={item.label} className={`flex flex-col items-center px-3 sm:px-5 shrink-0 min-w-[76px] sm:min-w-[85px] flex-1 snap-center relative ${idx === 4 ? 'border-r-0' : ''}`}>
+                <span className={`text-[10px] sm:text-[11px] font-bold mb-0.5 whitespace-nowrap flex items-center gap-1 ${isTarget ? 'text-toss-blue' : 'text-tertiary'}`}>
+                  {isTarget && <div className="absolute -top-1 right-2 sm:right-4 w-1.5 h-1.5 bg-toss-blue rounded-full animate-pulse" />}
+                  {item.label}
+                </span>
+                <span className={`text-[13px] sm:text-[16px] font-bold sm:font-extrabold whitespace-nowrap ${isTarget ? 'text-primary text-[15px] sm:text-[22px] font-black tracking-tight' : (idx < 2 ? 'text-primary' : 'text-secondary')}`}>
+                  {formatAvgPriceEok(item.val)}
+                </span>
+              </div>
+            );
+          })}
         </div>
         
         <div className="h-[300px] relative">
