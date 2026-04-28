@@ -50,7 +50,7 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
 
     try {
       const lastPost = posts[posts.length - 1];
-      let q = query(
+      const q = query(
         collection(db, 'posts'),
         orderBy('createdAt', 'desc'),
         startAfter(new Date(lastPost.createdAt)), // assumes createdAt on lastPost is millis, Wait! We need firestore serverTimestamp. But since we use millis, lets fetch by orderBy createdAt instead.

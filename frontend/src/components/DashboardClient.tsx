@@ -26,7 +26,7 @@ import { ZONES } from '@/lib/zones';
 import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartments';
 
 interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }
-import { TX_SUMMARY, type AptTxSummary } from '@/lib/transaction-summary';
+import { type AptTxSummary } from '@/lib/transaction-summary';
 import { isSameApartment, normalizeAptName, findTxKey, getDisplayAptName, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
 import * as PurchaseRepo from '@/lib/repositories/purchase.repository';
 import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from 'react';
@@ -118,9 +118,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   useEffect(() => {
     setMounted(true);
     if (typeof window !== 'undefined') {
-      if (window.location.hash === '#recommend') {
-        setActiveTab('recommend');
-      } else if (window.location.hash === '#imjang') {
+      if (window.location.hash === '#imjang') {
         setActiveTab('imjang');
       }
 
@@ -168,7 +166,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
   useEffect(() => {
     if (typeof window !== 'undefined' && leftPanelRef.current) {
       const resizeObserver = new ResizeObserver(entries => {
-        for (let entry of entries) {
+        for (const entry of entries) {
           // Adjust for header elements inside the left panel (Trending + FilterBar = ~110px)
           const availableHeight = entry.contentRect.height;
           setListHeight(Math.max(400, availableHeight - 110));
@@ -471,6 +469,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                     itemSize={82}
                     width="100%"
                     overscanCount={5}
+                    // @ts-expect-error react-window types missing outerProps
                     outerProps={{ id: 'apartment-list-scroll' }}
                   >
                     {({ index, style }: { index: number; style: React.CSSProperties }) => {

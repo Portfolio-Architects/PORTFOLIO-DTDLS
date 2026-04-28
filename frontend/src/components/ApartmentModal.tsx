@@ -210,7 +210,7 @@ export function FieldReportModal({
           ctx.textAlign = 'right';
           ctx.textBaseline = 'bottom';
           
-          const uploaderName = currentImgData?.uploaderName;
+          const uploaderName = '';
           const watermarkText = uploaderName ? `D-VIEW x ${uploaderName}` : 'D-VIEW';
           
           const textMetrics = ctx.measureText(watermarkText);

@@ -155,7 +155,7 @@ export function useApartmentDetails(
     const raw = fullReportData || selectedReport;
     const fallback = Object.values(sheetApartments).flat().find(a => isSameApartment(a.name, raw.apartmentName, nameMapping)) as any;
     
-    let mergedMetrics = { ...fallback };
+    const mergedMetrics = { ...fallback };
     if (raw.metrics) {
       for (const [k, v] of Object.entries(raw.metrics)) {
         if (v !== undefined && v !== null && v !== '') {

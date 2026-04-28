@@ -215,7 +215,7 @@ export function TransactionTable({
           const isCancelled = !!(tx.cancelDate && /^\d{6,}$/.test(tx.cancelDate.trim()));
 
           return (
-            <div key={i} className={`flex items-center justify-between p-4 border-b border-body hover:bg-body transition-colors ${i >= displayedCount ? 'hidden md:flex' : 'flex'} ${isCancelled ? 'opacity-40' : ''}`}>
+            <div key={i} className={`flex items-center justify-between p-4 border-b border-body hover:bg-body transition-colors ${i >= displayedCount ? 'hidden' : 'flex'} ${isCancelled ? 'opacity-40' : ''}`}>
               
               {/* 좌측: 날짜 + 스펙 결합으로 시선 흐름 최적화 */}
               <div className="flex items-center gap-3 md:gap-6 flex-1 min-w-0 pr-2">
@@ -302,7 +302,7 @@ export function TransactionTable({
 
       {/* Expand/Collapse Button */}
       {displayedCount < filteredTransactions.length && (
-        <div className="md:hidden flex justify-center py-4 bg-surface border-t border-body">
+        <div className="flex justify-center py-4 bg-surface border-t border-body">
           <button
             onClick={() => setDisplayedCount(prev => prev + 10)}
             className="flex items-center justify-center gap-1.5 bg-primary text-surface py-2.5 px-6 rounded-full text-[13px] font-extrabold shadow-[0_4px_12px_rgba(0,0,0,0.15)] hover:bg-primary/90 transition-colors"

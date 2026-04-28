@@ -65,7 +65,7 @@ function calculateUtilityScoreV2(report: FieldReportData) {
     const m = report.metrics as import('@/lib/types/scoutingReport').ObjectiveMetrics & Record<string, unknown>;
     
     // 브랜드 파워 (Max 5점) - getBrandMultiplier 사용
-    let brandVal = m.brand || report.apartmentName || '';
+    const brandVal = m.brand || report.apartmentName || '';
     const mu = getBrandMultiplier(brandVal);
     // mu: 0.90 ~ 1.15. 1.09 이상이면 1군(5점), 1.05~1.08(3점), 1.02~1.04(1점), 이하 0점
     if (mu >= 1.09) { brandScore = 5; brandLabel = '1군 하이엔드/메이저'; }
@@ -118,10 +118,10 @@ function calculateUtilityScoreV2(report: FieldReportData) {
   }
   
   breakDown.specs = scaleScore + parkScore + yearScore + brandScore;
-  logs.push({ icon: Award, category: '브랜드 파워', score: brandScore, max: 5, label: brandLabel, isInfra: false });
-  logs.push({ icon: Users, category: '단지 규모 (세대수)', score: scaleScore, max: 10, label: scaleLabel, isInfra: false });
-  logs.push({ icon: Car, category: '주차 편의성 (세대당)', score: parkScore, max: 15, label: parkLabel, isInfra: false });
-  logs.push({ icon: Calendar, category: '건축 연식 (감가)', score: yearScore, max: 10, label: yearLabel, isInfra: false });
+  logs.push({ icon: Award, category: '브랜드 파워', score: brandScore, max: 0, label: brandLabel, isInfra: false });
+  logs.push({ icon: Users, category: '단지 규모 (세대수)', score: scaleScore, max: 0, label: scaleLabel, isInfra: false });
+  logs.push({ icon: Car, category: '주차 편의성 (세대당)', score: parkScore, max: 0, label: parkLabel, isInfra: false });
+  logs.push({ icon: Calendar, category: '건축 연식 (감가)', score: yearScore, max: 0, label: yearLabel, isInfra: false });
 
   // 2. 외부 인프라 (Max 60점)
   let subScore = 5, schScore = 3, storeScore = 4, parkDistScore = 5;
@@ -143,7 +143,7 @@ function calculateUtilityScoreV2(report: FieldReportData) {
     const indkScore = getSubScore(m.distanceToIndeokwon || 9999, 0.85); // 동인선 가중치
     const tramScore = getSubScore(m.distanceToTram || 9999, 0.6); // 트램 가중치
     
-    subScore = Math.round(Math.max(gtxScore, indkScore, tramScore));
+    subScore = Math.round(gtxScore + indkScore + tramScore);
     
     const distTexts = [];
     if (m.distanceToSubway && m.distanceToSubway < 2000) distTexts.push(`GTX ${m.distanceToSubway}m`);
@@ -180,10 +180,10 @@ function calculateUtilityScoreV2(report: FieldReportData) {
   }
   
   breakDown.infra = subScore + schScore + storeScore + parkDistScore;
-  logs.push({ icon: Train, category: '핵심 궤도교통 역세권', score: subScore, max: 60, label: subLabel, isInfra: true });
-  logs.push({ icon: GraduationCap, category: '통학 학군 (초등 중심)', score: schScore, max: 15, label: schLabel, isInfra: true });
-  logs.push({ icon: Store, category: '거점 상권/학원/앵커', score: storeScore, max: 15, label: storeLabel, isInfra: true });
-  logs.push({ icon: TreePine, category: '자연 환경 (호수/상징공원)', score: parkDistScore, max: 10, label: parkDistLabel, isInfra: true });
+  logs.push({ icon: Train, category: '핵심 궤도교통 역세권', score: subScore, max: 0, label: subLabel, isInfra: true });
+  logs.push({ icon: GraduationCap, category: '통학 학군 (초등 중심)', score: schScore, max: 0, label: schLabel, isInfra: true });
+  logs.push({ icon: Store, category: '거점 상권/학원/앵커', score: storeScore, max: 0, label: storeLabel, isInfra: true });
+  logs.push({ icon: TreePine, category: '자연 환경 (호수/상징공원)', score: parkDistScore, max: 0, label: parkDistLabel, isInfra: true });
 
   const rawScore = breakDown.specs + breakDown.infra;
   score = Math.max(55, rawScore);
@@ -829,7 +829,7 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
                     <div className="flex flex-col gap-1 w-full pt-0.5">
                       <div className="flex items-center justify-between">
                         <span className="text-[14px] font-bold text-primary">{log.category}</span>
-                        <span className="text-[14px] font-extrabold text-secondary">{log.score} <span className="text-[12px] text-tertiary font-medium">/ {log.max}</span></span>
+                        <span className="text-[14px] font-extrabold text-secondary">{log.score} <span className="text-[12px] text-tertiary font-medium">점</span></span>
                       </div>
                       <span className="text-[13px] text-secondary font-medium">{log.label}</span>
                     </div>

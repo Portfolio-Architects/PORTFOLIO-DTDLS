@@ -22,7 +22,7 @@ try {
   console.warn("Failed to initialize Upstash Ratelimit:", error);
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // 클라이언트 IP 추출 (Vercel 환경 지원 시 x-real-ip 최우선)
   const ip = request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || '127.0.0.1';
   

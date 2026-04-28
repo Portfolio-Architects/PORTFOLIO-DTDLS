@@ -72,13 +72,13 @@ export function getBrandMultiplier(brand: string | undefined): number {
 }
 
 
-function clamp(v: number, min = 0, max = 100): number {
-  return Math.max(min, Math.min(max, v));
+function clamp(v: number, min = 0): number {
+  return Math.max(min, v);
 }
 
 /**
  * 5대 핵심 영역 프리미엄 점수를 산출합니다.
- * 각 영역 0~100점, 종합점수 = 가중 평균.
+ * 각 영역, 종합점수 = 가중 평균.
  *
  * 가중치:
  *  🎓 학군        25%  — 초등거리·중등거리·학원밀집도
@@ -108,7 +108,7 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   // GTX/SRT(50%) + 인덕원선(25%) + 트램(25%)
   // 미입력 역은 해당 비중을 GTX에 합산
   // ─────────────────────────────────────────────
-  const gtxScore = clamp(100 - (metrics.distanceToSubway / 15));       // 0m=100, 1500m=0
+  const gtxScore = clamp(100 - (metrics.distanceToSubway / 15)) * 3;   // GTX 가중치 3배
   const indeokScore = metrics.distanceToIndeokwon != null
     ? clamp(100 - ((metrics.distanceToIndeokwon) / 20))                // 0m=100, 2000m=0
     : null;
