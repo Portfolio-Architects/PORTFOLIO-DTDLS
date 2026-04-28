@@ -244,10 +244,10 @@ export function TransactionChartSection({
             return (
               <div key={item.label} className={`flex flex-col items-center px-3 sm:px-5 shrink-0 min-w-[76px] sm:min-w-[85px] flex-1 snap-center relative ${idx === 4 ? 'border-r-0' : ''}`}>
                 <span className={`text-[10px] sm:text-[11px] font-bold mb-0.5 whitespace-nowrap flex items-center gap-1 ${isTarget ? 'text-toss-blue' : 'text-tertiary'}`}>
-                  {isTarget && <div className="absolute -top-1 right-2 sm:right-4 w-1.5 h-1.5 bg-toss-blue rounded-full animate-pulse" />}
+                  {isTarget && <div className="absolute top-1 right-2 sm:right-3 w-1 h-1 sm:w-1.5 sm:h-1.5 bg-toss-blue rounded-full animate-pulse" />}
                   {item.label}
                 </span>
-                <span className={`text-[13px] sm:text-[16px] font-bold sm:font-extrabold whitespace-nowrap ${isTarget ? 'text-primary text-[15px] sm:text-[22px] font-black tracking-tight' : (idx < 2 ? 'text-primary' : 'text-secondary')}`}>
+                <span className={`text-[13px] sm:text-[16px] whitespace-nowrap ${isTarget ? 'text-toss-blue font-black tracking-tight' : (idx < 2 ? 'text-primary font-bold sm:font-extrabold' : 'text-secondary font-bold sm:font-extrabold')}`}>
                   {formatAvgPriceEok(item.val)}
                 </span>
               </div>
