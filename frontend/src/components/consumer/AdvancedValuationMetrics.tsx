@@ -541,16 +541,17 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
                   </span>
                 </div>
                 {avg3MSale > 0 && (
-                  <div className={`mt-5 w-full max-w-[280px] mx-auto flex flex-col items-center p-4 rounded-2xl ${
-                    avg3MSale > dcf.impliedValue ? 'bg-toss-red/5 border border-toss-red/10' : 'bg-toss-blue/5 border border-toss-blue/10'
+                  <div className={`mt-5 w-full max-w-[280px] mx-auto flex flex-col items-center p-5 rounded-2xl shadow-sm ${
+                    avg3MSale > dcf.impliedValue ? 'bg-toss-red/5 border border-toss-red/20' : 'bg-toss-blue/5 border border-toss-blue/20'
                   }`}>
-                    <div className="text-[12px] font-bold text-tertiary mb-0.5">
-                      최근 3개월 실거래 평균
+                    <div className="flex items-center gap-1.5 text-[13px] font-bold text-tertiary mb-1">
+                      <Target size={14} className={avg3MSale > dcf.impliedValue ? 'text-toss-red' : 'text-toss-blue'} />
+                      기준가 (3개월 평균)
                     </div>
-                    <div className="text-[22px] font-extrabold text-primary mb-2.5">
+                    <div className="text-[32px] font-black text-primary mb-3 tracking-tighter">
                       {formatPrice(avg3MSale)}
                     </div>
-                    <div className={`px-3 py-1.5 rounded-lg text-[12px] font-bold ${
+                    <div className={`px-3.5 py-1.5 rounded-lg text-[13px] font-bold shadow-sm ${
                       avg3MSale > dcf.impliedValue ? 'bg-toss-red/10 text-toss-red' : 'bg-toss-blue/10 text-toss-blue'
                     }`}>
                       적정가 대비 {formatPrice(Math.abs(avg3MSale - dcf.impliedValue))} {avg3MSale > dcf.impliedValue ? '고평가' : '저평가'}
