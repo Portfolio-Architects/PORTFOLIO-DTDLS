@@ -9,22 +9,13 @@
  */
 
 require('dotenv').config({ path: '.env.local' });
-const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, doc, writeBatch, query, orderBy, limit, getDocs, where } = require('firebase/firestore');
+const admin = require('firebase-admin');
+const fs = require('fs');
+const path = require('path');
 
 const API_KEY = process.env.BUILDING_API_KEY || '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
 const LAWD_CD = '41597'; // 동탄구
 const API_BASE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent';
-
-// Firebase config (public)
-const firebaseConfig = {
-  apiKey: "AIzaSyBv05nu9B8iVqDr68y8itgsDzg31aAuyf8",
-  authDomain: "portfolio-dtdls.firebaseapp.com",
-  projectId: "portfolio-dtdls",
-  storageBucket: "portfolio-dtdls.firebasestorage.app",
-  messagingSenderId: "294879479843",
-  appId: "1:294879479843:web:721124e99a10cdc9d04996",
-};
 
 const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동'];
 
@@ -35,9 +26,12 @@ async function main() {
   }
 
   console.log('📡 국토부 전월세 API에서 데이터 수집 중...');
-  const app = initializeApp(firebaseConfig, 'fetch-rent');
-  const db = getFirestore(app);
-  const collRef = collection(db, 'transactions');
+
+  const serviceAccountPath = path.resolve(__dirname, '../serviceAccountKey.json');
+  const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+  if (!admin.apps.length) admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+  const db = admin.firestore();
+  const collRef = db.collection('transactions');
 
   // 1. 최신 전월세 데이터 연월 대신 고정 6개월치 스캔 (인덱스 에러 회피)
   const now = new Date();
@@ -78,6 +72,12 @@ async function main() {
             break;
           }
           text = await res.text();
+          if (text.trim().startsWith('<')) {
+            console.error(`   ⚠️ API 응답이 XML 형식입니다 (예상 JSON): ${text.slice(0, 50)}...`);
+            text = { response: { header: { resultCode: '99', resultMsg: 'XML 응답이 반환됨' } } };
+          } else {
+            text = JSON.parse(text);
+          }
           clearTimeout(timeoutId);
           success = true;
           break;
@@ -93,45 +93,36 @@ async function main() {
         break;
       }
 
-      // 에러 응답 체크
-      const errMatch = text.match(/<returnAuthMsg>(.*?)<\/returnAuthMsg>/);
-      if (errMatch && !text.includes('<item>')) {
-        console.error(`   ❌ API 에러: ${errMatch[1]} (아직 인증키가 동기화되지 않았을 수 있습니다.)`);
+      // 에러 응답 체크 (JSON 지원)
+      if (text.response?.header?.resultCode !== '000' && text.response?.header?.resultCode !== '00') {
+        const errMsg = text.response?.header?.resultMsg || JSON.stringify(text);
+        console.error(`   ❌ API 에러: ${errMsg} (아직 인증키가 동기화되지 않았을 수 있습니다.)`);
         break;
       }
 
-      // XML 파싱 (정규식 활용)
-      const totalMatch = text.match(/<totalCount>(\d+)<\/totalCount>/);
-      totalCount = totalMatch ? parseInt(totalMatch[1], 10) : 0;
+      totalCount = text.response?.body?.totalCount || 0;
       if (totalCount === 0) break;
 
-      const items = text.match(/<item>([\s\S]*?)<\/item>/g) || [];
+      let items = text.response?.body?.items?.item || [];
+      if (!Array.isArray(items)) items = [items];
 
-      for (const itemXml of items) {
-        const tagMap = new Map();
-        const tagRegex = /<(\w+)>([\s\S]*?)<\/\1>/g;
-        let tagMatch;
-        while ((tagMatch = tagRegex.exec(itemXml)) !== null) {
-          tagMap.set(tagMatch[1], tagMatch[2].trim());
-        }
-        const get = (tag) => tagMap.get(tag) || '';
-
-        const dong = get('umdNm');
+      for (const item of items) {
+        const dong = item.umdNm || '';
         
         // 동탄 지역 필터링
         if (!DONGTAN_DONGS.some(d => dong.includes(d))) continue;
 
-        const aptName = get('aptNm');
-        const depositStr = get('deposit').replace(/,/g, '').trim();
-        const monthlyRentStr = get('monthlyRent') ? get('monthlyRent').replace(/,/g, '').trim() : '0';
+        const aptName = item.aptNm || '';
+        const depositStr = String(item.deposit || '0').replace(/,/g, '').trim();
+        const monthlyRentStr = String(item.monthlyRent || '0').replace(/,/g, '').trim();
         
         const deposit = parseInt(depositStr, 10) || 0;
         const monthlyRent = parseInt(monthlyRentStr, 10) || 0;
         const dealType = monthlyRent > 0 ? '월세' : '전세';
 
-        const area = parseFloat(get('excluUseAr')) || 0;
-        const contractDay = get('dealDay').padStart(2, '0');
-        const floor = parseInt(get('floor'), 10) || 0;
+        const area = parseFloat(item.excluUseAr) || 0;
+        const contractDay = String(item.dealDay || '').padStart(2, '0');
+        const floor = parseInt(item.floor || '0', 10) || 0;
 
         monthRecords.push({
           sigungu: `경기도 화성시 동탄구 ${dong}`,
@@ -146,27 +137,28 @@ async function main() {
           deposit: deposit,
           monthlyRent: monthlyRent,
           floor,
-          buildYear: parseInt(get('buildYear'), 10) || 0,
+          buildYear: parseInt(item.buildYear, 10) || 0,
           dealType: dealType,
           source: 'govt_api_rent',
-          reqGb: get('contractType'),
-          rnuYn: get('useRRRight'),
+          reqGb: item.contractType || '',
+          rnuYn: item.useRRRight || '',
           _key: `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${floor}`,
         });
       }
 
+      if (items.length === 0) break; // 무한 루프 방지
       page++;
-    } while (monthRecords.length < totalCount);
+    } while (page * 1000 <= totalCount + 1000); // numOfRows 기준 안전한 루프 탈출
 
     // 4. Firestore에 배치 쓰기
     if (monthRecords.length > 0) {
       const BATCH_SIZE = 500;
       let written = 0;
       for (let i = 0; i < monthRecords.length; i += BATCH_SIZE) {
-        const batch = writeBatch(db);
+        const batch = db.batch();
         const slice = monthRecords.slice(i, i + BATCH_SIZE);
         for (const r of slice) {
-          batch.set(doc(collRef, r._key), r, { merge: true });
+          batch.set(collRef.doc(r._key), r, { merge: true });
         }
         await batch.commit();
         written += slice.length;
