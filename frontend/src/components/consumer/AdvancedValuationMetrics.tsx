@@ -65,21 +65,22 @@ function calculateUtilityScoreV2(report: FieldReportData) {
       breakDown: { specs: 0, infra: 0 },
       logs: [],
       rawScore: 0,
-      isCapped: false
+      isCapped: false,
+      maxTotal: 150
     };
   }
 
-  const logs: { icon: React.ElementType; category: string; score: number; max: number; label: string; isInfra: boolean; }[] = [
-    { icon: Award, category: '브랜드 파워', score: d.brand.score, max: d.brand.max, label: d.brand.label, isInfra: false },
-    { icon: Users, category: '단지 규모 (세대수)', score: d.scale.score, max: d.scale.max, label: d.scale.label, isInfra: false },
-    { icon: Car, category: '주차 편의성 (세대당)', score: d.parking.score, max: d.parking.max, label: d.parking.label, isInfra: false },
-    { icon: Calendar, category: '건축 연식 (감가)', score: d.year.score, max: d.year.max, label: d.year.label, isInfra: false },
-    { icon: Train, category: 'GTX/SRT 역세권', score: d.gtx.score, max: d.gtx.max, label: d.gtx.label, isInfra: true },
-    { icon: Train, category: '동인선 역세권', score: d.indeokwon.score, max: d.indeokwon.max, label: d.indeokwon.label, isInfra: true },
-    { icon: Train, category: '동탄트램 역세권', score: d.tram.score, max: d.tram.max, label: d.tram.label, isInfra: true },
-    { icon: GraduationCap, category: '통학 학군 (초등 중심)', score: d.school.score, max: d.school.max, label: d.school.label, isInfra: true },
-    { icon: Store, category: '거점 상권/학원/앵커', score: d.store.score, max: d.store.max, label: d.store.label, isInfra: true },
-    { icon: TreePine, category: '자연 환경 (호수/상징공원)', score: d.parkDist.score, max: d.parkDist.max, label: d.parkDist.label, isInfra: true },
+  const logs: { icon: React.ElementType; category: string; score: number; max: number; label: string; isInfra: boolean; data?: string; }[] = [
+    { icon: Award, category: '브랜드 파워', score: d.brand.score, max: d.brand.max, label: d.brand.label, isInfra: false, data: d.brand.data },
+    { icon: Users, category: '단지 규모 (세대수)', score: d.scale.score, max: d.scale.max, label: d.scale.label, isInfra: false, data: d.scale.data },
+    { icon: Car, category: '주차 편의성 (세대당)', score: d.parking.score, max: d.parking.max, label: d.parking.label, isInfra: false, data: d.parking.data },
+    { icon: Calendar, category: '건축 연식 (감가)', score: d.year.score, max: d.year.max, label: d.year.label, isInfra: false, data: d.year.data },
+    { icon: Train, category: 'GTX/SRT 역세권', score: d.gtx.score, max: d.gtx.max, label: d.gtx.label, isInfra: true, data: d.gtx.data },
+    { icon: Train, category: '동인선 역세권', score: d.indeokwon.score, max: d.indeokwon.max, label: d.indeokwon.label, isInfra: true, data: d.indeokwon.data },
+    { icon: Train, category: '동탄트램 역세권', score: d.tram.score, max: d.tram.max, label: d.tram.label, isInfra: true, data: d.tram.data },
+    { icon: GraduationCap, category: '통학 학군 (초등 중심)', score: d.school.score, max: d.school.max, label: d.school.label, isInfra: true, data: d.school.data },
+    { icon: Store, category: '거점 상권/학원/앵커', score: d.store.score, max: d.store.max, label: d.store.label, isInfra: true, data: d.store.data },
+    { icon: TreePine, category: '자연 환경 (호수/상징공원)', score: d.parkDist.score, max: d.parkDist.max, label: d.parkDist.label, isInfra: true, data: d.parkDist.data },
   ];
 
   const breakDown = {
@@ -87,7 +88,9 @@ function calculateUtilityScoreV2(report: FieldReportData) {
     infra: d.gtx.score + d.indeokwon.score + d.tram.score + d.school.score + d.store.score + d.parkDist.score
   };
 
-  return { total: premium.totalScore, breakDown, logs, rawScore: premium.totalScore, isCapped: false };
+  const maxTotal = logs.reduce((sum, log) => sum + log.max, 0);
+
+  return { total: premium.totalScore, breakDown, logs, rawScore: premium.totalScore, isCapped: false, maxTotal };
 }
 
 export default function AdvancedValuationMetrics({ report, transactions }: Props) {
@@ -707,7 +710,7 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
           onClick={() => setIsScoreModalOpen(false)}
         >
           <div 
-            className="bg-surface w-full sm:w-[480px] max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-6 pb-8 shadow-2xl animate-in slide-in-from-bottom-4 duration-200"
+            className="bg-surface w-full sm:w-[560px] max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-6 pb-8 shadow-2xl animate-in slide-in-from-bottom-4 duration-200"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
@@ -725,7 +728,7 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
             <div className="bg-body rounded-2xl p-5 border border-border mb-6">
               <div className="flex items-end gap-2 mb-2">
                 <span className="text-[32px] font-extrabold text-primary leading-none">{utilityScoreResult.total}</span>
-                <span className="text-[14px] text-tertiary font-bold mb-1">점</span>
+                <span className="text-[14px] text-tertiary font-bold mb-1">/ {utilityScoreResult.maxTotal}점</span>
               </div>
               <p className="text-[13px] text-secondary leading-relaxed font-medium">
                 {utilityScoreResult.total >= 70 ? '뛰어난 상품성과 인프라를 갖춰 평균(2.0%)보다 높은 성장률 프리미엄이 부여됩니다.' : 
@@ -745,9 +748,17 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
                     <div className="flex flex-col gap-1 w-full pt-0.5">
                       <div className="flex items-center justify-between">
                         <span className="text-[14px] font-bold text-primary">{log.category}</span>
-                        <span className="text-[14px] font-extrabold text-secondary">{log.score} <span className="text-[12px] text-tertiary font-medium">점</span></span>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-[14px] font-extrabold text-secondary">{log.score}</span>
+                          <span className="text-[11px] text-tertiary font-medium">/ {log.max}점</span>
+                        </div>
                       </div>
                       <span className="text-[13px] text-secondary font-medium">{log.label}</span>
+                      {log.data && (
+                        <span className="text-[12px] text-toss-blue font-semibold mt-1 px-2.5 py-1 bg-toss-blue/5 rounded border border-toss-blue/10 w-fit">
+                          실데이터: {log.data}
+                        </span>
+                      )}
                     </div>
                   </div>
                 );

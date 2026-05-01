@@ -63,6 +63,7 @@ export function FieldReportModal({
   onPurchaseComplete,
   inline,
   areaUnit = 'm2',
+  setAreaUnit,
   txSummary
 }: { 
   report: FieldReportData;
@@ -80,6 +81,7 @@ export function FieldReportModal({
   onPurchaseComplete?: () => void;
   inline?: boolean;
   areaUnit?: 'm2' | 'pyeong';
+  setAreaUnit?: (unit: 'm2' | 'pyeong') => void;
   txSummary?: any;
 }) {
   useSwipeNavigation({ onBack: onClose });
@@ -348,6 +350,7 @@ export function FieldReportModal({
               dong={report.dong || ''} 
               typeMap={typeMap} 
               areaUnit={areaUnit || 'm2'} 
+              setAreaUnit={setAreaUnit}
               normalizeAptName={normalizeAptName} 
               txSummary={txSummary}
             />

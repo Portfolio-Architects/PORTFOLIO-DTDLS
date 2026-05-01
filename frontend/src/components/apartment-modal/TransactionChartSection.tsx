@@ -21,6 +21,7 @@ interface TransactionChartSectionProps {
   dong: string;
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   areaUnit: 'm2' | 'pyeong';
+  setAreaUnit?: (unit: 'm2' | 'pyeong') => void;
   normalizeAptName: (name: string) => string;
   txSummary?: any;
 }
@@ -33,6 +34,7 @@ export function TransactionChartSection({
   dong,
   typeMap,
   areaUnit,
+  setAreaUnit,
   normalizeAptName,
   txSummary
 }: TransactionChartSectionProps) {
@@ -57,9 +59,17 @@ export function TransactionChartSection({
           <div className="flex items-center gap-2">
             <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full">{dong || '동탄'}</span>
           </div>
-          <div className="bg-body p-0.5 rounded-xl flex items-center shadow-inner">
-            <button onClick={() => setChartType('sale')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>매매</button>
-            <button onClick={() => setChartType('jeonse')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
+          <div className="flex items-center gap-2">
+            {setAreaUnit && (
+              <div className="bg-body p-0.5 rounded-xl hidden md:flex items-center shadow-inner">
+                <button onClick={() => setAreaUnit('m2')} className={`px-3 py-1 rounded-lg text-[13px] font-bold transition-all ${areaUnit === 'm2' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>m²</button>
+                <button onClick={() => setAreaUnit('pyeong')} className={`px-3 py-1 rounded-lg text-[13px] font-bold transition-all ${areaUnit === 'pyeong' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>평</button>
+              </div>
+            )}
+            <div className="bg-body p-0.5 rounded-xl flex items-center shadow-inner">
+              <button onClick={() => setChartType('sale')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>매매</button>
+              <button onClick={() => setChartType('jeonse')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
+            </div>
           </div>
         </div>
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-primary flex items-center gap-2 w-full min-w-0">
@@ -174,9 +184,17 @@ export function TransactionChartSection({
         <div className="flex items-center gap-2">
           <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full">{dong || '동탄'}</span>
         </div>
-        <div className="bg-body p-0.5 rounded-xl flex items-center shadow-inner">
-          <button onClick={() => setChartType('sale')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>매매</button>
-          <button onClick={() => setChartType('jeonse')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
+        <div className="flex items-center gap-2">
+          {setAreaUnit && (
+            <div className="bg-body p-0.5 rounded-xl hidden md:flex items-center shadow-inner">
+              <button onClick={() => setAreaUnit('m2')} className={`px-3 py-1 rounded-lg text-[13px] font-bold transition-all ${areaUnit === 'm2' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>m²</button>
+              <button onClick={() => setAreaUnit('pyeong')} className={`px-3 py-1 rounded-lg text-[13px] font-bold transition-all ${areaUnit === 'pyeong' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>평</button>
+            </div>
+          )}
+          <div className="bg-body p-0.5 rounded-xl flex items-center shadow-inner">
+            <button onClick={() => setChartType('sale')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'sale' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>매매</button>
+            <button onClick={() => setChartType('jeonse')} className={`px-4 py-1 rounded-lg text-[13px] font-bold transition-all ${chartType === 'jeonse' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
+          </div>
         </div>
       </div>
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2 text-primary flex items-center gap-2 w-full min-w-0">

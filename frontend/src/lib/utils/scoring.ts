@@ -1,4 +1,13 @@
 import { ObjectiveMetrics } from '../types/scoutingReport';
+import { parseCoordString, findNearest } from './haversine';
+
+const MAJOR_PARKS = [
+  { name: '동탄호수공원', lat: 37.1683, lng: 127.1068 },
+  { name: '여울공원', lat: 37.2001, lng: 127.0863 },
+  { name: '센트럴파크', lat: 37.2045, lng: 127.0631 },
+  { name: '청계중앙공원', lat: 37.1956, lng: 127.1122 },
+  { name: '선납숲공원', lat: 37.2104, lng: 127.1198 },
+];
 
 export interface PremiumScores {
   education: number;      // 🎓 학군 (0-100)
@@ -21,6 +30,7 @@ export interface ScoreDetail {
   score: number;
   max: number;
   label: string;
+  data?: string;
 }
 
 export interface ScoreBreakdown {
@@ -179,6 +189,15 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   if ((metrics.distanceToPark || 9999) <= 300) parkDistLabel = '300m 이내 공세권/호품아';
   else if ((metrics.distanceToPark || 9999) <= 600) parkDistLabel = '600m 이내 쾌적한 도보 접근';
 
+  let nearestParkStr = '주요 공원';
+  if (metrics.coordinates) {
+    const origin = parseCoordString(metrics.coordinates);
+    if (origin) {
+      const nearestPark = findNearest(origin, MAJOR_PARKS);
+      if (nearestPark) nearestParkStr = nearestPark.name;
+    }
+  }
+
   const livingComfort = parkScore + parkDistScore;
 
   // 4. 🏢 단지 경쟁력 (Max 15)
@@ -236,16 +255,16 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
     eduTimePremium: education, stressFreeParking: livingComfort, commuteFrictional: transport,
     megaScaleLiquidity: complex, totalPremiumScore: totalScore,
     details: {
-      gtx: { score: gtxScore, max: 75, label: getDistLabel(metrics.distanceToSubway, 'GTX/SRT') },
-      indeokwon: { score: indkScore, max: 6, label: getDistLabel(metrics.distanceToIndeokwon, '동인선') },
-      tram: { score: tramScore, max: 4, label: getDistLabel(metrics.distanceToTram, '동탄트램') },
-      school: { score: schScore, max: 15, label: schLabel },
-      store: { score: storeScore, max: 15, label: storeLabel },
-      parkDist: { score: parkDistScore, max: 8, label: parkDistLabel },
-      brand: { score: brandScore, max: 4, label: brandLabel },
-      scale: { score: scaleScore, max: 6, label: scaleLabel },
-      parking: { score: parkScore, max: 12, label: parkLabel },
-      year: { score: yearScore, max: 5, label: yearLabel }
+      gtx: { score: gtxScore, max: 75, label: getDistLabel(metrics.distanceToSubway, 'GTX/SRT'), data: metrics.distanceToSubway ? `실거리 ${metrics.distanceToSubway}m` : undefined },
+      indeokwon: { score: indkScore, max: 6, label: getDistLabel(metrics.distanceToIndeokwon, '동인선'), data: metrics.distanceToIndeokwon ? `실거리 ${metrics.distanceToIndeokwon}m` : undefined },
+      tram: { score: tramScore, max: 4, label: getDistLabel(metrics.distanceToTram, '동탄트램'), data: metrics.distanceToTram ? `실거리 ${metrics.distanceToTram}m` : undefined },
+      school: { score: schScore, max: 15, label: schLabel, data: `초등 ${metrics.distanceToElementary || '-'}m, 중등 ${metrics.distanceToMiddle || '-'}m` },
+      store: { score: storeScore, max: 15, label: storeLabel, data: `상가 ${stores}곳 (스타벅스 ${metrics.distanceToStarbucks ? metrics.distanceToStarbucks+'m' : '없음'})` },
+      parkDist: { score: parkDistScore, max: 8, label: parkDistLabel, data: metrics.distanceToPark ? `${nearestParkStr}까지 ${metrics.distanceToPark}m` : undefined },
+      brand: { score: brandScore, max: 4, label: brandLabel, data: brandVal ? `적용 브랜드: ${brandVal}` : undefined },
+      scale: { score: scaleScore, max: 6, label: scaleLabel, data: metrics.householdCount ? `총 ${metrics.householdCount.toLocaleString()}세대` : undefined },
+      parking: { score: parkScore, max: 12, label: parkLabel, data: metrics.parkingPerHousehold ? `세대당 ${metrics.parkingPerHousehold.toFixed(2)}대` : undefined },
+      year: { score: yearScore, max: 5, label: yearLabel, data: metrics.yearBuilt ? `${metrics.yearBuilt}년 준공 (${age}년차)` : undefined }
     }
   };
 }

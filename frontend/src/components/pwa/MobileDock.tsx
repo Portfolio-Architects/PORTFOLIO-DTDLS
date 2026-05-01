@@ -4,10 +4,10 @@ import { Compass, MessageSquare, Home } from 'lucide-react';
 import Link from 'next/link';
 
 interface MobileDockProps {
-  activeTab: 'imjang' | 'lounge';
+  activeTab: 'imjang' | 'lounge' | 'discover';
   areaUnit?: 'm2' | 'pyeong';
   setAreaUnit?: (unit: 'm2' | 'pyeong') => void;
-  onTabClick?: (tab: 'imjang') => void;
+  onTabClick?: (tab: 'imjang' | 'discover') => void;
 }
 
 export default function MobileDock({ activeTab, areaUnit = 'm2', setAreaUnit, onTabClick }: MobileDockProps) {
@@ -17,6 +17,7 @@ export default function MobileDock({ activeTab, areaUnit = 'm2', setAreaUnit, on
       <div className="flex items-center justify-between flex-1 gap-1">
         {[
           { id: 'imjang' as const, label: '아파트 탐색', icon: Home, href: '/' },
+          { id: 'discover' as const, label: '골라보기', icon: Compass, href: '#discover' },
           { id: 'lounge' as const, label: '커뮤니티', icon: MessageSquare, href: '/lounge' },
         ].map(tab => {
           const isActive = activeTab === tab.id;

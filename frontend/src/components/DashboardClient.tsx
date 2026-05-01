@@ -21,6 +21,7 @@ import PullToRefresh from '@/components/pwa/PullToRefresh';
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').then(m => ({ default: m.FieldReportModal })), { ssr: false });
 const WriteReviewModal = dynamic(() => import('@/components/WriteReviewModal'), { ssr: false });
 const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal'), { ssr: false });
+const ApartmentDiscoveryClient = dynamic(() => import('@/components/ApartmentDiscoveryClient'), { ssr: false });
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
 import { ZONES } from '@/lib/zones';
 import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartments';
@@ -101,7 +102,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
   const { triggerCustomA2HSModal } = usePWA();
 
-  const [activeTab, setActiveTab] = useState<'imjang' | 'lounge'>('imjang');
+  const [activeTab, setActiveTab] = useState<'imjang' | 'lounge' | 'discover'>('imjang');
   const [isPending, startTransition] = useTransition();
 
   const fieldReportsMap = useMemo(() => {
@@ -127,6 +128,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       const handleHashChange = () => {
         startTransition(() => {
           if (window.location.hash === '#lounge') setActiveTab('lounge');
+          else if (window.location.hash === '#discover') setActiveTab('discover');
           else if (window.location.hash === '#imjang' || window.location.hash === '') setActiveTab('imjang');
         });
       };
@@ -376,6 +378,18 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 <span>아파트 탐색</span>
               </button>
               
+              <button
+                onClick={() => startTransition(() => { setActiveTab('discover'); window.location.hash = 'discover'; })}
+                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                  activeTab === 'discover'
+                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
+                    : 'text-tertiary hover:text-secondary hover:bg-black/5'
+                }`}
+              >
+                <Compass size={16} className={activeTab === 'discover' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                <span>골라보기</span>
+              </button>
+
               <Link
                 href="/lounge"
                 className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5`}
@@ -544,6 +558,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                       transactions={modalTransactions}
                       typeMap={typeMap}
                       areaUnit={areaUnit}
+                      setAreaUnit={setAreaUnit}
                       isLoadingDetail={isLoadingDetail}
                       isPurchased={purchasedReportIds.includes(resolvedReport.id)}
                       isAdmin={dashboardFacade.isAdmin(user?.email)}
@@ -621,6 +636,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               user={user}
               transactions={modalTransactions}
               typeMap={typeMap}
+              areaUnit={areaUnit}
+              setAreaUnit={setAreaUnit}
               isLoadingDetail={isLoadingDetail}
               isPurchased={purchasedReportIds.includes(resolvedReport.id)}
               isAdmin={dashboardFacade.isAdmin(user?.email)}
@@ -636,7 +653,24 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
         {/* ═══ TAB 2: 라운지 제거됨 (별도 페이지로 이동) ═══ */}
 
-        {/* ═══ TAB 3: 아파트 추천 (Toss-Style Discovery) 제거됨 ═══ */}
+        {/* ═══ TAB 3: 아파트 추천 (Toss-Style Discovery) ═══ */}
+        {mounted && activeTab === 'discover' && (
+          <section className="h-full">
+            <ApartmentDiscoveryClient
+              sheetApartments={sheetApartments}
+              fieldReports={fieldReports}
+              userFavorites={userFavorites}
+              nameMapping={nameMapping || {}}
+              publicRentalSet={publicRentalSet}
+              txSummaryData={txSummaryData}
+              favoriteCounts={favoriteCounts}
+              onToggleFavorite={(name) => handleToggleFavorite(name, handleLogin)}
+              onSelectReport={setSelectedReport as any}
+              typeMap={typeMap}
+              areaUnit={areaUnit}
+            />
+          </section>
+        )}
         
         <Footer />
       </main>
