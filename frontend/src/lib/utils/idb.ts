@@ -7,7 +7,7 @@ const STORE_NAME = 'sync-queue';
 export interface OfflineMutation {
   id: string; // Unique ID (e.g., timestamp + random)
   type: 'ADD_COMMENT' | 'TOGGLE_FAVORITE';
-  payload: any;
+  payload: unknown;
   timestamp: number;
 }
 

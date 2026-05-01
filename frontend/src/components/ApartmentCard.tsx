@@ -100,11 +100,7 @@ export default function ApartmentCard({ apt, txSummary, report, isPublicRental, 
         <div className="flex items-center gap-1.5 mt-1.5 overflow-x-auto hide-scrollbar">
           <span className="text-[11px] font-medium text-tertiary shrink-0">{apt.dong}</span>
           
-          {hasAnalysis && (
-            <span className="inline-flex items-center gap-0.5 bg-body text-secondary text-[11px] font-bold px-2 py-[2px] rounded shrink-0 leading-tight">
-              가치평가
-            </span>
-          )}
+
           {hasPhotos && (
             <span className="inline-flex items-center gap-0.5 bg-[#fff4e6] text-[#ff8a3d] text-[11px] font-bold px-1.5 py-[2px] rounded shrink-0 leading-tight">
               사진 {photoCount}

@@ -52,6 +52,7 @@ jobs:
         env:
           BUILDING_API_KEY: ${{ secrets.BUILDING_API_KEY }}
           PROXY_URL: ${{ secrets.PROXY_URL }}
+          FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
 
       # Step 2: Firestore → Static files (transaction-summary.ts + tx-data/*.json)
       - name: Generate static transaction files

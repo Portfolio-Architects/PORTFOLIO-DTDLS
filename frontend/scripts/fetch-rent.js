@@ -28,8 +28,36 @@ async function main() {
   console.log('📡 국토부 전월세 API에서 데이터 수집 중...');
 
   const serviceAccountPath = path.resolve(__dirname, '../serviceAccountKey.json');
-  const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-  if (!admin.apps.length) admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+  let serviceAccount;
+
+  const envKey = process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY || process.env.GOOGLE_PRIVATE_KEY;
+  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'portfolio-dtdls';
+
+  if (fs.existsSync(serviceAccountPath)) {
+    serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+  } else if (envKey) {
+    try {
+      serviceAccount = JSON.parse(envKey);
+    } catch (e) {
+      console.error('❌ FIREBASE_SERVICE_ACCOUNT 환경 변수 파싱 실패', e);
+    }
+  } else if (privateKey && clientEmail) {
+    serviceAccount = {
+      projectId,
+      clientEmail,
+      privateKey: privateKey.replace(/^"|"$/g, '').replace(/\\n/g, '\n'),
+    };
+  } else {
+    console.warn('⚠️ 인증 정보를 찾을 수 없습니다. (CI/CD 환경 등)');
+    console.warn('   기본 자격 증명(Default Credentials)으로 초기화를 시도합니다.');
+  }
+
+  if (!admin.apps.length) {
+    const config = serviceAccount ? { credential: admin.credential.cert(serviceAccount) } : { projectId };
+    admin.initializeApp(config);
+  }
   const db = admin.firestore();
   const collRef = db.collection('transactions');
 

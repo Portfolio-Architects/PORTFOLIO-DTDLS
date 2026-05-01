@@ -66,6 +66,8 @@ export async function generateMetadata(props: { params: Promise<{ aptName: strin
   };
 }
 
+import { createInitialKPIs } from '@/lib/services/kpi.service';
+
 export const dynamic = 'force-dynamic';
 
 async function getInitialData() {
@@ -73,10 +75,14 @@ async function getInitialData() {
     favoriteCounts: Record<string, number>;
     typeMap: { aptName: string; area: string; typeM2: string; typePyeong: string }[];
     apartmentMeta: Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
+    fieldReports?: any[];
+    kpis?: any[];
   } = {
     favoriteCounts: {},
     typeMap: [],
     apartmentMeta: {},
+    fieldReports: [],
+    kpis: createInitialKPIs(),
   };
 
   const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> =>
@@ -93,7 +99,51 @@ async function getInitialData() {
         if (data.count > 0) result.favoriteCounts[data.aptName || doc.id] = data.count;
       });
       const metaDoc = await withTimeout(adminDb.doc('settings/apartmentMeta').get(), 3000);
-      if (metaDoc.exists) result.apartmentMeta = (metaDoc.data() || {}) as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
+      if (metaDoc.exists) {
+        result.apartmentMeta = (metaDoc.data() || {}) as Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
+      }
+
+      try {
+        const snap = await withTimeout(adminDb.collection('scoutingReports').orderBy('createdAt', 'desc').limit(30).get(), 5000);
+        result.fieldReports = snap.docs.map(doc => {
+          const data = doc.data();
+          let createdAtStr = '방금 전';
+          let rawTimestamp = 0;
+          if (data.createdAt) {
+            if (typeof data.createdAt.toDate === 'function') {
+              const d = data.createdAt.toDate();
+              createdAtStr = d.toLocaleDateString('ko-KR');
+              rawTimestamp = d.getTime();
+            } else if (data.createdAt.seconds) {
+              const d = new Date(data.createdAt.seconds * 1000);
+              createdAtStr = d.toLocaleDateString('ko-KR');
+              rawTimestamp = d.getTime();
+            }
+          }
+          return {
+            id: doc.id,
+            dong: data.dong || '오산동 (동탄역)',
+            apartmentName: data.apartmentName,
+            premiumScores: data.premiumScores,
+            premiumContent: data.premiumContent,
+            pros: data.premiumContent || '포장 싹 뺀 진짜 동네 아파트 리뷰',
+            cons: '',
+            rating: 5,
+            author: '데이터 랩스',
+            likes: data.likes || 0,
+            viewCount: data.viewCount || 0,
+            commentCount: data.commentCount || 0,
+            imageUrl: data.thumbnailUrl || data.imageUrl,
+            images: data.images || [],
+            metrics: data.metrics,
+            scoutingDate: data.scoutingDate || '',
+            createdAt: createdAtStr,
+            _rawTimestamp: rawTimestamp
+          };
+        });
+      } catch (e) {
+        console.warn('[Server] fieldReports fetch error:', e);
+      }
     }
   } catch (e) {
     console.warn('[Server] Firebase init error:', e);

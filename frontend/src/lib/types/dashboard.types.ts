@@ -23,8 +23,8 @@ export interface KPIData {
   subValue: string | React.ReactNode;
   /** 하단 설명 */
   description: string | React.ReactNode;
-  /** 아이콘 컴포넌트 */
-  icon: ElementType;
+  /** 아이콘 컴포넌트 이름 (string for serialization) */
+  icon: string | ElementType;
   /** 배경 그라디언트 CSS 클래스 */
   gradientBackground: string;
   /** 테두리 색상 CSS 클래스 */

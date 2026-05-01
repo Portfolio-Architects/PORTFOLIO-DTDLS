@@ -36,7 +36,7 @@ export function editDistance(a: string, b: string): number {
 }
 
 export function autoSuggest(aptName: string): string | null {
-  const exactOrHardcoded = findTxKey(aptName, TX_SUMMARY as Record<string, any>);
+  const exactOrHardcoded = findTxKey(aptName, TX_SUMMARY);
   if (exactOrHardcoded) return exactOrHardcoded;
 
   const norm = normalizeAptName(aptName);

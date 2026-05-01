@@ -81,8 +81,9 @@ const DebouncedSearchInput = ({ value, onChange }: { value: string, onChange: (v
 
 export default function DashboardClient({ initialDashboardData, preselectedAptName }: { initialDashboardData?: DashboardInitialDataLocal, preselectedAptName?: string }) {
   const router = useRouter();
-  const { kpis, newsFeed, fieldReports, userReviews, dongtanApartments, adBanner } = useDashboardData();
-  
+  const kpis = initialDashboardData?.kpis || [];
+  const fieldReports = initialDashboardData?.fieldReports || [];
+  const adBanner = dashboardFacade.getAdBanner();
   // Moduled Hooks Architecture
   const { user, userProfile, anonProfile, purchasedReportIds, handleLogin, handleLogout, refreshPurchasedReports } = useAuth();
   const { sheetApartments, typeMap, nameMapping, publicRentalSet } = useDashboardMeta(initialDashboardData);
@@ -130,34 +131,24 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         });
       };
       window.addEventListener('hashchange', handleHashChange);
-      return () => window.removeEventListener('hashchange', handleHashChange);
+
+      const handleScroll = () => {
+        setIsScrolled(window.scrollY > 200);
+      };
+      window.addEventListener('scroll', handleScroll);
+
+      return () => {
+        window.removeEventListener('hashchange', handleHashChange);
+        window.removeEventListener('scroll', handleScroll);
+      };
     }
   }, []);
 
+  const [isScrolled, setIsScrolled] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedDong, setSelectedDong] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isScrolled, setIsScrolled] = useState(false);
 
-  // We are using full-bleed layout, so window scroll won't happen. 
-  // We can track internal scrolling if needed, but for now we keep the static header.
-  useEffect(() => {
-    let ticking = false;
-    const scrollContainer = document.getElementById('apartment-list-scroll');
-    const handleScroll = (e: Event) => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          setIsScrolled((e.target as HTMLElement).scrollTop > 80);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
-      return () => scrollContainer.removeEventListener('scroll', handleScroll);
-    }
-  }, [mounted, activeTab]);
 
   const [listSort, setListSort] = useState<'views' | 'likes' | 'name' | 'price-rank' | 'valuation' | 'total-price'>('total-price');
   const [listHeight, setListHeight] = useState(600);
@@ -331,22 +322,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         {/* a11y: Skip to Content */}
         <a href="#main-content" className="skip-to-content">내용으로 건너뛰기</a>
 
-      {/* Dynamic Minimal Sticky Header */}
-      <div 
-        className={`fixed top-0 inset-x-0 w-full bg-surface/95 backdrop-blur-md border-b border-border shadow-sm z-50 transition-transform duration-300 flex items-center justify-between px-3 md:px-10 lg:px-16 h-[52px] ${
-          isScrolled ? 'translate-y-0' : '-translate-y-full'
-        }`}
-      >
-        <span className="font-extrabold text-primary tracking-tight text-[15px] flex items-center gap-2">
-           <img src="/d-view-icon.png" alt="D-VIEW" className="w-[22px] h-[22px] rounded-md" />
-           <span className="text-primary">D-VIEW</span>
-           <span className="text-tertiary font-normal text-[13px]">|</span>
-           <span className="text-secondary font-semibold text-[14px]">동탄 아파트 가치 분석</span>
-        </span>
-        <div className="flex items-center -mr-1">
-          <FloatingUserBar />
-        </div>
-      </div>
+
       
       {/* Main Header — Logo + Nav integrated */}
       <header className="shrink-0 bg-surface/95 backdrop-blur-xl border-b border-border relative z-40" role="banner">

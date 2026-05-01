@@ -2,11 +2,16 @@ import { useState, useEffect } from 'react';
 import { logger } from '@/lib/services/logger';
 import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartments';
 import { normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import type { KPIData } from '@/lib/types/dashboard.types';
+import type { FieldReportData } from '@/lib/types/report.types';
+
 export interface DashboardInitialDataLocal {
   typeMap?: { aptName: string; area: number | string; typeM2: string; typePyeong: string }[];
   apartmentMeta?: Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
   favoriteCounts?: Record<string, number>;
   sheetApartments?: Record<string, any[]>;
+  kpis?: KPIData[];
+  fieldReports?: FieldReportData[];
 }
 
 export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLocal) {

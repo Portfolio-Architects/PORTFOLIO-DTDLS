@@ -113,6 +113,8 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     this.cleanupFns.push(stopKPI);
 
     // Firestore listeners (delegated to repositories)
+    // DISABLED for RSC Migration: These are now fetched Server-Side to reduce client memory footprint.
+    /*
     const stopPosts = PostRepo.listenToPosts((posts) => {
       this.stores.newsFeed.set(posts);
     });
@@ -127,6 +129,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
       this.stores.userReviews.set(reviews);
     });
     this.cleanupFns.push(stopReviews);
+    */
 
     // External API
     ApartmentRepo.fetchApartmentNames().then((apts) => {
