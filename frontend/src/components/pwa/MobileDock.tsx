@@ -4,10 +4,10 @@ import { Compass, MessageSquare, Home } from 'lucide-react';
 import Link from 'next/link';
 
 interface MobileDockProps {
-  activeTab: 'imjang' | 'lounge' | 'discover';
+  activeTab: 'imjang' | 'lounge' | 'discover' | 'overview';
   areaUnit?: 'm2' | 'pyeong';
   setAreaUnit?: (unit: 'm2' | 'pyeong') => void;
-  onTabClick?: (tab: 'imjang' | 'discover') => void;
+  onTabClick?: (tab: 'imjang' | 'discover' | 'overview') => void;
 }
 
 export default function MobileDock({ activeTab, areaUnit = 'm2', setAreaUnit, onTabClick }: MobileDockProps) {
