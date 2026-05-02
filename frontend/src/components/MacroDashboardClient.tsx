@@ -125,8 +125,8 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
 
       <div className="flex flex-col md:flex-row gap-4 w-full">
         {/* Left Panel: Donut Chart */}
-        <div className="w-full md:w-1/2 flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-6 min-h-[400px]">
-        <div className="flex justify-between items-center mb-6">
+        <div className="w-full md:w-1/2 flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-5 min-h-[280px]">
+        <div className="flex justify-between items-center mb-4">
           <h2 className="text-[18px] font-extrabold text-[#191f28] tracking-tight">
             아파트 {chartMode === 'price' ? '실거래가' : '평단가'} 분포도
           </h2>
@@ -155,12 +155,12 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
           </div>
         </div>
         
-        <div className="flex-1 flex flex-col xl:flex-row items-center justify-around xl:justify-between px-2 xl:px-8 gap-8 relative mt-4">
-          <div className="w-[250px] h-[250px] relative shrink-0">
+        <div className="flex-1 flex flex-col xl:flex-row items-center justify-around xl:justify-between px-2 xl:px-6 gap-6 relative mt-2">
+          <div className="w-[210px] h-[210px] relative shrink-0">
             {/* Center Label (Placed before ResponsiveContainer to prevent z-index overlap with Tooltip) */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
-              <span className="text-[13px] font-bold text-[#8b95a1] mb-1">분석 세대수</span>
-              <span className="text-[26px] font-extrabold text-[#191f28] leading-none tracking-tight">
+              <span className="text-[12px] font-bold text-[#8b95a1] mb-1">분석 세대수</span>
+              <span className="text-[22px] font-extrabold text-[#191f28] leading-none tracking-tight">
                 {totalHouseholds.toLocaleString()}
               </span>
             </div>
@@ -169,8 +169,8 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
               <PieChart>
                 <Pie
                   data={donutData}
-                  innerRadius={80}
-                  outerRadius={115}
+                  innerRadius={65}
+                  outerRadius={95}
                   paddingAngle={2}
                   dataKey="value"
                   onMouseEnter={(_, index) => setActiveIndex(index)}
@@ -199,7 +199,7 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
           </div>
 
           {/* Interactive Legend */}
-          <div className="flex flex-col gap-1.5 w-full max-w-[260px]">
+          <div className="flex flex-col gap-0.5 w-full max-w-[260px]">
             {donutData.map((entry, index) => {
               const totalValue = donutData.reduce((s, i) => s + i.value, 0);
               const percentage = totalValue > 0 ? ((entry.value / totalValue) * 100).toFixed(1) : '0.0';
@@ -207,17 +207,17 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
               return (
                 <div 
                   key={entry.name}
-                  className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all cursor-pointer ${isActive ? 'bg-[#f2f4f6] scale-[1.02]' : 'hover:bg-[#f9fafb]'}`}
+                  className={`flex items-center justify-between px-3 py-1.5 rounded-xl transition-all cursor-pointer ${isActive ? 'bg-[#f2f4f6] scale-[1.02]' : 'hover:bg-[#f9fafb]'}`}
                   onMouseEnter={() => setActiveIndex(index)}
                   onMouseLeave={() => setActiveIndex(null)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-3.5 h-3.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                    <span className="text-[14px] font-bold text-[#4e5968] tracking-tight">{entry.name}</span>
+                    <div className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                    <span className="text-[13px] font-bold text-[#4e5968] tracking-tight">{entry.name}</span>
                   </div>
                   <div className="text-right flex flex-col items-end">
-                    <span className="text-[15px] font-extrabold text-[#191f28] leading-none mb-1.5">{percentage}%</span>
-                    <span className="text-[12px] font-semibold text-[#8b95a1] leading-none">{entry.value.toLocaleString()} 세대</span>
+                    <span className="text-[14px] font-extrabold text-[#191f28] leading-none mb-1">{percentage}%</span>
+                    <span className="text-[11px] font-semibold text-[#8b95a1] leading-none">{entry.value.toLocaleString()} 세대</span>
                   </div>
                 </div>
               );
@@ -227,8 +227,8 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
       </div>
 
       {/* Right Panel: Line Chart */}
-      <div className="w-full md:w-1/2 flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-6 min-h-[400px]">
-        <div className="flex justify-between items-center mb-6">
+      <div className="w-full md:w-1/2 flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-5 min-h-[280px]">
+        <div className="flex justify-between items-center mb-4">
           <div className="flex flex-col">
             <h2 className="text-[18px] font-extrabold text-[#191f28] tracking-tight">대장 아파트 가격 추이</h2>
             <span className="text-[13px] text-[#8b95a1] font-medium mt-1">최근 6개월 실거래가 변동 (억 원)</span>
@@ -236,7 +236,7 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
           <span className="px-2 py-1 bg-[#f2f4f6] text-[#4e5968] text-[11px] font-bold rounded-md tracking-wider">6M</span>
         </div>
 
-        <div className="flex-1 w-full h-[280px]">
+        <div className="flex-1 w-full h-[210px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={lineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f2f4f6" />
