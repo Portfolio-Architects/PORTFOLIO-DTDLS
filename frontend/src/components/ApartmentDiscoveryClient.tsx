@@ -23,6 +23,15 @@ interface DiscoveryProps {
   areaUnit: 'm2' | 'pyeong';
 }
 
+const formatPriceEok = (priceMan: number) => {
+  if (!priceMan) return '-';
+  const eok = Math.floor(priceMan / 10000);
+  const remainder = Math.floor(priceMan % 10000);
+  if (eok === 0) return `${remainder.toLocaleString()}만`;
+  if (remainder === 0) return `${eok}억`;
+  return `${eok}억 ${remainder.toLocaleString()}만`;
+};
+
 export default function ApartmentDiscoveryClient({
   sheetApartments,
   fieldReports,
@@ -211,7 +220,6 @@ export default function ApartmentDiscoveryClient({
           <h2 className="text-[20px] font-extrabold tracking-tight text-[#191f28] mb-4 pl-2 pt-2">
             아파트 탐색
           </h2>
-          <div className="mb-2 pl-2 text-[12px] font-semibold text-[#8b95a1]">D-VIEW 추천 테마</div>
           {CATEGORIES.map(cat => {
             const isActive = activeCategory === cat.id;
             return (
@@ -304,15 +312,12 @@ export default function ApartmentDiscoveryClient({
                         <div className="w-12 text-center text-[15px] font-bold text-[#8b95a1]">
                           {activeCategory === 'price-rank' || activeCategory === 'popular' || activeCategory === 'jeonse-gap' ? index + 1 : '-'}
                         </div>
-                        <div className="flex-1 ml-4 flex items-center gap-3 min-w-0">
-                          <div className="w-9 h-9 rounded-full bg-[#f2f4f6] border border-[#e5e8eb] flex items-center justify-center text-[18px] shrink-0">
-                            🏢
-                          </div>
+                        <div className="flex-1 ml-4 flex items-center min-w-0">
                           <span className="text-[16px] font-bold text-[#191f28] truncate">{getDisplayAptName(apt.name)}</span>
                         </div>
                         <div className="w-24 text-right flex flex-col justify-center">
                           <span className="text-[15px] font-bold text-[#191f28]">
-                            {matchedSummary?.avg1MPrice ? `${matchedSummary.avg1MPrice}억` : '-'}
+                            {matchedSummary?.avg1MPrice ? formatPriceEok(matchedSummary.avg1MPrice) : '-'}
                           </span>
                         </div>
                         <div className="w-24 text-right flex flex-col justify-center">

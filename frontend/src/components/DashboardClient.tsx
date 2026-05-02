@@ -22,6 +22,7 @@ const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').the
 const WriteReviewModal = dynamic(() => import('@/components/WriteReviewModal'), { ssr: false });
 const AdInquiryModal = dynamic(() => import('@/components/AdInquiryModal'), { ssr: false });
 const ApartmentDiscoveryClient = dynamic(() => import('@/components/ApartmentDiscoveryClient'), { ssr: false });
+const MacroDashboardClient = dynamic(() => import('@/components/MacroDashboardClient'), { ssr: false });
 import { DONGS, getDongByName, getDongColor, getAllDongNames } from '@/lib/dongs';
 import { ZONES } from '@/lib/zones';
 import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartments';
@@ -102,7 +103,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
   const { triggerCustomA2HSModal } = usePWA();
 
-  const [activeTab, setActiveTab] = useState<'imjang' | 'lounge' | 'discover'>('imjang');
+  const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'lounge' | 'discover'>('overview');
   const [isPending, startTransition] = useTransition();
 
   const fieldReportsMap = useMemo(() => {
@@ -129,7 +130,8 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         startTransition(() => {
           if (window.location.hash === '#lounge') setActiveTab('lounge');
           else if (window.location.hash === '#discover') setActiveTab('discover');
-          else if (window.location.hash === '#imjang' || window.location.hash === '') setActiveTab('imjang');
+          else if (window.location.hash === '#imjang') setActiveTab('imjang');
+          else if (window.location.hash === '#overview' || window.location.hash === '') setActiveTab('overview');
         });
       };
       window.addEventListener('hashchange', handleHashChange);
@@ -331,43 +333,27 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16">
           <div className="flex flex-col md:flex-row md:items-center justify-between pt-4 pb-3 md:py-4 gap-4 md:gap-0">
             
-            {/* Left: Brand */}
-            <div className="flex-1 flex items-center justify-between md:justify-start">
-              <div 
-                className="flex items-center gap-3.5 cursor-pointer group"
-                onClick={() => {
-                  setSelectedReport(null);
-                  window.history.pushState(null, '', '/');
-                }}
-              >
-                <div className="relative shrink-0">
-                  <img src="/d-view-icon.png" alt="D-VIEW" className="w-10 h-10 sm:w-11 sm:h-11 rounded-[12px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.04] group-hover:-translate-y-0.5 group-hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-all duration-300" />
-                </div>
-                <div className="flex flex-col justify-center">
-                  <h1 className="text-[19px] sm:text-[22px] font-bold tracking-tight text-primary leading-none mb-1.5">
-                    동탄 아파트 가치 분석
-                  </h1>
-                  <div className="hidden sm:flex items-center gap-1.5">
-                    <span className="px-1.5 py-[3px] bg-body text-secondary rounded-[4px] text-[10px] font-bold tracking-widest leading-none">
-                      DATA LAB
-                    </span>
-                    <span className="text-[11px] font-semibold text-tertiary tracking-wide">
-                      Powered by D-VIEW
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Mobile User Bar */}
-              <div className="md:hidden flex items-center -mr-1">
-                <FloatingUserBar />
-              </div>
+            {/* Mobile: Top Bar */}
+            <div className="md:hidden flex items-center justify-end w-full">
+              <FloatingUserBar />
             </div>
 
             {/* Center: Nav Tabs (Segmented Control Style) */}
             <nav className="hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-body/80 p-1.5 rounded-[16px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
               <button
-                onClick={() => startTransition(() => setActiveTab('imjang'))}
+                onClick={() => startTransition(() => { setActiveTab('overview'); window.location.hash = 'overview'; })}
+                className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
+                  activeTab === 'overview'
+                    ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
+                    : 'text-tertiary hover:text-secondary hover:bg-black/5'
+                }`}
+              >
+                <LayoutDashboard size={16} className={activeTab === 'overview' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                <span>데이터랩</span>
+              </button>
+              
+              <button
+                onClick={() => startTransition(() => { setActiveTab('imjang'); window.location.hash = 'imjang'; })}
                 className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] ${
                   activeTab === 'imjang'
                     ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5'
@@ -410,7 +396,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             </nav>
 
             {/* Right: Desktop User Bar */}
-            <div className="hidden md:flex flex-1 items-center justify-end">
+            <div className="hidden md:flex items-center justify-end">
               <FloatingUserBar />
             </div>
             
@@ -419,7 +405,18 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
       </header>
 
       {/* Main Container */}
-      <main id="main-content" className="flex-1 overflow-hidden w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16 animate-in fade-in duration-500">
+      <main id="main-content" className={`flex-1 overflow-hidden w-full max-w-[2000px] mx-auto animate-in fade-in duration-500 ${activeTab === 'overview' ? '' : 'px-3 sm:px-6 md:px-10 lg:px-16'}`}>
+
+        {/* ═══ TAB 0: 마크로 대시보드 ═══ */}
+        {mounted && activeTab === 'overview' && (
+          <section className="h-full w-full bg-surface pb-[100px] md:pb-0 overflow-y-auto">
+            <MacroDashboardClient 
+              sheetApartments={sheetApartments} 
+              txSummaryData={txSummaryData} 
+              publicRentalSet={publicRentalSet}
+            />
+          </section>
+        )}
 
         {/* ═══ TAB 1: 단지 분석 ═══ */}
         {mounted && activeTab === 'imjang' && (
