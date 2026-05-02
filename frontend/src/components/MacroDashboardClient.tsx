@@ -189,7 +189,7 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
                 </Pie>
                 <RechartsTooltip 
                   formatter={(value: any) => [`${(value || 0).toLocaleString()} 세대`, '세대수']}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', fontWeight: 'bold', padding: '10px 14px', fontSize: '13px' }}
+                  contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.15)', fontWeight: 'bold', padding: '12px 18px', fontSize: '15px' }}
                   cursor={{ fill: 'transparent' }}
                 />
               </PieChart>
@@ -253,9 +253,9 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
                 domain={['auto', 'auto']}
               />
               <RechartsTooltip 
-                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', padding: '10px 14px', fontWeight: 'bold' }}
+                contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', padding: '12px 18px', fontWeight: 'bold', fontSize: '14px' }}
                 formatter={(value: any) => [`${value || 0}억`, '평균가']}
-                labelStyle={{ color: '#8b95a1', marginBottom: '4px' }}
+                labelStyle={{ color: '#8b95a1', marginBottom: '6px', fontSize: '13px' }}
               />
               <Legend 
                 iconType="circle" 
