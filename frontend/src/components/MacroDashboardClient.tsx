@@ -190,7 +190,7 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
                   ))}
                 </Pie>
                 <RechartsTooltip 
-                  formatter={(value: number) => [`${value.toLocaleString()} 세대`, '세대수']}
+                  formatter={(value: any) => [`${(value || 0).toLocaleString()} 세대`, '세대수']}
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', fontWeight: 'bold', padding: '10px 14px', fontSize: '13px' }}
                   cursor={{ fill: 'transparent' }}
                 />
