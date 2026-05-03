@@ -302,6 +302,19 @@ async function main() {
   const dongMap = await fetchDongMap();
   console.log(`   ${Object.keys(dongMap).length}개 아파트-동 매핑 로드 완료`);
 
+  // ── 6개월 거시 트렌드 (월별 평균가) 수집용 객체 초기화 ──
+  // 상수 바스켓 지수(Constant Basket Index): 국민평형(30~36평) 단지들의 각 월별 가장 최근 실거래가를 누적합니다.
+  // 실거래가 신고 지연(최대 30일)으로 인한 최근 달의 통계 왜곡(급락 착시)을 방지하기 위해 2개월 오프셋 적용
+  const macroTrendData = {};
+  const trendMonths = [];
+  const REPORTING_LAG_MONTHS = 2; // 2개월 전을 가장 최신 달로 취급
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - REPORTING_LAG_MONTHS - i, 1);
+    const ym = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const label = `${d.getMonth() + 1}월`;
+    macroTrendData[ym] = { name: label, sumPrice: 0, aptCount: 0 };
+    trendMonths.push(ym);
+  }
 
   for (const [aptName, txs] of Object.entries(byApt)) {
     // 매매와 전월세 분리 ('전세', '월세'가 명시된 것만 임대차 거래로 치고 나머지는 모두 매매로 취급)
@@ -369,6 +382,20 @@ async function main() {
     
     saleTxs.forEach(t => { t.areaPyeong = getSupplyPyeong(t); });
     rentTxs.forEach(t => { t.areaPyeong = getSupplyPyeong(t); });
+
+    // --- 동탄 전체 가격 지수(거시 트렌드) 계산 ---
+    const standardTxs = saleTxs.filter(t => t.areaPyeong >= 30 && t.areaPyeong <= 36);
+    standardTxs.sort((a, b) => b.contractDate.localeCompare(a.contractDate));
+
+    if (standardTxs.length > 0) {
+      trendMonths.forEach(ym => {
+        const latestTx = standardTxs.find(t => t.contractYm <= ym);
+        if (latestTx) {
+          macroTrendData[ym].sumPrice += latestTx.price;
+          macroTrendData[ym].aptCount += 1;
+        }
+      });
+    }
 
     // --- 매매 요약 ---
     const prices = saleTxs.map(t => t.price).filter(p => p > 0);
@@ -520,6 +547,26 @@ async function main() {
 
   console.log(`\n✅ 요약 완료: ${aptCount}개 아파트 (매매+전월세 통합)`);
 
+  // ── 거시 트렌드 배열 생성 ──
+  let lastValidPrice = 0;
+  const dongtanMacroTrend = trendMonths.map(ym => {
+    const data = macroTrendData[ym];
+    let avgPriceMan = data.aptCount > 0 ? data.sumPrice / data.aptCount : 0;
+    
+    if (avgPriceMan === 0 && lastValidPrice > 0) {
+      avgPriceMan = lastValidPrice; // 거래가 아직 없는 최근 월은 직전 월 데이터로 폴백
+    } else if (avgPriceMan > 0) {
+      lastValidPrice = avgPriceMan;
+    }
+    
+    // 억 단위 변환 (예: 53200 만원 -> 53.2 억 -> 5.3)
+    const avgPriceEok = Math.round(avgPriceMan / 1000) / 10;
+    return {
+      name: data.name,
+      '동탄 아파트 전체': avgPriceEok
+    };
+  });
+
   // TypeScript 파일 생성
   let ts = `/**
  * 실거래가 및 전월세 요약 데이터 — 빌드 타임에 포함, API 호출 0
@@ -573,6 +620,13 @@ export interface AptTxSummary {
   // 법정동
   dong?: string;
 }
+
+export interface DongtanMacroTrendPoint {
+  name: string;
+  '동탄 아파트 전체': number;
+}
+
+export const DONGTAN_MACRO_TREND: DongtanMacroTrendPoint[] = ${JSON.stringify(dongtanMacroTrend, null, 2)};
 
 /** 아파트명 → 거래 요약 */
 export const TX_SUMMARY: Record<string, AptTxSummary> = `;

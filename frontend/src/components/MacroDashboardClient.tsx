@@ -4,8 +4,10 @@ import React, { useMemo, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, CartesianGrid, Legend } from 'recharts';
 import type { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/lib/transaction-summary';
+import { DONGTAN_MACRO_TREND } from '@/lib/transaction-summary';
 import { normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import FloatingUserBar from '@/components/FloatingUserBar';
+import { ArrowUp } from 'lucide-react';
 
 interface MacroDashboardProps {
   sheetApartments: Record<string, DongApartment[]>;
@@ -17,9 +19,48 @@ interface MacroDashboardProps {
 const COLORS = ['#3182f6', '#4196f7', '#00a261', '#f9a825', '#f04452', '#b0b8c1'];
 const LINE_COLORS = ['#b0b8c1', '#3182f6', '#f04452', '#00a261', '#f9a825'];
 
+const InfoBox = ({ title, value, unit, progress, badge, color = "#3182f6" }: any) => {
+  return (
+    <div className="bg-[#f4f5f6] rounded-2xl p-4 flex items-center justify-between shadow-sm border border-[#e5e8eb] overflow-hidden">
+      <div className="flex flex-col truncate pr-2">
+        <span className="text-[10px] font-bold text-[#8b95a1] mb-1 tracking-widest truncate">{title}</span>
+        <div className="flex items-baseline gap-1 truncate">
+          <span className="text-[18px] md:text-[20px] font-extrabold text-[#191f28] truncate">{value}</span>
+          {unit && <span className="text-[13px] font-bold text-[#4e5968] shrink-0">{unit}</span>}
+        </div>
+      </div>
+      {progress !== undefined && (
+        <div className="relative flex items-center justify-center shrink-0">
+          <svg width="32" height="32" viewBox="0 0 32 32" className="transform -rotate-90">
+            <circle cx="16" cy="16" r="12" fill="transparent" stroke="#e5e8eb" strokeWidth="4" />
+            <circle cx="16" cy="16" r="12" fill="transparent" stroke={color} strokeWidth="4"
+              strokeDasharray={2 * Math.PI * 12}
+              strokeDashoffset={(2 * Math.PI * 12) * (1 - progress / 100)}
+              strokeLinecap="round" className="transition-all duration-1000 ease-out" />
+          </svg>
+        </div>
+      )}
+      {badge && (
+        <div className="bg-white border border-[#e5e8eb] px-2.5 py-1.5 rounded-lg shadow-sm shrink-0">
+          <span className="text-[13px] font-extrabold text-[#3182f6]">{badge}</span>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function MacroDashboardClient({ sheetApartments, txSummaryData, publicRentalSet, userFavorites }: MacroDashboardProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [chartMode, setChartMode] = useState<'price' | 'pyeong'>('price');
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 80);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // 1. Donut Chart Data (실거래가/평단가 티어별 세대수 분포)
   const donutData = useMemo(() => {
@@ -78,93 +119,100 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
     return donutData.reduce((sum, item) => sum + item.value, 0);
   }, [donutData]);
 
-  // 2. Line Chart Data (대장 아파트 가격 추이)
+  // 2. Line Chart Data (동탄 아파트 전체 가격 변화 추이 - 실제 데이터)
   const benchmarks = useMemo(() => {
-    return ['동탄역 롯데캐슬', '동탄역 시범더샵센트럴시티', '동탄역 시범우남퍼스트빌'];
+    return ['동탄 아파트 전체'];
   }, []);
 
   const lineData = useMemo(() => {
-    const months = ['11월', '12월', '1월', '2월', '3월', '4월'];
-    
-    return months.map((month, idx) => {
-      const point: any = { name: month };
-      benchmarks.forEach((aptName, aptIdx) => {
-        const tx = txSummaryData[aptName] || txSummaryData[normalizeAptName(aptName)];
-        let basePrice = 100000; // default 10억
-        if (tx && tx.latestPrice) basePrice = tx.latestPrice;
-        
-        // 6개월 전부터 현재까지 점진적으로 상승/하락하는 곡선 생성 (과거일수록 낮음 + 약간의 노이즈)
-        const progress = idx / (months.length - 1); // 0 to 1
-        const noise = (Math.sin(idx * 45 + aptIdx * 90) * 0.05); // +/- 5% noise
-        const historicalValue = basePrice * (0.85 + (0.15 * progress) + noise);
-        
-        point[aptName] = Math.round(historicalValue / 1000) / 10; // 억 단위 변환 (예: 15.4)
-      });
-      return point;
+    // DONGTAN_MACRO_TREND (6개월치 월별 평균가 데이터)를 바로 사용
+    // 데이터 형식: [{ name: '11월', '동탄 아파트 전체': 5.3 }, ...]
+    // fallback으로 DONGTAN_MACRO_TREND가 없을 경우를 대비해 빈 배열 제공
+    return DONGTAN_MACRO_TREND || [];
+  }, []);
+
+  const topTierRatio = totalHouseholds > 0 
+    ? (((donutData[0]?.value || 0) + (donutData[1]?.value || 0)) / totalHouseholds * 100)
+    : 0;
+  const topTierLabel = chartMode === 'price' ? 'PREMIUM (1급지+)' : 'NEW APT (10년내)';
+
+  const publicRentalRatio = totalHouseholds > 0 
+    ? ((donutData[donutData.length - 1]?.value || 0) / totalHouseholds * 100)
+    : 0;
+
+  const latestAvgPrice = lineData.length > 0 ? lineData[lineData.length - 1]['동탄 아파트 전체'] : 0;
+  const avgPriceProgress = Math.min((latestAvgPrice / 15) * 100, 100); 
+
+  const [maxAptName, maxPriceEok] = useMemo(() => {
+    let maxPrice = 0;
+    let maxEok = '';
+    let maxName = '';
+    Object.entries(txSummaryData).forEach(([name, tx]) => {
+      if (tx && tx.latestPrice > maxPrice) {
+        maxPrice = tx.latestPrice;
+        maxEok = tx.latestPriceEok;
+        maxName = name;
+      }
     });
-  }, [txSummaryData, benchmarks]);
+    if (maxName.length > 7) {
+      maxName = maxName.slice(0, 7) + '..';
+    }
+    return [maxName, maxEok];
+  }, [txSummaryData]);
 
   const formatEok = (val: number) => `${val}억`;
 
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    setIsScrolled(e.currentTarget.scrollTop > 50);
-  };
-
   return (
-    <div 
-      className="w-full flex flex-col bg-surface relative"
-      onScroll={handleScroll}
-    >
-      {/* Dynamic Minimal Sticky Header (Mobile Only, since Desktop has its own header) */}
-      <div 
-        className={`md:hidden fixed top-0 inset-x-0 w-full bg-surface/95 backdrop-blur-md border-b border-border shadow-sm z-50 transition-transform duration-300 flex items-center justify-between px-3 sm:px-6 h-[68px] ${
-          isScrolled ? 'translate-y-0' : '-translate-y-full'
-        }`}
-      >
-        <div className="flex flex-col">
-          <h1 className="text-[16px] font-extrabold text-[#191f28] tracking-tight leading-none mb-1">
+    <div className="w-full flex flex-col bg-surface relative">
+      <div className="flex flex-col md:px-10 lg:px-16 py-0 md:py-6 lg:py-8 w-full">
+        {/* Compact Dynamic Sticky Header (Mobile Only) */}
+        <div 
+          className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-white/95 backdrop-blur-md border-b border-border px-5 py-3 flex items-center justify-between transition-all duration-300 ${
+            isScrolled ? 'translate-y-0 opacity-100 shadow-sm' : '-translate-y-full opacity-0 pointer-events-none'
+          }`}
+        >
+          <h1 className="text-[16px] font-extrabold text-[#191f28] tracking-tight">
             동탄 아파트 가치 분석
           </h1>
-          <div className="flex items-center gap-1.5">
-            <div className="w-[1.5px] h-[8px] bg-[#3182f6] rounded-full shrink-0" />
-            <p className="text-[11px] font-semibold text-[#4e5968] tracking-tight truncate max-w-[200px]">
-              DATA LAB — <span className="font-normal text-[#8b95a1]">통합 부동산 가치 평가 솔루션</span>
-            </p>
+          <div className="flex items-center gap-3">
+            <FloatingUserBar />
+            <button 
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="p-1 -mr-1 rounded-full hover:bg-body transition-colors"
+            >
+              <ArrowUp className="w-5 h-5 text-tertiary" />
+            </button>
           </div>
         </div>
-        <div className="flex items-center -mr-1">
-          <FloatingUserBar />
-        </div>
-      </div>
 
-      <div className="flex flex-col px-3 sm:px-6 md:px-10 lg:px-16 py-4 md:py-6 lg:py-8 w-full">
-        {/* Top Header - PORTFOLIO ASSET Style (Page Content) */}
-        <div className="flex flex-col mb-6 md:mb-8 px-1 md:px-2 mt-2 md:mt-0 relative">
-          <div className="absolute right-0 top-0 md:hidden flex items-center justify-end h-10">
+        {/* Top Header - Main Title */}
+        <div className="flex flex-col md:mb-8 px-4 sm:px-6 md:px-2 py-3 md:py-0 relative md:static md:bg-transparent border-b border-border md:border-none">
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 md:hidden flex items-center justify-end">
             <FloatingUserBar />
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white border border-[#e5e8eb] flex items-center justify-center shadow-sm shrink-0">
-              <img src="/d-view-icon.png" alt="Icon" className="w-8 h-8 md:w-9 md:h-9 object-contain" />
+            <div className="hidden md:flex w-12 h-12 rounded-xl bg-white border border-[#e5e8eb] items-center justify-center shadow-sm shrink-0">
+              <img src="/d-view-icon.png" alt="Icon" className="w-9 h-9 object-contain" />
             </div>
-            <h1 className="text-[24px] md:text-[32px] font-extrabold text-[#191f28] tracking-tight leading-none">
-              동탄 아파트 가치 분석
-            </h1>
-          </div>
-          
-          <div className="flex items-center gap-2 mt-4 md:mt-5">
-            <div className="w-[3px] h-[14px] bg-[#3182f6] rounded-full" />
-            <p className="text-[13px] md:text-[15px] font-semibold text-[#4e5968] tracking-tight truncate md:max-w-none">
-              DATA LAB — <span className="font-normal text-[#8b95a1]">통합 부동산 가치 평가 솔루션, 100% 데이터 기반 실시간 분석</span>
-            </p>
+            <div className="flex flex-col justify-center">
+              <h1 className="text-[20px] md:text-[32px] font-extrabold text-[#191f28] tracking-tight leading-none mb-1 md:mb-0">
+                동탄 아파트 가치 분석
+              </h1>
+              <div className="flex items-center gap-1.5 md:mt-5">
+                <div className="w-[1.5px] md:w-[3px] h-[10px] md:h-[14px] bg-[#3182f6] rounded-full" />
+                <p className="text-[12px] md:text-[15px] font-semibold text-[#4e5968] tracking-tight truncate max-w-[200px] md:max-w-none">
+                  DATA LAB — <span className="font-normal text-[#8b95a1] hidden md:inline">통합 부동산 가치 평가 솔루션, 100% 데이터 기반 실시간 분석</span>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-      <div className="flex flex-col md:flex-row gap-4 w-full">
-        {/* Left Panel: Donut Chart */}
-        <div className="w-full md:w-1/2 flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-5 min-h-[300px]">
+      <div className="flex flex-col md:flex-row gap-4 w-full px-3 sm:px-6 md:px-0 mt-4 md:mt-0">
+        {/* Left Column Container */}
+        <div className="w-full md:w-1/2 flex flex-col gap-4">
+          {/* Donut Chart Card */}
+          <div className="flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-5 min-h-[300px]">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-[18px] font-extrabold text-[#191f28] tracking-tight">
             아파트 {chartMode === 'price' ? '실거래가' : '평단가'} 분포도
@@ -204,7 +252,7 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
               </span>
             </div>
 
-            <ResponsiveContainer width="100%" height="100%" className="relative z-10">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1} className="relative z-10">
               <PieChart>
                 <Pie
                   data={donutData}
@@ -267,18 +315,27 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
         </div>
       </div>
 
+      {/* 4 Info Boxes Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <InfoBox title="TOP APARTMENT" value={maxPriceEok} badge={maxAptName} />
+          <InfoBox title={topTierLabel} value={topTierRatio.toFixed(1)} unit="%" progress={topTierRatio} color="#3182f6" />
+          <InfoBox title="AVG PRICE" value={latestAvgPrice.toFixed(1)} unit="억" progress={avgPriceProgress} color="#f04452" />
+          <InfoBox title="PUBLIC RENTAL" value={publicRentalRatio.toFixed(1)} unit="%" progress={publicRentalRatio} color="#b0b8c1" />
+        </div>
+      </div>
+
       {/* Right Panel: Line Chart */}
       <div className="w-full md:w-1/2 flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-5 min-h-[300px]">
         <div className="flex justify-between items-center mb-4">
           <div className="flex flex-col">
-            <h2 className="text-[18px] font-extrabold text-[#191f28] tracking-tight">대장 아파트 가격 추이</h2>
-            <span className="text-[13px] text-[#8b95a1] font-medium mt-1">최근 6개월 실거래가 변동 (억 원)</span>
+            <h2 className="text-[18px] font-extrabold text-[#191f28] tracking-tight">동탄 아파트 전체 가격 변화 추이</h2>
+            <span className="text-[13px] text-[#8b95a1] font-medium mt-1">최근 6개월 평균 실거래가 변동 (억 원)</span>
           </div>
           <span className="px-2 py-1 bg-[#f2f4f6] text-[#4e5968] text-[11px] font-bold rounded-md tracking-wider">6M</span>
         </div>
 
         <div className="flex-1 w-full h-[230px]">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <LineChart data={lineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f2f4f6" />
               <XAxis 
