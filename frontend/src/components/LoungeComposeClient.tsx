@@ -120,7 +120,7 @@ export default function LoungeComposeClient({ currentCategory = '동탄 임장/�
               setPostContent(MARKDOWN_TEMPLATE);
             }
           }}
-          className="fixed bottom-[96px] sm:bottom-6 right-4 sm:right-6 w-14 h-14 bg-toss-blue hover:bg-[#1b6de8] text-surface rounded-full shadow-lg shadow-[#3182f6]/30 flex items-center justify-center transition-all active:scale-95 z-20"
+          className="fixed bottom-[96px] sm:bottom-6 right-4 sm:right-6 w-14 h-14 bg-toss-blue hover:bg-[#0f766e] text-surface rounded-full shadow-lg shadow-[#0d9488]/30 flex items-center justify-center transition-all active:scale-95 z-20"
         >
           <PenLine size={22} />
         </button>
@@ -192,7 +192,7 @@ export default function LoungeComposeClient({ currentCategory = '동탄 임장/�
                   finally { setIsSubmitting(false); }
                 }}
                 disabled={isSubmitting || !postTitle.trim()}
-                className="flex items-center gap-2 px-6 py-3 bg-toss-blue hover:bg-[#1b6de8] disabled:bg-toss-gray text-surface rounded-xl font-bold text-[14px] transition-all active:scale-95"
+                className="flex items-center gap-2 px-6 py-3 bg-toss-blue hover:bg-[#0f766e] disabled:bg-toss-gray text-surface rounded-xl font-bold text-[14px] transition-all active:scale-95"
               >
                 {isSubmitting ? '작성 중...' : '작성 완료'}
               </button>

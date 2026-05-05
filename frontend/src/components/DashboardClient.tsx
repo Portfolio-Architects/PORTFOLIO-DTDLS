@@ -426,15 +426,6 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
                 <span>커뮤니티</span>
               </button>
               
-              {dashboardFacade.isAdmin(user?.email) && (
-                <Link
-                  href="/admin"
-                  className="flex items-center justify-center min-w-[80px] sm:min-w-[90px] gap-1.5 px-3 py-1.5 text-[12px] sm:text-[13px] font-bold transition-all duration-300 rounded-[10px] text-[#ef4444] hover:bg-black/5"
-                >
-                  <ShieldCheck size={16} className="text-[#ef4444] transition-transform duration-200" />
-                  <span>관리자</span>
-                </Link>
-              )}
             </nav>
 
             {/* Right: Desktop User Bar */}

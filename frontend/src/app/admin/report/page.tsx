@@ -215,7 +215,7 @@ export default function ReportPage() {
         .report-prose li { color: #4e5968; line-height: 1.8; font-size: 0.9rem; margin: 0.15rem 0; }
         .report-prose li input[type="checkbox"] { margin-right: 0.5rem; }
         .report-prose strong { color: #191f28; }
-        .report-prose blockquote { border-left: 4px solid #3182f6; background: #f0f7ff; padding: 0.8rem 1rem; border-radius: 0 8px 8px 0; margin: 1rem 0; }
+        .report-prose blockquote { border-left: 4px solid #0d9488; background: #f0f7ff; padding: 0.8rem 1rem; border-radius: 0 8px 8px 0; margin: 1rem 0; }
         .report-prose blockquote p { color: #333d4b; }
         .report-prose hr { border: none; border-top: 1px solid #e5e8eb; margin: 1.5rem 0; }
         .report-prose code { background: #f2f4f6; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.82rem; color: #e64980; }

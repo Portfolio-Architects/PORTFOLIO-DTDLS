@@ -123,7 +123,7 @@ export function TransactionChartSection({
     isOutlier: d.price < q1 - iqr * 2 || d.price > q3 + iqr * 2,
   })).filter(d => d.price >= q1 - iqr * 3 && d.price <= q3 + iqr * 3);
   
-  const getFloorColor = (floor: number) => '#3182f6';
+  const getFloorColor = (floor: number) => '#0d9488';
 
   const byMonthTier = new Map<number, { all: number[] }>();
   scatterData.forEach(d => {
@@ -230,7 +230,7 @@ export function TransactionChartSection({
                       </div>
                       <div className="w-full h-1.5 bg-body rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-gradient-to-r from-[#3182f6] to-[#1b64da] rounded-full transition-all duration-1000" 
+                          className="h-full bg-gradient-to-r from-[#0d9488] to-[#0f766e] rounded-full transition-all duration-1000" 
                           style={{ width: `${ratio}%` }} 
                         />
                       </div>
@@ -306,7 +306,7 @@ export function TransactionChartSection({
                 cursor={{ stroke: '#d1d6db', strokeWidth: 1, strokeDasharray: '3 3' }}
               />
               <Bar dataKey="volume" yAxisId="volume" fill="#e5e8eb" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.6} isAnimationActive={false} />
-              <Line type="monotone" dataKey="monthAvg" yAxisId="price" stroke="#3182f6" strokeWidth={2} dot={false} activeDot={false} connectNulls isAnimationActive={false} />
+              <Line type="monotone" dataKey="monthAvg" yAxisId="price" stroke="#0d9488" strokeWidth={2} dot={false} activeDot={false} connectNulls isAnimationActive={false} />
               <Customized
                 component={(rechartProps: Record<string, unknown>) => {
                   const { xAxisMap, yAxisMap } = rechartProps as { xAxisMap?: Record<string, { scale?: (val: number) => number }>; yAxisMap?: Record<string, { scale?: (val: number) => number }> };
@@ -358,7 +358,7 @@ export function TransactionChartSection({
                   {d.priceEok || `${d.price.toFixed(2)}억`}
                 </div>
                 <div style={{ color: '#8b95a1', fontSize: 11, display: 'flex', gap: 6, alignItems: 'center' }}>
-                  {typeName ? <span style={{ color: '#3182f6', fontWeight: 600 }}>{typeName}</span> : <span>{areaUnit === 'm2' ? `${d.rawArea}m²` : `${d.area}평`}</span>}
+                  {typeName ? <span style={{ color: '#0d9488', fontWeight: 600 }}>{typeName}</span> : <span>{areaUnit === 'm2' ? `${d.rawArea}m²` : `${d.area}평`}</span>}
                   <span>·</span><span style={{ color: getFloorColor(d.floor) }}>{d.floor}층</span>
                   {d.dealType && <><span>·</span><span>{d.dealType}</span></>}
                 </div>

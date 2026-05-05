@@ -37,7 +37,7 @@ describe('Dongs Utilities', () => {
 
   describe('getDongColor()', () => {
     it('should return color for known dong', () => {
-      expect(getDongColor('청계동')).toBe('#3182f6');
+      expect(getDongColor('청계동')).toBe('#0d9488');
     });
 
     it('should return fallback for unknown dong', () => {

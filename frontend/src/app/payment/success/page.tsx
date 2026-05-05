@@ -104,7 +104,7 @@ function PaymentSuccessContent() {
             <p className="text-[14px] text-toss-red mb-6">{errorMessage}</p>
             <button
               onClick={() => router.push('/')}
-              className="bg-toss-blue text-surface font-bold px-6 py-3 rounded-xl hover:bg-[#1b64da] transition-colors"
+              className="bg-toss-blue text-surface font-bold px-6 py-3 rounded-xl hover:bg-[#0f766e] transition-colors"
             >
               돌아가기
             </button>

@@ -20,7 +20,7 @@ export default function NotFound() {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-toss-blue text-surface rounded-xl font-bold text-[14px] hover:bg-[#2b72d6] transition-colors shadow-lg shadow-[#3182f6]/20"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-toss-blue text-surface rounded-xl font-bold text-[14px] hover:bg-[#2b72d6] transition-colors shadow-lg shadow-[#0d9488]/20"
         >
           <Home size={16} />
           홈으로 돌아가기

@@ -541,7 +541,7 @@ export function FieldReportModal({
                     </div>
                     <div className="grid grid-cols-3 gap-1.5 md:gap-2.5">
                       {[
-                        { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#3182f6', bgFrom: '#eef6ff', bgTo: '#dbeafe' },
+                        { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#0d9488', bgFrom: '#eef6ff', bgTo: '#dbeafe' },
                         { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestIndeokwonCoords, color: '#7c3aed', bgFrom: '#f5f3ff', bgTo: '#ede9fe' },
                         { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#0891b2', bgFrom: '#ecfeff', bgTo: '#cffafe' },
                       ].filter(s => s.dist != null && s.dist > 0).map(station => (
@@ -1089,7 +1089,7 @@ export function FieldReportModal({
                     alert('공유하기 기능이 지원되지 않는 브라우저입니다.');
                   }
                 }}
-                className="flex-1 h-[56px] bg-toss-blue hover:bg-[#1b64da] text-surface font-extrabold text-[16px] rounded-2xl flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(49,130,246,0.2)] transition-colors"
+                className="flex-1 h-[56px] bg-toss-blue hover:bg-[#0f766e] text-surface font-extrabold text-[16px] rounded-2xl flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(49,130,246,0.2)] transition-colors"
               >
                 <Share size={20} strokeWidth={2.5} />
                 공유하기

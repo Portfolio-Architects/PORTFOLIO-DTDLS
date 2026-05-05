@@ -3,7 +3,7 @@ import { Camera, ImagePlus, X } from 'lucide-react';
 
 const RATING_EMOJIS = ['😡', '😟', '😐', '🙂', '🤩'] as const;
 const RATING_LABELS = ['매우 나쁨', '나쁨', '보통', '좋음', '매우 좋음'] as const;
-const RATING_COLORS = ['#f04452', '#ff6b35', '#ffc233', '#36b37e', '#3182f6'] as const;
+const RATING_COLORS = ['#f04452', '#ff6b35', '#ffc233', '#36b37e', '#0d9488'] as const;
 
 export interface EmojiRatingProps {
   label: string;

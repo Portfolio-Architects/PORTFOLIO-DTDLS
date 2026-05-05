@@ -476,7 +476,7 @@ export default function AdminDashboard() {
         {activeAdminTab === 'apartments' && (
           <div className="flex gap-2">
             <button onClick={handleSync} disabled={isSyncing}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#1b64da] bg-toss-blue-light hover:bg-toss-blue hover:text-surface disabled:opacity-50 transition-all text-[13px]">
+              className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-[#0f766e] bg-toss-blue-light hover:bg-toss-blue hover:text-surface disabled:opacity-50 transition-all text-[13px]">
               <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} /> 
               {isSyncing ? '동기화 중...' : '실거래가 수동 동기화'}
             </button>
@@ -536,7 +536,7 @@ export default function AdminDashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-6">
         {[
-          { label: '전체 단지', value: stats.total, color: '#3182f6', bg: '#e8f3ff', icon: Building, fk: 'all' as const },
+          { label: '전체 단지', value: stats.total, color: '#0d9488', bg: '#ccfbf1', icon: Building, fk: 'all' as const },
           { label: '매핑 완료', value: stats.mapped, color: '#03c75a', bg: '#f0fdf4', icon: Check, fk: 'all' as const },
           { label: '미매핑', value: stats.unmapped, color: '#f04452', bg: '#ffebec', icon: AlertTriangle, fk: 'unmatched' as const },
           { label: '가치평가', value: stats.analyzed, color: '#8b5cf6', bg: '#f5f3ff', icon: MapPin, fk: 'analyzed' as const },
@@ -593,7 +593,7 @@ export default function AdminDashboard() {
                 <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
                   dongMapped === apts.length ? 'bg-[#f0fdf4] text-toss-green' : dongMapped > 0 ? 'bg-[#fff4e6] text-[#ff8a3d]' : 'bg-body text-tertiary'
                 }`}>TX {dongMapped}/{apts.length}</span>
-                {dongAnalyzed > 0 && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-toss-blue-light text-[#1b64da]">📍 {dongAnalyzed}</span>}
+                {dongAnalyzed > 0 && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-toss-blue-light text-[#0f766e]">📍 {dongAnalyzed}</span>}
                 {dongVerified > 0 && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#fff4e6] text-[#ff8a3d]">📸 {dongVerified}</span>}
               </button>
 
@@ -623,7 +623,7 @@ export default function AdminDashboard() {
                             {verifiedReportsCount > 0 ? (
                               <span className="text-[11px] font-bold bg-[#fff4e6] text-[#ff8a3d] px-2 py-0.5 rounded-full mt-0.5">현장검증</span>
                             ) : analyzedApts.has(name) ? (
-                              <span className="text-[11px] font-bold bg-toss-blue-light text-[#1b64da] px-2 py-0.5 rounded-full mt-0.5">가치평가</span>
+                              <span className="text-[11px] font-bold bg-toss-blue-light text-[#0f766e] px-2 py-0.5 rounded-full mt-0.5">가치평가</span>
                             ) : null}
 
                             <span className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-surface border border-border rounded-lg text-[12px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors shadow-sm">
@@ -650,7 +650,7 @@ export default function AdminDashboard() {
           <span className="text-[13px] text-tertiary font-medium">{stats.total}개 단지 · {stats.mapped} 매핑 · 📸 {stats.totalVerifiedReports} 현장검증</span>
           <button onClick={handleSave} disabled={saving}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all text-[14px] ${
-              saved ? 'bg-toss-green text-surface shadow-lg shadow-[#03c75a]/20' : 'bg-toss-blue hover:bg-[#2b72d6] text-surface shadow-lg shadow-[#3182f6]/20'
+              saved ? 'bg-toss-green text-surface shadow-lg shadow-[#03c75a]/20' : 'bg-toss-blue hover:bg-[#2b72d6] text-surface shadow-lg shadow-[#0d9488]/20'
             } disabled:opacity-60`}>
             <Save size={16}/>
             {saving ? '저장 중...' : saved ? '저장 완료!' : '저장하기'}

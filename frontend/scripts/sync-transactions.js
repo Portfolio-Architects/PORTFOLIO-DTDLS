@@ -123,36 +123,44 @@ function normalizeAptName(name) {
  */
 async function fetchDongMap() {
   const dongMap = {};
+  const validTxKeys = new Set();
   try {
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=apartments`;
     const res = await fetch(csvUrl);
     if (res.ok) {
       const csvText = await res.text();
       const lines = csvText.split('\n').filter(l => l.trim());
-      if (lines.length < 2) return dongMap;
+      if (lines.length < 2) return { dongMap, validTxKeys };
       
       const headers = parseCsvLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim().toLowerCase());
       const nameIdx = headers.findIndex(h => h === '아파트명' || h === 'name' || h === '이름');
       const dongIdx = headers.findIndex(h => h === 'dong' || h === '동');
+      const txKeyIdx = headers.findIndex(h => h === 'txkey');
       
-      if (nameIdx === -1 || dongIdx === -1) {
-        console.warn('⚠️ apartments 시트에서 아파트명/dong 컬럼을 찾지 못했습니다.');
-        return dongMap;
+      if (nameIdx === -1) {
+        console.warn('⚠️ apartments 시트에서 아파트명 컬럼을 찾지 못했습니다.');
+        return { dongMap, validTxKeys };
       }
       
       for (let i = 1; i < lines.length; i++) {
         const cols = parseCsvLine(lines[i]).map(c => c.replace(/^"|"$/g, '').trim());
         const name = cols[nameIdx];
-        const dong = cols[dongIdx];
-        if (name && dong) {
-          dongMap[normalizeAptName(name)] = dong;
+        const dong = dongIdx !== -1 ? cols[dongIdx] : '';
+        let txKey = txKeyIdx !== -1 ? cols[txKeyIdx] : '';
+        
+        if (name) {
+          const normName = normalizeAptName(name);
+          if (dong) dongMap[normName] = dong;
+          if (!txKey) txKey = normName;
+          validTxKeys.add(txKey);
+          validTxKeys.add(normName);
         }
       }
     }
   } catch(e) {
     console.error('⚠️ 법정동 매핑 다운로드 실패:', e.message);
   }
-  return dongMap;
+  return { dongMap, validTxKeys };
 }
 
 async function main() {
@@ -299,24 +307,31 @@ async function main() {
 
   // 법정동 매핑 다운로드 (Google Sheets apartments 탭)
   console.log('🗺️ 법정동 매핑 다운로드 중...');
-  const dongMap = await fetchDongMap();
-  console.log(`   ${Object.keys(dongMap).length}개 아파트-동 매핑 로드 완료`);
+  const { dongMap, validTxKeys } = await fetchDongMap();
+  console.log(`   ${Object.keys(dongMap).length}개 아파트-동 매핑 로드 완료. 유효 아파트: ${validTxKeys.size}개`);
 
-  // ── 6개월 거시 트렌드 (월별 평균가) 수집용 객체 초기화 ──
+  // ── 10년(120개월) 거시 트렌드 (월별 평균가) 수집용 객체 초기화 ──
   // 상수 바스켓 지수(Constant Basket Index): 국민평형(30~36평) 단지들의 각 월별 가장 최근 실거래가를 누적합니다.
   // 실거래가 신고 지연(최대 30일)으로 인한 최근 달의 통계 왜곡(급락 착시)을 방지하기 위해 2개월 오프셋 적용
   const macroTrendData = {};
   const trendMonths = [];
   const REPORTING_LAG_MONTHS = 2; // 2개월 전을 가장 최신 달로 취급
-  for (let i = 5; i >= 0; i--) {
+  for (let i = 119; i >= 0; i--) { // 10년 치 데이터
     const d = new Date(now.getFullYear(), now.getMonth() - REPORTING_LAG_MONTHS - i, 1);
     const ym = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const label = `${d.getMonth() + 1}월`;
-    macroTrendData[ym] = { name: label, sumPrice: 0, aptCount: 0 };
+    const yy = String(d.getFullYear()).slice(-2);
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const label = `${yy}.${mm}`; // 23.01 형식
+    macroTrendData[ym] = { name: label, sumPrice: 0, aptCount: 0, sumJeonse: 0, jeonseCount: 0 };
     trendMonths.push(ym);
   }
 
-  for (const [aptName, txs] of Object.entries(byApt)) {
+  // 필터링된 아파트 목록
+  const filteredApts = Object.keys(byApt).filter(aptName => validTxKeys.has(aptName) || validTxKeys.has(normalizeAptName(aptName)));
+  console.log(`🧹 전체 ${Object.keys(byApt).length}개 중 동탄 지역 ${filteredApts.length}개 아파트만 필터링 완료`);
+
+  for (const aptName of filteredApts) {
+    const txs = byApt[aptName];
     // 매매와 전월세 분리 ('전세', '월세'가 명시된 것만 임대차 거래로 치고 나머지는 모두 매매로 취급)
     const rawRentTxs = txs.filter(t => {
       if (t.dealType === '전세') return true;
@@ -393,6 +408,20 @@ async function main() {
         if (latestTx) {
           macroTrendData[ym].sumPrice += latestTx.price;
           macroTrendData[ym].aptCount += 1;
+        }
+      });
+    }
+
+    // --- 동탄 전체 전세 가격 지수(거시 트렌드) 계산 ---
+    const standardJeonseTxs = rentTxs.filter(t => t.areaPyeong >= 30 && t.areaPyeong <= 36 && t.deposit > 0 && (!t.monthlyRent || t.monthlyRent === 0));
+    standardJeonseTxs.sort((a, b) => b.contractDate.localeCompare(a.contractDate));
+
+    if (standardJeonseTxs.length > 0) {
+      trendMonths.forEach(ym => {
+        const latestTx = standardJeonseTxs.find(t => t.contractYm <= ym);
+        if (latestTx) {
+          macroTrendData[ym].sumJeonse += latestTx.deposit;
+          macroTrendData[ym].jeonseCount += 1;
         }
       });
     }
@@ -549,21 +578,31 @@ async function main() {
 
   // ── 거시 트렌드 배열 생성 ──
   let lastValidPrice = 0;
+  let lastValidJeonse = 0;
   const dongtanMacroTrend = trendMonths.map(ym => {
     const data = macroTrendData[ym];
     let avgPriceMan = data.aptCount > 0 ? data.sumPrice / data.aptCount : 0;
+    let avgJeonseMan = data.jeonseCount > 0 ? data.sumJeonse / data.jeonseCount : 0;
     
     if (avgPriceMan === 0 && lastValidPrice > 0) {
       avgPriceMan = lastValidPrice; // 거래가 아직 없는 최근 월은 직전 월 데이터로 폴백
     } else if (avgPriceMan > 0) {
       lastValidPrice = avgPriceMan;
     }
+
+    if (avgJeonseMan === 0 && lastValidJeonse > 0) {
+      avgJeonseMan = lastValidJeonse; // 거래가 아직 없는 최근 월은 직전 월 데이터로 폴백
+    } else if (avgJeonseMan > 0) {
+      lastValidJeonse = avgJeonseMan;
+    }
     
     // 억 단위 변환 (예: 53200 만원 -> 53.2 억 -> 5.3)
     const avgPriceEok = Math.round(avgPriceMan / 1000) / 10;
+    const avgJeonseEok = Math.round(avgJeonseMan / 1000) / 10;
     return {
       name: data.name,
-      '동탄 아파트 전체': avgPriceEok
+      '동탄 아파트 전체': avgPriceEok,
+      '동탄 아파트 전세 평균': avgJeonseEok
     };
   });
 
@@ -624,6 +663,7 @@ export interface AptTxSummary {
 export interface DongtanMacroTrendPoint {
   name: string;
   '동탄 아파트 전체': number;
+  '동탄 아파트 전세 평균': number;
 }
 
 export const DONGTAN_MACRO_TREND: DongtanMacroTrendPoint[] = ${JSON.stringify(dongtanMacroTrend, null, 2)};
@@ -654,7 +694,8 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = `;
   let totalSizeKB = 0;
   let chunkCount = 0;
 
-  for (const [aptName, txs] of Object.entries(byApt)) {
+  for (const aptName of filteredApts) {
+    const txs = byApt[aptName];
     const records = txs.map(t => ({
       contractYm: t.contractYm,
       contractDay: t.contractDay,
@@ -685,7 +726,7 @@ export const TX_SUMMARY: Record<string, AptTxSummary> = `;
   }
 
   // 인덱스 파일 생성 (어떤 아파트들이 있는지 목록)
-  const index = Object.keys(byApt);
+  const index = filteredApts;
   fs.writeFileSync(
     path.join(TX_DATA_DIR, '_index.json'),
     JSON.stringify(index),

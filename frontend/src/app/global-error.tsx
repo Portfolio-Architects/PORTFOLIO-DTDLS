@@ -56,7 +56,7 @@ export default function GlobalError({
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '8px',
                 padding: '12px 28px',
-                background: '#3182f6', color: 'white',
+                background: '#0d9488', color: 'white',
                 border: 'none', borderRadius: '12px',
                 fontSize: '0.95rem', fontWeight: 700,
                 cursor: 'pointer',

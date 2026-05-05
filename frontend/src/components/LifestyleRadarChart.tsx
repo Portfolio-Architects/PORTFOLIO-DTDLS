@@ -31,9 +31,9 @@ export default function LifestyleRadarChart() {
           <Radar 
             name="롯데백화점 동탄점" 
             dataKey="롯데백화점" 
-            stroke="#3182f6" 
+            stroke="#0d9488" 
             strokeWidth={3}
-            fill="#3182f6" 
+            fill="#0d9488" 
             fillOpacity={0.2} 
             isAnimationActive={false}
           />

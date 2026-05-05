@@ -7,7 +7,7 @@ import type { AptTxSummary } from '@/lib/transaction-summary';
 import { DONGTAN_MACRO_TREND } from '@/lib/transaction-summary';
 import { normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import FloatingUserBar from '@/components/FloatingUserBar';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, Info, ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
 
 interface MacroDashboardProps {
   sheetApartments: Record<string, DongApartment[]>;
@@ -16,14 +16,14 @@ interface MacroDashboardProps {
   userFavorites?: Set<string>;
 }
 
-const COLORS = ['#3182f6', '#4196f7', '#00a261', '#f9a825', '#f04452', '#b0b8c1'];
-const LINE_COLORS = ['#b0b8c1', '#3182f6', '#f04452', '#00a261', '#f9a825'];
+const COLORS = ['#0d9488', '#4196f7', '#00a261', '#f9a825', '#f04452', '#b0b8c1'];
+const LINE_COLORS = ['#b0b8c1', '#0d9488', '#f04452', '#00a261', '#f9a825'];
 
-const InfoBox = ({ title, value, unit, progress, badge, color = "#3182f6" }: any) => {
+const InfoBox = ({ title, value, unit, progress, badge, color = "#0d9488" }: any) => {
   return (
-    <div className="bg-[#f4f5f6] rounded-2xl p-4 flex items-center justify-between shadow-sm border border-[#e5e8eb] overflow-hidden">
-      <div className="flex flex-col truncate pr-2">
-        <span className="text-[10px] font-bold text-[#8b95a1] mb-1 tracking-widest truncate">{title}</span>
+    <div className="bg-[#f4f5f6] rounded-2xl p-4 flex items-center justify-between shadow-sm border border-[#e5e8eb]">
+      <div className="flex flex-col pr-2 min-w-0 z-10">
+        <div className="text-[14px] font-bold text-[#8b95a1] mb-1 tracking-tight whitespace-nowrap">{title}</div>
         <div className="flex items-baseline gap-1 truncate">
           <span className="text-[18px] md:text-[20px] font-extrabold text-[#191f28] truncate">{value}</span>
           {unit && <span className="text-[13px] font-bold text-[#4e5968] shrink-0">{unit}</span>}
@@ -41,8 +41,8 @@ const InfoBox = ({ title, value, unit, progress, badge, color = "#3182f6" }: any
         </div>
       )}
       {badge && (
-        <div className="bg-white border border-[#e5e8eb] px-2.5 py-1.5 rounded-lg shadow-sm shrink-0">
-          <span className="text-[13px] font-extrabold text-[#3182f6]">{badge}</span>
+        <div className="bg-white border border-[#e5e8eb] px-3 py-1.5 rounded-lg shadow-sm shrink-0">
+          <span className="text-[15px] font-extrabold text-[#0d9488]">{badge}</span>
         </div>
       )}
     </div>
@@ -52,7 +52,28 @@ const InfoBox = ({ title, value, unit, progress, badge, color = "#3182f6" }: any
 export default function MacroDashboardClient({ sheetApartments, txSummaryData, publicRentalSet, userFavorites }: MacroDashboardProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [chartMode, setChartMode] = useState<'price' | 'pyeong'>('price');
+  const [timeframe, setTimeframe] = useState<'3M' | '6M' | '1Y' | '3Y' | '5Y' | 'ALL'>('1Y');
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({ '동탄역세권': true });
   const [isScrolled, setIsScrolled] = useState(false);
+  const [newsData, setNewsData] = useState<any[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
+
+  React.useEffect(() => {
+    async function fetchNews() {
+      try {
+        const res = await fetch('/api/macro/news');
+        const json = await res.json();
+        if (json.status === 'success' && json.data) {
+          setNewsData(json.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch news', err);
+      } finally {
+        setNewsLoading(false);
+      }
+    }
+    fetchNews();
+  }, []);
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -83,7 +104,7 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
     ];
 
     const tiers = chartMode === 'price' ? priceTiers : pyeongTiers;
-    
+
     Object.entries(sheetApartments).forEach(([dong, apts]) => {
       const validApts = apts.filter(a => !publicRentalSet.has(a.name));
 
@@ -98,7 +119,7 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
           } else if (chartMode === 'pyeong') {
             valueToCompare = tx.avg3MPerPyeong || tx.avg1MPerPyeong || (tx.latestArea ? tx.latestPrice / (tx.latestArea / 3.3058) : 0);
           }
-          
+
           if (valueToCompare > 0) {
             const tier = tiers.find(t => valueToCompare >= t.min && valueToCompare < t.max);
             if (tier) {
@@ -115,9 +136,19 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
     }));
   }, [sheetApartments, publicRentalSet, txSummaryData, chartMode]);
 
-  const totalHouseholds = useMemo(() => {
-    return donutData.reduce((sum, item) => sum + item.value, 0);
-  }, [donutData]);
+  const [totalHouseholds, publicRentalHouseholds] = useMemo(() => {
+    let total = 0;
+    let publicRental = 0;
+    if (!sheetApartments) return [0, 0];
+    Object.values(sheetApartments).flat().forEach(apt => {
+      const hh = apt.householdCount || 0;
+      total += hh;
+      if (publicRentalSet.has(apt.name)) {
+        publicRental += hh;
+      }
+    });
+    return [total, publicRental];
+  }, [sheetApartments, publicRentalSet]);
 
   // 2. Line Chart Data (동탄 아파트 전체 가격 변화 추이 - 실제 데이터)
   const benchmarks = useMemo(() => {
@@ -125,58 +156,285 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
   }, []);
 
   const lineData = useMemo(() => {
-    // DONGTAN_MACRO_TREND (6개월치 월별 평균가 데이터)를 바로 사용
-    // 데이터 형식: [{ name: '11월', '동탄 아파트 전체': 5.3 }, ...]
-    // fallback으로 DONGTAN_MACRO_TREND가 없을 경우를 대비해 빈 배열 제공
-    return DONGTAN_MACRO_TREND || [];
-  }, []);
+    if (!DONGTAN_MACRO_TREND) return [];
+    let count = DONGTAN_MACRO_TREND.length;
+    switch (timeframe) {
+      case '3M': count = 3; break;
+      case '6M': count = 6; break;
+      case '1Y': count = 12; break;
+      case '3Y': count = 36; break;
+      case '5Y': count = 60; break;
+      case 'ALL': count = DONGTAN_MACRO_TREND.length; break;
+    }
+    return DONGTAN_MACRO_TREND.slice(-Math.min(count, DONGTAN_MACRO_TREND.length));
+  }, [timeframe]);
 
-  const topTierRatio = totalHouseholds > 0 
+  const xTicks = useMemo(() => {
+    if (lineData.length === 0) return [];
+    const ticks = [];
+    const total = lineData.length;
+
+    if (timeframe === '3M' || timeframe === '6M') {
+      return lineData.map(d => d.name);
+    }
+
+    let step = 1;
+    if (timeframe === '1Y') step = 2;       // 2개월 간격
+    else if (timeframe === '3Y') step = 6;  // 6개월 간격
+    else if (timeframe === '5Y') step = 12; // 1년 간격
+    else if (timeframe === 'ALL') step = 24;// 2년 간격
+
+    // 항상 최신 달(가장 오른쪽)부터 역순으로 균등하게 범례를 추출
+    for (let i = total - 1; i >= 0; i -= step) {
+      ticks.unshift(lineData[i].name);
+    }
+    return ticks;
+  }, [lineData, timeframe]);
+
+  const topTierRatio = totalHouseholds > 0
     ? (((donutData[0]?.value || 0) + (donutData[1]?.value || 0)) / totalHouseholds * 100)
     : 0;
   const topTierLabel = chartMode === 'price' ? 'PREMIUM (1급지+)' : 'NEW APT (10년내)';
 
-  const publicRentalRatio = totalHouseholds > 0 
-    ? ((donutData[donutData.length - 1]?.value || 0) / totalHouseholds * 100)
+  const publicRentalRatio = totalHouseholds > 0
+    ? (publicRentalHouseholds / totalHouseholds * 100)
     : 0;
 
-  const latestAvgPrice = lineData.length > 0 ? lineData[lineData.length - 1]['동탄 아파트 전체'] : 0;
-  const avgPriceProgress = Math.min((latestAvgPrice / 15) * 100, 100); 
+  const latestAvgPrice = DONGTAN_MACRO_TREND && DONGTAN_MACRO_TREND.length > 0 ? DONGTAN_MACRO_TREND[DONGTAN_MACRO_TREND.length - 1]['동탄 아파트 전체'] : 0;
+  const avgPriceProgress = Math.min((latestAvgPrice / 15) * 100, 100);
+
+  const avgPriceFormatted = useMemo(() => {
+    const uk = Math.floor(latestAvgPrice);
+    const man = Math.round((latestAvgPrice - uk) * 10000);
+
+    if (man === 0) {
+      return { value: `${uk}`, unit: '억' };
+    }
+    return { value: `${uk}억 ${man.toLocaleString()}`, unit: '만원' };
+  }, [latestAvgPrice]);
+
+  const momStats = useMemo(() => {
+    if (!DONGTAN_MACRO_TREND || DONGTAN_MACRO_TREND.length < 2) return { change: 0, changeText: '0원', rate: 0, text: '보합장', color: '#b0b8c1' };
+    const current = DONGTAN_MACRO_TREND[DONGTAN_MACRO_TREND.length - 1]['동탄 아파트 전체'];
+    const prev = DONGTAN_MACRO_TREND[DONGTAN_MACRO_TREND.length - 2]['동탄 아파트 전체'];
+    if (prev === 0) return { change: 0, changeText: '0원', rate: 0, text: '보합장', color: '#b0b8c1' };
+
+    const change = current - prev;
+    const rate = (change / prev) * 100;
+
+    const formatChange = (c: number) => {
+      const uk = Math.floor(c);
+      const man = Math.round((c - uk) * 10000);
+      if (uk === 0) return `${man.toLocaleString()}만원`;
+      if (man === 0) return `${uk}억`;
+      return `${uk}억 ${man.toLocaleString()}만원`;
+    };
+
+    const absChange = Math.abs(change);
+    const changeText = formatChange(absChange);
+
+    if (change > 0) return { change: absChange, changeText, rate: Math.abs(rate), text: '상승장', color: '#f04452' };
+    if (change < 0) return { change: absChange, changeText, rate: Math.abs(rate), text: '하락장', color: '#3182f6' };
+    return { change: 0, changeText: '0원', rate: 0, text: '보합장', color: '#b0b8c1' };
+  }, [lineData]);
+
+  const dongtanAvgPyeongPrice = useMemo(() => {
+    let sum = 0;
+    let count = 0;
+    if (!sheetApartments) return 0;
+
+    Object.values(sheetApartments).flat().forEach(apt => {
+      if (publicRentalSet.has(apt.name)) return;
+      const rawTxKey = (apt as any).txKey || findTxKey(apt.name, txSummaryData);
+      const txKey = rawTxKey ? normalizeAptName(rawTxKey) : null;
+      const tx = txKey ? txSummaryData[txKey] : undefined;
+
+      if (tx) {
+        const pyeongPrice = tx.avg3MPerPyeong || tx.avg1MPerPyeong || (tx.latestArea ? (tx.latestPrice / (tx.latestArea / 3.3058)) : 0);
+        if (pyeongPrice > 0) {
+          sum += pyeongPrice;
+          count++;
+        }
+      }
+    });
+
+    return count > 0 ? Math.round(sum / count) : 0;
+  }, [txSummaryData, sheetApartments, publicRentalSet]);
 
   const [maxAptName, maxPriceEok] = useMemo(() => {
     let maxPrice = 0;
     let maxEok = '';
-    let maxName = '';
-    Object.entries(txSummaryData).forEach(([name, tx]) => {
-      if (tx && tx.latestPrice > maxPrice) {
-        maxPrice = tx.latestPrice;
-        maxEok = tx.latestPriceEok;
-        maxName = name;
+    let displayAptName = '';
+
+    if (!sheetApartments) return ['', ''];
+
+    Object.values(sheetApartments).flat().forEach(apt => {
+      if (publicRentalSet.has(apt.name)) return;
+      const txKey = findTxKey(apt.name, txSummaryData);
+      if (txKey && txSummaryData[txKey]) {
+        const tx = txSummaryData[txKey];
+        if (tx.latestPrice > maxPrice) {
+          maxPrice = tx.latestPrice;
+          maxEok = tx.latestPriceEok;
+          displayAptName = apt.name;
+        }
       }
     });
-    if (maxName.length > 7) {
-      maxName = maxName.slice(0, 7) + '..';
-    }
-    return [maxName, maxEok];
-  }, [txSummaryData]);
+
+    return [displayAptName, maxEok];
+  }, [txSummaryData, sheetApartments, publicRentalSet]);
+
+  const [maxPyeongAptName, maxPyeongPrice] = useMemo(() => {
+    let maxPrice = 0;
+    let displayAptName = '';
+
+    if (!sheetApartments) return ['', 0];
+
+    Object.values(sheetApartments).flat().forEach(apt => {
+      if (publicRentalSet.has(apt.name)) return;
+      const txKey = findTxKey(apt.name, txSummaryData);
+      if (txKey && txSummaryData[txKey]) {
+        const tx = txSummaryData[txKey];
+        const pyeongPrice = tx.avg3MPerPyeong || tx.avg1MPerPyeong || (tx.latestArea ? (tx.latestPrice / (tx.latestArea / 3.3058)) : 0);
+        if (pyeongPrice > maxPrice) {
+          maxPrice = pyeongPrice;
+          displayAptName = apt.name;
+        }
+      }
+    });
+
+    return [displayAptName, Math.round(maxPrice)];
+  }, [txSummaryData, sheetApartments, publicRentalSet]);
 
   const formatEok = (val: number) => `${val}억`;
+
+  const toggleGroup = (title: string) => {
+    setExpandedGroups(prev => ({ ...prev, [title]: !prev[title] }));
+  };
+
+  const accordionData = useMemo(() => {
+    if (!sheetApartments || !txSummaryData) return [];
+
+    const grouped: Record<string, any> = {};
+
+    Object.values(sheetApartments).flat().forEach(apt => {
+      const lat = apt.lat || 0;
+      const lng = apt.lng || 0;
+
+      let themeTitle = '기타 권역';
+
+      // ==========================================
+      // [TODO] 아래 좌표 기준(Bounding Box)을 자유롭게 수정하여 아파트를 편입시키세요.
+      // ==========================================
+      if (lat !== 0 && lng !== 0) {
+        if (lng < 127.085) {
+          themeTitle = '1동탄';
+        } else if (lat > 37.205) {
+          themeTitle = '테크노밸리';
+        } else if (lat < 37.175) {
+          themeTitle = '호수공원';
+        } else if (lat >= 37.195 && lat <= 37.205 && lng >= 127.100 && lng <= 127.115) {
+          themeTitle = '시범 커뮤니티';
+        } else if (lat >= 37.190 && lat <= 37.205 && lng >= 127.085 && lng <= 127.100) {
+          themeTitle = '동탄역세권';
+        } else {
+          themeTitle = '문화디자인밸리';
+        }
+      } else {
+        // 좌표가 누락된 데이터에 대한 예외 처리 (수동 매핑)
+        if (apt.dong === '오산동' || apt.dong === '여울동') themeTitle = '동탄역세권';
+        else if (apt.dong === '청계동') themeTitle = '시범 커뮤니티';
+        else if (apt.dong === '영천동') themeTitle = '테크노밸리';
+        else if (apt.dong === '산척동' || apt.dong === '송동') themeTitle = '호수공원';
+        else if (apt.dong === '반송동' || apt.dong === '능동' || apt.dong === '석우동') themeTitle = '1동탄';
+        else themeTitle = '문화디자인밸리';
+      }
+
+      if (!grouped[themeTitle]) {
+        grouped[themeTitle] = {
+          title: themeTitle,
+          dong: themeTitle, // 헤더의 Core Anchor 표시에 사용
+          totalValue: 0,
+          count: 0,
+          apartments: []
+        };
+      }
+      if (publicRentalSet.has(apt.name)) return;
+      const rawTxKey = (apt as any).txKey || findTxKey(apt.name, txSummaryData);
+      const txKey = rawTxKey ? normalizeAptName(rawTxKey) : null;
+      const tx = txKey ? txSummaryData[txKey] : undefined;
+
+      if (tx && tx.latestPrice > 0) {
+        const maxPrice = tx.maxPrice || tx.latestPrice;
+        const mdd = maxPrice > 0 ? ((tx.latestPrice - maxPrice) / maxPrice) * 100 : 0;
+        const gap = tx.latestPrice > 0 && tx.latestRentDeposit ? (tx.latestRentDeposit / tx.latestPrice) * 100 : 0;
+        const liquid = tx.avg3MTxCount || 0;
+
+        let formattedYear = apt.yearBuilt || '';
+        if (formattedYear.length === 6 && !isNaN(Number(formattedYear))) {
+          formattedYear = `${formattedYear.substring(0, 4)}년 ${formattedYear.substring(4, 6)}월`;
+        } else if (formattedYear.length === 4 && !isNaN(Number(formattedYear))) {
+          formattedYear = `${formattedYear}년`;
+        }
+
+        grouped[themeTitle].apartments.push({
+          name: apt.name,
+          latestPrice: tx.latestPrice,
+          latestPriceEok: tx.latestPriceEok || `${Math.round(tx.latestPrice / 10000)}억`,
+          mdd: mdd,
+          gap: gap,
+          liquid: liquid,
+          householdCount: apt.householdCount || 0,
+          yearBuilt: formattedYear
+        });
+
+        grouped[themeTitle].totalValue += tx.latestPrice;
+        grouped[themeTitle].count += 1;
+      }
+    });
+
+    const themeOrder = [
+      '동탄역세권',
+      '시범 커뮤니티',
+      '호수공원',
+      '문화디자인밸리',
+      '테크노밸리',
+      '1동탄'
+    ];
+
+    const result = Object.values(grouped)
+      .filter(g => g.count > 0)
+      .map(g => {
+        g.avgPrice = g.totalValue / g.count;
+        g.apartments.sort((a: any, b: any) => b.latestPrice - a.latestPrice);
+        return g;
+      })
+      .sort((a, b) => {
+        const indexA = themeOrder.indexOf(a.title);
+        const indexB = themeOrder.indexOf(b.title);
+        const orderA = indexA === -1 ? 999 : indexA;
+        const orderB = indexB === -1 ? 999 : indexB;
+        if (orderA !== orderB) return orderA - orderB;
+        return b.avgPrice - a.avgPrice;
+      });
+
+    return result;
+  }, [sheetApartments, txSummaryData, publicRentalSet]);
 
   return (
     <div className="w-full flex flex-col bg-surface relative">
       <div className="flex flex-col md:px-10 lg:px-16 py-0 md:py-6 lg:py-8 w-full">
         {/* Compact Dynamic Sticky Header (Mobile Only) */}
-        <div 
-          className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-white/95 backdrop-blur-md border-b border-border px-5 py-3 flex items-center justify-between transition-all duration-300 ${
-            isScrolled ? 'translate-y-0 opacity-100 shadow-sm' : '-translate-y-full opacity-0 pointer-events-none'
-          }`}
+        <div
+          className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-white/95 backdrop-blur-md border-b border-border px-5 py-3 flex items-center justify-between transition-all duration-300 ${isScrolled ? 'translate-y-0 opacity-100 shadow-sm' : '-translate-y-full opacity-0 pointer-events-none'
+            }`}
         >
           <h1 className="text-[16px] font-extrabold text-[#191f28] tracking-tight">
-            동탄 아파트 가치 분석
+            D-VIEW 아파트 가격 분석
           </h1>
           <div className="flex items-center gap-3">
             <FloatingUserBar />
-            <button 
+            <button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className="p-1 -mr-1 rounded-full hover:bg-body transition-colors"
             >
@@ -186,198 +444,467 @@ export default function MacroDashboardClient({ sheetApartments, txSummaryData, p
         </div>
 
         {/* Top Header - Main Title */}
-        <div className="flex flex-col md:mb-8 px-4 sm:px-6 md:px-2 py-3 md:py-0 relative md:static md:bg-transparent border-b border-border md:border-none">
+        <div className="flex flex-col gap-3 sm:gap-4 md:mb-8 px-4 sm:px-6 md:px-2 py-3 md:py-0 relative md:static md:bg-transparent border-b border-border md:border-none">
           <div className="absolute right-4 top-1/2 -translate-y-1/2 md:hidden flex items-center justify-end">
             <FloatingUserBar />
           </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden md:flex w-12 h-12 rounded-xl bg-white border border-[#e5e8eb] items-center justify-center shadow-sm shrink-0">
-              <img src="/d-view-icon.png" alt="Icon" className="w-9 h-9 object-contain" />
-            </div>
-            <div className="flex flex-col justify-center">
-              <h1 className="text-[20px] md:text-[32px] font-extrabold text-[#191f28] tracking-tight leading-none mb-1 md:mb-0">
-                동탄 아파트 가치 분석
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-[#e5e8eb] flex items-center justify-center shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] shadow-sm">
+                <img src="/d-view-icon.png" alt="Icon" className="w-[26px] h-[26px] sm:w-[32px] sm:h-[32px] object-contain" />
+              </div>
+              <h1 className="font-extrabold text-[#191f28] tracking-tight leading-none whitespace-nowrap text-[22px] sm:text-[30px] lg:text-[36px] -translate-y-[1px] sm:-translate-y-[1.5px]">
+                D-VIEW 아파트 가격 분석
               </h1>
-              <div className="flex items-center gap-1.5 md:mt-5">
-                <div className="w-[1.5px] md:w-[3px] h-[10px] md:h-[14px] bg-[#3182f6] rounded-full" />
-                <p className="text-[12px] md:text-[15px] font-semibold text-[#4e5968] tracking-tight truncate max-w-[200px] md:max-w-none">
-                  DATA LAB — <span className="font-normal text-[#8b95a1] hidden md:inline">통합 부동산 가치 평가 솔루션, 100% 데이터 기반 실시간 분석</span>
+            </div>
+          </div>
+          <div className="flex flex-col justify-end mb-0 sm:mb-0">
+            <div className="flex w-full py-1">
+              <div className="w-[3px] rounded-full mr-4 shrink-0 bg-[#0d9488]" />
+              <div className="flex-1">
+                <p className="text-[#8b95a1] font-normal text-[13px] sm:text-[15px] leading-snug line-clamp-2 sm:line-clamp-none">
+                  <strong className="text-[#191f28]">데이터 기반 동탄 아파트 가치 분석</strong> — 실거래가 데이터, 통계 기반의 정교하고 직관적인 동탄 부동산 인사이트 제공
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-      <div className="flex flex-col md:flex-row gap-4 w-full px-3 sm:px-6 md:px-0 mt-4 md:mt-0">
-        {/* Left Column Container */}
-        <div className="w-full md:w-1/2 flex flex-col gap-4">
-          {/* Donut Chart Card */}
-          <div className="flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-5 min-h-[300px]">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-[18px] font-extrabold text-[#191f28] tracking-tight">
-            아파트 {chartMode === 'price' ? '실거래가' : '평단가'} 분포도
-          </h2>
-          {/* Toss Style Segmented Control */}
-          <div className="flex bg-[#f2f4f6] p-1 rounded-lg">
-            <button
-              onClick={() => setChartMode('price')}
-              className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${
-                chartMode === 'price' 
-                  ? 'bg-white text-[#191f28] shadow-sm' 
-                  : 'text-[#8b95a1] hover:text-[#4e5968]'
-              }`}
-            >
-              매매가
-            </button>
-            <button
-              onClick={() => setChartMode('pyeong')}
-              className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${
-                chartMode === 'pyeong' 
-                  ? 'bg-white text-[#191f28] shadow-sm' 
-                  : 'text-[#8b95a1] hover:text-[#4e5968]'
-              }`}
-            >
-              평당가
-            </button>
-          </div>
-        </div>
-        
-        <div className="flex-1 flex flex-col xl:flex-row items-center justify-between px-2 xl:px-12 gap-6 relative mt-3">
-          <div className="w-[240px] h-[240px] relative shrink-0">
-            {/* Center Label (Placed before ResponsiveContainer to prevent z-index overlap with Tooltip) */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
-              <span className="text-[13px] font-bold text-[#8b95a1] mb-1">분석 세대수</span>
-              <span className="text-[26px] font-extrabold text-[#191f28] leading-none tracking-tight">
-                {totalHouseholds.toLocaleString()}
-              </span>
+        <div className="flex flex-col md:flex-row gap-4 w-full px-3 sm:px-6 md:px-0 mt-4 md:mt-0">
+          {/* Left Column Container */}
+          <div className="w-full md:w-1/2 flex flex-col gap-4">
+            {/* Donut Chart Card */}
+            <div className="flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-5 min-h-[300px]">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-[18px] font-extrabold text-[#191f28] tracking-tight">
+                  아파트 {chartMode === 'price' ? '실거래가' : '평단가'} 분포도
+                </h2>
+                {/* Toss Style Segmented Control */}
+                <div className="flex bg-[#f2f4f6] p-1 rounded-lg">
+                  <button
+                    onClick={() => setChartMode('price')}
+                    className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${chartMode === 'price'
+                      ? 'bg-white text-[#191f28] shadow-sm'
+                      : 'text-[#8b95a1] hover:text-[#4e5968]'
+                      }`}
+                  >
+                    매매가
+                  </button>
+                  <button
+                    onClick={() => setChartMode('pyeong')}
+                    className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${chartMode === 'pyeong'
+                      ? 'bg-white text-[#191f28] shadow-sm'
+                      : 'text-[#8b95a1] hover:text-[#4e5968]'
+                      }`}
+                  >
+                    평당가
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 flex flex-col xl:flex-row items-center justify-between px-2 xl:px-12 gap-6 relative mt-3">
+                <div className="w-[240px] h-[240px] relative shrink-0">
+                  {/* Center Label (Placed before ResponsiveContainer to prevent z-index overlap with Tooltip) */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
+                    <span className="text-[13px] font-bold text-[#8b95a1] mb-1">분석 세대수</span>
+                    <span className="text-[26px] font-extrabold text-[#191f28] leading-none tracking-tight">
+                      {totalHouseholds.toLocaleString()}
+                      <span className="text-[15px] font-bold text-[#8b95a1] ml-1">세대</span>
+                    </span>
+                  </div>
+
+                  <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1} className="relative z-10">
+                    <PieChart>
+                      <Pie
+                        data={donutData}
+                        innerRadius={78}
+                        outerRadius={110}
+                        paddingAngle={2}
+                        dataKey="value"
+                        onMouseEnter={(_, index) => setActiveIndex(index)}
+                        onMouseLeave={() => setActiveIndex(null)}
+                        stroke="none"
+                        animationDuration={400}
+                        animationBegin={0}
+                      >
+                        {donutData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                            style={{
+                              transition: 'all 0.3s ease',
+                              opacity: activeIndex === null || activeIndex === index ? 1 : 0.3,
+                              filter: activeIndex === index ? 'drop-shadow(0px 4px 12px rgba(0,0,0,0.15))' : 'none'
+                            }}
+                          />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip
+                        formatter={(value: any) => [`${(value || 0).toLocaleString()} 세대`, '세대수']}
+                        contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.15)', fontWeight: 'bold', padding: '12px 18px', fontSize: '15px' }}
+                        cursor={{ fill: 'transparent' }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Interactive Legend */}
+                <div className="flex flex-col gap-1 w-full max-w-[260px]">
+                  {donutData.map((entry, index) => {
+                    const totalValue = donutData.reduce((s, i) => s + i.value, 0);
+                    const percentage = totalValue > 0 ? ((entry.value / totalValue) * 100).toFixed(1) : '0.0';
+                    const isActive = activeIndex === index;
+                    return (
+                      <div
+                        key={entry.name}
+                        className={`flex items-center justify-between px-3 py-1.5 rounded-xl transition-all cursor-pointer ${isActive ? 'bg-[#f2f4f6] scale-[1.02]' : 'hover:bg-[#f9fafb]'}`}
+                        onMouseEnter={() => setActiveIndex(index)}
+                        onMouseLeave={() => setActiveIndex(null)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                          <span className="text-[14px] font-bold text-[#4e5968] tracking-tight">{entry.name}</span>
+                        </div>
+                        <div className="text-right flex flex-col items-end">
+                          <span className="text-[15.5px] font-extrabold text-[#191f28] leading-none mb-1">{percentage}%</span>
+                          <span className="text-[12px] font-semibold text-[#8b95a1] leading-none">{entry.value.toLocaleString()} 세대</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
-            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1} className="relative z-10">
-              <PieChart>
-                <Pie
-                  data={donutData}
-                  innerRadius={78}
-                  outerRadius={110}
-                  paddingAngle={2}
-                  dataKey="value"
-                  onMouseEnter={(_, index) => setActiveIndex(index)}
-                  onMouseLeave={() => setActiveIndex(null)}
-                  stroke="none"
-                  animationDuration={400}
-                  animationBegin={0}
-                >
-                  {donutData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={COLORS[index % COLORS.length]} 
-                      style={{
-                        transition: 'all 0.3s ease',
-                        opacity: activeIndex === null || activeIndex === index ? 1 : 0.3,
-                        filter: activeIndex === index ? 'drop-shadow(0px 4px 12px rgba(0,0,0,0.15))' : 'none'
-                      }}
-                    />
-                  ))}
-                </Pie>
-                <RechartsTooltip 
-                  formatter={(value: any) => [`${(value || 0).toLocaleString()} 세대`, '세대수']}
-                  contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.15)', fontWeight: 'bold', padding: '12px 18px', fontSize: '15px' }}
-                  cursor={{ fill: 'transparent' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            {/* 4 Info Boxes Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              <InfoBox title="대장 아파트 단지" value={maxAptName} badge={`${maxPriceEok.replace('억', '억 ').replace('  ', ' ')}만원`} />
+              <InfoBox title="최고 평당가 단지" value={maxPyeongAptName} badge={<>{maxPyeongPrice.toLocaleString()}만원<span className="text-[#4e5968] ml-0.5 font-bold">/평</span></>} />
+              <InfoBox
+                title={
+                  <div className="relative group flex items-center gap-1 w-max">
+                    동탄 아파트 평균 매매/평당가
+                    <Info className="w-3.5 h-3.5 text-[#8b95a1] cursor-pointer hover:text-[#4e5968] transition-colors" />
+
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
+                      통계 왜곡을 방지하기 위해 국민평형(30~36평형)을 기준으로, 각 단지별 가장 최근 실거래가를 취합하여 산출한 대표 가격입니다.
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
+                    </div>
+                  </div>
+                }
+                value={avgPriceFormatted.value}
+                unit={avgPriceFormatted.unit}
+                badge={<>{dongtanAvgPyeongPrice.toLocaleString()}만원<span className="text-[#4e5968] ml-0.5 font-bold">/평</span></>}
+              />
+              <InfoBox
+                title={
+                  <div className="relative group flex items-center gap-1 w-max">
+                    전월 대비 가격 변동
+                    <Info className="w-3.5 h-3.5 text-[#8b95a1] cursor-pointer hover:text-[#4e5968] transition-colors" />
+
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[280px] p-3 bg-[#191f28] text-white text-[13px] font-medium leading-[1.5] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal whitespace-normal break-keep">
+                      동탄 지역 내 거래된 전체 아파트의 지난달 평균 실거래가 대비, 이번 달 평균 실거래가의 변동폭을 의미합니다.
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"></div>
+                    </div>
+                  </div>
+                }
+                value={<span style={{ color: momStats.color }}>{momStats.text}</span>}
+                badge={<>{momStats.text === '상승장' ? '+' : (momStats.text === '하락장' ? '-' : '')}{momStats.changeText} <span className="text-[#4e5968] ml-0.5 font-bold">({momStats.text === '상승장' ? '+' : (momStats.text === '하락장' ? '-' : '')}{momStats.rate.toFixed(1)}%)</span></>}
+                color={momStats.color}
+              />
+            </div>
           </div>
 
-          {/* Interactive Legend */}
-          <div className="flex flex-col gap-1 w-full max-w-[260px]">
-            {donutData.map((entry, index) => {
-              const totalValue = donutData.reduce((s, i) => s + i.value, 0);
-              const percentage = totalValue > 0 ? ((entry.value / totalValue) * 100).toFixed(1) : '0.0';
-              const isActive = activeIndex === index;
-              return (
-                <div 
-                  key={entry.name}
-                  className={`flex items-center justify-between px-3 py-1.5 rounded-xl transition-all cursor-pointer ${isActive ? 'bg-[#f2f4f6] scale-[1.02]' : 'hover:bg-[#f9fafb]'}`}
-                  onMouseEnter={() => setActiveIndex(index)}
-                  onMouseLeave={() => setActiveIndex(null)}
+          {/* Right Panel: Line Chart */}
+          <div className="w-full md:w-1/2 flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-5 min-h-[300px]">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-col">
+                <h2 className="text-[18px] font-extrabold text-[#191f28] tracking-tight">동탄 아파트 전체 가격 변화 추이</h2>
+                <span className="text-[13px] text-[#8b95a1] font-medium mt-1">
+                  {timeframe === 'ALL' ? '전체 기간 ' : `최근 ${timeframe.replace('M', '개월').replace('Y', '년')} `}
+                  평균 실거래가 변동 (억 원)
+                </span>
+              </div>
+              <div className="flex bg-[#f2f4f6] p-0.5 rounded-lg shadow-inner">
+                {['3M', '6M', '1Y', '3Y', '5Y', 'ALL'].map((tf) => (
+                  <button
+                    key={tf}
+                    onClick={() => setTimeframe(tf as any)}
+                    className={`px-2.5 py-1 text-[11px] font-extrabold rounded-md transition-all duration-200 ${timeframe === tf
+                      ? 'bg-white text-[#191f28] shadow-sm'
+                      : 'text-[#8b95a1] hover:text-[#4e5968]'
+                      }`}
+                  >
+                    {tf}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex-1 w-full h-[230px]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                <LineChart data={lineData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f2f4f6" />
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#8b95a1', fontSize: 12, fontWeight: 600 }}
+                    dy={10}
+                    ticks={xTicks}
+                  />
+                  <YAxis
+                    yAxisId="left"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#8b95a1', fontSize: 12, fontWeight: 600 }}
+                    tickFormatter={(value: number) => `${Number.isInteger(value) ? value : value.toFixed(1)}억`}
+                    domain={['auto', 'auto']}
+                    width={40}
+                  />
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#8b95a1', fontSize: 12, fontWeight: 600 }}
+                    tickFormatter={(value: number) => `${Number.isInteger(value) ? value : value.toFixed(1)}억`}
+                    domain={['auto', 'auto']}
+                    width={40}
+                  />
+                  <RechartsTooltip
+                    contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', padding: '12px 18px', fontWeight: 'bold', fontSize: '14px' }}
+                    formatter={(value: any, name: any) => {
+                      if (name === '동탄 아파트 전세 평균') return [`${value || 0}억`, '전세가'];
+                      return [`${value || 0}억`, '매매가'];
+                    }}
+                    labelStyle={{ color: '#8b95a1', marginBottom: '6px', fontSize: '13px' }}
+                  />
+                  <Legend
+                    iconType="circle"
+                    wrapperStyle={{ paddingTop: '20px', fontSize: '13px', fontWeight: 'bold', color: '#4e5968' }}
+                  />
+                  <Line
+                    yAxisId="left"
+                    key="동탄 아파트 전체"
+                    type="monotone"
+                    name="평균 매매가"
+                    dataKey="동탄 아파트 전체"
+                    stroke="#0d9488"
+                    strokeWidth={4}
+                    dot={timeframe === 'ALL' || timeframe === '5Y' || timeframe === '3Y' ? false : { r: 5, strokeWidth: 2 }}
+                    activeDot={{ r: 7 }}
+                  />
+                  <Line
+                    yAxisId="right"
+                    key="동탄 아파트 전세 평균"
+                    type="monotone"
+                    name="평균 전월세가"
+                    dataKey="동탄 아파트 전세 평균"
+                    stroke="#9ca3af"
+                    strokeWidth={2}
+                    dot={timeframe === 'ALL' || timeframe === '5Y' || timeframe === '3Y' ? false : { r: 3, strokeWidth: 2 }}
+                    activeDot={{ r: 5 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Detailed Real Estate Portfolio Section */}
+        <div className="mt-12 mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-[3px] h-[16px] bg-[#0d9488] rounded-full" />
+            <h2 className="text-[22px] font-bold text-[#191f28]">지역별 분류</h2>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4 pb-10">
+          {accordionData.map((group) => {
+            const isExpanded = expandedGroups[group.title];
+            return (
+              <div key={group.title} className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden transition-all duration-300">
+                {/* Group Header */}
+                <div
+                  className="p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50/50"
+                  onClick={() => toggleGroup(group.title)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                    <span className="text-[13px] font-bold text-[#4e5968] tracking-tight">{entry.name}</span>
+                    <div className="w-[10px] h-[10px] bg-[#0d9488] rounded-full" />
+                    <div className="flex flex-col">
+                      <span className="text-[15px] font-bold text-[#191f28]">{group.title}</span>                    </div>
                   </div>
-                  <div className="text-right flex flex-col items-end">
-                    <span className="text-[14px] font-extrabold text-[#191f28] leading-none mb-1">{percentage}%</span>
-                    <span className="text-[11px] font-semibold text-[#8b95a1] leading-none">{entry.value.toLocaleString()} 세대</span>
+                  <div className="flex items-center gap-4">
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-[18px] font-extrabold text-[#191f28]">{formatEok(Math.round(group.avgPrice / 10000))}</span>
+                        <span className="text-[11px] font-bold text-[#8b95a1]">KRW</span>
+                      </div>
+                      <span className="text-[12px] font-medium text-[#8b95a1] mt-0.5">평균 실거래가</span>
+                    </div>
+                    {isExpanded ? <ChevronUp className="w-5 h-5 text-[#8b95a1]" /> : <ChevronDown className="w-5 h-5 text-[#8b95a1]" />}
                   </div>
                 </div>
-              );
-            })}
+
+                {/* Expanded Content */}
+                {isExpanded && (
+                  <div className="px-5 pb-5 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="w-full h-[1px] bg-gray-100 mb-4" />
+
+                    <div className="flex flex-col gap-3">
+                      {group.apartments.slice(0, 10).map((apt: any, idx: number) => (
+                        <div key={apt.name} className="flex flex-col p-4 rounded-[14px] border border-gray-100 bg-white hover:border-[#0d9488]/30 transition-colors">
+                          {/* Apartment Row */}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-1.5 h-1.5 bg-[#8b95a1] rounded-full" />
+                              <span className="text-[14px] font-bold text-[#333d4b]">{apt.name}</span>
+                              <span className="px-1.5 py-0.5 bg-[#e8f4f3] text-[#0d9488] text-[10px] font-bold rounded-sm tracking-wider">VIEW</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[15px] font-extrabold text-[#191f28]">{apt.latestPriceEok}</span>
+                              <span className="text-[10px] font-bold text-[#8b95a1]">KRW</span>
+                              <ChevronRight className="w-4 h-4 text-[#b0b8c1]" />
+                            </div>
+                          </div>
+
+                          {/* Intelligence Bar */}
+                          <div className="flex items-center gap-4 py-2 px-3 bg-[#f9fafb] rounded-lg">
+                            <span className="text-[12px] font-extrabold text-[#0d9488] tracking-wider shrink-0">단지 정보</span>
+                            <div className="w-[1px] h-3 bg-gray-200 shrink-0" />
+
+                            {/* 단지 기본 정보 */}
+                            <div className="flex items-center gap-1.5 text-[12px] text-[#4e5968] font-semibold tracking-tight border-r border-gray-200 pr-4 shrink-0">
+                              {apt.householdCount > 0 && <span>{apt.householdCount}세대</span>}
+                              {apt.householdCount > 0 && apt.yearBuilt && <span className="text-gray-300">|</span>}
+                              {apt.yearBuilt && <span>{apt.yearBuilt}식</span>}
+                              {(!apt.householdCount && !apt.yearBuilt) && <span>기본정보 없음</span>}
+                            </div>
+                            <div className="flex items-center gap-4 text-[12px]">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-semibold text-[#8b95a1] text-[11px]">MDD</span>
+                                <span className={`font-bold ${apt.mdd < -20 ? 'text-[#f04452]' : 'text-[#191f28]'}`}>
+                                  {apt.mdd < 0 ? `${apt.mdd.toFixed(1)}%` : '0%'}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-semibold text-[#8b95a1] text-[11px]">GAP</span>
+                                <span className="font-bold text-[#191f28]">{apt.gap > 0 ? `${apt.gap.toFixed(1)}%` : '-'}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-semibold text-[#8b95a1] text-[11px]">LIQUID</span>
+                                <span className="font-bold text-[#191f28]">{apt.liquid > 0 ? `${apt.liquid.toFixed(1)}건` : '거래없음'}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Dongtan Market Insights (News Section) */}
+        <div className="mt-12 mb-8 bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-8">
+          <div className="mb-6">
+            <h2 className="text-[24px] font-extrabold text-[#191f28] tracking-tight">동탄 부동산 인사이트 <span className="text-[16px] font-semibold text-[#8b95a1] ml-2 font-normal">최신 뉴스 피드</span></h2>
+            <p className="text-[13px] font-medium text-[#8b95a1] mt-1 italic">Dongtan real estate market latest news</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {newsLoading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex gap-4 p-5 rounded-xl border border-gray-100 bg-[#f9fafb] animate-pulse">
+                  <div className="w-8 h-8 shrink-0 bg-gray-200 rounded-full" />
+                  <div className="flex flex-col w-full">
+                    <div className="w-1/3 h-3 bg-gray-200 rounded mb-2" />
+                    <div className="w-full h-4 bg-gray-200 rounded mb-1.5" />
+                    <div className="w-2/3 h-4 bg-gray-200 rounded" />
+                  </div>
+                </div>
+              ))
+            ) : (
+              (newsData.length > 0 ? newsData : [
+                {
+                  id: 1,
+                  category: 'INFRASTRUCTURE',
+                  sub: 'Transportation',
+                  title: 'GTX-A 노선 개통 이후 동탄역 주변 아파트 실거래가 15% 상승 — 광역 교통망 확충이 지역 핵심 자산 가치에 미치는 파급력 분석.',
+                  link: '#'
+                },
+                {
+                  id: 2,
+                  category: 'MARKET',
+                  sub: 'Supply & Demand',
+                  title: '동탄2신도시 입주 물량 안정화 진입, 전세가율 반등 — 동탄 호수공원 및 문화디자인밸리 중심의 신축 아파트 선호도 지속.',
+                  link: '#'
+                },
+                {
+                  id: 3,
+                  category: 'POLICY',
+                  sub: 'Urban Development',
+                  title: '동탄 트램(도시철도) 기본설계 본격화 — 1동탄과 2동탄을 잇는 내부 교통망 완성으로 인한 권역별 가격 갭(Gap) 축소 전망.',
+                  link: '#'
+                },
+                {
+                  id: 4,
+                  category: 'COMMERCIAL',
+                  sub: 'Anchor Tenant',
+                  title: '경부고속도로 지하화 및 상부 공원화 사업 — 동탄역세권 광역비즈니스콤플렉스 확장 및 라이프스타일 앵커 시설 도입 예정.',
+                  link: '#'
+                },
+                {
+                  id: 5,
+                  category: 'MACRO',
+                  sub: 'Liquidity',
+                  title: '금리 인하 기대감 선반영, 거래량 3개월 연속 상승 — 신생아 특례대출 등 정책 금융이 3040 세대의 매수 심리에 미친 영향.',
+                  link: '#'
+                },
+                {
+                  id: 6,
+                  category: 'COMMUNITY',
+                  sub: 'Education',
+                  title: '동탄 내 학군 형성 가속화, \'시범 커뮤니티\' 권역 프리미엄 고착화 — 우수 학군 배정 단지의 가격 하방 경직성 및 거래 회전율 검증.',
+                  link: '#'
+                }
+              ]).map(news => (
+                <div
+                  key={news.id}
+                  onClick={() => news.link !== '#' && window.open(news.link, '_blank')}
+                  className="flex gap-4 p-5 rounded-xl border border-gray-100 bg-[#f9fafb] hover:bg-white hover:border-[#0d9488]/30 transition-all cursor-pointer group"
+                >
+                  <div className="w-8 h-8 shrink-0 flex items-center justify-center bg-white rounded-full border border-gray-200 text-[#0d9488] font-bold text-[13px] shadow-sm group-hover:bg-[#0d9488] group-hover:text-white transition-colors">
+                    {news.id}
+                  </div>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[11px] font-extrabold text-[#0d9488] tracking-wide">{news.category}</span>
+                      <span className="text-[11px] text-gray-300">|</span>
+                      <span className="text-[11px] font-semibold text-[#8b95a1]">{news.sub}</span>
+                    </div>
+                    <p className="text-[13px] font-semibold text-[#4e5968] leading-snug group-hover:text-[#191f28] transition-colors line-clamp-2">
+                      {news.title}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="mt-6 flex justify-center">
+            <button className="flex items-center gap-1.5 px-4 py-2 bg-[#f2f4f6] hover:bg-[#e5e8eb] text-[#4e5968] text-[13px] font-bold rounded-full transition-colors">
+              Read Full Insights
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* 4 Info Boxes Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          <InfoBox title="TOP APARTMENT" value={maxPriceEok} badge={maxAptName} />
-          <InfoBox title={topTierLabel} value={topTierRatio.toFixed(1)} unit="%" progress={topTierRatio} color="#3182f6" />
-          <InfoBox title="AVG PRICE" value={latestAvgPrice.toFixed(1)} unit="억" progress={avgPriceProgress} color="#f04452" />
-          <InfoBox title="PUBLIC RENTAL" value={publicRentalRatio.toFixed(1)} unit="%" progress={publicRentalRatio} color="#b0b8c1" />
-        </div>
-      </div>
-
-      {/* Right Panel: Line Chart */}
-      <div className="w-full md:w-1/2 flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-5 min-h-[300px]">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex flex-col">
-            <h2 className="text-[18px] font-extrabold text-[#191f28] tracking-tight">동탄 아파트 전체 가격 변화 추이</h2>
-            <span className="text-[13px] text-[#8b95a1] font-medium mt-1">최근 6개월 평균 실거래가 변동 (억 원)</span>
-          </div>
-          <span className="px-2 py-1 bg-[#f2f4f6] text-[#4e5968] text-[11px] font-bold rounded-md tracking-wider">6M</span>
-        </div>
-
-        <div className="flex-1 w-full h-[230px]">
-          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-            <LineChart data={lineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f2f4f6" />
-              <XAxis 
-                dataKey="name" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#8b95a1', fontSize: 12, fontWeight: 600 }} 
-                dy={10}
-              />
-              <YAxis 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#8b95a1', fontSize: 12, fontWeight: 600 }}
-                tickFormatter={formatEok}
-                domain={['auto', 'auto']}
-              />
-              <RechartsTooltip 
-                contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', padding: '12px 18px', fontWeight: 'bold', fontSize: '14px' }}
-                formatter={(value: any) => [`${value || 0}억`, '평균가']}
-                labelStyle={{ color: '#8b95a1', marginBottom: '6px', fontSize: '13px' }}
-              />
-              <Legend 
-                iconType="circle" 
-                wrapperStyle={{ paddingTop: '20px', fontSize: '13px', fontWeight: 'bold', color: '#4e5968' }} 
-              />
-              {benchmarks.map((aptName, idx) => (
-                <Line 
-                  key={aptName} 
-                  type="monotone" 
-                  dataKey={aptName} 
-                  stroke={LINE_COLORS[idx % LINE_COLORS.length]} 
-                  strokeWidth={3} 
-                  dot={{ r: 4, strokeWidth: 2 }} 
-                  activeDot={{ r: 6 }} 
-                />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      </div>
       </div>
     </div>
   );

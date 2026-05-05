@@ -53,7 +53,7 @@ export default function ApartmentDiscoveryClient({
     { id: 'new-built', label: '신축 아파트', icon: MapPin, color: '#2563eb', desc: '준공 5년 이내의 쾌적한 신축 아파트' },
     { id: 'popular', label: '인기 단지', icon: Flame, color: '#f04452', desc: '현재 D-VIEW에서 가장 많이 조회된 단지' },
     { id: 'favorites', label: '내 관심 단지', icon: Heart, color: '#ff3b30', desc: '내가 하트를 눌러 찜한 단지들' },
-    { id: 'recent', label: '최신 업데이트', icon: Clock, color: '#3182f6', desc: '가장 최근에 현장 임장기가 올라온 단지' },
+    { id: 'recent', label: '최신 업데이트', icon: Clock, color: '#0d9488', desc: '가장 최근에 현장 임장기가 올라온 단지' },
   ];
 
   // Flatten apartments

@@ -205,7 +205,7 @@ export default function TrafficPage() {
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
                       labelStyle={{ color: '#8b95a1', fontWeight: 'bold', marginBottom: '4px' }}
                     />
-                    <Bar dataKey="activeUsers" name="순수 방문자 수" fill="#3182f6" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    <Bar dataKey="activeUsers" name="순수 방문자 수" fill="#0d9488" radius={[4, 4, 0, 0]} maxBarSize={40} />
                     <Bar dataKey="pageViews" name="페이지 뷰" fill="#ff8a3d" radius={[4, 4, 0, 0]} maxBarSize={40} />
                   </BarChart>
                 </ResponsiveContainer>

@@ -111,11 +111,11 @@ export function TransactionTable({
     !dealType || (dealType !== '전세' && dealType !== '월세');
 
   const getBadgeColorClasses = (dealType: string | undefined) => {
-    if (!dealType || dealType === '-') return 'bg-toss-blue-light text-[#1b64da]'; // 매매 기본
+    if (!dealType || dealType === '-') return 'bg-toss-blue-light text-[#0f766e]'; // 매매 기본
     if (dealType === '전세') return 'bg-[#e6f4ea] text-[#0d652d]';
     if (dealType === '월세') return 'bg-[#fef0e6] text-[#c2410c]';
     // 중개거래, 직거래, 매매 등 모두 매매 계열
-    return 'bg-toss-blue-light text-[#1b64da]';
+    return 'bg-toss-blue-light text-[#0f766e]';
   };
 
   const getDealTypeLabel = (dealType: string | undefined) => {
@@ -263,7 +263,7 @@ export function TransactionTable({
                     <span className={`w-[20px] h-[20px] md:w-[22px] md:h-[22px] flex items-center justify-center text-[11px] font-extrabold rounded-md shrink-0 ${isCancelled ? 'opacity-50' : ''} ${
                       tx.dealType === '전세' ? 'bg-[#e6f4ea] text-[#0d652d]' : 
                       tx.dealType === '월세' ? 'bg-[#fef0e6] text-[#c2410c]' : 
-                      'bg-toss-blue-light text-[#1b64da]'
+                      'bg-toss-blue-light text-[#0f766e]'
                     }`}>
                       {tx.dealType.charAt(0)}
                     </span>

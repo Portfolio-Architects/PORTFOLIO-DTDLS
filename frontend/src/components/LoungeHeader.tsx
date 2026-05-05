@@ -34,10 +34,10 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
           isScrolled ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        <span className="font-extrabold text-primary tracking-tight text-[15px] flex items-center gap-2">
-           <span className="text-toss-blue">D-VIEW</span>
-           <span className="text-tertiary font-normal text-[13px]">|</span>
-           <span className="text-secondary font-semibold text-[14px]">동탄 아파트 가치 분석</span>
+        <span className="font-extrabold text-[#191f28] tracking-tight text-[15px] flex items-center gap-2">
+           <span className="text-toss-blue">PORTFOLIO</span>
+           <span className="text-[#8b95a1] font-normal text-[13px]">|</span>
+           <span className="text-[#4e5968] font-semibold text-[14px]">D-VIEW</span>
         </span>
         <div className="flex items-center -mr-1">
           <FloatingUserBar />
@@ -96,15 +96,6 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
                 <span>커뮤니티</span>
               </Link>
 
-              {dashboardFacade.isAdmin(user?.email) && (
-                <Link
-                  href="/admin"
-                  className="flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] text-[#ef4444] hover:bg-black/5"
-                >
-                  <ShieldCheck size={16} className="text-[#ef4444] transition-transform duration-200" />
-                  <span>관리자</span>
-                </Link>
-              )}
             </nav>
 
             {/* Right: Desktop User Bar */}

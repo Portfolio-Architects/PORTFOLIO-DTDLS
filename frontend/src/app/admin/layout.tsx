@@ -45,7 +45,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link key={link.href} href={link.href}
             onClick={() => setSidebarOpen(false)}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] font-semibold transition-all ${
-              isActive(link.href) ? 'bg-toss-blue text-surface shadow-lg shadow-[#3182f6]/20' : 'text-secondary hover:bg-body'
+              isActive(link.href) ? 'bg-toss-blue text-surface shadow-lg shadow-[#0d9488]/20' : 'text-secondary hover:bg-body'
             }`}>
             <link.icon size={18} />
             {link.label}

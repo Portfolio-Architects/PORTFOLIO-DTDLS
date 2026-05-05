@@ -129,7 +129,7 @@ export default function AdInquiryModal({ onClose }: AdInquiryModalProps) {
                 <button
                   type="submit"
                   disabled={isSubmitting || !companyName.trim() || !contactInfo.trim() || !message.trim()}
-                  className="w-full bg-toss-blue hover:bg-[#1b64da] disabled:bg-toss-gray text-surface text-[15px] font-bold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-toss-blue hover:bg-[#0f766e] disabled:bg-toss-gray text-surface text-[15px] font-bold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

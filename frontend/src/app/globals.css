@@ -25,8 +25,8 @@
     --text-primary: #191f28;
     --text-secondary: #4e5968;
     --text-tertiary: #8b95a1;
-    --toss-blue: #3182f6;
-    --toss-blue-light: #e8f3ff;
+    --toss-blue: #0d9488;
+    --toss-blue-light: #ccfbf1;
     --toss-red: #f04452;
     --toss-green: #03c75a;
     --toss-gray: #d1d6db;
@@ -46,8 +46,8 @@
     --text-primary: #f9fafb;
     --text-secondary: #d1d5db;
     --text-tertiary: #9ca3af;
-    --toss-blue: #3b82f6;
-    --toss-blue-light: #1e3a8a;
+    --toss-blue: #14b8a6;
+    --toss-blue-light: #134e4a;
     --toss-red: #ef4444;
     --toss-green: #10b981;
     --toss-gray: #374151;
@@ -73,7 +73,7 @@
 
   /* a11y: Focus Ring */
   :focus-visible {
-    outline: 2px solid #3182f6;
+    outline: 2px solid #0d9488;
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -124,7 +124,7 @@
     transition: background var(--transition-speed);
   }
   .btn-primary:active {
-    background: #1b64da;
+    background: #0f766e;
   }
 
   .btn-outline {
@@ -137,7 +137,7 @@
     transition: background var(--transition-speed);
   }
   .btn-outline:active {
-    background: #d4e6ff;
+    background: #99f6e4;
   }
 
   .icon-btn {
@@ -173,7 +173,7 @@
     justify-content: center;
   }
   
-  .tag-traffic { background: #e8f3ff; color: var(--toss-blue); }
+  .tag-traffic { background: #ccfbf1; color: var(--toss-blue); }
   .tag-realestate { background: #fce4e4; color: var(--toss-red); }
   .tag-edu { background: #e8f5e9; color: var(--toss-green); }
   .tag-culture { background: #fff3e0; color: #ff9800; }

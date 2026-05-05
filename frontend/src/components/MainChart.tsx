@@ -51,8 +51,8 @@ export default function MainChart() {
         <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3182f6" stopOpacity={0.2} />
-              <stop offset="95%" stopColor="#3182f6" stopOpacity={0} />
+              <stop offset="5%" stopColor="#0d9488" stopOpacity={0.2} />
+              <stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.03)" />
@@ -80,11 +80,11 @@ export default function MainChart() {
           <Area 
             type="monotone" 
             dataKey="price" 
-            stroke="#3182f6" 
+            stroke="#0d9488" 
             strokeWidth={3}
             fillOpacity={1} 
             fill="url(#colorPrice)" 
-            activeDot={{ r: 6, strokeWidth: 0, fill: '#3182f6' }}
+            activeDot={{ r: 6, strokeWidth: 0, fill: '#0d9488' }}
             isAnimationActive={false}
           />
         </AreaChart>
