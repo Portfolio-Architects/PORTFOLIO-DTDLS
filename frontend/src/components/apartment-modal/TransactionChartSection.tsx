@@ -176,7 +176,7 @@ export function TransactionChartSection({
                   const ratio = Math.max(0, Math.min(100, (currentPrice / maxPrice) * 100));
                   return (
                     <div className="flex flex-col gap-1 mt-1">
-                      <div className="flex justify-between text-[11px] font-bold">
+                      <div className="flex justify-between text-[12px] sm:text-[13px] font-bold">
                         <span className="text-tertiary">최고 평균가 {formatAvgPriceEok(maxPrice)}</span>
                         <span className="text-toss-blue">현재 {formatAvgPriceEok(currentPrice)} ({dropRatio > 0 ? `-${dropRatio.toFixed(1)}%` : `+${Math.abs(dropRatio).toFixed(1)}%`})</span>
                       </div>
@@ -195,10 +195,10 @@ export function TransactionChartSection({
           </div>
           
           <div className="flex items-center gap-3 md:ml-auto">
-            <div className="flex items-center gap-0.5 bg-body p-0.5 rounded-lg shadow-inner">
+            <div className="flex items-center gap-1 bg-body p-1 rounded-[10px] shadow-inner">
               {(['6M','1Y','3Y','ALL'] as const).map(tf => (
                 <button key={tf} onClick={() => setChartTimeframe(tf)}
-                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-md text-[12px] sm:text-[13px] font-bold transition-all ${
                     chartTimeframe === tf ? 'bg-surface text-primary shadow-sm' : 'text-tertiary hover:bg-[#e5e8eb]'
                   }`}>{tf}</button>
               ))}
@@ -210,12 +210,12 @@ export function TransactionChartSection({
           {[{label: '1개월', val: momentum.m1}, {label: '3개월', val: momentum.m3}, {label: '6개월', val: momentum.m6}, {label: '1년', val: momentum.y1}, {label: '3년', val: momentum.y3}].map((item, idx) => {
             const isTarget = item.label === '3개월';
             return (
-              <div key={item.label} className={`flex flex-col px-3 py-2.5 sm:px-4 sm:py-3 shrink-0 min-w-[80px] sm:min-w-[95px] flex-1 snap-center relative rounded-xl border transition-all duration-200 ${isTarget ? 'bg-surface border-toss-blue shadow-[0_4px_16px_rgba(49,130,246,0.15)] ring-1 ring-toss-blue/20 z-10' : 'bg-body border-transparent hover:bg-[#e5e8eb]'}`}>
-                <span className={`text-[10px] sm:text-[11px] font-bold mb-1 flex items-center justify-between w-full ${isTarget ? 'text-toss-blue' : 'text-tertiary'}`}>
+              <div key={item.label} className={`flex flex-col px-4 py-3 sm:px-5 sm:py-4 shrink-0 min-w-[90px] sm:min-w-[110px] flex-1 snap-center relative rounded-2xl border transition-all duration-200 ${isTarget ? 'bg-surface border-toss-blue shadow-[0_4px_16px_rgba(49,130,246,0.15)] ring-1 ring-toss-blue/20 z-10' : 'bg-body border-transparent hover:bg-[#e5e8eb]'}`}>
+                <span className={`text-[12px] sm:text-[13px] font-bold mb-1.5 flex items-center justify-between w-full ${isTarget ? 'text-toss-blue' : 'text-tertiary'}`}>
                   {item.label} 평균
-                  {isTarget && <div className="w-1.5 h-1.5 bg-toss-blue rounded-full animate-pulse shadow-[0_0_8px_rgba(49,130,246,0.5)]" />}
+                  {isTarget && <div className="w-2 h-2 bg-toss-blue rounded-full animate-pulse shadow-[0_0_8px_rgba(49,130,246,0.5)]" />}
                 </span>
-                <span className={`text-[14px] sm:text-[16px] whitespace-nowrap ${isTarget ? 'text-toss-blue font-black tracking-tight' : 'text-primary font-extrabold'}`}>
+                <span className={`text-[16px] sm:text-[18px] whitespace-nowrap ${isTarget ? 'text-toss-blue font-black tracking-tight' : 'text-primary font-extrabold'}`}>
                   {formatAvgPriceEok(item.val)}
                 </span>
               </div>
