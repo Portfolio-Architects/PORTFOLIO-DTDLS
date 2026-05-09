@@ -388,7 +388,9 @@ function FieldReportModal({
           <TransactionChartSection 
             transactions={transactions} 
             chartType={chartType} 
+            setChartType={setChartType}
             displayAptName={displayAptName} 
+            dong={report.dong || '동탄'}
             typeMap={typeMap} 
             normalizeAptName={normalizeAptName} 
             txSummary={txSummary}
