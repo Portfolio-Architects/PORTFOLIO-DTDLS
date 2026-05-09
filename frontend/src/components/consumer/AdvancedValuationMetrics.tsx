@@ -496,49 +496,6 @@ export default function AdvancedValuationMetrics({ report, transactions }: Props
         </div>
       )}
 
-      {/* Advanced Macro & Trajectory Engine */}
-      {realEstatePER > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Spread Module */}
-          <div className="bg-surface border border-border p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-2 mb-3 text-primary font-bold text-[14px]">
-              <Target size={16} className="text-toss-blue"/> 인접 단지 Spread 상대평가
-            </div>
-            <div className="text-[12px] text-tertiary mb-4">동일 권역({dongName}) 평균 대비</div>
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center">
-                <span className="text-[12px] text-secondary font-medium">동 평균 배수(P/J)</span>
-                <span className="text-[14px] font-extrabold text-primary">{spreadData.medianDongPER.toFixed(2)}배</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[12px] text-secondary font-medium">Spread (이격도)</span>
-                <span className={`text-[14px] font-extrabold ${spreadData.isUndervalued ? 'text-toss-green' : 'text-toss-red'}`}>
-                  {spreadData.spread > 0 ? '+' : ''}{spreadData.spread.toFixed(2)}p
-                  {spreadData.isUndervalued ? ' (저평가)' : ''}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Trajectory Module */}
-          <div className="bg-surface border border-border p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-2 mb-3 text-primary font-bold text-[14px]">
-              <Info size={16} className="text-[#f59e0b]"/> 공급 기반 전세가 궤적
-            </div>
-            <div className="text-[12px] text-tertiary mb-4">향후 입주물량({pipeline.expectedMoveInVolume}호) 기반</div>
-            <div className="flex flex-col gap-2">
-               <div className="flex justify-between items-center">
-                <span className="text-[12px] text-secondary font-medium">수급 압력</span>
-                <span className="text-[14px] font-extrabold text-primary">{trajectory.pressure}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[12px] text-secondary font-medium">예상 전세가 궤적</span>
-                <span className="text-[14px] font-extrabold text-[#f59e0b]">{formatPrice(trajectory.predictedJeonse)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {isRatioModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsRatioModalOpen(false)}>
