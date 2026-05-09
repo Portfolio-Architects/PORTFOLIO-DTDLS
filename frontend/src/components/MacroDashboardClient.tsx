@@ -1318,7 +1318,7 @@ export default function MacroDashboardClient({
                 onClick={() => setVisibleNewsCount(prev => prev + 6)}
                 className="flex items-center gap-1.5 px-5 py-2.5 bg-white border border-[#e5e8eb] hover:bg-[#f9fafb] text-[#4e5968] text-[13.5px] font-bold rounded-full transition-colors shadow-sm"
               >
-                더보기 ({visibleNewsCount} / {newsData.length})
+                더보기 ({visibleNewsCount} {"/"} {newsData.length})
                 <ChevronDown className="w-4 h-4" />
               </button>
             )}
