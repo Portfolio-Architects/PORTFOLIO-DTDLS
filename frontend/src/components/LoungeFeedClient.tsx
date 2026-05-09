@@ -239,7 +239,6 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
               </button>
             </div>
           )}
-        </div>
       </div>
     );
   }
