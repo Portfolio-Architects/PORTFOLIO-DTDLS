@@ -4,14 +4,11 @@ import React, { useState, useMemo } from 'react';
 import { Heart, Search, ChevronRight, TrendingUp, TrendingDown, Minus, ArrowUp, ArrowDown, Camera, ChevronDown, X } from 'lucide-react';
 import { DONGS, getDongByName } from '@/lib/dongs';
 import { normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
+import { formatEokWithUnit } from '@/components/MacroDashboardClient';
 
 const formatPrice = (priceMan: number) => {
-  if (priceMan >= 10000) {
-    const uk = Math.floor(priceMan / 10000);
-    const rest = priceMan % 10000;
-    return rest > 0 ? `${uk}억 ${rest.toLocaleString()}` : `${uk}억`;
-  }
-  return `${priceMan.toLocaleString()}`;
+  const { value, unit } = formatEokWithUnit(priceMan);
+  return value + (unit === '만원' ? '만' : '');
 };
 
 const formatYearBuilt = (yearStr?: string | number) => {
@@ -99,7 +96,7 @@ export default function TossApartmentExploreClient({
 
       const sum = txSummaryData[txKey];
       
-      const pyeongPrice = sum?.avg3MPerPyeong || sum?.avg1MPerPyeong || 0;
+      const pyeongPrice = sum?.avg3MPerPyeong || sum?.avg1MPerPyeong || (sum?.latestArea ? sum.latestPrice / (sum.latestArea / 3.3058) : 0);
       const sales = sum ? (sum.avg3MPrice || sum.avg1MPrice || sum.latestPrice || 0) : 0;
       const jeonse = sum ? (sum.avg3MRentDeposit || sum.avg1MRentDeposit || sum.latestRentDeposit || 0) : 0;
       const ratio = sales > 0 && jeonse > 0 ? (jeonse / sales) : 0;
@@ -266,7 +263,7 @@ export default function TossApartmentExploreClient({
               placeholder="단지명 검색 (예: 롯데캐슬)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#f2f4f6] border border-transparent focus:border-[#0d9488] focus:bg-white focus:shadow-[0_0_0_2px_rgba(49,130,246,0.2)] rounded-xl py-2 md:py-2.5 pl-10 pr-4 text-[14px] font-medium text-[#191f28] outline-none transition-all placeholder:text-[#8b95a1]"
+              className="w-full bg-[#f2f4f6] border border-transparent focus:border-[#00d29d] focus:bg-white focus:shadow-[0_0_0_2px_rgba(49,130,246,0.2)] rounded-xl py-2 md:py-2.5 pl-10 pr-4 text-[14px] font-medium text-[#191f28] outline-none transition-all placeholder:text-[#8b95a1]"
             />
           </div>
         </div>
@@ -312,7 +309,7 @@ export default function TossApartmentExploreClient({
                       <span className="text-[15px] font-extrabold text-primary leading-none">{item.apt.name}</span>
                       <span className="ml-2 text-[13px] text-tertiary leading-none font-medium">{item.apt.dong}</span>
                       {item.photoCount > 0 && (
-                        <span className="ml-2 px-1.5 py-0.5 bg-[#CCFBF1] text-[#0F766E] text-[11px] font-bold rounded-md leading-none flex items-center">
+                        <span className="ml-2 px-1.5 py-0.5 bg-[#e0fbf4] text-[#00b386] text-[11px] font-bold rounded-md leading-none flex items-center">
                           <Camera className="w-3 h-3 mr-1 inline-block" />
                           사진 {item.photoCount}장
                         </span>
@@ -380,7 +377,7 @@ export default function TossApartmentExploreClient({
                         <div className="flex items-center gap-1.5 mb-1">
                           <span className="text-[16px] font-extrabold text-primary leading-tight">{item.apt.name}</span>
                           {item.photoCount > 0 && (
-                            <span className="px-1.5 py-[2px] bg-[#CCFBF1] text-[#0F766E] text-[10px] font-bold rounded flex items-center">
+                            <span className="px-1.5 py-[2px] bg-[#e0fbf4] text-[#00b386] text-[10px] font-bold rounded flex items-center">
                               <Camera className="w-2.5 h-2.5 mr-0.5 inline-block" />{item.photoCount}
                             </span>
                           )}
@@ -508,11 +505,11 @@ function MobileSidebarItem({ label, active, onClick }: { label: string, active: 
     <button 
       onClick={onClick}
       className={`text-left px-4 py-3.5 rounded-2xl text-[16px] font-bold transition-all flex items-center justify-between ${
-        active ? 'bg-[#CCFBF1] text-[#0F766E]' : 'text-primary hover:bg-body/50'
+        active ? 'bg-[#e0fbf4] text-[#00b386]' : 'text-primary hover:bg-body/50'
       }`}
     >
       {label}
-      {active && <div className="w-1.5 h-1.5 rounded-full bg-[#0F766E]" />}
+      {active && <div className="w-1.5 h-1.5 rounded-full bg-[#00b386]" />}
     </button>
   );
 }

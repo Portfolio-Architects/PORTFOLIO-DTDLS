@@ -104,7 +104,7 @@ export function TransactionChartSection({
     isOutlier: d.price < q1 - iqr * 2 || d.price > q3 + iqr * 2,
   })).filter(d => d.price >= q1 - iqr * 3 && d.price <= q3 + iqr * 3);
   
-  const getFloorColor = (floor: number) => '#0d9488';
+  const getFloorColor = (floor: number) => '#00d29d';
 
   const byMonthTier = new Map<number, { all: number[] }>();
   scatterData.forEach(d => {
@@ -182,7 +182,7 @@ export function TransactionChartSection({
                       </div>
                       <div className="w-full h-1.5 bg-body rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-gradient-to-r from-[#0d9488] to-[#0f766e] rounded-full transition-all duration-1000" 
+                          className="h-full bg-gradient-to-r from-[#00d29d] to-[#00b386] rounded-full transition-all duration-1000" 
                           style={{ width: `${ratio}%` }} 
                         />
                       </div>
@@ -223,13 +223,13 @@ export function TransactionChartSection({
           })}
         </div>
         
-        <div className="h-[300px] relative">
+        <div className="flex-1 min-h-[300px] w-full relative">
           <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <ComposedChart data={monthlyData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
               <defs>
                 <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#0d9488" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#00d29d" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#00d29d" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f2f4f6" vertical={false} />
@@ -260,7 +260,7 @@ export function TransactionChartSection({
                         {item?.monthAvg && (
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
                             <span style={{ color: '#8b95a1', fontSize: 13, fontWeight: 600 }}>평균가</span>
-                            <span style={{ color: '#0d9488', fontSize: 15, fontWeight: 800 }}>{item.monthAvg.toFixed(2)}억</span>
+                            <span style={{ color: '#00d29d', fontSize: 15, fontWeight: 800 }}>{item.monthAvg.toFixed(2)}억</span>
                           </div>
                         )}
                         {vol != null && (
@@ -275,8 +275,8 @@ export function TransactionChartSection({
                 }}
                 cursor={{ stroke: '#d1d6db', strokeWidth: 1, strokeDasharray: '4 4' }}
               />
-              <Bar dataKey="volume" yAxisId="volume" fill="#0d9488" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
-              <Area type="monotone" dataKey="monthAvg" yAxisId="price" stroke="#0d9488" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" dot={false} activeDot={false} connectNulls isAnimationActive={false} />
+              <Bar dataKey="volume" yAxisId="volume" fill="#00d29d" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
+              <Area type="monotone" dataKey="monthAvg" yAxisId="price" stroke="#00d29d" strokeWidth={2.5} fillOpacity={1} fill="url(#colorPrice)" dot={false} activeDot={false} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
               <Customized
                 component={(rechartProps: Record<string, unknown>) => {
                   const { xAxisMap, yAxisMap } = rechartProps as { xAxisMap?: Record<string, { scale?: (val: number) => number }>; yAxisMap?: Record<string, { scale?: (val: number) => number }> };
@@ -328,7 +328,7 @@ export function TransactionChartSection({
                   {d.priceEok || `${d.price.toFixed(2)}억`}
                 </div>
                 <div style={{ color: '#8b95a1', fontSize: 11, display: 'flex', gap: 6, alignItems: 'center' }}>
-                  {typeName ? <span style={{ color: '#0d9488', fontWeight: 600 }}>{typeName}</span> : <span>{areaUnit === 'm2' ? `${d.rawArea}m²` : `${d.area}평`}</span>}
+                  {typeName ? <span style={{ color: '#00d29d', fontWeight: 600 }}>{typeName}</span> : <span>{areaUnit === 'm2' ? `${d.rawArea}m²` : `${d.area}평`}</span>}
                   <span>·</span><span style={{ color: getFloorColor(d.floor) }}>{d.floor}층</span>
                   {d.dealType && <><span>·</span><span>{d.dealType}</span></>}
                 </div>

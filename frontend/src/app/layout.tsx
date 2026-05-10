@@ -85,7 +85,7 @@ export default function RootLayout({
                 }
               }
             `}} />
-            <NextTopLoader color="#0d9488" showSpinner={false} />
+            <NextTopLoader color="#00d29d" showSpinner={false} />
             <PWAProvider>
               <OfflineBanner />
               <SiteTracker />

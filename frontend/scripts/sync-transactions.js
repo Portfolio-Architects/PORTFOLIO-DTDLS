@@ -152,7 +152,7 @@ async function fetchDongMap() {
           const normName = normalizeAptName(name);
           if (dong) dongMap[normName] = dong;
           if (!txKey) txKey = normName;
-          validTxKeys.add(txKey);
+          validTxKeys.add(normalizeAptName(txKey));
           validTxKeys.add(normName);
         }
       }

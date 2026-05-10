@@ -75,7 +75,7 @@ export default function LoungeContainerClient({ initialPosts }: { initialPosts: 
           </div>
           
           <div className="flex items-center gap-2 mt-4 md:mt-5 mb-4 md:mb-0">
-            <div className="w-[3px] h-[14px] bg-[#0d9488] rounded-full" />
+            <div className="w-[3px] h-[14px] bg-[#00d29d] rounded-full" />
             <p className="text-[13px] md:text-[15px] font-semibold text-[#4e5968] tracking-tight">
               LOUNGE — <span className="font-normal text-[#8b95a1]">동탄 주민들의 솔직한 이야기, 실시간 정보 공유</span>
             </p>

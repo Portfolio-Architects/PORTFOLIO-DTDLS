@@ -18,6 +18,7 @@ import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary } from "@/lib/transaction-summary";
 import { DONGTAN_MACRO_TREND } from "@/lib/transaction-summary";
 import { normalizeAptName, findTxKey } from "@/lib/utils/apartmentMapping";
+import { haversineDistance } from "@/lib/utils/haversine";
 import FloatingUserBar from "@/components/FloatingUserBar";
 import {
   ArrowUp,
@@ -30,20 +31,20 @@ import {
 interface MacroDashboardProps {
   sheetApartments: Record<string, DongApartment[]>;
   txSummaryData: Record<string, AptTxSummary>;
+  nameMapping?: Record<string, string>;
   publicRentalSet: Set<string>;
   userFavorites?: Set<string>;
   onSelectApt?: (name: string) => void;
 }
 
 const COLORS = [
-  "#0d9488",
+  "#00d29d",
   "#4196f7",
-  "#00a261",
   "#f9a825",
   "#f04452",
   "#b0b8c1",
 ];
-const LINE_COLORS = ["#b0b8c1", "#0d9488", "#f04452", "#00a261", "#f9a825"];
+const LINE_COLORS = ["#b0b8c1", "#00d29d", "#f04452", "#00a261", "#f9a825"];
 
 const InfoBox = ({
   title,
@@ -51,7 +52,7 @@ const InfoBox = ({
   unit,
   progress,
   badge,
-  color = "#0d9488",
+  color = "#00d29d",
 }: any) => {
   return (
     <div className="bg-[#f4f5f6] rounded-xl p-2.5 sm:px-4 sm:py-3.5 flex flex-col gap-1.5 sm:gap-1.5 shadow-sm border border-[#e5e8eb] h-full justify-center">
@@ -74,7 +75,7 @@ const InfoBox = ({
           <div className="flex items-center shrink-0 self-start sm:self-auto sm:ml-auto gap-2">
             {badge && (
               <div className="bg-white border border-[#e5e8eb] px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md shadow-sm">
-                <span className="text-[11px] sm:text-[13.5px] font-extrabold text-[#0d9488] whitespace-nowrap">
+                <span className="text-[11px] sm:text-[13.5px] font-extrabold text-[#00d29d] whitespace-nowrap">
                   {badge}
                 </span>
               </div>
@@ -148,7 +149,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             <div
               key={index}
               className="flex items-center justify-between gap-6"
-            >
+              >
               <div className="flex items-center gap-2">
                 <div
                   className="w-2.5 h-2.5 rounded-full"
@@ -171,7 +172,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
               <span className="text-[13px] font-bold text-[#8b95a1] pl-4">
                 전세가율
               </span>
-              <span className="text-[14.5px] font-extrabold text-[#0d9488] tracking-tight">
+              <span className="text-[14.5px] font-extrabold text-[#00d29d] tracking-tight">
                 {ratio.toFixed(1)}%
               </span>
             </div>
@@ -183,21 +184,36 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+export const formatEokWithUnit = (priceMan: number) => {
+  const roundedPriceMan = Math.round(priceMan / 100) * 100;
+  const eok = Math.floor(roundedPriceMan / 10000);
+  const man = roundedPriceMan % 10000;
+  if (eok === 0) return { value: `${man.toLocaleString()}`, unit: "만원" };
+  if (man === 0) return { value: `${eok}억`, unit: "원" };
+  return {
+    value: `${eok}억 ${man === 0 ? "" : man.toLocaleString()}`,
+    unit: "만원",
+  };
+};
+
 export default function MacroDashboardClient({
   sheetApartments,
   txSummaryData,
+  nameMapping,
   publicRentalSet,
   userFavorites,
   onSelectApt,
 }: MacroDashboardProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [chartMode, setChartMode] = useState<"price" | "pyeong">("price");
+  const [accordionMode, setAccordionMode] = useState<"price" | "pyeong">("price");
   const [timeframe, setTimeframe] = useState<
     "3M" | "6M" | "1Y" | "3Y" | "5Y" | "ALL"
-  >("1Y");
+  >("ALL");
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(
     {},
   );
+  const [selectedTiers, setSelectedTiers] = useState<Record<string, number>>({});
   const [isScrolled, setIsScrolled] = useState(false);
   const [newsData, setNewsData] = useState<any[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
@@ -232,8 +248,7 @@ export default function MacroDashboardClient({
   const donutData = useMemo(() => {
     const priceTiers = [
       { name: "15억원 이상", min: 150000, max: Infinity, count: 0 },
-      { name: "12억~15억원", min: 120000, max: 150000, count: 0 },
-      { name: "10억~12억원", min: 100000, max: 120000, count: 0 },
+      { name: "10억~15억원", min: 100000, max: 150000, count: 0 },
       { name: "8억~10억원", min: 80000, max: 100000, count: 0 },
       { name: "6억~8억원", min: 60000, max: 80000, count: 0 },
       { name: "6억원 미만", min: 0, max: 60000, count: 0 },
@@ -241,8 +256,7 @@ export default function MacroDashboardClient({
 
     const pyeongTiers = [
       { name: "4,000만원 이상", min: 4000, max: Infinity, count: 0 },
-      { name: "3,500~4,000만원", min: 3500, max: 4000, count: 0 },
-      { name: "3,000~3,500만원", min: 3000, max: 3500, count: 0 },
+      { name: "3,000~4,000만원", min: 3000, max: 4000, count: 0 },
       { name: "2,500~3,000만원", min: 2500, max: 3000, count: 0 },
       { name: "2,000~2,500만원", min: 2000, max: 2500, count: 0 },
       { name: "2,000만원 미만", min: 0, max: 2000, count: 0 },
@@ -254,13 +268,14 @@ export default function MacroDashboardClient({
       const validApts = apts.filter((a) => !publicRentalSet.has(a.name));
 
       validApts.forEach((a) => {
-        const rawTxKey = (a as any).txKey || findTxKey(a.name, txSummaryData);
+        const rawTxKey = (a as any).txKey || findTxKey(a.name, txSummaryData, nameMapping);
         const key = rawTxKey ? normalizeAptName(rawTxKey) : null;
         const tx = key ? txSummaryData[key] : undefined;
         if (tx && a.householdCount) {
           let valueToCompare = 0;
-          if (chartMode === "price" && tx.latestPrice) {
-            valueToCompare = tx.latestPrice; // 만원 단위
+          const sales = tx.avg3MPrice || tx.avg1MPrice || tx.latestPrice || 0;
+          if (chartMode === "price" && sales > 0) {
+            valueToCompare = sales; // 만원 단위
           } else if (chartMode === "pyeong") {
             valueToCompare =
               tx.avg3MPerPyeong ||
@@ -459,7 +474,7 @@ export default function MacroDashboardClient({
       .forEach((apt) => {
         if (publicRentalSet.has(apt.name)) return;
         const rawTxKey =
-          (apt as any).txKey || findTxKey(apt.name, txSummaryData);
+          (apt as any).txKey || findTxKey(apt.name, txSummaryData, nameMapping);
         const txKey = rawTxKey ? normalizeAptName(rawTxKey) : null;
         const tx = txKey ? txSummaryData[txKey] : undefined;
 
@@ -489,12 +504,13 @@ export default function MacroDashboardClient({
       .flat()
       .forEach((apt) => {
         if (publicRentalSet.has(apt.name)) return;
-        const txKey = findTxKey(apt.name, txSummaryData);
+        const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
         if (txKey && txSummaryData[txKey]) {
           const tx = txSummaryData[txKey];
-          if (tx.latestPrice > maxPrice) {
-            maxPrice = tx.latestPrice;
-            maxEok = tx.latestPriceEok;
+          const sales = tx.avg3MPrice || tx.avg1MPrice || tx.latestPrice || 0;
+          if (sales > maxPrice) {
+            maxPrice = sales;
+            maxEok = formatEokWithUnit(sales).value + (formatEokWithUnit(sales).unit === '만원' ? '만' : '');
             displayAptName = apt.name;
           }
         }
@@ -513,7 +529,7 @@ export default function MacroDashboardClient({
       .flat()
       .forEach((apt) => {
         if (publicRentalSet.has(apt.name)) return;
-        const txKey = findTxKey(apt.name, txSummaryData);
+        const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
         if (txKey && txSummaryData[txKey]) {
           const tx = txSummaryData[txKey];
           const pyeongPrice =
@@ -530,7 +546,7 @@ export default function MacroDashboardClient({
     return [displayAptName, Math.round(maxPrice)];
   }, [txSummaryData, sheetApartments, publicRentalSet]);
 
-  const formatEok = (val: number) => `${val}억`;
+
 
   const toggleGroup = (title: string) => {
     setExpandedGroups((prev) => ({ ...prev, [title]: !prev[title] }));
@@ -547,106 +563,141 @@ export default function MacroDashboardClient({
         const lat = apt.lat || 0;
         const lng = apt.lng || 0;
 
-        let themeTitle = "기타 권역";
+        const dongtanCoord = { lat: 37.2005, lng: 127.0985 };
+        const distToDongtan =
+          lat && lng
+            ? haversineDistance(
+                { lat: Number(lat), lng: Number(lng) },
+                dongtanCoord
+              )
+            : null;
+
+        let themeTitles: string[] = [];
 
         // ==========================================
         // [TODO] 아래 좌표 기준(Bounding Box)을 자유롭게 수정하여 아파트를 편입시키세요.
         // ==========================================
-        if (lat !== 0 && lng !== 0) {
+        const isSibumName = apt.name.includes("시범");
+        const isDongtanName = apt.name.includes("동탄역");
+
+        let isDongtanArea = false;
+        if (distToDongtan !== null) {
+            isDongtanArea = distToDongtan <= 1500;
+        } else {
+            isDongtanArea = isDongtanName || apt.dong === "오산동" || apt.dong === "여울동";
+        }
+
+        if (isDongtanArea && isSibumName) {
+          themeTitles.push("동탄역세권", "시범 단지");
+        } else if (isDongtanArea) {
+          themeTitles.push("동탄역세권");
+        } else if (isSibumName) {
+          themeTitles.push("시범 단지");
+        } else if (lat !== 0 && lng !== 0) {
           if (lng < 127.085) {
-            themeTitle = "1동탄";
+            themeTitles.push("1동탄");
           } else if (lat > 37.205) {
-            themeTitle = "테크노밸리";
+            themeTitles.push("테크노밸리");
           } else if (lat < 37.175) {
-            themeTitle = "호수공원";
+            themeTitles.push("호수공원");
           } else if (
             lat >= 37.195 &&
             lat <= 37.205 &&
             lng >= 127.1 &&
             lng <= 127.115
           ) {
-            themeTitle = "시범 커뮤니티";
-          } else if (
-            lat >= 37.19 &&
-            lat <= 37.205 &&
-            lng >= 127.085 &&
-            lng <= 127.1
-          ) {
-            themeTitle = "동탄역세권";
+            themeTitles.push("시범 단지");
           } else {
-            themeTitle = "문화디자인밸리";
+            themeTitles.push("문화디자인밸리");
           }
         } else {
           // 좌표가 누락된 데이터에 대한 예외 처리 (수동 매핑)
-          if (apt.dong === "오산동" || apt.dong === "여울동")
-            themeTitle = "동탄역세권";
-          else if (apt.dong === "청계동") themeTitle = "시범 커뮤니티";
-          else if (apt.dong === "영천동") themeTitle = "테크노밸리";
+          if (apt.dong === "청계동") themeTitles.push("시범 단지");
+          else if (apt.dong === "영천동") themeTitles.push("테크노밸리");
           else if (apt.dong === "산척동" || apt.dong === "송동")
-            themeTitle = "호수공원";
+            themeTitles.push("호수공원");
           else if (
             apt.dong === "반송동" ||
             apt.dong === "능동" ||
             apt.dong === "석우동"
           )
-            themeTitle = "1동탄";
-          else themeTitle = "문화디자인밸리";
+            themeTitles.push("1동탄");
+          else themeTitles.push("문화디자인밸리");
         }
 
-        if (!grouped[themeTitle]) {
-          grouped[themeTitle] = {
-            title: themeTitle,
-            dong: themeTitle, // 헤더의 Core Anchor 표시에 사용
-            totalValue: 0,
-            count: 0,
-            apartments: [],
-          };
-        }
+        if (themeTitles.length === 0) themeTitles.push("기타 권역");
+
         if (publicRentalSet.has(apt.name)) return;
         const rawTxKey =
-          (apt as any).txKey || findTxKey(apt.name, txSummaryData);
+          (apt as any).txKey || findTxKey(apt.name, txSummaryData, nameMapping);
         const txKey = rawTxKey ? normalizeAptName(rawTxKey) : null;
         const tx = txKey ? txSummaryData[txKey] : undefined;
 
-        if (tx && tx.latestPrice > 0) {
-          const maxPrice = tx.maxPrice || tx.latestPrice;
-          const mdd =
-            maxPrice > 0 ? ((tx.latestPrice - maxPrice) / maxPrice) * 100 : 0;
-          const gap =
-            tx.latestPrice > 0 && tx.latestRentDeposit
-              ? (tx.latestRentDeposit / tx.latestPrice) * 100
-              : 0;
-          const liquid = tx.avg3MTxCount || 0;
+        if (tx) {
+          const sales = tx.avg3MPrice || tx.avg1MPrice || tx.latestPrice || 0;
+          if (sales > 0) {
+            const maxPrice = tx.maxPrice || sales;
+            const mdd =
+              maxPrice > 0 ? ((sales - maxPrice) / maxPrice) * 100 : 0;
+            const gap =
+              sales > 0 && tx.latestRentDeposit
+                ? (tx.latestRentDeposit / sales) * 100
+                : 0;
+            const liquid = tx.avg3MTxCount || 0;
 
-          let formattedYear = apt.yearBuilt || "";
-          if (formattedYear.length === 6 && !isNaN(Number(formattedYear))) {
-            formattedYear = `${formattedYear.substring(0, 4)}년 ${formattedYear.substring(4, 6)}월`;
-          } else if (
-            formattedYear.length === 4 &&
-            !isNaN(Number(formattedYear))
-          ) {
-            formattedYear = `${formattedYear}년`;
+            let formattedYear = apt.yearBuilt || "";
+            if (formattedYear.length === 6 && !isNaN(Number(formattedYear))) {
+              formattedYear = `${formattedYear.substring(0, 4)}년 ${formattedYear.substring(4, 6)}월`;
+            } else if (
+              formattedYear.length === 4 &&
+              !isNaN(Number(formattedYear))
+            ) {
+              formattedYear = `${formattedYear}년`;
+            }
+
+            const pyeongPrice =
+              tx.avg3MPerPyeong ||
+              tx.avg1MPerPyeong ||
+              (tx.latestArea ? tx.latestPrice / (tx.latestArea / 3.3058) : 0);
+
+            // distToDongtan은 상단에서 미리 계산함
+
+            themeTitles.forEach(themeTitle => {
+              if (!grouped[themeTitle]) {
+                grouped[themeTitle] = {
+                  title: themeTitle,
+                  dong: themeTitle, // 헤더의 Core Anchor 표시에 사용
+                  totalValue: 0,
+                  totalPyeongValue: 0,
+                  count: 0,
+                  apartments: [],
+                };
+              }
+
+              grouped[themeTitle].apartments.push({
+                name: apt.name,
+                latestPrice: sales,
+                latestPriceEok: formatEokWithUnit(sales).value + (formatEokWithUnit(sales).unit === '만원' ? '만' : ''),
+                pyeongPrice: pyeongPrice,
+                mdd: mdd,
+                gap: gap,
+                liquid: liquid,
+                householdCount: apt.householdCount || 0,
+                yearBuilt: formattedYear,
+                distToDongtan: distToDongtan,
+              });
+
+              grouped[themeTitle].totalValue += sales;
+              grouped[themeTitle].totalPyeongValue += pyeongPrice;
+              grouped[themeTitle].count += 1;
+            });
           }
-
-          grouped[themeTitle].apartments.push({
-            name: apt.name,
-            latestPrice: tx.latestPrice,
-            latestPriceEok:
-              tx.latestPriceEok || `${Math.round(tx.latestPrice / 10000)}억`,
-            mdd: mdd,
-            gap: gap,
-            liquid: liquid,
-            householdCount: apt.householdCount || 0,
-            yearBuilt: formattedYear,
-          });
-
-          grouped[themeTitle].totalValue += tx.latestPrice;
-          grouped[themeTitle].count += 1;
         }
       });
 
     const themeOrder = [
       "동탄역세권",
+      "시범 단지",
       "시범 커뮤니티",
       "호수공원",
       "문화디자인밸리",
@@ -658,6 +709,7 @@ export default function MacroDashboardClient({
       .filter((g) => g.count > 0)
       .map((g) => {
         g.avgPrice = g.totalValue / g.count;
+        g.avgPyeongPrice = g.totalPyeongValue / g.count;
         g.apartments.sort((a: any, b: any) => b.latestPrice - a.latestPrice);
         return g;
       })
@@ -675,7 +727,7 @@ export default function MacroDashboardClient({
 
   return (
     <div className="w-full flex flex-col bg-surface relative">
-      <div className="flex flex-col md:px-10 lg:px-16 py-0 md:py-6 lg:py-8 w-full">
+      <div className="flex flex-col md:px-10 lg:px-16 py-0 md:py-9 lg:py-12 w-full">
         {/* Compact Dynamic Sticky Header (Mobile Only) */}
         <div
           className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-white/95 backdrop-blur-md border-b border-border px-5 py-3 flex items-center justify-between transition-all duration-300 ${
@@ -714,7 +766,7 @@ export default function MacroDashboardClient({
           </div>
           <div className="flex flex-col justify-end mb-0 sm:mb-0">
             <div className="flex w-full py-1">
-              <div className="w-[3px] rounded-full mr-4 shrink-0 bg-[#0d9488]" />
+              <div className="w-[3px] rounded-full mr-4 shrink-0 bg-[#00d29d]" />
               <div className="flex flex-col sm:flex-row sm:items-baseline justify-start flex-1 gap-0.5 sm:gap-1.5">
                 <strong className="text-[#191f28] text-[13.5px] sm:text-[15.5px] whitespace-nowrap">
                   데이터 기반 동탄 아파트 가치 분석
@@ -732,7 +784,7 @@ export default function MacroDashboardClient({
           {/* Left Column Container */}
           <div className="w-full md:w-1/2 flex flex-col gap-4">
             {/* Donut Chart Card */}
-            <div className="flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] p-5 min-h-[300px]">
+            <div className="flex flex-col bg-white rounded-2xl shadow-sm border border-[#e5e8eb] px-5 py-7 min-h-[350px]">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-[18px] font-extrabold text-[#191f28] tracking-tight">
                   아파트 {chartMode === "price" ? "실거래가" : "평단가"} 분포도
@@ -1069,7 +1121,7 @@ export default function MacroDashboardClient({
                       type="monotone"
                       name="평균 매매가"
                       dataKey="동탄 아파트 전체"
-                      stroke="#0d9488"
+                      stroke="#00d29d"
                       strokeWidth={4}
                       animationDuration={300}
                       dot={
@@ -1105,47 +1157,132 @@ export default function MacroDashboardClient({
         {/* Detailed Real Estate Portfolio Section */}
         <div className="mt-12 mb-6 flex items-center justify-between px-3 sm:px-6 md:px-0">
           <div className="flex items-center gap-2">
-            <div className="w-[3px] h-[16px] bg-[#0d9488] rounded-full" />
+            <div className="w-[3px] h-[16px] bg-[#00d29d] rounded-full" />
             <h2 className="text-[22px] font-bold text-[#191f28]">
               지역별 분류
             </h2>
+          </div>
+          
+          {/* Toss Style Segmented Control for Accordion */}
+          <div className="flex bg-[#f2f4f6] p-1 rounded-lg">
+            <button
+              onClick={() => setAccordionMode("price")}
+              className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${
+                accordionMode === "price"
+                  ? "bg-white text-[#191f28] shadow-sm"
+                  : "text-[#8b95a1] hover:text-[#4e5968]"
+              }`}
+            >
+              매매가
+            </button>
+            <button
+              onClick={() => setAccordionMode("pyeong")}
+              className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${
+                accordionMode === "pyeong"
+                  ? "bg-white text-[#191f28] shadow-sm"
+                  : "text-[#8b95a1] hover:text-[#4e5968]"
+              }`}
+            >
+              평단가
+            </button>
           </div>
         </div>
 
         <div className="flex flex-col gap-4 pb-10 px-3 sm:px-6 md:px-0">
           {accordionData.map((group) => {
             const isExpanded = expandedGroups[group.title];
+            
+            const themeColors: Record<string, string> = {
+              "동탄역세권": "#3182f6",
+              "시범 커뮤니티": "#af52de",
+              "호수공원": "#00d29d",
+              "문화디자인밸리": "#f04452",
+              "테크노밸리": "#ff9f28",
+              "1동탄": "#4e5968",
+            };
+            const themeColor = themeColors[group.title] || "#00d29d";
+
             return (
               <div
                 key={group.title}
-                className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden transition-all duration-300"
+                className="bg-white rounded-[20px] shadow-sm border border-gray-100 transition-all duration-300 relative"
               >
                 {/* Group Header */}
                 <div
-                  className="p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50/50"
+                  className={`p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50/50 rounded-t-[20px] ${!isExpanded ? 'rounded-b-[20px]' : ''}`}
                   onClick={() => toggleGroup(group.title)}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-[10px] h-[10px] bg-[#0d9488] rounded-full" />
+                  <div className="flex items-center gap-3.5">
+                    <div 
+                      className="w-[12px] h-[12px] rounded-full shadow-sm" 
+                      style={{ backgroundColor: themeColor }}
+                    />
                     <div className="flex flex-col">
-                      <span className="text-[15px] font-bold text-[#191f28]">
-                        {group.title}
-                      </span>{" "}
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[18px] font-extrabold text-[#191f28] tracking-tight">
+                          {group.title}
+                        </span>
+                        {group.title === "동탄역세권" && (
+                          <div className="relative group/info flex items-center">
+                            <Info className="w-4 h-4 text-[#8b95a1] cursor-pointer hover:text-[#4e5968] transition-colors" />
+                            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max max-w-[420px] opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all bg-[#191f28] text-white text-[13px] leading-[1.6] font-medium px-5 py-4 rounded-[10px] shadow-lg z-50 pointer-events-none flex flex-col gap-3 text-left">
+                              <span className="font-bold text-[#3182f6] text-[15px]">동탄역세권 설정 기준의 다차원적 분석</span>
+                              <div>
+                                <span className="font-bold text-white/90">1. 공간적·물리적 기준</span><br />
+                                <span className="text-white/70">1차: 동탄역 중심 반경 500m (도보 7~8분 한계선)<br />
+                                2차: 반경 1km 이내 (경부고속도로 지하화에 따른 광비콤 서측 동서 단절 해소 반영)</span>
+                              </div>
+                              <div className="pt-1.5 border-t border-white/10">
+                                <span className="font-bold text-white/90">2. 시간 및 교통 연계적 기준</span><br />
+                                <span className="text-white/70">복합환승 결절점(GTX-A, SRT, 인동선, 트램) 효과 및 지선망 연계를 통한 접근 시간 등가 반경(Equivalent Radius) 적용.<br />
+                                ➡ <span className="text-white/90">1 트램 정거장 이내 도달(반경 1.5km) 지역을 '시간적 역세권'으로 분류.</span></span>
+                              </div>
+                              <div className="mt-1 bg-[#3182f6]/20 text-[#3182f6] px-2 py-1 rounded-[4px] text-center font-bold">
+                                * 현재 물리+시간적 1.5km 통합 기준 적용 중
+                              </div>
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-[#191f28]" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="flex flex-col items-end">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-[18px] font-extrabold text-[#191f28]">
-                          {formatEok(Math.round(group.avgPrice / 10000))}
-                        </span>
-                        <span className="text-[11px] font-bold text-[#8b95a1]">
-                          KRW
-                        </span>
-                      </div>
-                      <span className="text-[12px] font-medium text-[#8b95a1] mt-0.5">
-                        평균 실거래가
-                      </span>
+                      {accordionMode === "price" ? (
+                        (() => {
+                          const { value, unit } = formatEokWithUnit(group.avgPrice);
+                          return (
+                            <>
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-[20px] font-extrabold text-[#191f28]">
+                                  {value}
+                                </span>
+                                <span className="text-[12px] font-bold text-[#8b95a1]">
+                                  {unit}
+                                </span>
+                              </div>
+                              <span className="text-[12px] font-medium text-[#8b95a1] mt-0.5">
+                                평균 실거래가
+                              </span>
+                            </>
+                          );
+                        })()
+                      ) : (
+                        <>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-[20px] font-extrabold text-[#191f28]">
+                              {Math.round(group.avgPyeongPrice).toLocaleString()}
+                            </span>
+                            <span className="text-[12px] font-bold text-[#8b95a1]">
+                              만원/평
+                            </span>
+                          </div>
+                          <span className="text-[12px] font-medium text-[#8b95a1] mt-0.5">
+                            평균 평단가
+                          </span>
+                        </>
+                      )}
                     </div>
                     {isExpanded ? (
                       <ChevronUp className="w-5 h-5 text-[#8b95a1]" />
@@ -1160,35 +1297,124 @@ export default function MacroDashboardClient({
                   <div className="px-5 pb-5 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="w-full h-[1px] bg-gray-100 mb-4" />
 
-                    <div className="flex flex-col gap-3">
-                      {group.apartments
-                        .slice(0, 10)
-                        .map((apt: any, idx: number) => (
-                          <div
-                            key={apt.name}
-                            onClick={() => onSelectApt && onSelectApt(apt.name)}
-                            className="flex items-center justify-between p-4 rounded-[14px] border border-gray-100 bg-white hover:border-[#0d9488]/30 hover:bg-gray-50 cursor-pointer transition-colors"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 bg-[#8b95a1] rounded-full" />
-                              <span className="text-[14px] font-bold text-[#333d4b]">
-                                {apt.name}
-                              </span>
-                              <span className="px-1.5 py-0.5 bg-[#e8f4f3] text-[#0d9488] text-[10px] font-bold rounded-sm tracking-wider">
-                                VIEW
-                              </span>
+                    <div className="flex flex-col gap-4">
+                      {(() => {
+                        const TIERS = accordionMode === "price"
+                          ? [
+                              { name: "15억원 이상", min: 150000, max: Infinity },
+                              { name: "10억~15억원", min: 100000, max: 150000 },
+                              { name: "8억~10억원", min: 80000, max: 100000 },
+                              { name: "6억~8억원", min: 60000, max: 80000 },
+                              { name: "6억원 미만", min: 0, max: 60000 },
+                            ]
+                          : [
+                              { name: "4,000만원 이상", min: 4000, max: Infinity },
+                              { name: "3,000~4,000만원", min: 3000, max: 4000 },
+                              { name: "2,500~3,000만원", min: 2500, max: 3000 },
+                              { name: "2,000~2,500만원", min: 2000, max: 2500 },
+                              { name: "2,000만원 미만", min: 0, max: 2000 },
+                            ];
+                        
+                        // Compute which tiers have apartments
+                        const availableTiers = TIERS.map((tier, idx) => {
+                          const apts = group.apartments.filter((apt: any) => {
+                            const val = accordionMode === "price" ? apt.latestPrice : apt.pyeongPrice;
+                            return val >= tier.min && val < tier.max;
+                          }).sort((a: any, b: any) => {
+                            return accordionMode === "price" ? b.latestPrice - a.latestPrice : b.pyeongPrice - a.pyeongPrice;
+                          });
+                          return { ...tier, originalIndex: idx, apts };
+                        }).filter(t => t.apts.length > 0);
+
+                        if (availableTiers.length === 0) return null;
+
+                        // Default to the first available tier if none is selected
+                        const currentTierIndex = selectedTiers[group.title] ?? availableTiers[0].originalIndex;
+                        const activeTier = availableTiers.find(t => t.originalIndex === currentTierIndex) || availableTiers[0];
+
+                        return (
+                          <>
+                            {/* Tier Selection Pills */}
+                            <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2 pt-1 -mx-2 px-2">
+                              {availableTiers.map(t => {
+                                const isActive = t.originalIndex === currentTierIndex;
+                                return (
+                                  <button
+                                    key={t.originalIndex}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedTiers(prev => ({ ...prev, [group.title]: t.originalIndex }));
+                                    }}
+                                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-bold whitespace-nowrap transition-colors ${
+                                      isActive
+                                        ? "bg-[#333d4b] text-white shadow-sm"
+                                        : "bg-[#f2f4f6] text-[#8b95a1] hover:bg-[#e5e8eb] hover:text-[#4e5968]"
+                                    }`}
+                                  >
+                                    {t.name}
+                                    <span className={`text-[11px] px-1.5 py-0.5 rounded-md ${isActive ? 'bg-white/20 text-white' : 'bg-[#e5e8eb] text-[#8b95a1]'}`}>
+                                      {t.apts.length}
+                                    </span>
+                                  </button>
+                                );
+                              })}
                             </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[15px] font-extrabold text-[#191f28]">
-                                {apt.latestPriceEok}
-                              </span>
-                              <span className="text-[10px] font-bold text-[#8b95a1]">
-                                KRW
-                              </span>
-                              <ChevronRight className="w-4 h-4 text-[#b0b8c1]" />
+
+                            {/* Active Tier Apartments List */}
+                            <div className="flex flex-col gap-2 mt-1 animate-in fade-in duration-300">
+                              {activeTier.apts.map((apt: any) => (
+                                <div
+                                  key={apt.name}
+                                  onClick={(e) => { e.stopPropagation(); onSelectApt && onSelectApt(apt.name); }}
+                                  className="flex items-center justify-between p-3.5 rounded-[12px] border border-gray-100 bg-white hover:border-[#00d29d]/30 hover:bg-[#f9fafb] cursor-pointer transition-all shadow-sm group/apt"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 bg-[#d1d6db] rounded-full group-hover/apt:bg-[#00d29d] transition-colors" />
+                                    <span className="text-[15px] font-extrabold text-[#333d4b]">
+                                      {apt.name}
+                                    </span>
+                                    {apt.distToDongtan !== null && (
+                                      <span className="text-[13px] font-semibold text-[#8b95a1] bg-[#f2f4f6] px-2 py-1 rounded-[6px] ml-2 group-hover/apt:bg-[#e5e8eb] transition-colors">
+                                        동탄역 {(apt.distToDongtan / 1000).toFixed(2)}km
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {accordionMode === "price" ? (
+                                      (() => {
+                                        // Try to parse the unit from apt.latestPriceEok if it's pre-formatted string or just use '원'
+                                        // Wait, the apt items are rendered with latestPriceEok which could just be a string.
+                                        // Let's use formatEokWithUnit on apt.latestPrice instead.
+                                        const { value, unit } = formatEokWithUnit(apt.latestPrice);
+                                        return (
+                                          <>
+                                            <span className="text-[16px] font-extrabold text-[#191f28]">
+                                              {value}
+                                            </span>
+                                            <span className="text-[11px] font-bold text-[#8b95a1]">
+                                              {unit}
+                                            </span>
+                                          </>
+                                        );
+                                      })()
+                                    ) : (
+                                      <>
+                                        <span className="text-[16px] font-extrabold text-[#191f28]">
+                                          {Math.round(apt.pyeongPrice).toLocaleString()}
+                                        </span>
+                                        <span className="text-[11px] font-bold text-[#8b95a1]">
+                                          만원/평
+                                        </span>
+                                      </>
+                                    )}
+                                    <ChevronRight className="w-4 h-4 text-[#b0b8c1] ml-1" />
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                          </div>
-                        ))}
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 )}
@@ -1284,14 +1510,14 @@ export default function MacroDashboardClient({
                     onClick={() =>
                       news.link !== "#" && window.open(news.link, "_blank")
                     }
-                    className="flex gap-4 p-5 rounded-xl border border-gray-100 bg-[#f9fafb] hover:bg-white hover:border-[#0d9488]/30 transition-all cursor-pointer group"
+                    className="flex gap-4 p-5 rounded-xl border border-gray-100 bg-[#f9fafb] hover:bg-white hover:border-[#00d29d]/30 transition-all cursor-pointer group"
                   >
-                    <div className="w-8 h-8 shrink-0 flex items-center justify-center bg-white rounded-full border border-gray-200 text-[#0d9488] font-bold text-[13px] shadow-sm group-hover:bg-[#0d9488] group-hover:text-white transition-colors">
+                    <div className="w-8 h-8 shrink-0 flex items-center justify-center bg-white rounded-full border border-gray-200 text-[#00d29d] font-bold text-[13px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
                       {news.id}
                     </div>
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2 mb-1.5">
-                        <span className="text-[11px] font-extrabold text-[#0d9488] tracking-wide">
+                        <span className="text-[11px] font-extrabold text-[#00d29d] tracking-wide">
                           {news.category}
                         </span>
                         <span className="text-[11px] text-gray-300">|</span>

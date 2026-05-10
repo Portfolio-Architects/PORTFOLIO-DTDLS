@@ -211,12 +211,12 @@ export default function LoungeFeedClient({ initialPosts, currentTab }: LoungeFee
                 onClick={() => news.link !== "#" && window.open(news.link, "_blank")}
                 className="flex gap-4 p-5 rounded-2xl border border-border bg-surface hover:bg-[#f9fafb] hover:border-toss-blue/30 transition-all cursor-pointer group"
               >
-                <div className="w-8 h-8 shrink-0 flex items-center justify-center bg-white rounded-full border border-gray-200 text-[#0d9488] font-bold text-[13px] shadow-sm group-hover:bg-[#0d9488] group-hover:text-white transition-colors">
+                <div className="w-8 h-8 shrink-0 flex items-center justify-center bg-white rounded-full border border-gray-200 text-[#00d29d] font-bold text-[13px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
                   {news.id}
                 </div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-[11px] font-extrabold text-[#0d9488] tracking-wide">{news.category}</span>
+                    <span className="text-[11px] font-extrabold text-[#00d29d] tracking-wide">{news.category}</span>
                     <span className="text-[11px] text-gray-300">|</span>
                     <span className="text-[11px] font-semibold text-[#8b95a1]">{news.sub}</span>
                   </div>

@@ -10,7 +10,7 @@ export default function LocationPremiumSection({ scores }: Props) {
   if (!scores) return null;
 
   const metrics = [
-    { key: 'education', label: '학군 (교육)', icon: GraduationCap, color: '#0d9488', bg: '#ccfbf1', score: scores.education },
+    { key: 'education', label: '학군 (교육)', icon: GraduationCap, color: '#00d29d', bg: '#e0fbf4', score: scores.education },
     { key: 'transport', label: '교통 (접근성)', icon: Train, color: '#f5535e', bg: '#feeaec', score: scores.transport },
     { key: 'livingComfort', label: '주거 쾌적성', icon: TreePine, color: '#03c75a', bg: '#e5f9ed', score: scores.livingComfort },
     { key: 'complex', label: '단지 경쟁력', icon: Building2, color: '#8a40ff', bg: '#f3ebff', score: scores.complex },
@@ -38,7 +38,7 @@ export default function LocationPremiumSection({ scores }: Props) {
               </div>
             </div>
           </div>
-          <div className="text-[32px] font-extrabold tracking-tighter" style={{ color: scores.totalScore >= 80 ? '#0d9488' : '#191f28' }}>
+          <div className="text-[32px] font-extrabold tracking-tighter" style={{ color: scores.totalScore >= 80 ? '#00d29d' : '#191f28' }}>
             {scores.totalScore}<span className="text-[16px] text-tertiary font-bold ml-1">점</span>
           </div>
         </div>

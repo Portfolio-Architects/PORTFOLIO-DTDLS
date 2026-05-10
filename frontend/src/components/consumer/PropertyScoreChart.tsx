@@ -18,7 +18,7 @@ const AREAS = [
 
 function getScoreColor(score: number): string {
   if (score >= 80) return '#03c75a';
-  if (score >= 60) return '#0d9488';
+  if (score >= 60) return '#00d29d';
   if (score >= 40) return '#f59e0b';
   return '#f04452';
 }
@@ -26,7 +26,7 @@ function getScoreColor(score: number): string {
 function getGrade(score: number): { grade: string; label: string; color: string } {
   if (score >= 90) return { grade: 'S', label: '최상위', color: '#03c75a' };
   if (score >= 80) return { grade: 'A', label: '우수', color: '#36b37e' };
-  if (score >= 65) return { grade: 'B+', label: '양호', color: '#0d9488' };
+  if (score >= 65) return { grade: 'B+', label: '양호', color: '#00d29d' };
   if (score >= 50) return { grade: 'B', label: '보통', color: '#f59e0b' };
   if (score >= 35) return { grade: 'C', label: '미흡', color: '#ff8b3d' };
   return { grade: 'D', label: '부족', color: '#f04452' };
@@ -88,11 +88,11 @@ export default function PropertyScoreChart({ scores }: Props) {
               <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
               <Tooltip
                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontWeight: 'bold', fontSize: '13px' }}
-                itemStyle={{ color: '#0d9488', fontWeight: 'bold' }}
+                itemStyle={{ color: '#00d29d', fontWeight: 'bold' }}
                 // @ts-expect-error recharts type match
               formatter={(value: number | string | undefined) => [`${value}점`, '']}
               />
-              <Radar name="단지 점수" dataKey="A" stroke="#0d9488" fill="#0d9488" fillOpacity={0.5} strokeWidth={2} isAnimationActive={false} />
+              <Radar name="단지 점수" dataKey="A" stroke="#00d29d" fill="#00d29d" fillOpacity={0.5} strokeWidth={2} isAnimationActive={false} />
             </RadarChart>
           </ResponsiveContainer>
         </div>

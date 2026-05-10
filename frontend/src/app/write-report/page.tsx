@@ -14,7 +14,7 @@ const AUTO_SAVE_INTERVAL = 30_000; // 30s
 // Rating emoji map
 const RATING_EMOJIS = ['😡', '😟', '😐', '🙂', '🤩'] as const;
 const RATING_LABELS = ['매우 나쁨', '나쁨', '보통', '좋음', '매우 좋음'] as const;
-const RATING_COLORS = ['#f04452', '#ff6b35', '#ffc233', '#36b37e', '#0d9488'] as const;
+const RATING_COLORS = ['#f04452', '#ff6b35', '#ffc233', '#36b37e', '#00d29d'] as const;
 
 // Auto grade map
 function computeAutoGrade(sections: ReportSections): { grade: string; score: number; label: string; color: string } {
@@ -37,7 +37,7 @@ function computeAutoGrade(sections: ReportSections): { grade: string; score: num
   const avg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
   const score = Math.round(avg * 20); // 0~100
 
-  if (avg >= 4.5) return { grade: 'S', score, label: '프리미엄 최상급', color: '#0d9488' };
+  if (avg >= 4.5) return { grade: 'S', score, label: '프리미엄 최상급', color: '#00d29d' };
   if (avg >= 3.5) return { grade: 'A', score, label: '우수 단지', color: '#36b37e' };
   if (avg >= 2.5) return { grade: 'B', score, label: '평균 수준', color: '#ffc233' };
   if (avg >= 1.5) return { grade: 'C', score, label: '개선 필요', color: '#ff6b35' };

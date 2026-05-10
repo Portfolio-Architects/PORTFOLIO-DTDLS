@@ -20,7 +20,7 @@ function PaymentFailContent() {
         {code && <p className="text-[12px] text-tertiary mb-6">에러 코드: {code}</p>}
         <button
           onClick={() => router.push('/')}
-          className="bg-toss-blue text-surface font-bold px-6 py-3 rounded-xl hover:bg-[#0f766e] transition-colors"
+          className="bg-toss-blue text-surface font-bold px-6 py-3 rounded-xl hover:bg-[#00b386] transition-colors"
         >
           돌아가기
         </button>

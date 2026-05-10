@@ -50,7 +50,7 @@ export default function WriteReviewModal({ onClose, userUid }: WriteReviewModalP
 
   const RATING_EMOJIS = ['😡', '😟', '😐', '🙂', '🤩'];
   const RATING_LABELS = ['별로', '아쉬움', '보통', '좋음', '최고'];
-  const RATING_COLORS = ['#f04452', '#ff6b35', '#ffc233', '#36b37e', '#0d9488'];
+  const RATING_COLORS = ['#f04452', '#ff6b35', '#ffc233', '#36b37e', '#00d29d'];
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center" onClick={onClose}>

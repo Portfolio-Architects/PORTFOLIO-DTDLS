@@ -453,6 +453,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
             <MacroDashboardClient 
               sheetApartments={sheetApartments} 
               txSummaryData={txSummaryData} 
+              nameMapping={nameMapping || {}}
               publicRentalSet={publicRentalSet}
               userFavorites={userFavorites}
               onSelectApt={(name: string) => {

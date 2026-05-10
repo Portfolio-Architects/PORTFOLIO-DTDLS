@@ -84,7 +84,7 @@ async function main() {
     console.log(`\n📅 ${ym} 전월세 처리 중...`);
 
     do {
-      const url = `${API_BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${LAWD_CD}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000`;
+      const url = `${API_BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${LAWD_CD}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000&_type=json`;
 
       let text = '';
       let success = false;

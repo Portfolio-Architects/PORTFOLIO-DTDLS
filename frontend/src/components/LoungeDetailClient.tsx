@@ -352,7 +352,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => setIsEditing(false)} className="px-5 py-2.5 bg-body hover:bg-[#e5e8eb] text-secondary rounded-xl text-[14px] font-bold transition-colors">취소</button>
-                  <button onClick={handleSaveEdit} className="px-5 py-2.5 bg-toss-blue hover:bg-[#0f766e] text-surface rounded-xl text-[14px] font-bold transition-colors shadow-md shadow-[#0d9488]/20">저장</button>
+                  <button onClick={handleSaveEdit} className="px-5 py-2.5 bg-toss-blue hover:bg-[#00b386] text-surface rounded-xl text-[14px] font-bold transition-colors shadow-md shadow-[#00d29d]/20">저장</button>
                 </div>
               </div>
             </div>
@@ -470,7 +470,7 @@ export default function LoungeDetailClient({ postId, initialPost, isModal = fals
             <button
               onClick={handleComment}
               disabled={isSending || !commentText.trim()}
-              className="w-10 h-10 bg-toss-blue disabled:bg-toss-gray rounded-xl flex items-center justify-center text-surface transition-colors active:scale-95 shadow-md shadow-[#0d9488]/20"
+              className="w-10 h-10 bg-toss-blue disabled:bg-toss-gray rounded-xl flex items-center justify-center text-surface transition-colors active:scale-95 shadow-md shadow-[#00d29d]/20"
             >
               <Send size={16} />
             </button>
