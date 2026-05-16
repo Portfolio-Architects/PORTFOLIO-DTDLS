@@ -164,7 +164,7 @@ async function fetchDongMap() {
 }
 
 async function main() {
-  const isFullSync = process.argv.includes('--full');
+  let isFullSync = process.argv.includes('--full');
   const now = new Date();
   const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
   const cutoffYm = `${threeMonthsAgo.getFullYear()}${String(threeMonthsAgo.getMonth() + 1).padStart(2, '0')}`;
@@ -191,6 +191,7 @@ async function main() {
       console.log(`✅ ${Object.keys(byApt).length}개 아파트의 기존 데이터 로드 완료`);
     } catch (e) {
       console.warn('⚠️ 로컬 캐시 로드 중 오류 발생, Full Sync로 전환합니다.', e);
+      isFullSync = true;
     }
   } else {
     console.log('🚀 [Full Sync] 로컬 캐시를 무시하고 전체 데이터를 처음부터 다시 동기화합니다...');
