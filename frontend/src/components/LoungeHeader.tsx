@@ -45,7 +45,7 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
       </div>
       
       {/* Main Header — Minimalist Navigation integrated */}
-      <header className="shrink-0 bg-transparent md:bg-surface/95 backdrop-blur-none md:backdrop-blur-xl border-none md:border-b md:border-border relative z-40" role="banner">
+      <header className="hidden md:block shrink-0 bg-surface/95 backdrop-blur-xl border-b border-border relative z-40" role="banner">
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16">
           <div className="flex flex-col md:flex-row md:items-center justify-between pt-4 pb-3 md:py-4 gap-4 md:gap-0">
             
