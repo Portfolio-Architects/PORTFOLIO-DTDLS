@@ -572,6 +572,9 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
               }}
               onToggleFavorite={(name: string) => handleToggleFavorite(name, handleLogin)}
             />
+          </section>
+        )}
+
         {/* ═══ TAB 2: 커뮤니티 (라운지) ═══ */}
         {mounted && (
           <section className={`w-full bg-surface ${activeTab === 'lounge' ? 'block' : 'hidden'}`}>
