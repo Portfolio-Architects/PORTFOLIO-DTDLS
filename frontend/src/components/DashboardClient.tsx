@@ -449,7 +449,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
         {/* ═══ TAB 0: 마크로 대시보드 ═══ */}
         {mounted && activeTab === 'overview' && (
-          <section className="w-full bg-surface pb-[100px] md:pb-0">
+          <section className="w-full bg-surface pb-8 md:pb-0 rounded-b-[24px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] md:shadow-none mb-4 md:mb-0">
             <MacroDashboardClient 
               sheetApartments={sheetApartments} 
               txSummaryData={txSummaryData} 
@@ -558,7 +558,7 @@ export default function DashboardClient({ initialDashboardData, preselectedAptNa
 
         {/* ═══ TAB 2: 커뮤니티 (라운지) ═══ */}
         {mounted && activeTab === 'lounge' && (
-          <section className="w-full bg-surface pb-[100px] md:pb-0 pt-6 px-3 sm:px-6 md:px-10 lg:px-16">
+          <section className="w-full bg-surface pb-8 md:pb-0 pt-6 px-3 sm:px-6 md:px-10 lg:px-16 rounded-b-[24px] shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] md:shadow-none mb-4 md:mb-0">
             <LoungeContainerClient initialPosts={[]} />
           </section>
         )}

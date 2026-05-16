@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { adminDb } from '@/lib/firebaseAdmin';
 import DashboardClient from '@/components/DashboardClient';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
+import { TX_SUMMARY } from '@/lib/transaction-summary';
 
 // --- SEO: Dynamic Metadata Generator ---
 // Await the params Promise for Next.js 15+
@@ -211,12 +212,34 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     ...(structuredImages.length > 0 ? { "image": structuredImages } : {})
   };
 
+  // --- SSR SEO HTML Block ---
+  const aptSummary = TX_SUMMARY[decodedName];
+  const latestPrice = aptSummary?.latestPriceEok ? `${aptSummary.latestPriceEok}억` : '정보 없음';
+  const avg3MPrice = aptSummary?.avg3MPriceEok ? `${aptSummary.avg3MPriceEok}억` : '정보 없음';
+  const jeonsePrice = aptSummary?.latestRentDepositEok ? `${aptSummary.latestRentDepositEok}억` : '정보 없음';
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      
+      {/* Search Engine Optimization (SSR Content) */}
+      <div className="sr-only" aria-hidden="true">
+        <h1>{decodedName} 실거래가 및 가치 분석</h1>
+        <p>
+          동탄 {decodedName} 아파트의 최근 실거래가는 {latestPrice}이며, 최근 3개월 평균 매매가는 {avg3MPrice}입니다.
+          가장 최근 전세 실거래가는 {jeonsePrice}입니다. 
+          {jsonLd.description}
+        </p>
+        <ul>
+          <li>최근 매매가: {latestPrice}</li>
+          <li>최근 3개월 평균가: {avg3MPrice}</li>
+          <li>최근 전세가: {jeonsePrice}</li>
+        </ul>
+      </div>
+
       <DashboardClient initialDashboardData={initialData} preselectedAptName={decodedName} />
     </>
   );

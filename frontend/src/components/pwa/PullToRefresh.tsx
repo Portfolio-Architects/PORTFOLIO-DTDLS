@@ -31,7 +31,7 @@ export default function PullToRefresh({
     const getScrollTop = () => {
       if (scrollContainerId) {
         const el = document.getElementById(scrollContainerId);
-        return el ? el.scrollTop : 0;
+        if (el) return el.scrollTop;
       }
       return window.scrollY;
     };

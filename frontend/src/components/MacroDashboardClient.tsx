@@ -244,6 +244,27 @@ export default function MacroDashboardClient({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const chartContainerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (
+        chartContainerRef.current &&
+        !chartContainerRef.current.contains(e.target as Node)
+      ) {
+        setActiveIndex(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside, {
+      passive: true,
+    });
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
+
   // 1. Donut Chart Data (실거래가/평단가 티어별 세대수 분포)
   const donutData = useMemo(() => {
     const priceTiers = [
@@ -510,7 +531,8 @@ export default function MacroDashboardClient({
           const sales = tx.avg3MPrice || tx.avg1MPrice || tx.latestPrice || 0;
           if (sales > maxPrice) {
             maxPrice = sales;
-            maxEok = formatEokWithUnit(sales).value + (formatEokWithUnit(sales).unit === '만원' ? '만' : '');
+            const fmt = formatEokWithUnit(sales);
+            maxEok = `${fmt.value}${fmt.unit}`;
             displayAptName = apt.name;
           }
         }
@@ -727,7 +749,7 @@ export default function MacroDashboardClient({
 
   return (
     <div className="w-full flex flex-col bg-surface relative">
-      <div className="flex flex-col md:px-10 lg:px-16 py-0 md:py-9 lg:py-12 w-full">
+      <div className="flex flex-col md:px-10 lg:px-16 pt-[22px] md:pt-12 lg:pt-16 pb-0 md:pb-12 lg:pb-16 w-full">
         {/* Compact Dynamic Sticky Header (Mobile Only) */}
         <div
           className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-white/95 backdrop-blur-md border-b border-border px-5 py-3 flex items-center justify-between transition-all duration-300 ${
@@ -746,7 +768,7 @@ export default function MacroDashboardClient({
         </div>
 
         {/* Top Header - Main Title */}
-        <div className="flex flex-col gap-3 sm:gap-4 md:mb-8 px-4 sm:px-6 md:px-2 py-3 md:py-0 relative md:static md:bg-transparent border-b border-border md:border-none">
+        <div className="flex flex-col gap-[21px] sm:gap-[29px] md:mb-10 px-4 sm:px-6 md:px-2 py-5 md:py-0 relative md:static md:bg-transparent border-b border-[#f2f4f6] md:border-none">
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-3 sm:gap-4">
               <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-[#e5e8eb] flex items-center justify-center shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] shadow-sm">
@@ -765,20 +787,23 @@ export default function MacroDashboardClient({
             </div>
           </div>
           <div className="flex flex-col justify-end mb-0 sm:mb-0">
-            <div className="flex w-full py-1">
-              <div className="w-[3px] rounded-full mr-4 shrink-0 bg-[#00d29d]" />
-              <div className="flex flex-col sm:flex-row sm:items-baseline justify-start flex-1 gap-0.5 sm:gap-1.5">
-                <strong className="text-[#191f28] text-[13.5px] sm:text-[15.5px] whitespace-nowrap">
+            <div className="flex w-full">
+              <div className="w-[2px] rounded-full mr-4 shrink-0 bg-[#00d29d]" />
+              <div className="flex flex-col sm:flex-row sm:items-baseline justify-start flex-1 gap-1 sm:gap-2">
+                <strong className="text-[#191f28] text-[14px] sm:text-[16px] whitespace-nowrap">
                   데이터 기반 동탄 아파트 가치 분석
                 </strong>
-                <span className="text-[#8b95a1] font-normal text-[12.5px] sm:text-[14px] leading-snug break-keep">
-                  <span className="hidden sm:inline text-[#d1d6db] mr-1">—</span>
+                <span className="text-[#8b95a1] font-normal text-[13px] sm:text-[14.5px] leading-snug break-keep">
+                  <span className="hidden sm:inline text-[#d1d6db] mr-1.5">—</span>
                   실거래가 데이터, 통계 기반의 동탄 부동산 인사이트 제공
                 </span>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Desktop Divider (Similar to Portfolio Asset) */}
+        <div className="hidden md:block w-full h-[1px] bg-[#f2f4f6] mb-8" />
 
         <div className="flex flex-col md:flex-row gap-4 w-full px-3 sm:px-6 md:px-0 mt-4 md:mt-0">
           {/* Left Column Container */}
@@ -814,7 +839,7 @@ export default function MacroDashboardClient({
                 </div>
               </div>
 
-              <div className="flex-1 flex flex-col xl:flex-row items-center justify-between px-2 xl:px-12 gap-6 relative mt-3">
+              <div ref={chartContainerRef} className="flex-1 flex flex-col xl:flex-row items-center justify-between px-2 xl:px-12 gap-6 relative mt-3">
                 <div className="w-[240px] h-[240px] relative shrink-0">
                   {/* Center Label (Placed before ResponsiveContainer to prevent z-index overlap with Tooltip) */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
@@ -835,7 +860,7 @@ export default function MacroDashboardClient({
                     height={240}
                     className="relative z-10"
                   >
-                    <PieChart>
+                    <PieChart onMouseLeave={() => setActiveIndex(null)}>
                       <Pie
                         data={donutData}
                         innerRadius={78}
@@ -858,28 +883,27 @@ export default function MacroDashboardClient({
                                 activeIndex === null || activeIndex === index
                                   ? 1
                                   : 0.3,
-                              filter:
-                                activeIndex === index
-                                  ? "drop-shadow(0px 4px 12px rgba(0,0,0,0.15))"
-                                  : "none",
+                              filter: "none",
                             }}
                           />
                         ))}
                       </Pie>
                       <RechartsTooltip
-                        formatter={(value: any) => [
-                          `${(value || 0).toLocaleString()} 세대`,
-                          "세대수",
-                        ]}
-                        contentStyle={{
-                          borderRadius: "14px",
-                          border: "none",
-                          boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
-                          fontWeight: "bold",
-                          padding: "12px 18px",
-                          fontSize: "15px",
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length && activeIndex !== null) {
+                            const color = payload[0].payload?.fill || payload[0].color || "#4e5968";
+                            return (
+                              <div className="bg-white py-2 px-3 rounded-[10px] shadow-[0_8px_30px_rgba(0,0,0,0.15)] border border-[#e5e8eb]">
+                                <span className="text-[14.5px] font-bold" style={{ color }}>
+                                  세대수 : {(payload[0].value || 0).toLocaleString()} 세대
+                                </span>
+                              </div>
+                            );
+                          }
+                          return null;
                         }}
                         cursor={{ fill: "transparent" }}
+                        isAnimationActive={false}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -935,7 +959,7 @@ export default function MacroDashboardClient({
               <InfoBox
                 title="대장 아파트 단지"
                 value={maxAptName}
-                badge={`${maxPriceEok.replace("억", "억 ").replace("  ", " ")}만원`}
+                badge={maxPriceEok}
               />
               <InfoBox
                 title="최고 평당가 단지"
@@ -1534,23 +1558,13 @@ export default function MacroDashboardClient({
           </div>
 
           <div className="mt-6 flex flex-col gap-3 justify-center items-center">
-            {newsData.length > visibleNewsCount && (
-              <button 
-                onClick={() => setVisibleNewsCount(prev => prev + 6)}
-                className="flex items-center gap-1.5 px-5 py-2.5 bg-white border border-[#e5e8eb] hover:bg-[#f9fafb] text-[#4e5968] text-[13.5px] font-bold rounded-full transition-colors shadow-sm"
-              >
-                더보기 ({visibleNewsCount} {"/"} {newsData.length})
-                <ChevronDown className="w-4 h-4" />
-              </button>
-            )}
-            
             <button 
               onClick={() => {
                 window.location.hash = 'lounge-news';
               }}
-              className="flex items-center gap-1.5 px-4 py-2 bg-[#f2f4f6] hover:bg-[#e5e8eb] text-[#4e5968] text-[13px] font-bold rounded-full transition-colors"
+              className="flex items-center gap-1.5 px-5 py-2.5 bg-white border border-[#e5e8eb] hover:bg-[#f9fafb] text-[#4e5968] text-[13.5px] font-bold rounded-full transition-colors shadow-sm"
             >
-              Read Full Insights in Lounge
+              더보기 ({visibleNewsCount} {"/"} {newsData.length || 100})
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
