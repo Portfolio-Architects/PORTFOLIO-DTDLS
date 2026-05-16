@@ -89,7 +89,7 @@ export default function LoungeHeader({ activeTab = 'lounge', onTabChange }: { ac
               </Link>
 
               <Link
-                href="/lounge"
+                href="/#lounge"
                 className={`flex items-center justify-center min-w-[90px] sm:min-w-[100px] gap-1.5 px-3 py-2.5 text-[13px] sm:text-[14px] font-bold transition-all duration-300 rounded-[12px] bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5`}
               >
                 <MessageSquare size={16} className="text-primary group-hover:scale-110 transition-transform duration-200" />
