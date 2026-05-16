@@ -36,14 +36,19 @@ export async function generateMetadata(props: { params: Promise<{ aptName: strin
     ogUrl.searchParams.set('bgUrl', imageUrl);
   }
   
-  const seoDescription = `동탄 ${decodedName} 실거래가, 매매가, 전세가율, 학군, 교통 호재, 적정 가치 분석. D-VIEW에서 실제 데이터 기반의 프리미엄 분석을 확인하세요.`;
+  const aptSummary = TX_SUMMARY[decodedName];
+  const pyeongStr = aptSummary?.latestArea ? `${Math.round(aptSummary.latestArea)}평` : '';
+  const titlePyeong = pyeongStr ? ` ${pyeongStr}` : '';
+  
+  const seoTitle = `${decodedName}${titlePyeong} 실거래가, 매매가, 전세가율 및 학군 분석 - D-VIEW`;
+  const seoDescription = `동탄 ${decodedName}${titlePyeong} 실거래가, 매매가, 전세가율, 학군, 교통 호재, 적정 가치 분석. D-VIEW에서 실제 데이터 기반의 프리미엄 분석을 확인하세요.`;
 
   return {
-    title: `${decodedName} 실거래가 및 프리미엄 분석 - D-VIEW`,
+    title: seoTitle,
     description: seoDescription,
-    keywords: `동탄, ${decodedName}, 실거래가, 매매가, 전세가율, 학군, 교통, 인프라, 아파트 분석, 임장, 호갱노노, 아실, 부동산`,
+    keywords: `동탄, ${decodedName}, ${pyeongStr}, 실거래가, 매매가, 전세가율, 학군, 교통, 인프라, 아파트 분석, 임장, 호갱노노, 아실, 부동산`,
     openGraph: {
-      title: `${decodedName} 실거래가 분석 - D-VIEW`,
+      title: seoTitle,
       description: seoDescription,
       url: `${baseUrl}/apartment/${encodeURIComponent(decodedName)}`,
       siteName: 'D-VIEW',
@@ -60,7 +65,7 @@ export async function generateMetadata(props: { params: Promise<{ aptName: strin
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${decodedName} 실거래가 분석 - D-VIEW`,
+      title: seoTitle,
       description: seoDescription,
       images: [ogUrl.toString()],
     }
@@ -217,6 +222,9 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   const latestPrice = aptSummary?.latestPriceEok ? `${aptSummary.latestPriceEok}억` : '정보 없음';
   const avg3MPrice = aptSummary?.avg3MPriceEok ? `${aptSummary.avg3MPriceEok}억` : '정보 없음';
   const jeonsePrice = aptSummary?.latestRentDepositEok ? `${aptSummary.latestRentDepositEok}억` : '정보 없음';
+  
+  const pyeongStr = aptSummary?.latestArea ? `${Math.round(aptSummary.latestArea)}평` : '';
+  const titlePyeong = pyeongStr ? ` ${pyeongStr}` : '';
 
   return (
     <>
@@ -227,7 +235,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
       
       {/* Search Engine Optimization (SSR Content) */}
       <div className="sr-only" aria-hidden="true">
-        <h1>{decodedName} 실거래가 및 가치 분석</h1>
+        <h1>{decodedName}{titlePyeong} 실거래가 및 학군 가치 분석</h1>
         <p>
           동탄 {decodedName} 아파트의 최근 실거래가는 {latestPrice}이며, 최근 3개월 평균 매매가는 {avg3MPrice}입니다.
           가장 최근 전세 실거래가는 {jeonsePrice}입니다. 
