@@ -201,7 +201,7 @@ const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: any) => {
   const imageUrl = 
     report?.thumbnail ||
     report?.imageUrl ||
-    report?.images?.[0] || 
+    report?.images?.[0]?.url || 
     report?.sections?.infra?.gateImg || 
     report?.sections?.infra?.gateImgs?.[0] || 
     report?.sections?.infra?.landscapeImg || 

@@ -12,7 +12,8 @@ import { normalize84Price } from '@/lib/utils/valuation';
 import { normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import type { CommentData, FieldReportData } from '@/lib/DashboardFacade';
 import type { User } from 'firebase/auth';
-import { auth, googleProvider } from '@/lib/firebaseConfig';
+import { doc, updateDoc } from 'firebase/firestore';
+import { auth, googleProvider, db } from '@/lib/firebaseConfig';
 import { signInWithPopup } from 'firebase/auth';
 import { createPortal } from 'react-dom';
 import CommentSection from '@/components/CommentSection';
@@ -1084,6 +1085,29 @@ function FieldReportModal({
         >
           <Download size={24} />
         </button>
+
+        {isAdmin && (
+          <button 
+            className="absolute top-6 right-36 z-50 text-white hover:text-toss-blue p-2 rounded-full bg-surface/10 hover:bg-surface/30 transition-colors flex items-center gap-2 px-4 border border-white/20"
+            onClick={async (e) => { 
+              e.stopPropagation(); 
+              if (!currentImgData?.url || !report?.id) return;
+              if (!confirm('이 사진을 아파트 카드의 대표 썸네일로 설정하시겠습니까?')) return;
+              try {
+                await updateDoc(doc(db, 'field_reports', report.id), {
+                  thumbnail: currentImgData.url
+                });
+                alert('대표 썸네일이 변경되었습니다. 새로고침 시 반영됩니다.');
+              } catch (err) {
+                console.error(err);
+                alert('썸네일 설정에 실패했습니다.');
+              }
+            }}
+            title="대표 썸네일로 설정"
+          >
+            <span className="text-sm font-bold">대표 사진 설정</span>
+          </button>
+        )}
 
         {/* Left Arrow */}
         {currentImageIndex > 0 && (
