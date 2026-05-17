@@ -110,16 +110,16 @@ async function loadApartments(forceRefresh = false): Promise<ApartmentPOI[]> {
     const coord = parseCoordString(coordStr);
     if (!coord) continue;
 
-    const householdCount = c[hhIdx] ? parseInt(c[hhIdx]) : undefined;
-    const parkingCount = c[parkIdx] ? parseInt(c[parkIdx]) : undefined;
+    const householdCount = c[hhIdx] ? parseInt(c[hhIdx].replace(/,/g, '')) : undefined;
+    const parkingCount = c[parkIdx] ? parseInt(c[parkIdx].replace(/,/g, '')) : undefined;
 
     result.push({
       name: name.trim(),
       ...coord,
       householdCount: isNaN(householdCount as number) ? undefined : householdCount,
       yearBuilt: c[yearIdx]?.trim() || undefined,
-      far: c[farIdx] ? parseFloat(c[farIdx]) || undefined : undefined,
-      bcr: c[bcrIdx] ? parseFloat(c[bcrIdx]) || undefined : undefined,
+      far: c[farIdx] ? parseFloat(c[farIdx].replace(/,/g, '')) || undefined : undefined,
+      bcr: c[bcrIdx] ? parseFloat(c[bcrIdx].replace(/,/g, '')) || undefined : undefined,
       parkingCount: isNaN(parkingCount as number) ? undefined : parkingCount,
       brand: c[brandIdx]?.trim() || undefined,
     });
