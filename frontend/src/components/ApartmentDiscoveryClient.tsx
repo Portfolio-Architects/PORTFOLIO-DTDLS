@@ -224,9 +224,10 @@ const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: any) => {
 
   return (
     <div 
-      className={`relative shrink-0 rounded-[8px] md:rounded-[12px] overflow-hidden cursor-pointer group shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-[#e5e8eb] bg-white transition-transform duration-300 hover:scale-[1.03] hover:z-20 ${
-        isHero ? 'w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] self-stretch' : 'w-[140px] sm:w-[160px] md:w-[180px] lg:w-[220px] aspect-[2/3]'
+      className={`relative shrink-0 rounded-[8px] md:rounded-[12px] overflow-hidden cursor-pointer group shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-[#e5e8eb] bg-white transition-all duration-300 hover:scale-[1.05] hover:!z-50 hover:shadow-2xl w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] aspect-[4/3] snap-center ${
+        rank > 1 ? '-ml-[150px] sm:-ml-[200px] md:-ml-[240px] lg:-ml-[280px]' : ''
       }`}
+      style={{ zIndex: 100 - rank }}
       onClick={() => onClick(apt)}
     >
       {/* Background Image */}
@@ -234,7 +235,7 @@ const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: any) => {
         <img 
           src={imageUrl} 
           alt={apt.name} 
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 bg-white"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 bg-white"
           onError={(e) => {
             e.currentTarget.style.display = 'none';
           }}
@@ -243,30 +244,28 @@ const NetflixCard = ({ cat, apt, txSummary, report, rank, onClick }: any) => {
       
       {/* Dark Gradient Overlay for Readability (Only if Image exists) */}
       {hasImage && (
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-90" />
       )}
       
-      {/* Top Left Rank (Only for non-hero) */}
-      {!isHero && rank != null && (
-        <div className="absolute top-0 left-0 text-[#f2f4f6] font-black text-[80px] md:text-[120px] leading-none z-10 -translate-x-2 -translate-y-4" style={{ textShadow: "0 2px 10px rgba(0,0,0,0.1)", WebkitTextStroke: "1px #d1d6db" }}>
-          {rank}
+      {/* Top Left Rank */}
+      {rank != null && (
+        <div className="absolute top-4 left-4 md:top-6 md:left-6 bg-black/60 backdrop-blur-md rounded-full px-4 py-1 z-10 border border-white/10 shadow-lg">
+          <span className="text-white font-extrabold text-[16px] md:text-[20px] italic">{rank}위</span>
         </div>
       )}
       
       {/* Base Content */}
-      <div className={`absolute bottom-0 left-0 right-0 z-10 flex flex-col ${isHero ? 'p-5 md:p-8 gap-2' : 'p-3 md:p-5 gap-1'}`}>
-        <h4 className={`${titleColor} font-extrabold leading-tight line-clamp-2 break-keep ${isHero ? 'text-[22px] md:text-[28px]' : 'text-[16px] md:text-[18px]'}`} style={hasImage ? { textShadow: "0 2px 8px rgba(0,0,0,0.5)" } : {}}>
+      <div className={`absolute bottom-0 left-0 right-0 z-10 flex flex-col p-5 md:p-8 gap-2 transition-transform duration-300 group-hover:-translate-y-2`}>
+        <h4 className={`${titleColor} font-extrabold leading-tight line-clamp-2 break-keep text-[22px] md:text-[28px]`} style={hasImage ? { textShadow: "0 2px 8px rgba(0,0,0,0.5)" } : {}}>
           {apt.name}
         </h4>
         <div className="flex items-center gap-2">
-          <span className={`${priceColor} font-extrabold ${isHero ? 'text-[18px] md:text-[20px]' : 'text-[15px]'}`}>{priceText}</span>
-          <span className={`${dongColor} font-medium ${isHero ? 'text-[15px]' : 'text-[13px]'}`}>{apt.dong}</span>
+          <span className={`${priceColor} font-extrabold text-[18px] md:text-[20px]`}>{priceText}</span>
+          <span className={`${dongColor} font-medium text-[15px]`}>{apt.dong}</span>
         </div>
-        {isHero && (
-           <p className={`${descColor} text-[13px] md:text-[15px] font-medium mt-1 line-clamp-2 w-[80%]`}>
-             {cat?.desc || '동탄을 대표하는 프리미엄 아파트입니다.'}
-           </p>
-        )}
+        <p className={`${descColor} text-[13px] md:text-[15px] font-medium mt-1 line-clamp-2 w-[90%] opacity-0 group-hover:opacity-100 transition-opacity duration-300`}>
+          {cat?.desc || '동탄을 대표하는 프리미엄 아파트입니다.'}
+        </p>
       </div>
     </div>
   );
@@ -332,7 +331,7 @@ const NetflixCategoryRow = React.memo(({ cat, apts, txSummaryData, nameMapping, 
 
           <div 
             ref={scrollContainerRef}
-            className="flex items-stretch gap-3 md:gap-4 overflow-x-auto snap-x snap-mandatory hide-scrollbar px-4 sm:px-6 md:px-10 lg:px-16 pb-2 pt-2 scroll-smooth"
+            className="flex items-stretch overflow-x-auto snap-x snap-mandatory hide-scrollbar px-4 sm:px-6 md:px-10 lg:px-16 pb-6 pt-4 scroll-smooth"
           >
             {apts.map((apt: any, rankIndex: number) => {
                const rawKey = apt.txKey || apt.name;
