@@ -1068,7 +1068,7 @@ function FieldReportModal({
     const currentImgData = report?.images?.[currentImageIndex];
     return (
       <div 
-        className="fixed inset-0 z-[110] bg-black/95 flex items-center justify-center animate-in fade-in duration-200"
+        className="fixed inset-0 z-[99999] bg-black/95 flex items-center justify-center animate-in fade-in duration-200"
         onClick={() => setFullscreenImage(null)}
       >
         <button 
@@ -1167,7 +1167,7 @@ function FieldReportModal({
 
   return createPortal(
     <>
-      <div className="fixed inset-0 z-[100] flex flex-col justify-end md:items-center md:justify-center p-0 md:p-12 animate-in fade-in duration-200" style={{ position: 'fixed' }}>
+      <div className="fixed inset-0 z-[9999] flex flex-col justify-end md:items-center md:justify-center p-0 md:p-12 animate-in fade-in duration-200" style={{ position: 'fixed' }}>
         <div className="absolute inset-0 bg-primary/60 backdrop-blur-sm" onClick={onClose} />
         
         <div className={`relative bg-body w-full ${isFullscreen ? 'h-full max-w-none rounded-none' : 'max-w-[1340px] h-[100dvh] md:h-auto md:max-h-[95vh] rounded-none md:rounded-[24px]'} flex flex-col shadow-2xl transition-transform duration-300 ring-1 ring-black/5 slide-in-from-bottom overflow-hidden`}>
