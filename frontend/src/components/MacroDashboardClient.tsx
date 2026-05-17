@@ -1051,13 +1051,13 @@ export default function MacroDashboardClient({
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
               <div className="flex flex-col">
                 <h2 className="text-[18px] font-extrabold text-[#191f28] tracking-tight">
-                  동탄 아파트 전체 가격 변화 추이
+                  동탄 아파트 대표 가격 변화 추이
                 </h2>
                 <span className="text-[13px] text-[#8b95a1] font-medium mt-1">
                   {timeframe === "ALL"
                     ? "전체 기간 "
                     : `최근 ${timeframe.replace("M", "개월").replace("Y", "년")} `}
-                  평균 실거래가 변동 (억 원)
+                  국민평형(30~36평형) 실거래가 변동
                 </span>
               </div>
               <div className="flex bg-[#f2f4f6] p-0.5 rounded-lg shadow-inner">
@@ -1076,8 +1076,8 @@ export default function MacroDashboardClient({
               </div>
             </div>
 
-            <div className="w-full h-[230px]">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="w-full mt-2 sm:mt-0">
+              <ResponsiveContainer width="100%" height={250} minWidth={1} minHeight={1}>
                 <LineChart
                     data={lineData}
                     margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
@@ -1149,7 +1149,7 @@ export default function MacroDashboardClient({
                       yAxisId="left"
                       key="동탄 아파트 전체"
                       type="monotone"
-                      name="평균 매매가"
+                      name="평균 매매가(좌)"
                       dataKey="동탄 아파트 전체"
                       stroke="#00d29d"
                       strokeWidth={4}
@@ -1165,7 +1165,7 @@ export default function MacroDashboardClient({
                       yAxisId="right"
                       key="동탄 아파트 전세 평균"
                       type="monotone"
-                      name="평균 전월세가"
+                      name="평균 전월세가(우)"
                       dataKey="동탄 아파트 전세 평균"
                       stroke="#f9a825"
                       strokeWidth={2}
@@ -1239,14 +1239,14 @@ export default function MacroDashboardClient({
                   className={`p-5 flex items-center justify-between cursor-pointer hover:bg-gray-50/50 rounded-t-[20px] ${!isExpanded ? 'rounded-b-[20px]' : ''}`}
                   onClick={() => toggleGroup(group.title)}
                 >
-                  <div className="flex items-center gap-3.5">
+                  <div className="flex items-center gap-3.5 flex-1 min-w-0 pr-2">
                     <div
-                      className="w-[12px] h-[12px] rounded-full shadow-sm"
+                      className="w-[12px] h-[12px] rounded-full shadow-sm shrink-0"
                       style={{ backgroundColor: themeColor }}
                     />
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[16px] md:text-[18px] font-extrabold text-[#191f28] tracking-tight">
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[15px] md:text-[18px] font-extrabold text-[#191f28] tracking-tight break-keep">
                           {group.title}
                         </span>
                         {group.title === "동탄역세권" && (
@@ -1275,22 +1275,22 @@ export default function MacroDashboardClient({
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex flex-col items-end">
+                  <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+                    <div className="flex flex-col items-end shrink-0">
                       {accordionMode === "price" ? (
                         (() => {
                           const { value, unit } = formatEokWithUnit(group.avgPrice);
                           return (
                             <>
-                              <div className="flex items-baseline gap-1">
-                                <span className="text-[16px] md:text-[20px] font-extrabold text-[#191f28]">
+                              <div className="flex items-baseline gap-1 whitespace-nowrap">
+                                <span className="text-[15px] md:text-[20px] font-extrabold text-[#191f28] tracking-tighter">
                                   {value}
                                 </span>
-                                <span className="text-[12px] font-bold text-[#8b95a1]">
+                                <span className="text-[11px] md:text-[12px] font-bold text-[#8b95a1]">
                                   {unit}
                                 </span>
                               </div>
-                              <span className="text-[12px] font-medium text-[#8b95a1] mt-0.5">
+                              <span className="text-[11px] md:text-[12px] font-medium text-[#8b95a1] mt-0.5 whitespace-nowrap">
                                 평균 실거래가
                               </span>
                             </>
@@ -1298,15 +1298,15 @@ export default function MacroDashboardClient({
                         })()
                       ) : (
                         <>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-[16px] md:text-[20px] font-extrabold text-[#191f28]">
+                          <div className="flex items-baseline gap-1 whitespace-nowrap">
+                            <span className="text-[15px] md:text-[20px] font-extrabold text-[#191f28] tracking-tighter">
                               {Math.round(group.avgPyeongPrice).toLocaleString()}
                             </span>
-                            <span className="text-[12px] font-bold text-[#8b95a1]">
+                            <span className="text-[11px] md:text-[12px] font-bold text-[#8b95a1]">
                               만원/평
                             </span>
                           </div>
-                          <span className="text-[12px] font-medium text-[#8b95a1] mt-0.5">
+                          <span className="text-[11px] md:text-[12px] font-medium text-[#8b95a1] mt-0.5 whitespace-nowrap">
                             평균 평단가
                           </span>
                         </>
@@ -1363,7 +1363,7 @@ export default function MacroDashboardClient({
                         return (
                           <>
                             {/* Tier Selection Pills */}
-                            <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2 pt-1 -mx-2 px-2">
+                            <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2 pt-1 -mx-2 px-2">
                               {availableTiers.map(t => {
                                 const isActive = t.originalIndex === currentTierIndex;
                                 return (
@@ -1393,28 +1393,30 @@ export default function MacroDashboardClient({
                                 <div
                                   key={apt.name}
                                   onClick={(e) => { e.stopPropagation(); onSelectApt && onSelectApt(apt.name); }}
-                                  className="flex flex-row items-center justify-between p-3.5 sm:p-4 rounded-[14px] border border-gray-100 bg-white hover:border-[#00d29d]/30 hover:bg-[#f9fafb] cursor-pointer transition-all shadow-sm group/apt gap-3 sm:gap-4"
+                                  className="flex flex-col p-3.5 sm:p-4 rounded-[14px] border border-gray-100 bg-white hover:border-[#00d29d]/30 hover:bg-[#f9fafb] cursor-pointer transition-all shadow-sm group/apt gap-2 sm:gap-2.5"
                                 >
-                                  {/* Left: Name and Distance */}
-                                  <div className="flex flex-col items-start gap-1.5 flex-1 min-w-0">
-                                    <div className="flex items-start gap-2.5 w-full">
-                                      <div className="w-1.5 h-1.5 bg-[#d1d6db] rounded-full shrink-0 group-hover/apt:bg-[#00d29d] transition-colors mt-[7px]" />
-                                      <span className="text-[14.5px] sm:text-[15.5px] font-extrabold text-[#333d4b] leading-snug break-keep">
+                                  {/* Top Row: Name and Chevron */}
+                                  <div className="flex items-center justify-between w-full">
+                                    <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
+                                      <div className="w-1.5 h-1.5 bg-[#d1d6db] rounded-full shrink-0 group-hover/apt:bg-[#00d29d] transition-colors" />
+                                      <span className="text-[14.5px] sm:text-[15.5px] font-extrabold text-[#333d4b] truncate">
                                         {apt.name}
                                       </span>
                                     </div>
-                                    {apt.distToDongtan !== null && (
-                                      <div className="pl-4">
+                                    <ChevronRight className="w-4 h-4 text-[#b0b8c1] shrink-0" />
+                                  </div>
+
+                                  {/* Bottom Row: Distance and Price */}
+                                  <div className="flex items-center justify-between pl-4 mt-0.5">
+                                    <div className="flex items-center min-w-0 pr-2">
+                                      {apt.distToDongtan !== null && (
                                         <span className="text-[11px] sm:text-[11.5px] font-bold text-[#3182f6] bg-[#e8f3ff] px-2 py-[3px] rounded-[6px] group-hover/apt:bg-[#d1e6ff] transition-colors border border-[#3182f6]/10 inline-flex whitespace-nowrap">
                                           동탄역 {(apt.distToDongtan / 1000).toFixed(2)}km
                                         </span>
-                                      </div>
-                                    )}
-                                  </div>
+                                      )}
+                                    </div>
 
-                                  {/* Right: Price */}
-                                  <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-                                    <div className="flex flex-col sm:flex-row items-end sm:items-baseline gap-0 sm:gap-1 text-right">
+                                    <div className="flex flex-row items-baseline gap-1 text-right shrink-0">
                                       {accordionMode === "price" ? (
                                         (() => {
                                           const { value, unit } = formatEokWithUnit(apt.latestPrice);
@@ -1440,7 +1442,6 @@ export default function MacroDashboardClient({
                                         </>
                                       )}
                                     </div>
-                                    <ChevronRight className="w-4 h-4 text-[#b0b8c1] shrink-0" />
                                   </div>
                                 </div>
                               ))}
@@ -1563,20 +1564,20 @@ export default function MacroDashboardClient({
                   }
                   className="flex gap-4 p-5 rounded-xl border border-gray-100 bg-[#f9fafb] hover:bg-white hover:border-[#00d29d]/30 transition-all cursor-pointer group"
                 >
-                  <div className="w-8 h-8 shrink-0 flex items-center justify-center bg-white rounded-full border border-gray-200 text-[#00d29d] font-bold text-[13px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
+                  <div className="w-8 h-8 md:w-9 md:h-9 shrink-0 flex items-center justify-center bg-white rounded-full border border-gray-200 text-[#00d29d] font-bold text-[13px] md:text-[14px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors">
                     {news.id}
                   </div>
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-[11px] font-extrabold text-[#00d29d] tracking-wide">
+                  <div className="flex flex-col justify-center">
+                    <div className="flex items-center gap-2 mb-1.5 md:mb-2">
+                      <span className="text-[11px] md:text-[12px] font-extrabold text-[#00d29d] tracking-wide">
                         {news.category}
                       </span>
-                      <span className="text-[11px] text-gray-300">|</span>
-                      <span className="text-[11px] font-semibold text-[#8b95a1]">
+                      <span className="text-[11px] md:text-[12px] text-gray-300">|</span>
+                      <span className="text-[11px] md:text-[12px] font-semibold text-[#8b95a1]">
                         {news.sub}
                       </span>
                     </div>
-                    <p className="text-[13px] font-semibold text-[#4e5968] leading-snug group-hover:text-[#191f28] transition-colors line-clamp-2">
+                    <p className="text-[13px] md:text-[15px] font-semibold text-[#4e5968] leading-snug md:leading-[1.5] group-hover:text-[#191f28] transition-colors line-clamp-2">
                       {news.title}
                     </p>
                   </div>

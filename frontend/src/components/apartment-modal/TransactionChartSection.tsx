@@ -174,6 +174,15 @@ export function TransactionChartSection({
             watermark.style.opacity = '1';
             watermark.style.color = '#8b95a1';
           }
+          
+          // Fix for html2canvas crash on Tailwind v4 oklab/color-mix box-shadows
+          const allElements = clonedDoc.getElementsByTagName('*');
+          for (let i = 0; i < allElements.length; i++) {
+            const el = allElements[i] as HTMLElement;
+            if (el.style) {
+              el.style.boxShadow = 'none';
+            }
+          }
         }
       });
       const dataUrl = canvas.toDataURL('image/png');

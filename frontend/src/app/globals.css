@@ -189,10 +189,15 @@
     -webkit-tap-highlight-color: transparent !important;
   }
 
-  /* Custom Scrollbar */
+  /* Hide all horizontal scrollbars app-wide */
+  *::-webkit-scrollbar:horizontal {
+    display: none !important;
+    height: 0 !important;
+  }
+
+  /* Custom Scrollbar (Vertical only) */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
-    height: 6px;
   }
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;

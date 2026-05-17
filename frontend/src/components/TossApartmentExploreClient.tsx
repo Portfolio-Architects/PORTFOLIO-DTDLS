@@ -245,7 +245,7 @@ export default function TossApartmentExploreClient({
       </div>
 
       {/* Main Table Area */}
-      <div className="flex-1 flex flex-col bg-white min-w-0">
+      <div className="flex-1 flex flex-col bg-white min-w-0 md:pl-8 lg:pl-10">
         <div className="px-5 py-3 md:px-0 md:py-5 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-white md:sticky md:top-[60px] md:z-10">
           <div className="flex flex-row justify-between items-center md:flex-col md:items-start">
             <button 
@@ -313,12 +313,11 @@ export default function TossApartmentExploreClient({
                       {index + 1}
                     </div>
                     
-                    {/* Name & Dong */}
+                    {/* Name */}
                     <div className="flex-1 min-w-[180px] flex items-center ml-2">
                       <span className="text-[15px] font-extrabold text-primary leading-none">{item.apt.name}</span>
-                      <span className="ml-2 text-[13px] text-tertiary leading-none font-medium">{item.apt.dong}</span>
                       {item.photoCount > 0 && (
-                        <span className="ml-2 px-1.5 py-0.5 bg-[#e0fbf4] text-[#00b386] text-[11px] font-bold rounded-md leading-none flex items-center">
+                        <span className="ml-2 px-1.5 py-0.5 bg-[#e0fbf4] text-[#00b386] text-[11px] font-bold rounded-md leading-none flex items-center shrink-0">
                           <Camera className="w-3 h-3 mr-1 inline-block" />
                           사진 {item.photoCount}장
                         </span>

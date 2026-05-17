@@ -58,7 +58,7 @@ export default function PageHeroHeader({
                 <img
                   src="/d-view-icon.png"
                   alt="Icon"
-                  className="w-[26px] h-[26px] sm:w-[32px] sm:h-[32px] object-contain"
+                  className="w-[30px] h-[30px] sm:w-[37px] sm:h-[37px] object-contain"
                 />
               </div>
               <h1 className="font-extrabold text-[#191f28] tracking-tight leading-none whitespace-nowrap text-[22px] sm:text-[30px] lg:text-[36px] -translate-y-[1px] sm:-translate-y-[1.5px]">
