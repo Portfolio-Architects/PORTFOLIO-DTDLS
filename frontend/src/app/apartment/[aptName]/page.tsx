@@ -196,6 +196,7 @@ async function getInitialData() {
           viewCount: data.viewCount || 0,
           commentCount: data.commentCount || 0,
           imageUrl: data.thumbnailUrl || data.imageUrl,
+          thumbnail: data.thumbnail,
           images: data.images || [],
           metrics: data.metrics,
           scoutingDate: data.scoutingDate || '',
